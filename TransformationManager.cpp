@@ -29,7 +29,6 @@ void TransformationManager::initializeCompilerInstance(void)
   assert(ClangInstance);
   
   ClangInstance->createDiagnostics(0, NULL);
-  //ClangInstance->getDiagnostics().setIgnoreAllWarnings(true);
   ClangInstance->getLangOpts().C99 = 1;
   ClangInstance->getLangOpts().CPlusPlus = 1;
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();

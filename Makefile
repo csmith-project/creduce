@@ -1,5 +1,5 @@
 # for my convenience
-llvm_installation_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
+# llvm_installation_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
 llvm_dir = ${llvm_installation_dir}
 
 CXX = g++

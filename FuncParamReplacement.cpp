@@ -21,12 +21,6 @@ public:
         return true;
     }
 
-#if 0
-    virtual bool VisitNamedDecl(NamedDecl *Decl) {
-      // std::cout << "name: " << Decl->getQualifiedNameAsString() << "\n";
-      return true;
-    }
-#endif
 };
 
 class FPRASTConsumer : public ASTConsumer {
