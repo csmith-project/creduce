@@ -35,6 +35,11 @@ public:
     TransformationASTVisitor = new FPRASTVisitor();
     TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
     ValidInstanceNum = 0;
+    TransFailed = false;
+  }
+
+  bool isTransFailed(void) {
+    return TransFailed;
   }
 
   virtual void HandleTopLevelDecl(DeclGroupRef D) {
@@ -47,10 +52,19 @@ public:
   }
 
   virtual void HandleTranslationUnit(ASTContext &Ctx) {
+    if (TransformationCounter > ValidInstanceNum) {
+        TransFailed = true;
+        return;
+    }
+
     assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
     Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+
     TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
     std::cout << "Instance Num: " << ValidInstanceNum << "\n";
+    TransFailed = 
+      (Ctx.getDiagnostics().hasErrorOccurred() ||
+       Ctx.getDiagnostics().hasFatalErrorOccurred());
   }
 
   ~FPRASTConsumer(void) {
@@ -71,6 +85,8 @@ private:
 
   const int TransformationCounter;
 
+  bool TransFailed;
+
   bool isValidFuncDecl(const FunctionDecl *FD);
 };
 
@@ -79,6 +95,7 @@ bool FPRASTConsumer::isValidFuncDecl(const FunctionDecl *FD)
   bool IsValid = false;
   assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
 
+  // Avoid duplications
   if (std::find(ValidFuncDecls.begin(), 
                 ValidFuncDecls.end(), FD) != 
       ValidFuncDecls.end())
@@ -128,7 +145,7 @@ bool FuncParamReplacement::doTransformation(void)
   ParseAST(ClangInstance->getSema());
 
   ClangInstance->getDiagnosticClient().EndSourceFile();
-  return !(ClangInstance->getDiagnostics().hasErrorOccurred() ||
-           ClangInstance->getDiagnostics().hasFatalErrorOccurred());
+
+  return (!TransformationASTConsumer->isTransFailed());
 }
 
