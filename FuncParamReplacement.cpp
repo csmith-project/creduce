@@ -26,18 +26,21 @@ public:
 class FPRASTConsumer : public ASTConsumer {
 public:
 
-  FPRASTConsumer(void) { }
+  FPRASTConsumer(int Counter) 
+    : TransformationCounter(Counter)
+  { }
 
   virtual void Initialize(ASTContext &context) {
     Context = &context;
-    TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
     TransformationASTVisitor = new FPRASTVisitor();
+    TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
+    ValidInstanceNum = 0;
   }
 
   virtual void HandleTopLevelDecl(DeclGroupRef D) {
     for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
       FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-      if (FD && isValidFuncDecl(FD)) {
+      if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
         ValidFuncDecls.push_back(FD);
       }
     }
@@ -47,6 +50,7 @@ public:
     assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
     Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
     TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+    std::cout << "Instance Num: " << ValidInstanceNum << "\n";
   }
 
   ~FPRASTConsumer(void) {
@@ -57,19 +61,39 @@ private:
 
   SmallVector<FunctionDecl *, 10> ValidFuncDecls;
 
+  ASTContext *Context;
+
   FPRASTVisitor *TransformationASTVisitor;
 
   Rewriter TheRewriter;
 
-  ASTContext *Context;
+  int ValidInstanceNum;
+
+  const int TransformationCounter;
 
   bool isValidFuncDecl(const FunctionDecl *FD);
-
 };
 
 bool FPRASTConsumer::isValidFuncDecl(const FunctionDecl *FD) 
 {
-  return true;
+  bool IsValid = false;
+  assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
+
+  if (std::find(ValidFuncDecls.begin(), 
+                ValidFuncDecls.end(), FD) != 
+      ValidFuncDecls.end())
+    return false;
+
+  for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
+       PE = FD->param_end(); PI != PE; ++PI) {
+    const ParmVarDecl *PV = (*PI);
+    QualType PVType = PV->getOriginalType();
+    if (PVType.getTypePtr()->isIntegralOrEnumerationType()) {
+      ValidInstanceNum++;
+      IsValid = true;
+    }
+  }
+  return IsValid;
 }
 
 FuncParamReplacement::FuncParamReplacement(const char *TransName)
@@ -88,7 +112,7 @@ void FuncParamReplacement::initializeTransformation(void)
 {
   assert(ClangInstance && "NULL ClangInstance!");
   // Freed with deleting ClangInstance
-  TransformationASTConsumer = new FPRASTConsumer();
+  TransformationASTConsumer = new FPRASTConsumer(TransformationCounter);
 
   assert(TransformationASTConsumer && "NULL TransformationASTConsumer!");
   assert(!ClangInstance->hasSema() && "Cannot have Sema!");
