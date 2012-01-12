@@ -154,8 +154,39 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
                                                       RangeSize - Offset - 1));
   }
  
-  // The param is in the middle
-  return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize));
+  // Clang gives inconsistent RangeSize for named and unnamed parameter decls.
+  // For example, for the first parameter, 
+  //   foo(int, int);  -- RangeSize is 4, i.e., "," is counted
+  //   foo(int x, int);  -- RangeSize is 5, i.e., ","is not included
+  if (PV->getDeclName()) {
+    // We cannot use the code below:
+    //   SourceLocation EndLoc = ParamLocRange.getEnd();
+    //   const char *EndBuf = 
+    //     ConsumerInstance->SrcManager->getCharacterData(EndLoc);
+    // Because getEnd() returns the start of the last token if this
+    // is a token range. For example, in the above example, 
+    // getEnd() points to the start of "x"
+    // See the comments on getRangeSize in clang/lib/Rewriter/Rewriter.cpp
+    int NewRangeSize = 0;
+    const char *StartBuf = 
+      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
+
+    while (NewRangeSize < RangeSize) {
+      StartBuf++;
+      NewRangeSize++;
+    }
+
+    assert(StartBuf && "Invalid start buffer!");
+    while (*StartBuf != ',') {
+      StartBuf++;
+      NewRangeSize++;
+    }
+
+    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, NewRangeSize + 1));
+  }
+  else {
+    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize));
+  }
 }
 
 bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
