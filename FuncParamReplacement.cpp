@@ -177,7 +177,7 @@ bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   if (!rewriteParam(PV, FD->getNumParams()))
     return false;
 
-  if (FD->isThisDeclarationAsDefinition()) {
+  if (FD->isThisDeclarationADefinition()) {
 
   }
   return true;
@@ -217,6 +217,10 @@ bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD)
   int ParamPos = 0;
 
   assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
+
+  if (FD->isVariadic() && (FD->getNumParams() == 1)) {
+    return false;
+  }
 
   // Avoid duplications
   if (std::find(ValidFuncDecls.begin(), 
