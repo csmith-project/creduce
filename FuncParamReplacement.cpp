@@ -30,6 +30,7 @@ public:
   bool VisitFunctionDecl(FunctionDecl *FD);
 
 private:
+
   FPRASTConsumer *ConsumerInstance;
 
   bool rewriteFuncDecl(FunctionDecl *FP);
@@ -37,9 +38,9 @@ private:
   bool rewriteParam(const ParmVarDecl *PV, 
                     unsigned int NumParams);
 
-  void insertAndRemove(Rewriter &RW, 
-                       SourceRange OrigRange,
-                       const char *ReplacementStr);
+  bool makeParamAsLocalVar(FunctionDecl *FP,
+                           const ParmVarDecl *PV);
+
 };
 
 class FPRASTConsumer : public ASTConsumer {
@@ -131,54 +132,50 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
   // Replace it with void
   if ((ConsumerInstance->TheParamPos == 0) && (NumParams == 1)) {
     // Note that ')' is included in ParamLocRange
-    // insertAndRemove(ConsumerInstance->TheRewriter, ParamLocRange, "void");
-    return ConsumerInstance->TheRewriter.ReplaceText(StartLoc, 
-                                                     RangeSize - 1, "void");
+    return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc, 
+                                                       RangeSize - 1, "void"));
   }
 
   // The param is the last parameter
   if (ConsumerInstance->TheParamPos == static_cast<int>(NumParams - 1)) {
-    int offset = 0;
+    int Offset = 0;
     const char *StartBuf = 
       ConsumerInstance->SrcManager->getCharacterData(StartLoc);
 
     assert(StartBuf && "Invalid start buffer!");
     while (*StartBuf != ',') {
       StartBuf--;
-      offset--;
+      Offset--;
     }
 
     SourceLocation NewStartLoc = 
-      StartLoc.getLocWithOffset(offset);
-    return ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
-                                                    RangeSize - offset - 1);
+      StartLoc.getLocWithOffset(Offset);
+    return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
+                                                      RangeSize - Offset - 1));
   }
  
   // The param is in the middle
-  return ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize);
+  return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize));
+}
+
+bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
+                                        const ParmVarDecl *PV)
+{
+  return true;  
 }
 
 bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
 {
-  const ParmVarDecl *PV = NULL;
-  int ParamPos = -1;
-
-  // Get the parameter to replace
-  for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
-       PE = FD->param_end(); PI != PE; ++PI) {
-    ParamPos++;
-    if (ParamPos == ConsumerInstance->TheParamPos) {
-      PV = (*PI);
-      break;
-    }
-  }
+  const ParmVarDecl *PV = 
+    FD->getParamDecl(ConsumerInstance->TheParamPos);  
 
   assert(PV && "Unmatched ParamPos!");
   if (!rewriteParam(PV, FD->getNumParams()))
     return false;
 
   if (FD->isThisDeclarationADefinition()) {
-
+    if (!makeParamAsLocalVar(FD, PV))
+      return false;
   }
   return true;
 }
@@ -218,6 +215,8 @@ bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD)
 
   assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
 
+  // Skip the case like foo(int, ...), because we cannot remove
+  // the "int" there
   if (FD->isVariadic() && (FD->getNumParams() == 1)) {
     return false;
   }
