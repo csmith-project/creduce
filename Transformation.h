@@ -9,6 +9,12 @@ namespace clang {
   class ASTConsumer;
 }
 
+typedef enum {
+  TransSuccess = 0,
+  TransInternalError,
+  TransMaxInstanceError
+} TransformationError;
+
 class Transformation {
 
 public:
@@ -38,6 +44,7 @@ public:
   virtual ~Transformation(void) { };
 
 protected:
+
   Transformation(void);
 
   clang::CompilerInstance *ClangInstance;

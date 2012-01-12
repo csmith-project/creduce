@@ -55,13 +55,17 @@ public:
     TheRewriter.setSourceMgr(Context->getSourceManager(), 
                              Context->getLangOptions());
     ValidInstanceNum = 0;
-    TransFailed = false;
+    TransError = TransSuccess;
     TheFuncDecl = NULL;
     TheParamPos = -1;
   }
 
-  bool isTransFailed(void) {
-    return TransFailed;
+  bool notMaxInstanceError(void) {
+    return (TransError != TransMaxInstanceError);
+  }
+  
+  bool transInternalError(void) {
+    return (TransError == TransInternalError);
   }
 
   virtual void HandleTopLevelDecl(DeclGroupRef D) {
@@ -73,23 +77,7 @@ public:
     }
   }
 
-  virtual void HandleTranslationUnit(ASTContext &Ctx) {
-    if (TransformationCounter > ValidInstanceNum) {
-        TransFailed = true;
-        return;
-    }
-
-    assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
-    Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
-    assert(TheFuncDecl && "NULL TheFuncDecl!");
-    assert((TheParamPos >= 0) && "Invalid parameter position!");
-
-    TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-
-    TransFailed = 
-      (Ctx.getDiagnostics().hasErrorOccurred() ||
-       Ctx.getDiagnostics().hasFatalErrorOccurred());
-  }
+  virtual void HandleTranslationUnit(ASTContext &Ctx);
 
   ~FPRASTConsumer(void) {
     delete TransformationASTVisitor;
@@ -109,7 +97,7 @@ private:
 
   const int TransformationCounter;
 
-  bool TransFailed;
+  TransformationError TransError;
 
   FunctionDecl *TheFuncDecl;
 
@@ -117,6 +105,25 @@ private:
 
   bool isValidFuncDecl(FunctionDecl *FD);
 };
+
+void FPRASTConsumer::HandleTranslationUnit(ASTContext &Ctx)
+{
+  if (TransformationCounter > ValidInstanceNum) {
+      TransError = TransMaxInstanceError;
+      return;
+  }
+
+  assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+  assert(TheFuncDecl && "NULL TheFuncDecl!");
+  assert((TheParamPos >= 0) && "Invalid parameter position!");
+
+  TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+
+  if (Ctx.getDiagnostics().hasErrorOccurred() ||
+      Ctx.getDiagnostics().hasFatalErrorOccurred())
+    TransError = TransInternalError;
+}
 
 bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD) 
 {
@@ -192,6 +199,11 @@ bool FuncParamReplacement::doTransformation(void)
 
   ClangInstance->getDiagnosticClient().EndSourceFile();
 
-  return (!TransformationASTConsumer->isTransFailed());
+  if (TransformationASTConsumer->transInternalError()) {
+    // FIXME:
+    // copy original source back
+    return true;
+  }
+  return TransformationASTConsumer->notMaxInstanceError();
 }
 
