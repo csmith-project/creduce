@@ -15,15 +15,33 @@ static RegisterTransformation<FuncParamReplacement> Trans("func-param-replacemen
 
 class FPRASTVisitor : public RecursiveASTVisitor<FPRASTVisitor> {
 public:
-    typedef RecursiveASTVisitor<FPRASTVisitor> Inherited;
+  typedef RecursiveASTVisitor<FPRASTVisitor> Inherited;
 
-    bool TraverseCallExpr(CallExpr *E) {
-        return true;
-    }
+  FPRASTVisitor(FPRASTConsumer *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitCallExpr(CallExpr *E) {
+    return true;
+  }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  FPRASTConsumer *ConsumerInstance;
+
+  void rewriteFuncDecl(FunctionDecl *FP);
 
 };
 
+void FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FP) 
+{
+  // TODO
+}
+
 class FPRASTConsumer : public ASTConsumer {
+  friend class FPRASTVisitor;
+
 public:
 
   FPRASTConsumer(int Counter) 
@@ -32,7 +50,7 @@ public:
 
   virtual void Initialize(ASTContext &context) {
     Context = &context;
-    TransformationASTVisitor = new FPRASTVisitor();
+    TransformationASTVisitor = new FPRASTVisitor(this);
     TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
     ValidInstanceNum = 0;
     TransFailed = false;
@@ -128,6 +146,15 @@ bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD)
     ParamPos++;
   }
   return IsValid;
+}
+
+bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD) {
+  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+
+  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
+    rewriteFuncDecl(FD);
+
+  return true;
 }
 
 FuncParamReplacement::FuncParamReplacement(const char *TransName)
