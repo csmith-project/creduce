@@ -75,7 +75,8 @@ public:
     Transformation *TransImpl = new TransformationClass(TransName);
     assert(TransImpl && "Fail to create TransformationClass");
     
-    TransformationManager::GetInstance()->registerTransformation(TransName, TransImpl);
+    TransformationManager *M = TransformationManager::GetInstance();
+    M->registerTransformation(TransName, TransImpl);
   }
 
 private:

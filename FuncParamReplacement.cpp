@@ -11,7 +11,8 @@
 
 using namespace clang;
 
-static RegisterTransformation<FuncParamReplacement> Trans("func-param-replacement");
+static RegisterTransformation<FuncParamReplacement> 
+         Trans("func-param-replacement");
 
 class FPRASTVisitor : public RecursiveASTVisitor<FPRASTVisitor> {
 public:
@@ -51,7 +52,8 @@ public:
   virtual void Initialize(ASTContext &context) {
     Context = &context;
     TransformationASTVisitor = new FPRASTVisitor(this);
-    TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
+    TheRewriter.setSourceMgr(Context->getSourceManager(), 
+                             Context->getLangOptions());
     ValidInstanceNum = 0;
     TransFailed = false;
     TheFuncDecl = NULL;

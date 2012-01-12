@@ -66,7 +66,9 @@ void TransformationManager::Finalize(void)
 bool TransformationManager::doTransformation(void)
 {
   assert(CurrentTransformationImpl && "Bad transformation instance!");
-  CurrentTransformationImpl->doInitialization(ClangInstance, TransformationCounter);
+  CurrentTransformationImpl->doInitialization(
+    ClangInstance, TransformationCounter);
+
   return CurrentTransformationImpl->doTransformation();
 }
 
