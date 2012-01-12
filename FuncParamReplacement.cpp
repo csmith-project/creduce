@@ -36,6 +36,8 @@ public:
     TheRewriter.setSourceMgr(Context->getSourceManager(), Context->getLangOptions());
     ValidInstanceNum = 0;
     TransFailed = false;
+    TheFuncDecl = NULL;
+    TheParamPos = -1;
   }
 
   bool isTransFailed(void) {
@@ -59,9 +61,11 @@ public:
 
     assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
     Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+    assert(TheFuncDecl && "NULL TheFuncDecl!");
+    assert((TheParamPos >= 0) && "Invalid parameter position!");
 
     TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-    std::cout << "Instance Num: " << ValidInstanceNum << "\n";
+
     TransFailed = 
       (Ctx.getDiagnostics().hasErrorOccurred() ||
        Ctx.getDiagnostics().hasFatalErrorOccurred());
@@ -87,12 +91,18 @@ private:
 
   bool TransFailed;
 
-  bool isValidFuncDecl(const FunctionDecl *FD);
+  FunctionDecl *TheFuncDecl;
+
+  int TheParamPos;
+
+  bool isValidFuncDecl(FunctionDecl *FD);
 };
 
-bool FPRASTConsumer::isValidFuncDecl(const FunctionDecl *FD) 
+bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD) 
 {
   bool IsValid = false;
+  int ParamPos = 0;
+
   assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
 
   // Avoid duplications
@@ -107,8 +117,15 @@ bool FPRASTConsumer::isValidFuncDecl(const FunctionDecl *FD)
     QualType PVType = PV->getOriginalType();
     if (PVType.getTypePtr()->isIntegralOrEnumerationType()) {
       ValidInstanceNum++;
+
+      if (ValidInstanceNum == TransformationCounter) {
+        TheFuncDecl = FD;
+        TheParamPos = ParamPos;
+      }
+
       IsValid = true;
     }
+    ParamPos++;
   }
   return IsValid;
 }
