@@ -23,9 +23,7 @@ public:
     : ConsumerInstance(Instance)
   { }
 
-  bool VisitCallExpr(CallExpr *E) {
-    return true;
-  }
+  bool VisitCallExpr(CallExpr *E);
 
   bool VisitFunctionDecl(FunctionDecl *FD);
 
@@ -37,6 +35,8 @@ private:
 
   bool rewriteParam(const ParmVarDecl *PV, 
                     unsigned int NumParams);
+
+  bool rewriteCalleeExpr(CallExpr *CallE);
 
   bool makeParamAsLocalVar(FunctionDecl *FP,
                            const ParmVarDecl *PV);
@@ -131,9 +131,13 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
   // The param is the only parameter of the function declaration.
   // Replace it with void
   if ((ConsumerInstance->TheParamPos == 0) && (NumParams == 1)) {
-    // Note that ')' is included in ParamLocRange
-    return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc, 
-                                                       RangeSize - 1, "void"));
+    // Note that ')' is included in ParamLocRange for unnamed parameter
+    if (PV->getDeclName())
+      return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc,
+                 RangeSize, "void"));
+    else
+      return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc,
+                 RangeSize - 1, "void"));
   }
 
   // The param is the last parameter
@@ -150,8 +154,14 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
 
     SourceLocation NewStartLoc = 
       StartLoc.getLocWithOffset(Offset);
-    return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
-                                                      RangeSize - Offset - 1));
+
+    // Note that ')' is included in ParamLocRange for unnamed parameter
+    if (PV->getDeclName())
+      return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
+                 RangeSize - Offset));
+    else
+      return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
+                 RangeSize - Offset - 1));
   }
  
   // Clang gives inconsistent RangeSize for named and unnamed parameter decls.
@@ -222,13 +232,84 @@ bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   return true;
 }
 
-bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD) {
+bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
   if (CanonicalFD == ConsumerInstance->TheFuncDecl)
     return rewriteFuncDecl(FD);
 
   return true;
+}
+
+bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
+{
+  Expr *Arg = CallE->getArg(ConsumerInstance->TheParamPos);
+  assert(Arg && "Null arg!");
+
+  SourceRange ArgRange = Arg->getSourceRange();
+  int RangeSize = ConsumerInstance->TheRewriter.getRangeSize(ArgRange);
+
+  if (RangeSize == -1)
+    return false;
+
+  SourceLocation StartLoc = ArgRange.getBegin();
+  unsigned int NumArgs = CallE->getNumArgs();
+
+  if ((ConsumerInstance->TheParamPos == 0) && (NumArgs == 1)) {
+    // Note that ')' is included in ParamLocRange
+    return !(ConsumerInstance->TheRewriter.RemoveText(ArgRange));
+  }
+
+  // The param is the last parameter
+  if (ConsumerInstance->TheParamPos == static_cast<int>(NumArgs - 1)) {
+    int Offset = 0;
+    const char *StartBuf = 
+      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
+
+    assert(StartBuf && "Invalid start buffer!");
+    while (*StartBuf != ',') {
+      StartBuf--;
+      Offset--;
+    }
+
+    SourceLocation NewStartLoc = 
+      StartLoc.getLocWithOffset(Offset);
+    return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc,
+                                                      RangeSize - Offset));
+  }
+
+  int NewRangeSize = 0;
+  const char *StartBuf =
+      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
+
+  assert(StartBuf && "Invalid start buffer!");
+  while (NewRangeSize < RangeSize) {
+    StartBuf++;
+    NewRangeSize++;
+  }
+
+  assert(StartBuf && "Invalid start buffer!");
+  while (*StartBuf != ',') {
+    StartBuf++;
+    NewRangeSize++;
+  }
+
+  ConsumerInstance->TheRewriter.RemoveText(StartLoc, NewRangeSize + 1);
+  return true;
+}
+
+bool FPRASTVisitor::VisitCallExpr(CallExpr *CallE) 
+{
+  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
+  if (!CalleeDecl)
+    return true;
+
+  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
+    return true;
+
+  // We now have a correct CallExpr
+  return rewriteCalleeExpr(CallE);
 }
 
 void FPRASTConsumer::HandleTranslationUnit(ASTContext &Ctx)
