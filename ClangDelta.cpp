@@ -10,11 +10,25 @@ static TransformationManager *TransMgr;
 static void PrintHelpMessage(void)
 {
   std::cout << "Usage: \n";
-  std::cout << "  clang_delta --transformation=name --counter=number filename\n\n";
+  std::cout << "  clang_delta ";
+  std::cout << "--transformation=name ";
+  std::cout << "--counter=number ";
+  std::cout << "--output=filename filename\n\n";
+
   std::cout << "clang_delta options:\n";
-  std::cout << "  --help: print this message\n";
-  std::cout << "  --transformation=<name>: specify the transformation\n";
-  std::cout << "  --counter=<number>: specify the instance of the transformation to perform\n";
+
+  std::cout << "  --help: ";
+  std::cout << "print this message\n";
+
+  std::cout << "  --transformation=<name>: ";
+  std::cout << "specify the transformation\n";
+
+  std::cout << "  --counter=<number>: ";
+  std::cout << "specify the instance of the transformation to perform\n";
+
+  std::cout << "  --output=<filename>: ";
+  std::cout << "specify where to output the transformed source code ";
+  std::cout << "(default: stdout)\n";
   std::cout << "\n";
 }
 
@@ -58,6 +72,9 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
       DieOnBadCmdArg("--" + ArgValueStr);
 
     TransMgr->setTransformationCounter(Val);
+  }
+  else if (!ArgName.compare("output")) {
+    TransMgr->setOutputFileName(ArgValue);
   }
   else {
     DieOnBadCmdArg("--" + ArgValueStr);

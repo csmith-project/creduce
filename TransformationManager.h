@@ -37,8 +37,12 @@ public:
   }
 
   void setSrcFileName(const std::string &FileName) {
-    assert(!SrcFileName.length() && "Could only process one file each time");
+    assert(!SrcFileName.empty() && "Could only process one file each time");
     SrcFileName = FileName;
+  }
+
+  void setOutputFileName(const std::string &FileName) {
+    OutputFileName = FileName;
   }
 
 private:
@@ -54,6 +58,8 @@ private:
   int TransformationCounter;
 
   std::string SrcFileName;
+
+  std::string OutputFileName;
 
   clang::CompilerInstance *ClangInstance;
 

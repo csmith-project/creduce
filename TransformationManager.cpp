@@ -132,6 +132,7 @@ TransformationManager::TransformationManager(void)
   : CurrentTransformationImpl(NULL),
     TransformationCounter(-1),
     SrcFileName(""),
+    OutputFileName(""),
     ClangInstance(NULL)
 {
   // Nothing to do
