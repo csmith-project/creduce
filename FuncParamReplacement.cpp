@@ -9,10 +9,10 @@
 using namespace clang;
 
 static const char *DescriptionMsg =
-"Remove an integaral/enumaration parameter from the declaration \n\
-of a function. Define the removed parameter as a local variable \n\
-of the same function. Initialze the newly local variable to be \n\
-0. Also, make corresponding changes on all of the call sites of \n\
+"Remove an integaral/enumaration parameter from the declaration \
+of a function. Define the removed parameter as a local variable \
+of the same function. Initialze the newly local variable to be \
+0. Also, make corresponding changes on all of the call sites of \
 the modified function.\n";
  
 static RegisterTransformation<FuncParamReplacement> 
