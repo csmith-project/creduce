@@ -77,8 +77,8 @@ private:
 template<typename TransformationClass>
 class RegisterTransformation {
 public:
-  explicit RegisterTransformation(const char *TransName) {
-    Transformation *TransImpl = new TransformationClass(TransName);
+  RegisterTransformation(const char *TransName, const char *Desc) {
+    Transformation *TransImpl = new TransformationClass(TransName, Desc);
     assert(TransImpl && "Fail to create TransformationClass");
     
     TransformationManager *M = TransformationManager::GetInstance();

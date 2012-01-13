@@ -20,13 +20,14 @@ typedef enum {
 class Transformation : public clang::ASTConsumer {
 public:
 
-  explicit Transformation(const char *TransName)
+  Transformation(const char *TransName, const char *Desc)
     : Name(TransName),
       TransformationCounter(-1),
       ValidInstanceNum(0),
       Context(NULL),
       SrcManager(NULL),
-      TransError(TransSuccess)
+      TransError(TransSuccess),
+      DescriptionString(Desc)
   {
     // Nothing to do
   }
@@ -64,6 +65,9 @@ protected:
   clang::Rewriter TheRewriter;
 
   TransformationError TransError;
+  
+  std::string DescriptionString;
+
 };
 
 #endif

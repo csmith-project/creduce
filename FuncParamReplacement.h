@@ -18,8 +18,8 @@ friend class FPRASTVisitor;
 
 public:
 
-  explicit FuncParamReplacement(const char *TransName)
-    : Transformation(TransName) 
+  FuncParamReplacement(const char *TransName, const char *Desc)
+    : Transformation(TransName, Desc)
   { }
 
   ~FuncParamReplacement(void);
