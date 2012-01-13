@@ -1,43 +1,43 @@
-#include <cstdlib>
 #include <string>
-#include <iostream>
 #include <sstream>
+#include <cstdlib>
 
+#include "llvm/Support/raw_ostream.h"
 #include "TransformationManager.h"
 
 static TransformationManager *TransMgr;
 
 static void PrintHelpMessage(void)
 {
-  std::cout << "Usage: \n";
-  std::cout << "  clang_delta ";
-  std::cout << "--transformation=name ";
-  std::cout << "--counter=number ";
-  std::cout << "--output=filename filename\n\n";
+  llvm::outs() << "Usage: \n";
+  llvm::outs() << "  clang_delta ";
+  llvm::outs() << "--transformation=name ";
+  llvm::outs() << "--counter=number ";
+  llvm::outs() << "--output=filename filename\n\n";
 
-  std::cout << "clang_delta options:\n";
+  llvm::outs() << "clang_delta options:\n";
 
-  std::cout << "  --help: ";
-  std::cout << "print this message\n";
+  llvm::outs() << "  --help: ";
+  llvm::outs() << "print this message\n";
 
-  std::cout << "  --transformation=<name>: ";
-  std::cout << "specify the transformation\n";
+  llvm::outs() << "  --transformation=<name>: ";
+  llvm::outs() << "specify the transformation\n";
 
-  std::cout << "  --counter=<number>: ";
-  std::cout << "specify the instance of the transformation to perform\n";
+  llvm::outs() << "  --counter=<number>: ";
+  llvm::outs() << "specify the instance of the transformation to perform\n";
 
-  std::cout << "  --output=<filename>: ";
-  std::cout << "specify where to output the transformed source code ";
-  std::cout << "(default: stdout)\n";
-  std::cout << "\n";
+  llvm::outs() << "  --output=<filename>: ";
+  llvm::outs() << "specify where to output the transformed source code ";
+  llvm::outs() << "(default: stdout)\n";
+  llvm::outs() << "\n";
 
   TransMgr->printTransformations();
 }
 
 static void DieOnBadCmdArg(const std::string &ArgStr)
 {
-  std::cout << "Error: Bad command line option `" << ArgStr << "`\n";
-  std::cout << "\n";
+  llvm::outs() << "Error: Bad command line option `" << ArgStr << "`\n";
+  llvm::outs() << "\n";
   PrintHelpMessage();
   TransformationManager::Finalize();
   exit(-1);
@@ -45,7 +45,7 @@ static void DieOnBadCmdArg(const std::string &ArgStr)
 
 static void Die(const std::string &Message)
 {
-  std::cout << "Error: " << Message << "\n";
+  llvm::outs() << "Error: " << Message << "\n";
   TransformationManager::Finalize();
   exit(-1);
 }
