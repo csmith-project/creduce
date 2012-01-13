@@ -30,6 +30,8 @@ static void PrintHelpMessage(void)
   std::cout << "specify where to output the transformed source code ";
   std::cout << "(default: stdout)\n";
   std::cout << "\n";
+
+  TransMgr->printTransformations();
 }
 
 static void DieOnBadCmdArg(const std::string &ArgStr)
