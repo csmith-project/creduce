@@ -50,6 +50,10 @@ public:
     return (TransError == TransInternalError);
   }
 
+  std::string &getDescription(void) {
+    return DescriptionString;
+  }
+
 protected:
 
   const std::string &Name;
