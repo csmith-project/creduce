@@ -128,6 +128,19 @@ void TransformationManager::registerTransformation(
   TransformationsMap[TransName] = TransImpl;
 }
 
+void TransformationManager::printTransformations(void)
+{
+  llvm::outs() << "Registered Transformations:\n";
+
+  std::map<std::string, Transformation *>::iterator I, E;
+  for (I = TransformationsMap.begin(), 
+       E = TransformationsMap.end();
+       I != E; ++I) {
+    llvm::outs() << "  " << (*I).first << ": "; 
+    llvm::outs() << (*I).second->getDescription() << "\n\n";
+  }
+}
+
 TransformationManager::TransformationManager(void)
   : CurrentTransformationImpl(NULL),
     TransformationCounter(-1),

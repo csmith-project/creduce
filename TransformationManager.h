@@ -45,6 +45,8 @@ public:
     OutputFileName = FileName;
   }
 
+  void printTransformations();
+
 private:
   
   TransformationManager(void);
