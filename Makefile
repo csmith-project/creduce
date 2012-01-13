@@ -1,5 +1,5 @@
 # for my convenience
-# llvm_installation_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
+llvm_installation_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
 llvm_dir = ${llvm_installation_dir}
 
 CXX = g++
@@ -20,6 +20,7 @@ TRANSFORM_OBJS = FuncParamReplacement.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
+       Transformation.o \
        ${TRANSFORM_OBJS}
 
 .SUFFIXES : .o .cpp
@@ -33,7 +34,9 @@ ClangDelta.o: ClangDelta.cpp
 
 TransformationManager.o: TransformationManager.cpp TransformationManager.h ${TRANSFORM_OBJS}
 
-FuncParamReplacement.o: FuncParamReplacement.cpp FuncParamReplacement.h Transformation.h
+Transformation.o: Transformation.cpp Transformation.h
+
+FuncParamReplacement.o: FuncParamReplacement.cpp FuncParamReplacement.h Transformation.o
 
 clean:
 	rm -rf *.o

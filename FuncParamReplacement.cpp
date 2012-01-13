@@ -2,10 +2,6 @@
 
 #include <sstream>
 #include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/AST/ASTConsumer.h"
-#include "clang/Parse/ParseAST.h"
-#include "clang/Frontend/CompilerInstance.h"
-#include "clang/Rewrite/Rewriter.h"
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
@@ -19,7 +15,7 @@ class FPRASTVisitor : public RecursiveASTVisitor<FPRASTVisitor> {
 public:
   typedef RecursiveASTVisitor<FPRASTVisitor> Inherited;
 
-  FPRASTVisitor(FPRASTConsumer *Instance)
+  FPRASTVisitor(FuncParamReplacement *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -29,7 +25,7 @@ public:
 
 private:
 
-  FPRASTConsumer *ConsumerInstance;
+  FuncParamReplacement *ConsumerInstance;
 
   bool rewriteFuncDecl(FunctionDecl *FP);
 
@@ -43,80 +39,47 @@ private:
 
 };
 
-class FPRASTConsumer : public ASTConsumer {
-  friend class FPRASTVisitor;
+void FuncParamReplacement::Initialize(ASTContext &context) 
+{
+  Context = &context;
+  SrcManager = &Context->getSourceManager();
+  TransformationASTVisitor = new FPRASTVisitor(this);
+  TheRewriter.setSourceMgr(Context->getSourceManager(), 
+                           Context->getLangOptions());
 
-public:
+  TheFuncDecl = NULL;
+  TheParamPos = -1;
+}
 
-  FPRASTConsumer(int Counter) 
-    : TransformationCounter(Counter)
-  { }
-
-  virtual void Initialize(ASTContext &context) {
-    Context = &context;
-    SrcManager = &Context->getSourceManager();
-    TransformationASTVisitor = new FPRASTVisitor(this);
-    TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                             Context->getLangOptions());
-
-    ValidInstanceNum = 0;
-    TransError = TransSuccess;
-    TheFuncDecl = NULL;
-    TheParamPos = -1;
-  }
-
-  bool transSuccess(void) {
-    return (TransError == TransSuccess);
-  }
-  
-  bool transInternalError(void) {
-    return (TransError == TransInternalError);
-  }
-
-  virtual void HandleTopLevelDecl(DeclGroupRef D) {
-    for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-      FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-      if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
-        ValidFuncDecls.push_back(FD);
-      }
+void FuncParamReplacement::HandleTopLevelDecl(DeclGroupRef D) 
+{
+  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
+    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
+    if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
+      ValidFuncDecls.push_back(FD);
     }
   }
-
-  virtual void HandleTranslationUnit(ASTContext &Ctx);
-
-  void outputTransformedSource(void);
-
-  void outputOriginalSource(void);
-
-  ~FPRASTConsumer(void) {
-    delete TransformationASTVisitor;
+}
+ 
+void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
+{
+  if (TransformationCounter > ValidInstanceNum) {
+      TransError = TransMaxInstanceError;
+      return;
   }
 
-private:
+  assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+  assert(TheFuncDecl && "NULL TheFuncDecl!");
+  assert((TheParamPos >= 0) && "Invalid parameter position!");
 
-  SmallVector<FunctionDecl *, 10> ValidFuncDecls;
+  TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
-  ASTContext *Context;
+  if (Ctx.getDiagnostics().hasErrorOccurred() ||
+      Ctx.getDiagnostics().hasFatalErrorOccurred())
+    TransError = TransInternalError;
+}
 
-  SourceManager *SrcManager;
-
-  FPRASTVisitor *TransformationASTVisitor;
-
-  Rewriter TheRewriter;
-
-  int ValidInstanceNum;
-
-  const int TransformationCounter;
-
-  TransformationError TransError;
-
-  FunctionDecl *TheFuncDecl;
-
-  int TheParamPos;
-
-  bool isValidFuncDecl(FunctionDecl *FD);
-};
- 
 bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV, 
                                  unsigned int NumParams)
 {
@@ -312,26 +275,7 @@ bool FPRASTVisitor::VisitCallExpr(CallExpr *CallE)
   return rewriteCalleeExpr(CallE);
 }
 
-void FPRASTConsumer::HandleTranslationUnit(ASTContext &Ctx)
-{
-  if (TransformationCounter > ValidInstanceNum) {
-      TransError = TransMaxInstanceError;
-      return;
-  }
-
-  assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
-  Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
-  assert(TheFuncDecl && "NULL TheFuncDecl!");
-  assert((TheParamPos >= 0) && "Invalid parameter position!");
-
-  TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-
-  if (Ctx.getDiagnostics().hasErrorOccurred() ||
-      Ctx.getDiagnostics().hasFatalErrorOccurred())
-    TransError = TransInternalError;
-}
-
-bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD) 
+bool FuncParamReplacement::isValidFuncDecl(FunctionDecl *FD) 
 {
   bool IsValid = false;
   int ParamPos = 0;
@@ -369,62 +313,8 @@ bool FPRASTConsumer::isValidFuncDecl(FunctionDecl *FD)
   return IsValid;
 }
 
-void FPRASTConsumer::outputTransformedSource(void)
-{
-  FileID MainFileID = SrcManager->getMainFileID();
-  const RewriteBuffer *RWBuf = TheRewriter.getRewriteBufferFor(MainFileID);
-  assert(RWBuf && "Empty RewriteBuffer!");
-  llvm::outs() << std::string(RWBuf->begin(), RWBuf->end());
-}
-
-void FPRASTConsumer::outputOriginalSource(void)
-{
-  llvm::outs() << "No Change!\n";
-}
-
-FuncParamReplacement::FuncParamReplacement(const char *TransName)
-  : Transformation(TransName),
-    TransformationASTConsumer(NULL)
-{
-  // Nothing to do
-}
-
 FuncParamReplacement::~FuncParamReplacement(void)
 {
-  // Nothing to do
-}
-
-void FuncParamReplacement::initializeTransformation(void)
-{
-  assert(ClangInstance && "NULL ClangInstance!");
-  // Freed with deleting ClangInstance
-  TransformationASTConsumer = new FPRASTConsumer(TransformationCounter);
-
-  assert(TransformationASTConsumer && "NULL TransformationASTConsumer!");
-  assert(!ClangInstance->hasSema() && "Cannot have Sema!");
-
-  ClangInstance->setASTConsumer(TransformationASTConsumer);
-  ClangInstance->createSema(TU_Complete, 0);
-
-  ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
-}
-
-bool FuncParamReplacement::doTransformation(void)
-{
-  ParseAST(ClangInstance->getSema());
-
-  ClangInstance->getDiagnosticClient().EndSourceFile();
-
-  if (TransformationASTConsumer->transSuccess()) {
-    TransformationASTConsumer->outputTransformedSource();
-    return true;
-  }
-  else if (TransformationASTConsumer->transInternalError()) {
-    TransformationASTConsumer->outputOriginalSource();
-    return true;
-  }
-  else {
-    return false;
-  }
+  delete TransformationASTVisitor;
 }
 

@@ -2,11 +2,13 @@
 #define TRANSFORMATION_H
 
 #include <string>
-#include <cassert>
+#include "clang/AST/ASTConsumer.h"
+#include "clang/Rewrite/Rewriter.h"
 
 namespace clang {
   class CompilerInstance;
-  class ASTConsumer;
+  class ASTContext;
+  class SourceManager;
 }
 
 typedef enum {
@@ -15,46 +17,53 @@ typedef enum {
   TransMaxInstanceError
 } TransformationError;
 
-class Transformation {
-
+class Transformation : public clang::ASTConsumer {
 public:
 
-  virtual bool doTransformation(void) = 0;
-
-  virtual void initializeTransformation(void) = 0;
-
-  void doInitialization(clang::CompilerInstance *Instance, int Counter) {
-    assert(!Initialized && "Double initialization!");
-
-    ClangInstance = Instance;
-    TransformationCounter = Counter;
-    Initialized = true;
-    initializeTransformation();
-  };
-
   explicit Transformation(const char *TransName)
-    : ClangInstance(NULL),
+    : Name(TransName),
       TransformationCounter(-1),
-      Name(TransName),
-      Initialized(0)
+      ValidInstanceNum(0),
+      Context(NULL),
+      SrcManager(NULL),
+      TransError(TransSuccess)
   {
     // Nothing to do
   }
 
-  virtual ~Transformation(void) { };
+  virtual ~Transformation(void) { }
+
+  void outputOriginalSource(void);
+
+  void outputTransformedSource(void);
+
+  void setTransformationCounter(int Counter) {
+    TransformationCounter = Counter;
+  }
+
+  bool transSuccess(void) {
+    return (TransError == TransSuccess);
+  }
+  
+  bool transInternalError(void) {
+    return (TransError == TransInternalError);
+  }
 
 protected:
 
-  Transformation(void);
-
-  clang::CompilerInstance *ClangInstance;
+  const std::string &Name;
 
   int TransformationCounter;
 
-  const std::string &Name;
+  int ValidInstanceNum;
 
-  bool Initialized;
-  
+  clang::ASTContext *Context;
+
+  clang::SourceManager *SrcManager;
+
+  clang::Rewriter TheRewriter;
+
+  TransformationError TransError;
 };
 
 #endif

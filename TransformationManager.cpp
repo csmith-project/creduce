@@ -4,6 +4,7 @@
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Frontend/CompilerInstance.h"
+#include "clang/Parse/ParseAST.h"
 
 #include "llvm/Config/config.h"
 
@@ -55,7 +56,9 @@ void TransformationManager::Finalize(void)
   for (I = Instance->TransformationsMap.begin(), 
        E = Instance->TransformationsMap.end();
        I != E; ++I) {
-    delete (*I).second;
+    // CurrentTransformationImpl will be freed by ClangInstance
+    if ((*I).second != Instance->CurrentTransformationImpl)
+      delete (*I).second;
   }
   delete Instance->ClangInstance;
 
@@ -66,10 +69,27 @@ void TransformationManager::Finalize(void)
 bool TransformationManager::doTransformation(void)
 {
   assert(CurrentTransformationImpl && "Bad transformation instance!");
-  CurrentTransformationImpl->doInitialization(
-    ClangInstance, TransformationCounter);
+  ClangInstance->setASTConsumer(CurrentTransformationImpl);
+  ClangInstance->createSema(TU_Complete, 0);
+  ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
 
-  return CurrentTransformationImpl->doTransformation();
+  CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
+
+  ParseAST(ClangInstance->getSema());
+
+  ClangInstance->getDiagnosticClient().EndSourceFile();
+
+  if (CurrentTransformationImpl->transSuccess()) {
+    CurrentTransformationImpl->outputTransformedSource();
+    return true;
+  }
+  else if (CurrentTransformationImpl->transInternalError()) {
+    CurrentTransformationImpl->outputOriginalSource();
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 bool TransformationManager::verify(std::string &ErrorMsg)

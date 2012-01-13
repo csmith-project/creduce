@@ -2,26 +2,46 @@
 #define FUNC_PARAM_REPLACEMENT_H
 
 #include <string>
+#include "llvm/ADT/SmallVector.h"
 #include "Transformation.h"
 
-class FPRASTConsumer;
+namespace clang {
+  class FunctionDecl;
+  class DeclGroupRef;
+  class ASTContext;
+}
+
+class FPRASTVisitor;
 
 class FuncParamReplacement : public Transformation {
+friend class FPRASTVisitor;
 
 public:
 
-  explicit FuncParamReplacement(const char *TransName);
+  explicit FuncParamReplacement(const char *TransName)
+    : Transformation(TransName) 
+  { }
 
   ~FuncParamReplacement(void);
 
-  virtual bool doTransformation(void);
-
-  virtual void initializeTransformation(void);
-
 private:
   
-  FPRASTConsumer *TransformationASTConsumer;
-  
+  virtual void Initialize(clang::ASTContext &context);
+
+  virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
+
+  virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
+
+  bool isValidFuncDecl(clang::FunctionDecl *FD);
+
+  llvm::SmallVector<clang::FunctionDecl *, 10> ValidFuncDecls;
+
+  FPRASTVisitor *TransformationASTVisitor;
+
+  clang::FunctionDecl *TheFuncDecl;
+
+  int TheParamPos;
+
   // Unimplemented
   FuncParamReplacement(void);
 
