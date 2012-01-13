@@ -1,6 +1,6 @@
 #include "FuncParamReplacement.h"
 
-#include <iostream>
+#include <sstream>
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Parse/ParseAST.h"
@@ -192,7 +192,18 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
 bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
                                         const ParmVarDecl *PV)
 {
-  return true;  
+  Stmt *Body = FP->getBody();
+  assert(Body && "NULL body for a function definition!");
+  std::string LocalVarStr;
+
+  LocalVarStr = " ";
+  LocalVarStr += PV->getType().getAsString();
+  LocalVarStr += " ";
+  LocalVarStr += PV->getNameAsString();
+  LocalVarStr += ";";
+
+  SourceLocation StartLoc = Body->getLocStart();
+  return !(ConsumerInstance->TheRewriter.InsertTextAfterToken(StartLoc, LocalVarStr));
 }
 
 bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
