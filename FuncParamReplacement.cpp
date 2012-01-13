@@ -162,7 +162,8 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
       NewRangeSize++;
     }
 
-    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, NewRangeSize + 1));
+    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, 
+                                                      NewRangeSize + 1));
   }
   else {
     return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize));
@@ -180,10 +181,12 @@ bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
   LocalVarStr += PV->getType().getAsString();
   LocalVarStr += " ";
   LocalVarStr += PV->getNameAsString();
+  LocalVarStr += " = 0";
   LocalVarStr += ";";
 
   SourceLocation StartLoc = Body->getLocStart();
-  return !(ConsumerInstance->TheRewriter.InsertTextAfterToken(StartLoc, LocalVarStr));
+  return !(ConsumerInstance->TheRewriter.InsertTextAfterToken(StartLoc, 
+                                                              LocalVarStr));
 }
 
 bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
