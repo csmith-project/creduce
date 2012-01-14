@@ -34,9 +34,9 @@ public:
 
   virtual ~Transformation(void) { }
 
-  void outputOriginalSource(void);
+  void outputOriginalSource(llvm::raw_ostream &OutStream);
 
-  void outputTransformedSource(void);
+  void outputTransformedSource(llvm::raw_ostream &OutStream);
 
   void setTransformationCounter(int Counter) {
     TransformationCounter = Counter;

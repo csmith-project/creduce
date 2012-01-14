@@ -1,12 +1,13 @@
 #include "TransformationManager.h"
 
-#include "Transformation.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
 #include "llvm/Config/config.h"
+
+#include "Transformation.h"
 
 using namespace clang;
 
@@ -66,6 +67,24 @@ void TransformationManager::Finalize(void)
   Instance = NULL;
 }
 
+llvm::raw_ostream *TransformationManager::getOutStream(void)
+{
+  if (OutputFileName.empty())
+    return &(llvm::outs());
+
+  std::string Err;
+  llvm::raw_fd_ostream *Out = 
+    new llvm::raw_fd_ostream(OutputFileName.c_str(), Err);
+  assert(Err.empty() && "Cannot open output file!");
+  return Out;
+}
+
+void TransformationManager::closeOutStream(llvm::raw_ostream *OutStream)
+{
+  if (!OutputFileName.empty())
+    delete OutStream;
+}
+
 bool TransformationManager::doTransformation(void)
 {
   assert(CurrentTransformationImpl && "Bad transformation instance!");
@@ -79,17 +98,21 @@ bool TransformationManager::doTransformation(void)
 
   ClangInstance->getDiagnosticClient().EndSourceFile();
 
+  llvm::raw_ostream *OutStream = getOutStream();
+  bool RV;
   if (CurrentTransformationImpl->transSuccess()) {
-    CurrentTransformationImpl->outputTransformedSource();
-    return true;
+    CurrentTransformationImpl->outputTransformedSource(*OutStream);
+    RV = true;
   }
   else if (CurrentTransformationImpl->transInternalError()) {
-    CurrentTransformationImpl->outputOriginalSource();
-    return true;
+    CurrentTransformationImpl->outputOriginalSource(*OutStream);
+    RV = true;
   }
   else {
-    return false;
+    RV = false;
   }
+  closeOutStream(OutStream);
+  return RV;
 }
 
 bool TransformationManager::verify(std::string &ErrorMsg)

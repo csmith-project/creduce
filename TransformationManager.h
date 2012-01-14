@@ -5,6 +5,8 @@
 #include <map>
 #include <cassert>
 
+#include "llvm/Support/raw_ostream.h"
+
 class Transformation;
 namespace clang {
   class CompilerInstance;
@@ -37,7 +39,7 @@ public:
   }
 
   void setSrcFileName(const std::string &FileName) {
-    assert(!SrcFileName.empty() && "Could only process one file each time");
+    assert(SrcFileName.empty() && "Could only process one file each time");
     SrcFileName = FileName;
   }
 
@@ -52,6 +54,10 @@ private:
   TransformationManager(void);
 
   ~TransformationManager(void);
+
+  llvm::raw_ostream *getOutStream(void);
+
+  void closeOutStream(llvm::raw_ostream *OutStream);
 
   static TransformationManager *Instance;
 

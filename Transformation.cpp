@@ -8,16 +8,17 @@
 
 using namespace clang;
 
-void Transformation::outputTransformedSource(void)
+void Transformation::outputTransformedSource(llvm::raw_ostream &OutStream)
 {
   FileID MainFileID = SrcManager->getMainFileID();
   const RewriteBuffer *RWBuf = TheRewriter.getRewriteBufferFor(MainFileID);
   assert(RWBuf && "Empty RewriteBuffer!");
-  llvm::outs() << std::string(RWBuf->begin(), RWBuf->end());
+  OutStream << std::string(RWBuf->begin(), RWBuf->end());
+  OutStream.flush();
 }
 
-void Transformation::outputOriginalSource(void)
+void Transformation::outputOriginalSource(llvm::raw_ostream &OutStream)
 {
-  llvm::outs() << "No Change!\n";
+  OutStream << "No Change!\n";
 }
 
