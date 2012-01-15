@@ -160,7 +160,7 @@ void TransformationManager::printTransformations(void)
        E = TransformationsMap.end();
        I != E; ++I) {
     llvm::outs() << "  " << (*I).first << ": "; 
-    llvm::outs() << (*I).second->getDescription() << "\n\n";
+    llvm::outs() << (*I).second->getDescription() << "\n";
   }
 }
 
