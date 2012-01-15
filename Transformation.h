@@ -46,6 +46,10 @@ public:
     return (TransError == TransSuccess);
   }
   
+  bool transMaxInstanceError(void) {
+    return (TransError == TransMaxInstanceError);
+  }
+
   bool transInternalError(void) {
     return (TransError == TransInternalError);
   }
@@ -53,6 +57,8 @@ public:
   std::string &getDescription(void) {
     return DescriptionString;
   }
+
+  void getTransErrorMsg(std::string &ErrorMsg);
 
 protected:
 

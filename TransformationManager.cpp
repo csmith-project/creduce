@@ -85,8 +85,10 @@ void TransformationManager::closeOutStream(llvm::raw_ostream *OutStream)
     delete OutStream;
 }
 
-bool TransformationManager::doTransformation(void)
+bool TransformationManager::doTransformation(std::string &ErrorMsg)
 {
+  ErrorMsg = "";
+
   assert(CurrentTransformationImpl && "Bad transformation instance!");
   ClangInstance->setASTConsumer(CurrentTransformationImpl);
   ClangInstance->createSema(TU_Complete, 0);
@@ -108,8 +110,12 @@ bool TransformationManager::doTransformation(void)
     CurrentTransformationImpl->outputOriginalSource(*OutStream);
     RV = true;
   }
-  else {
+  else if (CurrentTransformationImpl->transMaxInstanceError()) {
+    CurrentTransformationImpl->getTransErrorMsg(ErrorMsg);
     RV = false;
+  }
+  else {
+    assert("Unknown transformation error!");
   }
   closeOutStream(OutStream);
   return RV;

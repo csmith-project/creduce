@@ -128,9 +128,9 @@ int main(int argc, char **argv)
   if (!TransMgr->verify(ErrorMsg))
     Die(ErrorMsg);
 
-  if (!TransMgr->doTransformation()) {
+  if (!TransMgr->doTransformation(ErrorMsg)) {
     // fail to do transformation
-    Die("Failed to do transformations");
+    Die(ErrorMsg);
   }
 
   TransformationManager::Finalize();

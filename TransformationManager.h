@@ -22,7 +22,7 @@ public:
   void registerTransformation(const char *TransName, 
                               Transformation *TransImpl);
   
-  bool doTransformation(void);
+  bool doTransformation(std::string &ErrorMsg);
 
   bool verify(std::string &ErrorMsg);
 

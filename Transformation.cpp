@@ -29,3 +29,19 @@ void Transformation::outputOriginalSource(llvm::raw_ostream &OutStream)
   OutStream.flush();
 }
 
+void Transformation::getTransErrorMsg(std::string &ErrorMsg)
+{
+  if (TransError == TransSuccess) {
+    ErrorMsg = "";
+  }
+  else if (TransError == TransInternalError) {
+    ErrorMsg = "Internal transformation error!";
+  }
+  else if (TransError == TransMaxInstanceError) {
+    ErrorMsg = "The counter value exceeded the number of transformation instances!";
+  }
+  else {
+    assert("Unknown transformation error!");
+  }
+}
+
