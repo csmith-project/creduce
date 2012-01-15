@@ -1,9 +1,5 @@
 TODO list:
 
-remove argument from function, including all calls
-
-transform a function to return void
-
 inline a function call
   only for small functions, and only when delta has already
   gotten pretty far
