@@ -16,7 +16,7 @@ LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
        ${LLVM_LIBS} 
 
-TRANSFORM_OBJS = FuncParamReplacement.o
+TRANSFORM_OBJS = FuncParamReplacement.o ReturnVoid.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -37,6 +37,8 @@ TransformationManager.o: TransformationManager.cpp TransformationManager.h ${TRA
 Transformation.o: Transformation.cpp Transformation.h
 
 FuncParamReplacement.o: FuncParamReplacement.cpp FuncParamReplacement.h Transformation.o
+
+ReturnVoid.o: ReturnVoid.cpp ReturnVoid.h Transformation.o
 
 clean:
 	rm -rf *.o
