@@ -63,7 +63,7 @@ void FuncParamReplacement::HandleTopLevelDecl(DeclGroupRef D)
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
     if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
-      ValidFuncDecls.push_back(FD);
+      ValidFuncDecls.push_back(FD->getCanonicalDecl());
     }
   }
 }
