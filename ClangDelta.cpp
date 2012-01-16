@@ -72,7 +72,7 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
       Die("Invalid transformation[" + ArgValue + "]");
     }
   }
-  else if (!ArgName.compare("transformation-instances")) {
+  else if (!ArgName.compare("query-instances")) {
     if (TransMgr->setTransformation(ArgValue)) {
       Die("Invalid transformation[" + ArgValue + "]");
     }
