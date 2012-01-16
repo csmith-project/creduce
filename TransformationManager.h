@@ -49,6 +49,8 @@ public:
 
   void printTransformations();
 
+  void printTransformationNames();
+
 private:
   
   TransformationManager(void);

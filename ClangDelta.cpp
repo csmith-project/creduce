@@ -23,6 +23,9 @@ static void PrintHelpMessage(void)
   llvm::outs() << "  --transformation=<name>: ";
   llvm::outs() << "specify the transformation\n";
 
+  llvm::outs() << "  --transformations: ";
+  llvm::outs() << "print the names of all available transformations\n";
+
   llvm::outs() << "  --counter=<number>: ";
   llvm::outs() << "specify the instance of the transformation to perform\n";
 
@@ -87,6 +90,10 @@ static void HandleOneNoneValueArg(const std::string &ArgStr)
 {
   if (!ArgStr.compare("help")) {
     PrintHelpMessage();
+    exit(0);
+  }
+  if (!ArgStr.compare("transformations")) {
+    TransMgr->printTransformationNames();
     exit(0);
   }
   else {

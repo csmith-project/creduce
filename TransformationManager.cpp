@@ -170,6 +170,16 @@ void TransformationManager::printTransformations(void)
   }
 }
 
+void TransformationManager::printTransformationNames(void)
+{
+  std::map<std::string, Transformation *>::iterator I, E;
+  for (I = TransformationsMap.begin(), 
+       E = TransformationsMap.end();
+       I != E; ++I) {
+    llvm::outs() << (*I).first << "\n";
+  }
+}
+
 TransformationManager::TransformationManager(void)
   : CurrentTransformationImpl(NULL),
     TransformationCounter(-1),
