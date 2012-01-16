@@ -2,6 +2,11 @@
 llvm_installation_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
 llvm_dir = ${llvm_installation_dir}
 
+ENABLE_TRANS_ASSERT = -DENABLE_TRANS_ASSERT
+ifeq (${DISABLE_TRANS_ASSERT}, 1)
+  ENABLE_TRANS_ASSERT = -DDISABLE_TRANS_ASSERT
+endif
+
 CXX = g++
 CXXFLAGS = -Werror -Wall
 
@@ -25,7 +30,7 @@ OBJS = ClangDelta.o \
 
 .SUFFIXES : .o .cpp
 .cpp.o :
-	${CXX} -g ${CXXFLAGS} ${INCLUDES} -c $<
+	${CXX} -g ${ENABLE_TRANS_ASSERT} ${CXXFLAGS} ${INCLUDES} -c $<
 
 clang_delta: ${OBJS}
 	${CXX} -g -o clang_delta ${OBJS} ${LDFLAGS} ${LIBS}

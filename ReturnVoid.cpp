@@ -65,7 +65,7 @@ bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
 
 void ReturnVoid::keepFuncDefRange(FunctionDecl *FD)
 {
-  assert(!FuncDefStartPos && !FuncDefEndPos && 
+  TransAssert(!FuncDefStartPos && !FuncDefEndPos && 
          "Duplicated function definition?");
 
   SourceRange FuncDefRange = FD->getSourceRange();
@@ -95,7 +95,7 @@ bool ReturnVoid::isInTheFuncDef(ReturnStmt *RS)
       SrcManager->getCharacterData(EndLoc);
   
   if ((StartPos > FuncDefStartPos) && (StartPos < FuncDefEndPos)) {
-    assert((EndPos > FuncDefStartPos) && (EndPos < FuncDefEndPos) && 
+    TransAssert((EndPos > FuncDefStartPos) && (EndPos < FuncDefEndPos) && 
             "Bad return statement range!");
     return true;
   }
@@ -134,9 +134,9 @@ void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)
       return;
   }
 
-  assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  TransAssert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
-  assert(TheFuncDecl && "NULL TheFuncDecl!");
+  TransAssert(TheFuncDecl && "NULL TheFuncDecl!");
 
   TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
@@ -159,7 +159,7 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
   int Offset = NameInfoStartBuf - FuncStartBuf;
 
-  assert(Offset >= 0);
+  TransAssert(Offset >= 0);
 
   return !(ConsumerInstance->TheRewriter.ReplaceText(FuncStartLoc, 
                  Offset, "void "));

@@ -78,10 +78,10 @@ void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
-  assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  TransAssert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
-  assert(TheFuncDecl && "NULL TheFuncDecl!");
-  assert((TheParamPos >= 0) && "Invalid parameter position!");
+  TransAssert(TheFuncDecl && "NULL TheFuncDecl!");
+  TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
   TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
@@ -119,7 +119,7 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
     const char *StartBuf = 
       ConsumerInstance->SrcManager->getCharacterData(StartLoc);
 
-    assert(StartBuf && "Invalid start buffer!");
+    TransAssert(StartBuf && "Invalid start buffer!");
     while (*StartBuf != ',') {
       StartBuf--;
       Offset--;
@@ -159,7 +159,7 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
       NewRangeSize++;
     }
 
-    assert(StartBuf && "Invalid start buffer!");
+    TransAssert(StartBuf && "Invalid start buffer!");
     while (*StartBuf != ',') {
       StartBuf++;
       NewRangeSize++;
@@ -177,7 +177,7 @@ bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
                                         const ParmVarDecl *PV)
 {
   Stmt *Body = FP->getBody();
-  assert(Body && "NULL body for a function definition!");
+  TransAssert(Body && "NULL body for a function definition!");
   std::string LocalVarStr;
 
   LocalVarStr = " ";
@@ -197,7 +197,7 @@ bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   const ParmVarDecl *PV = 
     FD->getParamDecl(ConsumerInstance->TheParamPos);  
 
-  assert(PV && "Unmatched ParamPos!");
+  TransAssert(PV && "Unmatched ParamPos!");
   if (!rewriteParam(PV, FD->getNumParams()))
     return false;
 
@@ -221,7 +221,7 @@ bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
 {
   Expr *Arg = CallE->getArg(ConsumerInstance->TheParamPos);
-  assert(Arg && "Null arg!");
+  TransAssert(Arg && "Null arg!");
 
   SourceRange ArgRange = Arg->getSourceRange();
   int RangeSize = ConsumerInstance->TheRewriter.getRangeSize(ArgRange);
@@ -243,7 +243,7 @@ bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
     const char *StartBuf = 
       ConsumerInstance->SrcManager->getCharacterData(StartLoc);
 
-    assert(StartBuf && "Invalid start buffer!");
+    TransAssert(StartBuf && "Invalid start buffer!");
     while (*StartBuf != ',') {
       StartBuf--;
       Offset--;
@@ -259,13 +259,13 @@ bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
   const char *StartBuf =
       ConsumerInstance->SrcManager->getCharacterData(StartLoc);
 
-  assert(StartBuf && "Invalid start buffer!");
+  TransAssert(StartBuf && "Invalid start buffer!");
   while (NewRangeSize < RangeSize) {
     StartBuf++;
     NewRangeSize++;
   }
 
-  assert(StartBuf && "Invalid start buffer!");
+  TransAssert(StartBuf && "Invalid start buffer!");
   while (*StartBuf != ',') {
     StartBuf++;
     NewRangeSize++;
@@ -293,7 +293,7 @@ bool FuncParamReplacement::isValidFuncDecl(FunctionDecl *FD)
   bool IsValid = false;
   int ParamPos = 0;
 
-  assert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
+  TransAssert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
 
   // Skip the case like foo(int, ...), because we cannot remove
   // the "int" there

@@ -2,8 +2,16 @@
 #define TRANSFORMATION_H
 
 #include <string>
+#include <cstdlib>
+#include <cassert>
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Rewrite/Rewriter.h"
+
+#ifndef ENABLE_TRANS_ASSERT
+  #define TransAssert(x) {if (!(x)) exit(0);}
+#else
+  #define TransAssert(x) assert(x)
+#endif
 
 namespace clang {
   class CompilerInstance;
