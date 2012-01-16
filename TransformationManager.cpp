@@ -1,5 +1,7 @@
 #include "TransformationManager.h"
 
+#include <sstream>
+
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Frontend/CompilerInstance.h"
@@ -94,11 +96,16 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
   ClangInstance->createSema(TU_Complete, 0);
   ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
 
+  CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
 
   ParseAST(ClangInstance->getSema());
 
   ClangInstance->getDiagnosticClient().EndSourceFile();
+
+  if (QueryInstanceOnly) {
+    return true;
+  }
 
   llvm::raw_ostream *OutStream = getOutStream();
   bool RV;
@@ -180,12 +187,21 @@ void TransformationManager::printTransformationNames(void)
   }
 }
 
+void TransformationManager::outputNumTransformationInstances(void)
+{
+  int NumInstances = 
+    CurrentTransformationImpl->getNumTransformationInstances();
+  llvm::outs() << "Available transformation instances: " 
+               << NumInstances << "\n";
+}
+
 TransformationManager::TransformationManager(void)
   : CurrentTransformationImpl(NULL),
     TransformationCounter(-1),
     SrcFileName(""),
     OutputFileName(""),
-    ClangInstance(NULL)
+    ClangInstance(NULL),
+    QueryInstanceOnly(false)
 {
   // Nothing to do
 }

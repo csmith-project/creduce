@@ -26,6 +26,9 @@ static void PrintHelpMessage(void)
   llvm::outs() << "  --transformations: ";
   llvm::outs() << "print the names of all available transformations\n";
 
+  llvm::outs() << "  --query-instances=<name>: ";
+  llvm::outs() << "query available transformation instances for a given transformation\n";
+
   llvm::outs() << "  --counter=<number>: ";
   llvm::outs() << "specify the instance of the transformation to perform\n";
 
@@ -68,6 +71,13 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
     if (TransMgr->setTransformation(ArgValue)) {
       Die("Invalid transformation[" + ArgValue + "]");
     }
+  }
+  else if (!ArgName.compare("transformation-instances")) {
+    if (TransMgr->setTransformation(ArgValue)) {
+      Die("Invalid transformation[" + ArgValue + "]");
+    }
+    TransMgr->setQueryInstanceFlag(true);
+    TransMgr->setTransformationCounter(1);
   }
   else if (!ArgName.compare("counter")) {
     int Val;
@@ -139,6 +149,9 @@ int main(int argc, char **argv)
     // fail to do transformation
     Die(ErrorMsg);
   }
+
+  if (TransMgr->getQueryInstanceFlag()) 
+    TransMgr->outputNumTransformationInstances();
 
   TransformationManager::Finalize();
   return 0;

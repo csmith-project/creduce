@@ -126,6 +126,9 @@ void ReturnVoid::HandleTopLevelDecl(DeclGroupRef D)
  
 void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)
 {
+  if (QueryInstanceOnly)
+    return;
+
   if (TransformationCounter > ValidInstanceNum) {
       TransError = TransMaxInstanceError;
       return;

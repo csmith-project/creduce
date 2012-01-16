@@ -70,9 +70,12 @@ void FuncParamReplacement::HandleTopLevelDecl(DeclGroupRef D)
  
 void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
 {
+  if (QueryInstanceOnly)
+    return;
+
   if (TransformationCounter > ValidInstanceNum) {
-      TransError = TransMaxInstanceError;
-      return;
+    TransError = TransMaxInstanceError;
+    return;
   }
 
   assert(TransformationASTVisitor && "NULL TransformationASTVisitor!");

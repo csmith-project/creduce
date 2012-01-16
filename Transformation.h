@@ -24,6 +24,7 @@ public:
     : Name(TransName),
       TransformationCounter(-1),
       ValidInstanceNum(0),
+      QueryInstanceOnly(false),
       Context(NULL),
       SrcManager(NULL),
       TransError(TransSuccess),
@@ -40,6 +41,10 @@ public:
 
   void setTransformationCounter(int Counter) {
     TransformationCounter = Counter;
+  }
+
+  void setQueryInstanceFlag(bool Flag) {
+    QueryInstanceOnly = Flag;
   }
 
   bool transSuccess(void) {
@@ -60,6 +65,10 @@ public:
 
   void getTransErrorMsg(std::string &ErrorMsg);
 
+  int getNumTransformationInstances(void) {
+    return ValidInstanceNum;
+  }
+
 protected:
 
   const std::string &Name;
@@ -67,6 +76,8 @@ protected:
   int TransformationCounter;
 
   int ValidInstanceNum;
+
+  bool QueryInstanceOnly;
 
   clang::ASTContext *Context;
 

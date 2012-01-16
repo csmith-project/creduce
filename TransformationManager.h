@@ -47,6 +47,16 @@ public:
     OutputFileName = FileName;
   }
 
+  void setQueryInstanceFlag(bool Flag) {
+    QueryInstanceOnly = Flag;
+  }
+
+  bool getQueryInstanceFlag(void) {
+    return QueryInstanceOnly;
+  }
+
+  void outputNumTransformationInstances(void);
+
   void printTransformations();
 
   void printTransformationNames();
@@ -72,6 +82,8 @@ private:
   std::string OutputFileName;
 
   clang::CompilerInstance *ClangInstance;
+
+  bool QueryInstanceOnly;
 
   std::map<std::string, Transformation *> TransformationsMap;
 
