@@ -11,9 +11,10 @@ static void PrintHelpMessage(void)
 {
   llvm::outs() << "Usage: \n";
   llvm::outs() << "  clang_delta ";
-  llvm::outs() << "--transformation=name ";
-  llvm::outs() << "--counter=number ";
-  llvm::outs() << "--output=filename filename\n\n";
+  llvm::outs() << "--transformation=<name> ";
+  llvm::outs() << "--counter=<number> ";
+  llvm::outs() << "--output=<output_filename> ";
+  llvm::outs() << "<source_filename>\n\n";
 
   llvm::outs() << "clang_delta options:\n";
 
