@@ -11,18 +11,18 @@ namespace clang {
   class ASTContext;
 }
 
-class FPRASTVisitor;
+class PToLASTVisitor;
 
-class FuncParamReplacement : public Transformation {
-friend class FPRASTVisitor;
+class ParamToLocal : public Transformation {
+friend class PToLASTVisitor;
 
 public:
 
-  FuncParamReplacement(const char *TransName, const char *Desc)
+  ParamToLocal(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc)
   { }
 
-  ~FuncParamReplacement(void);
+  ~ParamToLocal(void);
 
 private:
   
@@ -36,18 +36,18 @@ private:
 
   llvm::SmallVector<clang::FunctionDecl *, 10> ValidFuncDecls;
 
-  FPRASTVisitor *TransformationASTVisitor;
+  PToLASTVisitor *TransformationASTVisitor;
 
   clang::FunctionDecl *TheFuncDecl;
 
   int TheParamPos;
 
   // Unimplemented
-  FuncParamReplacement(void);
+  ParamToLocal(void);
 
-  FuncParamReplacement(const FuncParamReplacement &);
+  ParamToLocal(const ParamToLocal &);
 
-  void operator=(const FuncParamReplacement &);
+  void operator=(const ParamToLocal &);
 };
 
 #endif

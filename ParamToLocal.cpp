@@ -1,4 +1,4 @@
-#include "FuncParamReplacement.h"
+#include "ParamToLocal.h"
 
 #include <sstream>
 #include "clang/AST/RecursiveASTVisitor.h"
@@ -16,14 +16,14 @@ of the same function. Initialze the newly local variable to be \
 0. Also, make corresponding changes on all of the call sites of \
 the modified function.\n";
  
-static RegisterTransformation<FuncParamReplacement> 
-         Trans("func-param-replacement", DescriptionMsg);
+static RegisterTransformation<ParamToLocal> 
+         Trans("param-to-local", DescriptionMsg);
 
-class FPRASTVisitor : public RecursiveASTVisitor<FPRASTVisitor> {
+class PToLASTVisitor : public RecursiveASTVisitor<PToLASTVisitor> {
 public:
-  typedef RecursiveASTVisitor<FPRASTVisitor> Inherited;
+  typedef RecursiveASTVisitor<PToLASTVisitor> Inherited;
 
-  FPRASTVisitor(FuncParamReplacement *Instance)
+  PToLASTVisitor(ParamToLocal *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -33,7 +33,7 @@ public:
 
 private:
 
-  FuncParamReplacement *ConsumerInstance;
+  ParamToLocal *ConsumerInstance;
 
   bool rewriteFuncDecl(FunctionDecl *FP);
 
@@ -47,11 +47,11 @@ private:
 
 };
 
-void FuncParamReplacement::Initialize(ASTContext &context) 
+void ParamToLocal::Initialize(ASTContext &context) 
 {
   Context = &context;
   SrcManager = &Context->getSourceManager();
-  TransformationASTVisitor = new FPRASTVisitor(this);
+  TransformationASTVisitor = new PToLASTVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
 
@@ -59,7 +59,7 @@ void FuncParamReplacement::Initialize(ASTContext &context)
   TheParamPos = -1;
 }
 
-void FuncParamReplacement::HandleTopLevelDecl(DeclGroupRef D) 
+void ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -69,7 +69,7 @@ void FuncParamReplacement::HandleTopLevelDecl(DeclGroupRef D)
   }
 }
  
-void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
+void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (QueryInstanceOnly)
     return;
@@ -91,7 +91,7 @@ void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV, 
+bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV, 
                                  unsigned int NumParams)
 {
   return 
@@ -102,7 +102,7 @@ bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV,
                                           ConsumerInstance->SrcManager);
 }
 
-bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
+bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
                                         const ParmVarDecl *PV)
 {
   Stmt *Body = FP->getBody();
@@ -121,7 +121,7 @@ bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
                                                               LocalVarStr));
 }
 
-bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
+bool PToLASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
 {
   const ParmVarDecl *PV = 
     FD->getParamDecl(ConsumerInstance->TheParamPos);  
@@ -137,7 +137,7 @@ bool FPRASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   return true;
 }
 
-bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
+bool PToLASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
@@ -147,7 +147,7 @@ bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
   return true;
 }
 
-bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
+bool PToLASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
 {
   return 
     RewriteUtils::removeArgFromCallExpr(CallE, 
@@ -156,7 +156,7 @@ bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
                                         ConsumerInstance->SrcManager);
 }
 
-bool FPRASTVisitor::VisitCallExpr(CallExpr *CallE) 
+bool PToLASTVisitor::VisitCallExpr(CallExpr *CallE) 
 {
   FunctionDecl *CalleeDecl = CallE->getDirectCallee();
   if (!CalleeDecl)
@@ -169,7 +169,7 @@ bool FPRASTVisitor::VisitCallExpr(CallExpr *CallE)
   return rewriteCalleeExpr(CallE);
 }
 
-bool FuncParamReplacement::isValidFuncDecl(FunctionDecl *FD) 
+bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD) 
 {
   bool IsValid = false;
   int ParamPos = 0;
@@ -207,7 +207,7 @@ bool FuncParamReplacement::isValidFuncDecl(FunctionDecl *FD)
   return IsValid;
 }
 
-FuncParamReplacement::~FuncParamReplacement(void)
+ParamToLocal::~ParamToLocal(void)
 {
   delete TransformationASTVisitor;
 }
