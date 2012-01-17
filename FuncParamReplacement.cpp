@@ -5,6 +5,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "RewriteUtils.h"
 
 using namespace clang;
 
@@ -93,84 +94,12 @@ void FuncParamReplacement::HandleTranslationUnit(ASTContext &Ctx)
 bool FPRASTVisitor::rewriteParam(const ParmVarDecl *PV, 
                                  unsigned int NumParams)
 {
-  SourceRange ParamLocRange = PV->getSourceRange();
-  SourceLocation StartLoc = ParamLocRange.getBegin();
-  int RangeSize = 
-    ConsumerInstance->TheRewriter.getRangeSize(ParamLocRange);
-
-  if (RangeSize == -1)
-    return false;
-
-  // The param is the only parameter of the function declaration.
-  // Replace it with void
-  if ((ConsumerInstance->TheParamPos == 0) && (NumParams == 1)) {
-    // Note that ')' is included in ParamLocRange for unnamed parameter
-    if (PV->getDeclName())
-      return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc,
-                 RangeSize, "void"));
-    else
-      return !(ConsumerInstance->TheRewriter.ReplaceText(StartLoc,
-                 RangeSize - 1, "void"));
-  }
-
-  // The param is the last parameter
-  if (ConsumerInstance->TheParamPos == static_cast<int>(NumParams - 1)) {
-    int Offset = 0;
-    const char *StartBuf = 
-      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
-
-    TransAssert(StartBuf && "Invalid start buffer!");
-    while (*StartBuf != ',') {
-      StartBuf--;
-      Offset--;
-    }
-
-    SourceLocation NewStartLoc = 
-      StartLoc.getLocWithOffset(Offset);
-
-    // Note that ')' is included in ParamLocRange for unnamed parameter
-    if (PV->getDeclName())
-      return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
-                 RangeSize - Offset));
-    else
-      return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc, 
-                 RangeSize - Offset - 1));
-  }
- 
-  // Clang gives inconsistent RangeSize for named and unnamed parameter decls.
-  // For example, for the first parameter, 
-  //   foo(int, int);  -- RangeSize is 4, i.e., "," is counted
-  //   foo(int x, int);  -- RangeSize is 5, i.e., ","is not included
-  if (PV->getDeclName()) {
-    // We cannot use the code below:
-    //   SourceLocation EndLoc = ParamLocRange.getEnd();
-    //   const char *EndBuf = 
-    //     ConsumerInstance->SrcManager->getCharacterData(EndLoc);
-    // Because getEnd() returns the start of the last token if this
-    // is a token range. For example, in the above example, 
-    // getEnd() points to the start of "x"
-    // See the comments on getRangeSize in clang/lib/Rewriter/Rewriter.cpp
-    int NewRangeSize = 0;
-    const char *StartBuf = 
-      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
-
-    while (NewRangeSize < RangeSize) {
-      StartBuf++;
-      NewRangeSize++;
-    }
-
-    TransAssert(StartBuf && "Invalid start buffer!");
-    while (*StartBuf != ',') {
-      StartBuf++;
-      NewRangeSize++;
-    }
-
-    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, 
-                                                      NewRangeSize + 1));
-  }
-  else {
-    return !(ConsumerInstance->TheRewriter.RemoveText(StartLoc, RangeSize));
-  }
+  return 
+    RewriteUtils::removeParamFromFuncDecl(PV, 
+                                          NumParams,
+                                          ConsumerInstance->TheParamPos,
+                                          &(ConsumerInstance->TheRewriter),
+                                          ConsumerInstance->SrcManager);
 }
 
 bool FPRASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
@@ -220,59 +149,11 @@ bool FPRASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool FPRASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
 {
-  Expr *Arg = CallE->getArg(ConsumerInstance->TheParamPos);
-  TransAssert(Arg && "Null arg!");
-
-  SourceRange ArgRange = Arg->getSourceRange();
-  int RangeSize = ConsumerInstance->TheRewriter.getRangeSize(ArgRange);
-
-  if (RangeSize == -1)
-    return false;
-
-  SourceLocation StartLoc = ArgRange.getBegin();
-  unsigned int NumArgs = CallE->getNumArgs();
-
-  if ((ConsumerInstance->TheParamPos == 0) && (NumArgs == 1)) {
-    // Note that ')' is included in ParamLocRange
-    return !(ConsumerInstance->TheRewriter.RemoveText(ArgRange));
-  }
-
-  // The param is the last parameter
-  if (ConsumerInstance->TheParamPos == static_cast<int>(NumArgs - 1)) {
-    int Offset = 0;
-    const char *StartBuf = 
-      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
-
-    TransAssert(StartBuf && "Invalid start buffer!");
-    while (*StartBuf != ',') {
-      StartBuf--;
-      Offset--;
-    }
-
-    SourceLocation NewStartLoc = 
-      StartLoc.getLocWithOffset(Offset);
-    return !(ConsumerInstance->TheRewriter.RemoveText(NewStartLoc,
-                                                      RangeSize - Offset));
-  }
-
-  int NewRangeSize = 0;
-  const char *StartBuf =
-      ConsumerInstance->SrcManager->getCharacterData(StartLoc);
-
-  TransAssert(StartBuf && "Invalid start buffer!");
-  while (NewRangeSize < RangeSize) {
-    StartBuf++;
-    NewRangeSize++;
-  }
-
-  TransAssert(StartBuf && "Invalid start buffer!");
-  while (*StartBuf != ',') {
-    StartBuf++;
-    NewRangeSize++;
-  }
-
-  ConsumerInstance->TheRewriter.RemoveText(StartLoc, NewRangeSize + 1);
-  return true;
+  return 
+    RewriteUtils::removeArgFromCallExpr(CallE, 
+                                        ConsumerInstance->TheParamPos,
+                                        &(ConsumerInstance->TheRewriter),
+                                        ConsumerInstance->SrcManager);
 }
 
 bool FPRASTVisitor::VisitCallExpr(CallExpr *CallE) 

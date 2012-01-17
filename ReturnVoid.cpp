@@ -130,8 +130,8 @@ void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)
     return;
 
   if (TransformationCounter > ValidInstanceNum) {
-      TransError = TransMaxInstanceError;
-      return;
+    TransError = TransMaxInstanceError;
+    return;
   }
 
   TransAssert(TransformationASTVisitor && "NULL TransformationASTVisitor!");

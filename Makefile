@@ -25,6 +25,7 @@ TRANSFORM_OBJS = FuncParamReplacement.o ReturnVoid.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
+       RewriteUtils.o \
        Transformation.o \
        ${TRANSFORM_OBJS}
 
@@ -39,7 +40,9 @@ ClangDelta.o: ClangDelta.cpp
 
 TransformationManager.o: TransformationManager.cpp TransformationManager.h ${TRANSFORM_OBJS}
 
-Transformation.o: Transformation.cpp Transformation.h
+RewriteUtils.o: RewriteUtils.cpp RewriteUtils.h 
+
+Transformation.o: Transformation.cpp Transformation.h RewriteUtils.o
 
 FuncParamReplacement.o: FuncParamReplacement.cpp FuncParamReplacement.h Transformation.o
 
