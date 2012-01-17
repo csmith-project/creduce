@@ -10,7 +10,7 @@
 using namespace clang;
 
 static const char *DescriptionMsg =
-"Remove an integaral/enumaration parameter from the declaration \
+"Remove an integaral/enumeration parameter from the declaration \
 of a function. Define the removed parameter as a local variable \
 of the same function. Initialze the newly local variable to be \
 0. Also, make corresponding changes on all of the call sites of \
@@ -91,6 +91,49 @@ void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD) 
+{
+  bool IsValid = false;
+  int ParamPos = 0;
+
+  TransAssert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
+
+  // Skip the case like foo(int, ...), because we cannot remove
+  // the "int" there
+  if (FD->isVariadic() && (FD->getNumParams() == 1)) {
+    return false;
+  }
+
+  // Avoid duplications
+  if (std::find(ValidFuncDecls.begin(), 
+                ValidFuncDecls.end(), FD) != 
+      ValidFuncDecls.end())
+    return false;
+
+  for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
+       PE = FD->param_end(); PI != PE; ++PI) {
+    const ParmVarDecl *PV = (*PI);
+    QualType PVType = PV->getOriginalType();
+    if (PVType.getTypePtr()->isIntegralOrEnumerationType()) {
+      ValidInstanceNum++;
+
+      if (ValidInstanceNum == TransformationCounter) {
+        TheFuncDecl = FD;
+        TheParamPos = ParamPos;
+      }
+
+      IsValid = true;
+    }
+    ParamPos++;
+  }
+  return IsValid;
+}
+
+ParamToLocal::~ParamToLocal(void)
+{
+  delete TransformationASTVisitor;
+}
+
 bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV, 
                                  unsigned int NumParams)
 {
@@ -167,48 +210,5 @@ bool PToLASTVisitor::VisitCallExpr(CallExpr *CallE)
 
   // We now have a correct CallExpr
   return rewriteCalleeExpr(CallE);
-}
-
-bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD) 
-{
-  bool IsValid = false;
-  int ParamPos = 0;
-
-  TransAssert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
-
-  // Skip the case like foo(int, ...), because we cannot remove
-  // the "int" there
-  if (FD->isVariadic() && (FD->getNumParams() == 1)) {
-    return false;
-  }
-
-  // Avoid duplications
-  if (std::find(ValidFuncDecls.begin(), 
-                ValidFuncDecls.end(), FD) != 
-      ValidFuncDecls.end())
-    return false;
-
-  for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
-       PE = FD->param_end(); PI != PE; ++PI) {
-    const ParmVarDecl *PV = (*PI);
-    QualType PVType = PV->getOriginalType();
-    if (PVType.getTypePtr()->isIntegralOrEnumerationType()) {
-      ValidInstanceNum++;
-
-      if (ValidInstanceNum == TransformationCounter) {
-        TheFuncDecl = FD;
-        TheParamPos = ParamPos;
-      }
-
-      IsValid = true;
-    }
-    ParamPos++;
-  }
-  return IsValid;
-}
-
-ParamToLocal::~ParamToLocal(void)
-{
-  delete TransformationASTVisitor;
 }
 
