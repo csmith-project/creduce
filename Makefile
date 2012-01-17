@@ -21,7 +21,7 @@ LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
        ${LLVM_LIBS} 
 
-TRANSFORM_OBJS = ParamToLocal.o ReturnVoid.o
+TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o ReturnVoid.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -45,6 +45,8 @@ RewriteUtils.o: RewriteUtils.cpp RewriteUtils.h
 Transformation.o: Transformation.cpp Transformation.h RewriteUtils.o
 
 ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h Transformation.o
+
+ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h Transformation.o
 
 ReturnVoid.o: ReturnVoid.cpp ReturnVoid.h Transformation.o
 
