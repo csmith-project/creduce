@@ -6,8 +6,6 @@ inline a function call
 
 remove function call from its enclosing expression
 
-move arguments and locals to global scope
-
 factor complex expressions into multiple lines of code
 
 scalar replacement of aggregates
