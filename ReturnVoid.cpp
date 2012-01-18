@@ -45,10 +45,6 @@ void ReturnVoid::Initialize(ASTContext &context)
   TransformationASTVisitor = new RVASTVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
-
-  TheFuncDecl = NULL;
-  FuncDefStartPos = NULL;
-  FuncDefEndPos = NULL;
 }
 
 bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
@@ -192,6 +188,7 @@ bool RVASTVisitor::VisitReturnStmt(ReturnStmt *RS)
 
 ReturnVoid::~ReturnVoid(void)
 {
-  delete TransformationASTVisitor;
+  if (TransformationASTVisitor)
+    delete TransformationASTVisitor;
 }
 

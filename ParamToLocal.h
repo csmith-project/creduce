@@ -19,7 +19,10 @@ friend class PToLASTVisitor;
 public:
 
   ParamToLocal(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc)
+    : Transformation(TransName, Desc),
+      TransformationASTVisitor(NULL),
+      TheFuncDecl(NULL),
+      TheParamPos(-1)
   { }
 
   ~ParamToLocal(void);

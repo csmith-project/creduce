@@ -21,7 +21,12 @@ friend class PToGASTVisitor;
 public:
 
   ParamToGlobal(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc)
+    : Transformation(TransName, Desc),
+      TransformationASTVisitor(NULL),
+      TheFuncDecl(NULL),
+      TheParmVarDecl(NULL),
+      TheNewDeclName(""),
+      TheParamPos(-1)
   { }
 
   ~ParamToGlobal(void);

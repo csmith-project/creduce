@@ -54,9 +54,6 @@ void ParamToLocal::Initialize(ASTContext &context)
   TransformationASTVisitor = new PToLASTVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
-
-  TheFuncDecl = NULL;
-  TheParamPos = -1;
 }
 
 void ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -131,7 +128,8 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToLocal::~ParamToLocal(void)
 {
-  delete TransformationASTVisitor;
+  if (TransformationASTVisitor)
+    delete TransformationASTVisitor;
 }
 
 bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV, 

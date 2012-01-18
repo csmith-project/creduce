@@ -56,11 +56,6 @@ void ParamToGlobal::Initialize(ASTContext &context)
   TransformationASTVisitor = new PToGASTVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
-
-  TheFuncDecl = NULL;
-  TheParmVarDecl = NULL;
-  TheNewDeclName = "";
-  TheParamPos = -1;
 }
 
 void ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -135,7 +130,8 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToGlobal::~ParamToGlobal(void)
 {
-  delete TransformationASTVisitor;
+  if (TransformationASTVisitor)
+    delete TransformationASTVisitor;
 }
 
 bool PToGASTVisitor::rewriteParam(const ParmVarDecl *PV, 

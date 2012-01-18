@@ -21,7 +21,11 @@ friend class RVASTVisitor;
 public:
 
   ReturnVoid(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc)
+    : Transformation(TransName, Desc),
+      TransformationASTVisitor(NULL),
+      TheFuncDecl(NULL),
+      FuncDefStartPos(NULL),
+      FuncDefEndPos(NULL)
   { }
 
   ~ReturnVoid(void);
