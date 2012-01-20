@@ -261,5 +261,6 @@ bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
 
   SourceLocation StartLoc = Body->getLocStart();
   return !(TheRewriter->InsertTextAfterToken(StartLoc, 
-                                            VarStr));
+                                             VarStr));
 }
+
