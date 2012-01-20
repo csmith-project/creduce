@@ -1,5 +1,6 @@
 #include "RewriteUtils.h"
 
+#include <cctype>
 #include "clang/Basic/SourceManager.h"
 #include "clang/Rewrite/Rewriter.h"
 #include "clang/AST/Decl.h"
@@ -17,6 +18,19 @@
 #endif
 
 using namespace clang;
+
+static const char *DefaultIndentStr = "    ";
+
+// copied from Rewriter.cpp
+unsigned RewriteUtils::getLocationOffsetAndFileID(SourceLocation Loc,
+                                                  FileID &FID,
+                                                  SourceManager *SrcManager)
+{
+  assert(Loc.isValid() && "Invalid location");
+  std::pair<FileID,unsigned> V = SrcManager->getDecomposedLoc(Loc);
+  FID = V.first;
+  return V.second;
+}
 
 SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range,
                                                      Rewriter *TheRewriter)
@@ -252,15 +266,65 @@ bool RewriteUtils::getExprString(const Expr *E,
   return true;
 }
 
+bool RewriteUtils::replaceExpr(const Expr *E, 
+                               const std::string &ES,
+                               Rewriter *TheRewriter,
+                               SourceManager *SrcManager)
+{
+  SourceRange ExprRange = E->getSourceRange();
+   
+  int RangeSize = TheRewriter->getRangeSize(ExprRange);
+  if (RangeSize == -1)
+    return false;
+
+  return !(TheRewriter->ReplaceText(ExprRange, ES));
+}
+
+std::string RewriteUtils::getStmtIndentString(Stmt *S,
+                                          SourceManager *SrcManager)
+{
+  SourceLocation StmtStartLoc = S->getLocStart();
+
+  FileID FID;
+  unsigned StartOffet = 
+    getLocationOffsetAndFileID(StmtStartLoc, FID, SrcManager);
+
+  StringRef MB = SrcManager->getBufferData(FID);
+ 
+  unsigned lineNo = SrcManager->getLineNumber(FID, StartOffet) - 1;
+  const SrcMgr::ContentCache *
+      Content = SrcManager->getSLocEntry(FID).getFile().getContentCache();
+  unsigned lineOffs = Content->SourceLineCache[lineNo];
+ 
+  // Find the whitespace at the start of the line.
+  StringRef indentSpace;
+
+  unsigned i = lineOffs;
+  while (isspace(MB[i]))
+    ++i;
+  indentSpace = MB.substr(lineOffs, i-lineOffs);
+
+  return indentSpace;
+}
+
 bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
                                      FunctionDecl *FD,
-                                     Rewriter *TheRewriter)
+                                     Rewriter *TheRewriter,
+                                     SourceManager *SrcManager)
 {
   Stmt *Body = FD->getBody();
   TransAssert(Body && "NULL body for a function definition!");
 
+  std::string IndentStr;
+  StmtIterator I = Body->child_begin();
+
+  if (I == Body->child_end())
+    IndentStr = DefaultIndentStr;
+  else
+    IndentStr = getStmtIndentString((*I), SrcManager);
+
+  std::string NewVarStr = "\n" + IndentStr + VarStr;
   SourceLocation StartLoc = Body->getLocStart();
-  return !(TheRewriter->InsertTextAfterToken(StartLoc, 
-                                             VarStr));
+  return !(TheRewriter->InsertTextAfterToken(StartLoc, NewVarStr));
 }
 

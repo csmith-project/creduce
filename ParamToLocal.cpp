@@ -148,7 +148,6 @@ bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
 {
   std::string LocalVarStr;
 
-  LocalVarStr = " ";
   LocalVarStr += PV->getType().getAsString();
   LocalVarStr += " ";
   LocalVarStr += PV->getNameAsString();
@@ -156,7 +155,8 @@ bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
   LocalVarStr += ";";
 
   return RewriteUtils::addLocalVarToFunc(LocalVarStr, FD,
-                                         &ConsumerInstance->TheRewriter);
+                                         &ConsumerInstance->TheRewriter,
+                                         ConsumerInstance->SrcManager);
 }
 
 bool PToLASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 

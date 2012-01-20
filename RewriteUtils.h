@@ -14,10 +14,14 @@ namespace clang {
   class CallExpr;
   class Expr;
   class FunctionDecl;
+  class Stmt;
 }
 
 class RewriteUtils {
 public:
+  static clang::SourceLocation getEndLocationFromBegin
+    (clang::SourceRange Range, clang::Rewriter *TheRewriter);
+
   static bool removeParamFromFuncDecl(const clang::ParmVarDecl *PV,
                                       unsigned int NumParams,
                                       int ParamPos,
@@ -36,23 +40,34 @@ public:
                                     clang::Rewriter *TheRewriter,
                                     clang::SourceManager *SrcManager);
 
-  static bool addLocalVarToFunc(const std::string &VarStr,
-                                clang::FunctionDecl *FD,
-                                clang::Rewriter *TheRewriter);
-                                 
   static bool getExprString(const clang::Expr *E, 
                             std::string &ES,
                             clang::Rewriter *TheRewriter,
                             clang::SourceManager *SrcManager);
-private:
 
-  static clang::SourceLocation getEndLocationFromBegin
-    (clang::SourceRange Range, clang::Rewriter *TheRewriter);
+  static bool replaceExpr(const clang::Expr *E, 
+                          const std::string &ES,
+                          clang::Rewriter *TheRewriter,
+                          clang::SourceManager *SrcManager);
+
+  static bool addLocalVarToFunc(const std::string &VarStr,
+                                clang::FunctionDecl *FD,
+                                clang::Rewriter *TheRewriter,
+                                clang::SourceManager *SrcManager);
+                                 
+private:
 
   static clang::SourceLocation getEndLocationUtil(clang::SourceRange Range,
                                            char Symbol, 
                                            clang::Rewriter *TheRewriter,
                                            clang::SourceManager *SrcManager);
+
+  static unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
+                                             clang::FileID &FID,
+                                             clang::SourceManager *SrcManager);
+
+  static std::string getStmtIndentString(clang::Stmt *S,
+                                         clang::SourceManager *SrcManager);
 
   RewriteUtils(void);
 
