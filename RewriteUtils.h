@@ -13,6 +13,7 @@ namespace clang {
   class SourceManager;
   class CallExpr;
   class Expr;
+  class FunctionDecl;
 }
 
 class RewriteUtils {
@@ -34,6 +35,10 @@ public:
                                     bool IsFirstDecl,
                                     clang::Rewriter *TheRewriter,
                                     clang::SourceManager *SrcManager);
+
+  static bool addLocalVarToFunc(const std::string &VarStr,
+                                clang::FunctionDecl *FD,
+                                clang::Rewriter *TheRewriter);
                                  
   static bool getExprString(const clang::Expr *E, 
                             std::string &ES,

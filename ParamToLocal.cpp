@@ -143,11 +143,9 @@ bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV,
                                           ConsumerInstance->SrcManager);
 }
 
-bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
+bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
                                         const ParmVarDecl *PV)
 {
-  Stmt *Body = FP->getBody();
-  TransAssert(Body && "NULL body for a function definition!");
   std::string LocalVarStr;
 
   LocalVarStr = " ";
@@ -157,9 +155,8 @@ bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FP,
   LocalVarStr += " = 0";
   LocalVarStr += ";";
 
-  SourceLocation StartLoc = Body->getLocStart();
-  return !(ConsumerInstance->TheRewriter.InsertTextAfterToken(StartLoc, 
-                                                              LocalVarStr));
+  return RewriteUtils::addLocalVarToFunc(LocalVarStr, FD,
+                                         &ConsumerInstance->TheRewriter);
 }
 
 bool PToLASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 

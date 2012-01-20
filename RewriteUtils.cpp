@@ -251,3 +251,15 @@ bool RewriteUtils::getExprString(const Expr *E,
   ES.assign(StartBuf, RangeSize);
   return true;
 }
+
+bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
+                                     FunctionDecl *FD,
+                                     Rewriter *TheRewriter)
+{
+  Stmt *Body = FD->getBody();
+  TransAssert(Body && "NULL body for a function definition!");
+
+  SourceLocation StartLoc = Body->getLocStart();
+  return !(TheRewriter->InsertTextAfterToken(StartLoc, 
+                                            VarStr));
+}
