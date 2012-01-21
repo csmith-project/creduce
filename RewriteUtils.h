@@ -60,7 +60,7 @@ public:
 
 private:
 
-  static clang::SourceLocation getEndLocationUtil(clang::SourceRange Range,
+  static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                            char Symbol, 
                                            clang::Rewriter *TheRewriter,
                                            clang::SourceManager *SrcManager);

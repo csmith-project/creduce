@@ -44,7 +44,7 @@ SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range,
   return StartLoc.getLocWithOffset(LocRangeSize);
 }
 
-SourceLocation RewriteUtils::getEndLocationUtil(SourceRange Range, 
+SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range, 
                                                 char Symbol,
                                                 Rewriter *TheRewriter,
                                                 SourceManager *SrcManager)
@@ -234,7 +234,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
       getEndLocationFromBegin(TypeLocRange, TheRewriter);
 
     SourceLocation NewEndLoc = 
-      getEndLocationUtil(VarRange, ',', TheRewriter, SrcManager);
+      getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
     
     return 
       !(TheRewriter->RemoveText(SourceRange(NewStartLoc, NewEndLoc)));
@@ -244,7 +244,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   SourceLocation VarEndLoc = VarRange.getEnd();
   SourceRange PrevDeclRange = PrevDecl->getSourceRange();
   SourceLocation PrevDeclEndLoc = 
-    getEndLocationUtil(PrevDeclRange, ',', TheRewriter, SrcManager);
+    getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
