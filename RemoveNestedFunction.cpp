@@ -16,7 +16,8 @@ expression. The transformation will create a temporary \
 variable with the correct type, assgin the return value \
 of the selected nested function to the created variable, \
 and replace the function invocation with this temporary \
-variable. \n";
+variable. (Note that this transformation is unsound because \
+it changes the semantics of loop executions in some cases. \n";
 
 
 static RegisterTransformation<RemoveNestedFunction>
