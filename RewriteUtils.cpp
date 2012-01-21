@@ -53,7 +53,7 @@ SourceLocation RewriteUtils::getEndLocationUtil(SourceRange Range,
     
   const char *EndBuf = SrcManager->getCharacterData(EndLoc);
   int Offset = 0;
-  while (*EndBuf != ',') {
+  while (*EndBuf != Symbol) {
     EndBuf++;
     Offset++;
   }
