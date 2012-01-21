@@ -55,6 +55,9 @@ public:
                                 clang::Rewriter *TheRewriter,
                                 clang::SourceManager *SrcManager);
                                  
+  static std::string getStmtIndentString(clang::Stmt *S,
+                                         clang::SourceManager *SrcManager);
+
 private:
 
   static clang::SourceLocation getEndLocationUtil(clang::SourceRange Range,
@@ -65,9 +68,6 @@ private:
   static unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
-
-  static std::string getStmtIndentString(clang::Stmt *S,
-                                         clang::SourceManager *SrcManager);
 
   RewriteUtils(void);
 
