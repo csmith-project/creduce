@@ -335,3 +335,47 @@ const char *RewriteUtils::getTmpVarNamePrefix(void)
   return TmpVarNamePrefix;
 }
 
+bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
+                                          const std::string &VarName,
+                                          Expr *RHS,
+                                          bool NeedParen,
+                                          Rewriter *TheRewriter,
+                                          SourceManager *SrcManager)
+{
+  std::string IndentStr = 
+    RewriteUtils::getStmtIndentString(BeforeStmt, SrcManager);
+
+  if (NeedParen) {
+    SourceRange StmtRange = BeforeStmt->getSourceRange();
+    SourceLocation LocEnd = 
+      RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+
+    std::string PostStr = "\n" + IndentStr + "}";
+    if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
+      return false;
+  }
+
+  SourceLocation StmtLocStart = BeforeStmt->getLocStart();
+
+  std::string ExprStr;
+  RewriteUtils::getExprString(RHS, ExprStr,
+                              TheRewriter, SrcManager);
+
+  std::string AssignStmtStr;
+  
+  if (NeedParen) {
+    AssignStmtStr = "{\n";
+    AssignStmtStr += IndentStr + "  " + VarName + " = ";
+    AssignStmtStr += ExprStr;
+    AssignStmtStr += ";\n" + IndentStr + "  ";
+  }
+  else {
+    AssignStmtStr = VarName + " = ";
+    AssignStmtStr += ExprStr;
+    AssignStmtStr += ";\n" + IndentStr;
+  }
+  
+  return !(TheRewriter->InsertText(StmtLocStart, 
+             AssignStmtStr, /*InsertAfter=*/false));
+}
+

@@ -58,6 +58,13 @@ public:
   static std::string getStmtIndentString(clang::Stmt *S,
                                          clang::SourceManager *SrcManager);
 
+  static bool addNewAssignStmtBefore(clang::Stmt *BeforeStmt,
+                                     const std::string &VarName,
+                                     clang::Expr *RHS,
+                                     bool NeedParen,
+                                     clang::Rewriter *TheRewriter,
+                                     clang::SourceManager *SrcManager);
+
   static const char *getTmpVarNamePrefix(void);
 
 private:
