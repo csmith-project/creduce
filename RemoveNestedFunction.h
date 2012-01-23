@@ -1,5 +1,5 @@
-#ifndef PARAM_TO_GLOBAL_H
-#define AND_PARAM_TO_GLOBAL_H
+#ifndef REMOVE_NESTED_FUNCTION_H
+#define REMOVE_NESTED_FUNCTION_H
 
 #include <string>
 #include "llvm/ADT/SmallVector.h"

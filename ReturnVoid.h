@@ -1,4 +1,3 @@
-
 #ifndef VOID_RETURN_H
 #define VOID_RETURN_H
 

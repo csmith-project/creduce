@@ -1,5 +1,5 @@
-#ifndef FUNC_PARAM_REPLACEMENT_H
-#define FUNC_PARAM_REPLACEMENT_H
+#ifndef PARAM_TO_LOCAL_H
+#define PARAM_TO_LOCAL_H
 
 #include <string>
 #include "llvm/ADT/SmallVector.h"
