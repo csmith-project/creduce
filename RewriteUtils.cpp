@@ -21,6 +21,8 @@ using namespace clang;
 
 static const char *DefaultIndentStr = "    ";
 
+const char *RewriteUtils::TmpVarNamePrefix = "__trans_tmp_";
+
 // copied from Rewriter.cpp
 unsigned RewriteUtils::getLocationOffsetAndFileID(SourceLocation Loc,
                                                   FileID &FID,
@@ -326,5 +328,10 @@ bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
   std::string NewVarStr = "\n" + IndentStr + VarStr;
   SourceLocation StartLoc = Body->getLocStart();
   return !(TheRewriter->InsertTextAfterToken(StartLoc, NewVarStr));
+}
+
+const char *RewriteUtils::getTmpVarNamePrefix(void)
+{
+  return TmpVarNamePrefix;
 }
 

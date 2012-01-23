@@ -58,7 +58,11 @@ public:
   static std::string getStmtIndentString(clang::Stmt *S,
                                          clang::SourceManager *SrcManager);
 
+  static const char *getTmpVarNamePrefix(void);
+
 private:
+
+  static const char *TmpVarNamePrefix;
 
   static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                            char Symbol, 

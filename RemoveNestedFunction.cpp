@@ -259,7 +259,7 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
   std::string VarStr;
   std::stringstream SS;
 
-  SS << "__trans_tmp_" << (uintptr_t)&QT;
+  SS << RewriteUtils::getTmpVarNamePrefix() << (uintptr_t)&QT;
   VarStr = SS.str();
   setTmpVarName(VarStr);
 
