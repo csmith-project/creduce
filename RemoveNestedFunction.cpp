@@ -45,8 +45,6 @@ public:
 
   bool VisitDoStmt(DoStmt *DS);
 
-  bool VisitSwitchStmt(SwitchStmt *SS);
-
   bool VisitCaseStmt(CaseStmt *CS);
 
   bool VisitDefaultStmt(DefaultStmt *DS);
@@ -78,13 +76,19 @@ bool RNFCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
     CurrentStmt = (*I);
     TraverseStmt(*I);
   }
-  return true;
+  return false;
 }
 
 void RNFCollectionVisitor::visitNonCompoundStmt(Stmt *S)
 {
-  if (S && isa<CompoundStmt>(S))
+  if (!S)
     return;
+
+  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
+  if (CS) {
+    VisitCompoundStmt(CS);
+    return;
+  }
 
   CurrentStmt = (S);
   NeedParen = true;
@@ -108,7 +112,7 @@ bool RNFCollectionVisitor::VisitIfStmt(IfStmt *IS)
   Stmt *ElseB = IS->getElse();
   visitNonCompoundStmt(ElseB);
 
-  return true;
+  return false;
 }
 
 // It causes unsound transformation because 
@@ -135,7 +139,7 @@ bool RNFCollectionVisitor::VisitForStmt(ForStmt *FS)
 
   Stmt *Body = FS->getBody();
   visitNonCompoundStmt(Body);
-  return true;
+  return false;
 }
 
 bool RNFCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
@@ -145,35 +149,31 @@ bool RNFCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
 
   Stmt *Body = WS->getBody();
   visitNonCompoundStmt(Body);
-  return true;
+  return false;
 }
 
 bool RNFCollectionVisitor::VisitDoStmt(DoStmt *DS)
 {
+  Expr *E = DS->getCond();
+  TraverseStmt(E);
+
   Stmt *Body = DS->getBody();
   visitNonCompoundStmt(Body);
-  return true;
-}
-
-bool RNFCollectionVisitor::VisitSwitchStmt(SwitchStmt *SS)
-{
-  Stmt *Body = SS->getBody();
-  visitNonCompoundStmt(Body);
-  return true;
+  return false;
 }
 
 bool RNFCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
 {
   Stmt *Body = CS->getSubStmt();
   visitNonCompoundStmt(Body);
-  return true;
+  return false;
 }
 
 bool RNFCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
 {
   Stmt *Body = DS->getSubStmt();
   visitNonCompoundStmt(Body);
-  return true;
+  return false;
 }
 
 bool RNFCollectionVisitor::VisitCallExpr(CallExpr *CallE) 
