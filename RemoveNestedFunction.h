@@ -27,8 +27,7 @@ public:
       TheStmt(NULL),
       TheCallExpr(NULL),
       TmpVarName(""),
-      NeedParen(false),
-      TheArgPos(-1)
+      NeedParen(false)
   { }
 
   ~RemoveNestedFunction(void);
@@ -70,8 +69,6 @@ private:
   std::string TmpVarName;
 
   bool NeedParen;
-
-  int TheArgPos;
 
   // Unimplemented
   RemoveNestedFunction(void);
