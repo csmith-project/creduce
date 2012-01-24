@@ -22,7 +22,7 @@ LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        ${LLVM_LIBS} 
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
-                 RemoveNestedFunction.o
+                 RemoveNestedFunction.o BinOpSimplification.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -50,6 +50,8 @@ ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h Transformation.o
 ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h Transformation.o
 
 RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h Transformation.o
+
+BinOpSimplification.o: BinOpSimplification.cpp BinOpSimplification.h Transformation.o
 
 LocalToGlobal.o: LocalToGlobal.cpp LocalToGlobal.h Transformation.o
 
