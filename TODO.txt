@@ -4,8 +4,6 @@ inline a function call
   only for small functions, and only when delta has already
   gotten pretty far
 
-factor complex expressions into multiple lines of code
-
 scalar replacement of aggregates
 
 remove level of pointer indirection from a variable
