@@ -1,5 +1,5 @@
 #ifndef PARAM_TO_GLOBAL_H
-#define AND_PARAM_TO_GLOBAL_H
+#define PARAM_TO_GLOBAL_H
 
 #include <string>
 #include "llvm/ADT/SmallVector.h"
