@@ -224,7 +224,7 @@ void BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D)
     if (FD && FD->isThisDeclarationADefinition()) {
       BinOpCollectionVisitor->setCurrentFuncDecl(FD);
       BinOpCollectionVisitor->TraverseDecl(FD);
-      BinOpCollectionVisitor->setCurrentFuncDecl(FD);
+      BinOpCollectionVisitor->setCurrentFuncDecl(NULL);
     }
   }
 }

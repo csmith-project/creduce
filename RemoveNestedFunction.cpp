@@ -223,7 +223,7 @@ void RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D)
     if (FD && FD->isThisDeclarationADefinition()) {
       NestedInvocationVisitor->setCurrentFuncDecl(FD);
       NestedInvocationVisitor->TraverseDecl(FD);
-      NestedInvocationVisitor->setCurrentFuncDecl(FD);
+      NestedInvocationVisitor->setCurrentFuncDecl(NULL);
     }
   }
 }
