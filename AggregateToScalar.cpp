@@ -12,12 +12,13 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Replace a struct/union member with a scalar variable. \
-In more detail, the transformation creates a \
-scalar variable for a referenced struct/union member, \
+"Replace a struct/union member with scalar variables. \
+In more detail, the transformation creates \
+scalar variables for a referenced struct/union member, \
 assigns the initial value of the struct/union member to \
-the scalar, and substitutes all accesses to the struct/union \
-member with the accesses to this scalar variable. ";
+the scalars, and substitutes all accesses to the struct/union \
+member with the accesses to the corresponding scalar variables. \
+(Note that this transformation is unsound). ";
 
 static RegisterTransformation<AggregateToScalar>
          Trans("aggregate-to-scalar", DescriptionMsg);
