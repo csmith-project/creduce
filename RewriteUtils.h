@@ -65,6 +65,16 @@ public:
                                      clang::Rewriter *TheRewriter,
                                      clang::SourceManager *SrcManager);
 
+  static bool addStringAfterStmt(clang::Stmt *AfterStmt, 
+                                 const std::string &Str,
+                                 clang::Rewriter *TheRewriter,
+                                 clang::SourceManager *SrcManager);
+
+  static bool addStringAfterVarDecl(clang::VarDecl *VD,
+                                    const std::string &Str,
+                                    clang::Rewriter *TheRewriter,
+                                    clang::SourceManager *SrcManager);
+
   static const char *getTmpVarNamePrefix(void);
 
 private:
@@ -72,6 +82,11 @@ private:
   static const char *TmpVarNamePrefix;
 
   static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
+                                           char Symbol, 
+                                           clang::Rewriter *TheRewriter,
+                                           clang::SourceManager *SrcManager);
+
+  static clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
                                            char Symbol, 
                                            clang::Rewriter *TheRewriter,
                                            clang::SourceManager *SrcManager);

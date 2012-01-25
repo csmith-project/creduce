@@ -62,6 +62,24 @@ SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range,
   return EndLoc.getLocWithOffset(Offset);
 }
 
+SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range, 
+                                                char Symbol,
+                                                Rewriter *TheRewriter,
+                                                SourceManager *SrcManager)
+{
+  SourceLocation EndLoc = getEndLocationFromBegin(Range, TheRewriter);
+    
+  const char *EndBuf = SrcManager->getCharacterData(EndLoc);
+  int Offset = 0;
+  while (*EndBuf != Symbol) {
+    EndBuf++;
+    Offset++;
+  }
+  Offset++;
+  return EndLoc.getLocWithOffset(Offset);
+}
+
+
 bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
                                            unsigned int NumParams,
                                            int ParamPos,
@@ -377,5 +395,33 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
   
   return !(TheRewriter->InsertText(StmtLocStart, 
              AssignStmtStr, /*InsertAfter=*/false));
+}
+
+bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt, 
+                                      const std::string &Str,
+                                      Rewriter *TheRewriter,
+                                      SourceManager *SrcManager)
+{
+  std::string IndentStr = 
+    RewriteUtils::getStmtIndentString(AfterStmt, SrcManager);
+
+  std::string NewStr = "\n" + IndentStr + Str;
+  SourceRange StmtRange = AfterStmt->getSourceRange();
+  SourceLocation LocEnd = 
+    RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+  
+  return !(TheRewriter->InsertText(LocEnd, NewStr));
+}
+
+bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
+                                         const std::string &Str,
+                                         Rewriter *TheRewriter,
+                                         SourceManager *SrcManager)
+{
+  SourceRange VarRange = VD->getSourceRange();
+  SourceLocation LocEnd = 
+    RewriteUtils::getEndLocationAfter(VarRange, ';', TheRewriter, SrcManager);
+  
+  return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
