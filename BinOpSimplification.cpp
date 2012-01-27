@@ -213,6 +213,9 @@ void BinOpSimplification::Initialize(ASTContext &context)
   Context = &context;
   SrcManager = &Context->getSourceManager();
   BinOpCollectionVisitor = new BSCollectionVisitor(this);
+  NameQueryWrap = 
+    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
+
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
 }
@@ -245,6 +248,7 @@ void BinOpSimplification::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert(TheStmt && "NULL TheStmt!");
   TransAssert(TheBinOp && "NULL TheBinOp");
 
+  NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
   addNewTmpVariable();
   addNewAssignStmt();
   replaceBinOp();
@@ -259,8 +263,9 @@ bool BinOpSimplification::addNewTmpVariable(void)
   QualType QT = TheBinOp->getType();
   std::string VarStr;
   std::stringstream SS;
+  unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
 
-  SS << RewriteUtils::getTmpVarNamePrefix() << (uintptr_t)&QT;
+  SS << RewriteUtils::getTmpVarNamePrefix() << (NamePostfix + 1);
   VarStr = SS.str();
   setTmpVarName(VarStr);
 
@@ -292,4 +297,7 @@ BinOpSimplification::~BinOpSimplification(void)
 {
   if (BinOpCollectionVisitor)
     delete BinOpCollectionVisitor;
+
+  if (NameQueryWrap)
+    delete NameQueryWrap;
 }

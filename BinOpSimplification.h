@@ -23,6 +23,7 @@ public:
   BinOpSimplification(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       BinOpCollectionVisitor(NULL),
+      NameQueryWrap(NULL),
       TheFuncDecl(NULL),
       TheStmt(NULL),
       TheBinOp(NULL),
@@ -57,6 +58,8 @@ private:
   clang::SmallVector<clang::BinaryOperator *, 10> ValidBinOps;
 
   BSCollectionVisitor *BinOpCollectionVisitor;
+
+  TransNameQueryWrap *NameQueryWrap;
 
   clang::FunctionDecl *TheFuncDecl;
 
