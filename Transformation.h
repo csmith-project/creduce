@@ -17,6 +17,7 @@ namespace clang {
   class CompilerInstance;
   class ASTContext;
   class SourceManager;
+  class Decl;
 }
 
 typedef enum {
@@ -26,6 +27,7 @@ typedef enum {
 } TransformationError;
 
 class Transformation : public clang::ASTConsumer {
+
 public:
 
   Transformation(const char *TransName, const char *Desc)
@@ -97,6 +99,38 @@ protected:
   
   std::string DescriptionString;
 
+};
+
+class TransNameQueryVisitor;
+
+class TransNameQueryWrap {
+friend class TransNameQueryVisitor;
+
+public:
+  explicit TransNameQueryWrap(const std::string &Prefix);
+
+  ~TransNameQueryWrap(void);
+
+  unsigned int getMaxNamePostfix(void) {
+    return MaxPostfix;
+  }
+
+  bool TraverseDecl(clang::Decl *D);
+
+private:
+
+  std::string NamePrefix;
+
+  unsigned int MaxPostfix;
+
+  TransNameQueryVisitor *NameQueryVisitor;
+
+  // Unimplemented
+  TransNameQueryWrap(void);
+
+  TransNameQueryWrap(const TransNameQueryWrap &);
+
+  void operator=(const TransNameQueryWrap &);
 };
 
 #endif

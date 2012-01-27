@@ -2,11 +2,70 @@
 
 #include <sstream>
 
+#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace clang;
+
+class TransNameQueryVisitor : public 
+        RecursiveASTVisitor<TransNameQueryVisitor> {
+
+public:
+  TransNameQueryVisitor(TransNameQueryWrap *Instance, 
+                        const std::string &Prefix)
+    : WrapInstance(Instance),
+      NamePrefix(Prefix)
+  { }
+
+  bool VisitVarDecl(VarDecl *VD);
+
+private:
+  TransNameQueryWrap *WrapInstance;
+
+  const std::string NamePrefix;
+
+};
+
+bool TransNameQueryVisitor::VisitVarDecl(VarDecl *VD)
+{
+  std::string Name = VD->getNameAsString();
+  size_t Sz = NamePrefix.size();
+
+  if (Name.compare(0, Sz, NamePrefix))
+    return true;
+
+  std::string PostfixStr = Name.substr(Sz);
+  TransAssert((PostfixStr.size() > 0) && "Bad trans tmp name!");
+
+  std::stringstream TmpSS(PostfixStr);
+  unsigned int PostfixV;
+  if (!(TmpSS >> PostfixV))
+    TransAssert(0 && "Non-integer trans tmp name!");
+
+  if (PostfixV > WrapInstance->MaxPostfix)
+    WrapInstance->MaxPostfix = PostfixV;
+
+  return true;
+}
+
+TransNameQueryWrap::TransNameQueryWrap(const std::string &Prefix)
+  : NamePrefix(Prefix),
+    MaxPostfix(0)
+{
+  NameQueryVisitor = new TransNameQueryVisitor(this, Prefix);
+}
+
+TransNameQueryWrap::~TransNameQueryWrap(void)
+{
+  delete NameQueryVisitor;
+}
+
+bool TransNameQueryWrap::TraverseDecl(Decl *D)
+{
+  return NameQueryVisitor->TraverseDecl(D);
+}
 
 void Transformation::outputTransformedSource(llvm::raw_ostream &OutStream)
 {
