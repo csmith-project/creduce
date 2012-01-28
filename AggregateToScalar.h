@@ -16,6 +16,7 @@ namespace clang {
   class VarDecl;
   class InitListExpr;
   class DeclStmt;
+  class Expr;
 }
 
 class ATSCollectionVisitor;
@@ -68,6 +69,9 @@ private:
   bool replaceMemberExpr(clang::MemberExpr *ME, const std::string &NewName);
 
   void handleTheFieldDecl(clang::ASTContext &Ctx);
+
+  clang::Expr *ignoreSubscriptExprImpCasts(clang::Expr *E,
+                    FieldIdxVector &FieldIdxs);
 
   llvm::DenseMap<clang::VarDecl *, std::string> ProcessedVarDecls;
 

@@ -116,6 +116,28 @@ void AggregateToScalar::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+Expr *AggregateToScalar::ignoreSubscriptExprImpCasts(Expr *E,
+        FieldIdxVector &FieldIdxs)
+{
+  ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
+  if (!ASE)
+    return E;
+
+  Expr *IE = ASE->getIdx();
+  unsigned int Idx = 0;
+  llvm::APSInt Result;
+  if (IE && IE->EvaluateAsInt(Result, *Context)) {
+    std::string IntStr = Result.toString(10);
+    std::stringstream TmpSS(IntStr);
+    if (!(TmpSS >> Idx))
+      TransAssert(0 && "Non-integer value!");
+  }
+
+  FieldIdxs.push_back(Idx);
+  Expr *NewE = ASE->getBase()->IgnoreImpCasts();
+  return ignoreSubscriptExprImpCasts(NewE, FieldIdxs);
+}
+
 VarDecl *AggregateToScalar::getRefVarDeclAndFieldIdxs(MemberExpr *ME,
            FieldIdxVector &FieldIdxs)
 {
@@ -127,17 +149,19 @@ VarDecl *AggregateToScalar::getRefVarDeclAndFieldIdxs(MemberExpr *ME,
   
   Expr *E = ME->getBase()->IgnoreParens();
 
-  DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+  Expr *NewE = ignoreSubscriptExprImpCasts(E, FieldIdxs);
+
+  MemberExpr *M = dyn_cast<MemberExpr>(NewE);
+  if (M) {
+    return getRefVarDeclAndFieldIdxs(M, FieldIdxs);
+  }
+
+  DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(NewE);
   if (DRE) {
     ValueDecl *ValueD = DRE->getDecl();
     VarDecl *VarD = dyn_cast<VarDecl>(ValueD);
     TransAssert(VarD && "Invalid ref var!");
     return VarD->getCanonicalDecl();
-  }
-
-  MemberExpr *M = dyn_cast<MemberExpr>(E);
-  if (M) {
-    return getRefVarDeclAndFieldIdxs(M, FieldIdxs);
   }
 
   TransAssert(0 && "Unreached code!");
@@ -234,8 +258,8 @@ bool AggregateToScalar::handleOneMemberExpr(MemberExpr *ME, ASTContext &Ctx)
   FieldIdxVector FieldIdxs;
   VarDecl *VD = getRefVarDeclAndFieldIdxs(ME, FieldIdxs);
   const Type *VarT = VD->getType().getTypePtr(); (void)VarT;
-  TransAssert((VarT->isStructureType() || VarT->isUnionType()) &&
-    "Non-valid var type!");
+  TransAssert((VarT->isStructureType() || VarT->isUnionType() 
+               || VarT->isArrayType()) && "Non-valid var type!");
 
   llvm::DenseMap<VarDecl *, std::string>::iterator I = 
     ProcessedVarDecls.find(VD);
