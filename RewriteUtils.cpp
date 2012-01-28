@@ -282,7 +282,15 @@ bool RewriteUtils::getExprString(const Expr *E,
 
   SourceLocation StartLoc = ExprRange.getBegin();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
   ES.assign(StartBuf, RangeSize);
+
+  const BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E);
+
+  // Keep the semantics of Comma operator
+  if (BinOp && (BinOp->getOpcode() == BO_Comma))
+    ES = "(" + ES + ")";
+
   return true;
 }
 
