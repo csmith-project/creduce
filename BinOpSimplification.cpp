@@ -199,6 +199,11 @@ void BSCollectionVisitor::handleSubExpr(Expr *E)
 
 bool BSCollectionVisitor::VisitBinaryOperator(BinaryOperator *BinOp) 
 {
+  if (BinOp->isAssignmentOp() && !BinOp->isCompoundAssignmentOp()) {
+    Expr *RHS = BinOp->getRHS();
+    return TraverseStmt(RHS);
+  }
+
   Expr *LHS = BinOp->getLHS();
   handleSubExpr(LHS);
  
