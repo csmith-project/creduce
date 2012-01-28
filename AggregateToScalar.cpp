@@ -227,7 +227,7 @@ void AggregateToScalar::createNewVarName(VarDecl *VD,
   VarName = SS.str();
 }
 
-void AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
+bool AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
                                       InitListExpr *ILE,
                                       std::string &InitStr)
 {
@@ -246,7 +246,10 @@ void AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
     else
       Idx = (*I);
 
-    TransAssert((Idx < SubILE->getNumInits()) && "Bad Init Index");
+    // Incomplete initialization list
+    if (Idx >= SubILE->getNumInits())
+      return false;
+
     Exp = SubILE->getInit(Idx);
     TransAssert(Exp && "NULL Exp!");
 
@@ -258,6 +261,7 @@ void AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
   TransAssert(Count == FieldIdxs.size());
   RewriteUtils::getExprString(Exp, InitStr,
                               &TheRewriter, SrcManager);
+  return true;
 }
 
 bool AggregateToScalar::handleOneMemberExpr(MemberExpr *ME, ASTContext &Ctx)
@@ -296,8 +300,10 @@ bool AggregateToScalar::handleOneMemberExpr(MemberExpr *ME, ASTContext &Ctx)
   }
 
   std::string InitStr;
-  getInitString(FieldIdxs, ILE, InitStr);
-  return addTmpVar(VD, VarName, &InitStr, Ctx);
+  if (getInitString(FieldIdxs, ILE, InitStr))
+    return addTmpVar(VD, VarName, &InitStr, Ctx);
+  else 
+    return addTmpVar(VD, VarName, NULL, Ctx);
 }
 
 void AggregateToScalar::handleTheFieldDecl(ASTContext &Ctx)

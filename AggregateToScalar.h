@@ -62,7 +62,7 @@ private:
                         const FieldIdxVector &FieldIdxs,
                         std::string &VarName);
 
-  void getInitString(const FieldIdxVector &FieldIdxs,
+  bool getInitString(const FieldIdxVector &FieldIdxs,
                      clang::InitListExpr *ILE,
                      std::string &InitStr);
 
