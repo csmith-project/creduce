@@ -34,7 +34,11 @@ void TransformationManager::initializeCompilerInstance(void)
   
   ClangInstance->createDiagnostics(0, NULL);
   ClangInstance->getLangOpts().C99 = 1;
-  ClangInstance->getLangOpts().CPlusPlus = 1;
+
+  // Disable it for now: it causes some problems when building AST
+  // for a function which has a non-declared callee, e.g., 
+  // It results an empty AST for the caller. 
+  // ClangInstance->getLangOpts().CPlusPlus = 1;
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
   TargetOpts.Triple = LLVM_HOSTTRIPLE;
   TargetInfo *Target = 
