@@ -21,7 +21,7 @@ class PToGASTVisitor : public RecursiveASTVisitor<PToGASTVisitor> {
 public:
   typedef RecursiveASTVisitor<PToGASTVisitor> Inherited;
 
-  PToGASTVisitor(ParamToGlobal *Instance)
+  explicit PToGASTVisitor(ParamToGlobal *Instance)
     : ConsumerInstance(Instance)
   { }
 

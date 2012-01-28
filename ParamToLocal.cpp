@@ -23,7 +23,7 @@ class PToLASTVisitor : public RecursiveASTVisitor<PToLASTVisitor> {
 public:
   typedef RecursiveASTVisitor<PToLASTVisitor> Inherited;
 
-  PToLASTVisitor(ParamToLocal *Instance)
+  explicit PToLASTVisitor(ParamToLocal *Instance)
     : ConsumerInstance(Instance)
   { }
 

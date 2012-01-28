@@ -28,7 +28,7 @@ public:
 
   typedef RecursiveASTVisitor<RNFCollectionVisitor> Super;
 
-  RNFCollectionVisitor(RemoveNestedFunction *Instance)
+  explicit RNFCollectionVisitor(RemoveNestedFunction *Instance)
     : ConsumerInstance(Instance),
       CurrentFuncDecl(NULL),
       CurrentStmt(NULL),

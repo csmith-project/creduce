@@ -20,7 +20,7 @@ class RVASTVisitor : public RecursiveASTVisitor<RVASTVisitor> {
 public:
   typedef RecursiveASTVisitor<RVASTVisitor> Inherited;
 
-  RVASTVisitor(ReturnVoid *Instance)
+  explicit RVASTVisitor(ReturnVoid *Instance)
     : ConsumerInstance(Instance)
   { }
 

@@ -20,7 +20,7 @@ static RegisterTransformation<LocalToGlobal>
 class CollectionVisitor : public RecursiveASTVisitor<CollectionVisitor> {
 public:
 
-  CollectionVisitor(LocalToGlobal *Instance)
+  explicit CollectionVisitor(LocalToGlobal *Instance)
     : ConsumerInstance(Instance),
       CurrentFuncDecl(NULL)
   { }
@@ -42,7 +42,7 @@ class LToGASTVisitor : public RecursiveASTVisitor<LToGASTVisitor> {
 public:
   typedef RecursiveASTVisitor<LToGASTVisitor> Inherited;
 
-  LToGASTVisitor(LocalToGlobal *Instance)
+  explicit LToGASTVisitor(LocalToGlobal *Instance)
     : ConsumerInstance(Instance)
   { }
 

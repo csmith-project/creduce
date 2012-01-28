@@ -27,7 +27,7 @@ class ATSCollectionVisitor : public RecursiveASTVisitor<ATSCollectionVisitor> {
 public:
   typedef RecursiveASTVisitor<ATSCollectionVisitor> Inherited;
 
-  ATSCollectionVisitor(AggregateToScalar *Instance)
+  explicit ATSCollectionVisitor(AggregateToScalar *Instance)
     : ConsumerInstance(Instance)
   { }
 

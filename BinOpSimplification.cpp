@@ -23,7 +23,7 @@ public:
 
   typedef RecursiveASTVisitor<BSCollectionVisitor> Super;
 
-  BSCollectionVisitor(BinOpSimplification *Instance)
+  explicit BSCollectionVisitor(BinOpSimplification *Instance)
     : ConsumerInstance(Instance),
       CurrentFuncDecl(NULL),
       CurrentStmt(NULL),
