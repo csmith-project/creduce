@@ -212,6 +212,8 @@ void RemoveNestedFunction::Initialize(ASTContext &context)
   Context = &context;
   SrcManager = &Context->getSourceManager();
   NestedInvocationVisitor = new RNFCollectionVisitor(this);
+  NameQueryWrap = 
+    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
 }
@@ -244,6 +246,8 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert(TheStmt && "NULL TheStmt!");
   TransAssert(TheCallExpr && "NULL TheCallExpr");
 
+  NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
+
   addNewTmpVariable();
   addNewAssignStmt();
   replaceCallExpr();
@@ -258,8 +262,9 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
   QualType QT = TheCallExpr->getCallReturnType();
   std::string VarStr;
   std::stringstream SS;
+  unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
 
-  SS << RewriteUtils::getTmpVarNamePrefix() << (uintptr_t)&QT;
+  SS << RewriteUtils::getTmpVarNamePrefix() << (NamePostfix + 1);
   VarStr = SS.str();
   setTmpVarName(VarStr);
 
@@ -292,5 +297,8 @@ RemoveNestedFunction::~RemoveNestedFunction(void)
 {
   if (NestedInvocationVisitor)
     delete NestedInvocationVisitor;
+
+  if (NameQueryWrap)
+    delete NameQueryWrap;
 }
 

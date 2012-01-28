@@ -23,6 +23,7 @@ public:
   RemoveNestedFunction(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       NestedInvocationVisitor(NULL),
+      NameQueryWrap(NULL),
       TheFuncDecl(NULL),
       TheStmt(NULL),
       TheCallExpr(NULL),
@@ -59,6 +60,8 @@ private:
   clang::SmallVector<clang::CallExpr *, 10> ValidCallExprs;
 
   RNFCollectionVisitor *NestedInvocationVisitor;
+
+  TransNameQueryWrap *NameQueryWrap;
 
   clang::FunctionDecl *TheFuncDecl;
 
