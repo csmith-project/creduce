@@ -238,7 +238,14 @@ void AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
   for (FieldIdxVector::const_reverse_iterator I = FieldIdxs.rbegin(),
        E = FieldIdxs.rend(); I != E; ++I) {
     Count++;
-    unsigned int Idx = (*I);
+    unsigned int Idx;
+
+    const Type *T = SubILE->getType().getTypePtr();
+    if (T->isUnionType())
+      Idx = 0;
+    else
+      Idx = (*I);
+
     TransAssert((Idx < SubILE->getNumInits()) && "Bad Init Index");
     Exp = SubILE->getInit(Idx);
     TransAssert(Exp && "NULL Exp!");
