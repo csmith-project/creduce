@@ -15,6 +15,11 @@ my $CLANG_DELTA = "./clang_delta";
 my $WORKING_DIR = "./working_dir";
 
 my $COMPILER = "gcc";
+my $CSMITH_BIN = "";
+
+my $CSMITH_HOME = $ENV{"CSMITH_HOME"};
+my $test_iterations = 100;
+my $with_csmith = 0;
 
 sub print_msg($) {
   my ($msg) = @_;
@@ -101,6 +106,28 @@ sub verify_one_output($$) {
     return $res;
 }
 
+sub prepare_source_file($) {
+    my ($test_path) = @_;
+
+    my $srcfile = "$test_path/csmith_orig_file.c";
+    system "rm -rf $srcfile";
+
+    my $csmith_cmd = "$CSMITH_HOME/src/csmith --output $srcfile";
+    print_msg("Generating C file...\n");
+    print_msg("$csmith_cmd\n");
+    die_on_fail($csmith_cmd);
+
+    my $processed_file = "$test_path/preprocessed.c";
+    system "rm -rf $processed_file";
+
+    my $include_path = "$CSMITH_HOME/runtime";
+    my $preprocessor = "$COMPILER -I$include_path -E $srcfile > $processed_file";
+    print_msg("Preprocessing the generated C file..\n");
+    print_msg("$preprocessor\n");
+    die_on_fail($preprocessor);
+    $SRC_FILE = $processed_file;
+}
+
 sub do_one_test($) {
     my ($trans) = @_;
 
@@ -116,7 +143,7 @@ sub do_one_test($) {
     my $instance_num = get_instance_num($trans);
 
     my @results = ();
-    my @verified_results = ();
+    my @veri_results = ();
 
     print("Running transformation[$trans] ...\n");
     for(my $i = 1; $i <= $instance_num; $i++) {
@@ -131,15 +158,15 @@ sub do_one_test($) {
         if ($invoke_compiler) {
             if (!$result) {
                 my $verified_result = verify_one_output($trans, $i);
-                push @verified_results, $verified_result;
+                push @veri_results, $verified_result;
             }
             else {
-                push @verified_results, 1;
+                push @veri_results, 1;
             }
         }
     }
     $transformation_results{$trans} = \@results;
-    $verified_results{$trans} = \@verified_results;
+    $verified_results{$trans} = \@veri_results;
 }
 
 sub doit() {
@@ -150,6 +177,8 @@ sub doit() {
 
 sub dump_one_results($) {
     my ($results_hash) = @_;
+
+    my $failure_flag = 0;
 
     foreach my $trans (keys %$results_hash) {
         my $trans_failed = 0;
@@ -168,22 +197,26 @@ sub dump_one_results($) {
             print "All instances suceeded!\n";
         }
         else {
+            $failure_flag = -1;
             print "$trans_failed instances failed [" . join(",", @failed_counters) . "]\n";
         }
     }
+    return $failure_flag;
 }
 
 sub dump_results() {
+    my $failure_flag;
     print("\nTest Results:\n");
 
     print("\nTransformation results:\n");
-    dump_one_results(\%transformation_results);
+    $failure_flag = dump_one_results(\%transformation_results);
     
-    return if (!$invoke_compiler);
+    return $failure_flag if (!$invoke_compiler || ($failure_flag == -1));
 
     print("\nCompilation results:\n");
-    dump_one_results(\%verified_results);
+    $failure_flag = dump_one_results(\%verified_results);
     print("\n");
+    return $failure_flag;
 }
 
 sub finish() {
@@ -191,6 +224,31 @@ sub finish() {
 
     print_msg("deleting $WORKING_DIR\n");
     system "rm -rf $WORKING_DIR\n";
+}
+
+sub do_tests_with_csmith($) {
+    my ($trans) = @_;
+
+    for (my $i = 0; $i < $test_iterations; $i++) {
+        print "Test iteration [$i]...\n";
+        prepare_source_file($WORKING_DIR);
+        %transformation_results = ();
+        %verified_results = ();
+      
+        if (defined($trans)) {
+            do_one_test($trans);
+        }
+        else {
+            doit();
+        }
+
+        my $failure = dump_results();
+        if ($failure == -1) {
+            return;
+        }
+
+        system "rm -rf $WORKING_DIR/*";
+    }
 }
 
 sub prepare() {
@@ -232,6 +290,8 @@ test_transformation.pl [-transformation=<name>] [-keep] [-verify-output] [-verbo
   -transformation=<name>: specify a transformation to test [By default, the script will test all transformations]
   -keep: keep all intermediate transformed results
   -verify-output: invoke gcc on each transformed output
+  -with-csmith: invoke Csmith to generate a testing file (we are not allowed to pass source.c if this option is given)
+  -iterations: testing iterations with Csmith
   -verbose: output detailed testing process
   source.c: file under test
 
@@ -250,6 +310,9 @@ sub main() {
             if ($1 eq "transformation") {
                 $transformation = $2;
             }
+            elsif ($1 eq "iterations") {
+                $test_iterations = $2;
+            }
             else {
                 die "unknown option: $opt";
             }
@@ -263,6 +326,9 @@ sub main() {
             }
             elsif ($1 eq "verbose") {
                 $verbose = 1;
+            }
+            elsif ($1 eq "with-csmith") {
+                $with_csmith = 1;
             }
             elsif ($1 eq "help") {
                 print_help();
@@ -280,7 +346,15 @@ sub main() {
     }
 
     if (@unused == 1) {
+        die "Cannot have both -with-csmith and testing file!" if ($with_csmith);
         $SRC_FILE = $unused[0];
+    }
+    elsif ($with_csmith) {
+        die "Please set CSMITH_HOME env!" if (!defined($CSMITH_HOME));
+        prepare();
+        do_tests_with_csmith($transformation);
+        return;
+        # Nothing to do
     }
     else {
         die "Please give a test file!";
