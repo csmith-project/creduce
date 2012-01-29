@@ -9,7 +9,7 @@ ifeq (${DISABLE_TRANS_ASSERT}, 1)
 endif
 
 CXX = g++
-CXXFLAGS = -Werror -Wall
+CXXFLAGS = -Wall
 
 LLVM_CXXFLAGS = `${llvm_dir}/bin/llvm-config --cxxflags`
 LLVM_LDFLAGS = `${llvm_dir}/bin/llvm-config --ldflags`

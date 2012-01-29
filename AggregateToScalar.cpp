@@ -18,7 +18,7 @@ scalar variables for a referenced struct/union member, \
 assigns the initial value of the struct/union member to \
 the scalars, and substitutes all accesses to the struct/union \
 member with the accesses to the corresponding scalar variables. \
-(Note that this transformation is unsound). ";
+(Note that this transformation is unsound).\n";
 
 static RegisterTransformation<AggregateToScalar>
          Trans("aggregate-to-scalar", DescriptionMsg);
