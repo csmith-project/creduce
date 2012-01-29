@@ -290,7 +290,8 @@ test_transformation.pl [-transformation=<name>] [-keep] [-verify-output] [-verbo
   -transformation=<name>: specify a transformation to test [By default, the script will test all transformations]
   -keep: keep all intermediate transformed results
   -verify-output: invoke gcc on each transformed output
-  -with-csmith: invoke Csmith to generate a testing file (we are not allowed to pass source.c if this option is given)
+  -with-csmith: invoke Csmith to generate a testing file. Please set CSMITH_HOME to make Csmith work correctly 
+                (we are not allowed to pass source.c if this option is given)
   -iterations: testing iterations with Csmith
   -verbose: output detailed testing process
   source.c: file under test
