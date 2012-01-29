@@ -185,7 +185,15 @@ bool AggregateToScalar::addTmpVar(VarDecl *VD,
   if (VD->getStorageClass() == SC_Static)
     VarStr = "static " + VarStr; 
 
-  if (VD->isLocalVarDecl()) {
+  ParmVarDecl *PD = dyn_cast<ParmVarDecl>(VD);
+  if (PD) {
+    DeclContext *Ctx = PD->getDeclContext();
+    FunctionDecl *FD = dyn_cast<FunctionDecl>(Ctx);
+    TransAssert(FD && "Bad function decl context!");
+    return RewriteUtils::addLocalVarToFunc(VarStr, FD,
+                                           &TheRewriter, SrcManager);
+  }
+  else if( VD->isLocalVarDecl()) {
     DeclStmt *TheDeclStmt = VarDeclToDeclStmtMap[VD];
     TransAssert(TheDeclStmt && "NULL TheDeclStmt");
     return RewriteUtils::addStringAfterStmt(TheDeclStmt, VarStr, 
@@ -207,7 +215,8 @@ bool AggregateToScalar::addTmpVar(VarDecl *VD,
   }
 }
 
-bool AggregateToScalar::replaceMemberExpr(MemberExpr *ME, const std::string &NewName)
+bool AggregateToScalar::replaceMemberExpr(MemberExpr *ME, 
+                                          const std::string &NewName)
 {
   return RewriteUtils::replaceExpr(ME, NewName,
                                    &TheRewriter, SrcManager);
