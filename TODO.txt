@@ -13,3 +13,5 @@ do copy propagation
 
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
+
+when possible combine declaration and initialization
