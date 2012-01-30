@@ -520,3 +520,13 @@ bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
              VD->getNameAsString().size(), NameStr));
 }
 
+bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
+                                      const std::string &NameStr,
+                                      Rewriter *TheRewriter,
+                                      SourceManager *SrcManager)
+{
+  return !TheRewriter->ReplaceText(FD->getNameInfo().getLoc(),
+                                   FD->getNameAsString().length(),
+                                   NameStr);
+}
+
