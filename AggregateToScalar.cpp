@@ -164,7 +164,8 @@ VarDecl *AggregateToScalar::getRefVarDeclAndFieldIdxs(MemberExpr *ME,
     return VarD->getCanonicalDecl();
   }
 
-  TransAssert(0 && "Unreached code!");
+  TransAssert(0 && "Unreachable code!");
+  return NULL;
 }
 
 bool AggregateToScalar::addTmpVar(VarDecl *VD,
@@ -242,7 +243,7 @@ bool AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
 {
   InitStr = "";
   InitListExpr *SubILE = ILE;
-  Expr *Exp;
+  Expr *Exp = NULL;
   unsigned int Count = 0;
   for (FieldIdxVector::const_reverse_iterator I = FieldIdxs.rbegin(),
        E = FieldIdxs.rend(); I != E; ++I) {
@@ -267,6 +268,7 @@ bool AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
       break;
   }
 
+  TransAssert(Exp && "Exp cannot be NULL");
   TransAssert(Count == FieldIdxs.size());
   RewriteUtils::getExprString(Exp, InitStr,
                               &TheRewriter, SrcManager);
