@@ -144,10 +144,8 @@ void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
 
 void RenameFun::addFun(FunctionDecl *FD)
 {
-  if (!FD->isDefined()) {
-    if (FunToNameMap.find(FD) != FunToNameMap.end())
-      return;
-  }
+  if (FunToNameMap.find(FD) != FunToNameMap.end())
+    return;
 
   std::stringstream SS;
 
