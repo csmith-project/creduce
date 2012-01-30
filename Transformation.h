@@ -23,7 +23,9 @@ namespace clang {
 typedef enum {
   TransSuccess = 0,
   TransInternalError,
-  TransMaxInstanceError
+  TransMaxInstanceError,
+  TransMaxVarsError,
+  TransNoValidVarsError,
 } TransformationError;
 
 class Transformation : public clang::ASTConsumer {
@@ -77,6 +79,10 @@ public:
 
   int getNumTransformationInstances(void) {
     return ValidInstanceNum;
+  }
+
+  virtual bool skipCounter(void) {
+    return false;
   }
 
 protected:

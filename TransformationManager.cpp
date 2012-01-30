@@ -121,12 +121,9 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
     CurrentTransformationImpl->outputOriginalSource(*OutStream);
     RV = true;
   }
-  else if (CurrentTransformationImpl->transMaxInstanceError()) {
+  else {
     CurrentTransformationImpl->getTransErrorMsg(ErrorMsg);
     RV = false;
-  }
-  else {
-    assert("Unknown transformation error!");
   }
   closeOutStream(OutStream);
   return RV;
@@ -144,7 +141,8 @@ bool TransformationManager::verify(std::string &ErrorMsg)
     return false;
   }
 
-  if (TransformationCounter <= 0) {
+  if ((TransformationCounter <= 0) && 
+      !CurrentTransformationImpl->skipCounter()) {
     ErrorMsg = "Invalid transformation counter!";
     return false;
   }

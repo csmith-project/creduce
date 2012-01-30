@@ -98,8 +98,14 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransMaxInstanceError) {
     ErrorMsg = "The counter value exceeded the number of transformation instances!";
   }
+  else if (TransError == TransMaxVarsError) {
+    ErrorMsg = "Too many variables!";
+  }
+  else if (TransError == TransNoValidVarsError) {
+    ErrorMsg = "No variables need to be renamed!";
+  }
   else {
-    TransAssert("Unknown transformation error!");
+    TransAssert(0 && "Unknown transformation error!");
   }
 }
 
