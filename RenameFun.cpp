@@ -18,7 +18,9 @@ It renames function names to fn1, fn2, ...\n";
 static RegisterTransformation<RenameFun>
          Trans("rename-fun", DescriptionMsg);
 
-class RNFunCollectionVisitor : public RecursiveASTVisitor<RNFunCollectionVisitor> {
+class RNFunCollectionVisitor : public 
+  RecursiveASTVisitor<RNFunCollectionVisitor> {
+
 public:
 
   explicit RNFunCollectionVisitor(RenameFun *Instance)
