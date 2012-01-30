@@ -89,7 +89,8 @@ sub verify_one_output($$) {
 
     my $cfile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.c";
     my $ofile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.o";
-    my $compiler_cmd = "$COMPILER -c $cfile -o $ofile";
+    my $out = "$WORKING_DIR/$trans/$trans" . "_$counter.compiler_out";
+    my $compiler_cmd = "$COMPILER -c $cfile -o $ofile > $out 2>&1";
     print_msg("Invoking $COMPILER on $cfile ...\n");
     print_msg("$compiler_cmd\n");
 
@@ -175,6 +176,33 @@ sub doit() {
     }
 }
 
+my @knowns_failures = 
+(
+    "nonnull argument with out-of-range operand number",
+);
+
+sub ignore_failures($$) {
+    my ($trans, $failed_counters) = @_;
+
+    my $ignore = 1;
+    foreach my $i (@$failed_counters) {
+        my $out = "$WORKING_DIR/$trans/$trans" . "_$i.compiler_out";
+        open INF, "$out" or die "Can't open $out!";
+        while (my $line = <INF>) {
+            chomp $line;
+            if ($line =~ m/error:(.+)/) {
+                 if (!(grep { index($1, $_) > -1 } @knowns_failures)) {
+                     $ignore = 0;
+                     last;
+                 }
+            }
+        }
+    }
+
+    close INF;
+    return $ignore;
+}
+
 sub dump_one_results($) {
     my ($results_hash) = @_;
 
@@ -197,7 +225,9 @@ sub dump_one_results($) {
             print "All instances suceeded!\n";
         }
         else {
-            $failure_flag = -1;
+            if (($trans ne "return-void") || ignore_failures($trans, \@failed_counters)) {
+                $failure_flag = -1;
+            }
             print "$trans_failed instances failed [" . join(",", @failed_counters) . "]\n";
         }
     }
