@@ -75,11 +75,20 @@ public:
                                     clang::Rewriter *TheRewriter,
                                     clang::SourceManager *SrcManager);
 
+  static bool replaceVarDeclName(clang::VarDecl *VD,
+                              const std::string &NameStr,
+                              clang::Rewriter *TheRewriter,
+                              clang::SourceManager *SrcManager);
+
   static const char *getTmpVarNamePrefix(void);
 
 private:
 
   static const char *TmpVarNamePrefix;
+
+  static int getOffsetUntil(const char *Buf, char Symbol);
+
+  static int getSkippingOffset(const char *Buf, char Symbol);
 
   static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                            char Symbol, 
@@ -91,9 +100,26 @@ private:
                                            clang::Rewriter *TheRewriter,
                                            clang::SourceManager *SrcManager);
 
+  static clang::SourceLocation getLocationAfter(clang::SourceLocation StartLoc,
+                                           char Symbol,
+                                           clang::Rewriter *TheRewriter,
+                                           clang::SourceManager *SrcManager);
+
   static unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
+
+  static bool isTheFirstVarDecl(clang::VarDecl *VD,
+                                clang::SourceManager *SrcManager);
+
+  static clang::SourceLocation getVarDeclTypeLocEnd(clang::VarDecl *VD,
+                                 clang::Rewriter *TheRewriter);
+
+  static clang::SourceLocation 
+    getSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
+                         const std::string &Substr, 
+                         clang::Rewriter *TheRewriter,
+                         clang::SourceManager *SrcManager);
 
   RewriteUtils(void);
 
