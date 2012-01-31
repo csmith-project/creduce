@@ -43,7 +43,7 @@ public:
 
   bool VisitVarDecl(VarDecl *VD);
 
-  bool VisitDeclRefExpr(DeclRefExpr *VRE);
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
 private:
 
@@ -77,9 +77,9 @@ bool RenameVarVisitor::VisitVarDecl(VarDecl *VD)
            &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
 }
 
-bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *VRE)
+bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
-  ValueDecl *OrigDecl = VRE->getDecl();
+  ValueDecl *OrigDecl = DRE->getDecl();
   VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
   if (!VD)
     return true;
@@ -92,7 +92,7 @@ bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *VRE)
     return true;
 
   std::string Name(1, (*I).second);
-  return RewriteUtils::replaceExpr(VRE, Name, 
+  return RewriteUtils::replaceExpr(DRE, Name, 
            &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
 }
 
