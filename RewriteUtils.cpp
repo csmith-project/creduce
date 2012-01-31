@@ -215,6 +215,9 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
                                         Rewriter *TheRewriter,
                                         SourceManager *SrcManager)
 {
+  if (ParamPos >= static_cast<int>(CallE->getNumArgs()))
+    return true;
+
   Expr *Arg = CallE->getArg(ParamPos);
   TransAssert(Arg && "Null arg!");
 
