@@ -58,6 +58,8 @@ bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   ConsumerInstance->addFun(CanonicalFD);
+  if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
+    ConsumerInstance->HasValidFuns = true;
   return true;
 }
 
@@ -72,6 +74,8 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
   // It's possible we don't have function definition
   ConsumerInstance->addFun(CanonicalFD);
+  if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
+    ConsumerInstance->HasValidFuns = true;
   return true;
 }
 
@@ -120,17 +124,16 @@ void RenameFun::HandleTopLevelDecl(DeclGroupRef D)
 
 void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
 {
-  TransformationCounter = FunToNameMap.size();
   if (QueryInstanceOnly) {
-    if (TransformationCounter == 0)
-      ValidInstanceNum = 0;
-    else
+    if (HasValidFuns)
       ValidInstanceNum = 1;
+    else
+      ValidInstanceNum = 0;
     return;
   }
 
-  if (TransformationCounter == 0) {
-    TransError = TransNoFunsError;
+  if (!HasValidFuns) {
+    TransError = TransNoValidFunsError;
     return;
   }
 
@@ -144,6 +147,24 @@ void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+bool RenameFun::hasValidPostfix(const std::string &Name)
+{
+  unsigned int Value;
+
+  if (Name.size() <= 2)
+    return false;
+
+  std::string Prefix = Name.substr(0, 2);
+  if (Prefix != FunNamePrefix)
+    return false;
+
+  std::string RestStr = Name.substr(2);
+  std::stringstream TmpSS(RestStr);
+  if (!(TmpSS >> Value))
+    return false;
+
+  return true;
+}
 void RenameFun::addFun(FunctionDecl *FD)
 {
   if (FunToNameMap.find(FD) != FunToNameMap.end())

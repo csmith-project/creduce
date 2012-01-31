@@ -26,7 +26,8 @@ public:
       FunCollectionVisitor(NULL),
       RenameVisitor(NULL),
       FunNamePrefix("fn"),
-      FunNamePostfix(0)
+      FunNamePostfix(0),
+      HasValidFuns(false)
   { }
 
   ~RenameFun(void);
@@ -43,6 +44,8 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
+  bool hasValidPostfix(const std::string &Name);
+
   void addFun(clang::FunctionDecl *FD);
 
   RNFunCollectionVisitor *FunCollectionVisitor;
@@ -54,6 +57,8 @@ private:
   const std::string FunNamePrefix;
 
   unsigned int FunNamePostfix;
+
+  bool HasValidFuns;
 
   // Unimplemented
   RenameFun(void);
