@@ -126,12 +126,18 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
                                            SourceManager *SrcManager)
 {
   SourceRange ParamLocRange = PV->getSourceRange();
+  int RangeSize;
+ 
   SourceLocation StartLoc = ParamLocRange.getBegin();
-  int RangeSize = 
-    TheRewriter->getRangeSize(ParamLocRange);
-
-  if (RangeSize == -1)
-    return false;
+  if (StartLoc.isInvalid()) {
+    StartLoc = ParamLocRange.getEnd();
+    RangeSize = PV->getNameAsString().size();
+  }
+  else {
+    RangeSize = TheRewriter->getRangeSize(ParamLocRange);
+    if (RangeSize == -1)
+      return false;
+  }
 
   // The param is the only parameter of the function declaration.
   // Replace it with void
