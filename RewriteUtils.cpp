@@ -520,6 +520,35 @@ bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
              VD->getNameAsString().size(), NameStr));
 }
 
+bool RewriteUtils::replaceParamVarDeclName(ParmVarDecl *PD,
+                                      const std::string &NameStr,
+                                      Rewriter *TheRewriter,
+                                      SourceManager *SrcManager)
+{
+  SourceRange VarRange = PD->getSourceRange();
+  SourceLocation NameLocStart = VarRange.getBegin();
+
+  // When we have things like int foo(x) { }, x's begin_loc is invalid
+  if (NameLocStart.isInvalid()) {
+    // The LocEnd points to the actual name
+    NameLocStart = VarRange.getEnd();
+    TransAssert(NameLocStart.isValid() && "Bad Param Location!");
+  }
+  else {
+    SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(PD, TheRewriter);
+    int VarRangeSize = TheRewriter->getRangeSize(VarRange);
+    if (VarRangeSize == -1)
+      return false;
+
+    NameLocStart = 
+      getSubstringLocation(TypeLocEnd, VarRangeSize, PD->getNameAsString(), 
+                           TheRewriter, SrcManager);
+  }
+
+  return !(TheRewriter->ReplaceText(NameLocStart, 
+             PD->getNameAsString().size(), NameStr));
+}
+
 bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
                                       const std::string &NameStr,
                                       Rewriter *TheRewriter,
