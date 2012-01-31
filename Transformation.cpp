@@ -107,6 +107,9 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransNoFunsError) {
     ErrorMsg = "No function declarations exist!";
   }
+  else if (TransError == TransNoValidParamsError) {
+    ErrorMsg = "No valid parameters declarations exist!";
+  }
   else {
     TransAssert(0 && "Unknown transformation error!");
   }

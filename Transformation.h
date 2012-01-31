@@ -27,6 +27,7 @@ typedef enum {
   TransMaxVarsError,
   TransNoValidVarsError,
   TransNoFunsError,
+  TransNoValidParamsError,
 } TransformationError;
 
 class Transformation : public clang::ASTConsumer {
