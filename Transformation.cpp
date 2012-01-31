@@ -104,8 +104,8 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransNoValidVarsError) {
     ErrorMsg = "No variables need to be renamed!";
   }
-  else if (TransError == TransNoFunsError) {
-    ErrorMsg = "No function declarations exist!";
+  else if (TransError == TransNoValidFunsError) {
+    ErrorMsg = "No valid function declarations exist!";
   }
   else if (TransError == TransNoValidParamsError) {
     ErrorMsg = "No valid parameters declarations exist!";
