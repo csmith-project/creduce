@@ -15,6 +15,7 @@ namespace clang {
   class Expr;
   class FunctionDecl;
   class Stmt;
+  class DeclGroupRef;
 }
 
 class RewriteUtils {
@@ -91,6 +92,20 @@ public:
                               clang::SourceManager *SrcManager);
 
   static const char *getTmpVarNamePrefix(void);
+
+  static void getStringBetweenLocs(std::string &Str, 
+                                   clang::SourceLocation LocStart,
+                                   clang::SourceLocation LocEnd, 
+                                   clang::Rewriter *TheRewriter,
+                                   clang::SourceManager *SrcManager);
+
+  static bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, std::string &Str,
+                                       clang::Rewriter *TheRewriter,
+                                       clang::SourceManager *SrcManager);
+
+  static clang::SourceLocation getDeclGroupRefEndLoc(clang::DeclGroupRef DGR,
+                                          clang::Rewriter* TheRewriter,
+                                          clang::SourceManager *SrcManager);
 
 private:
 

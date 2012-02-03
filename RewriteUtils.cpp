@@ -67,9 +67,9 @@ int RewriteUtils::getSkippingOffset(const char *Buf, char Symbol)
 }
 
 SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range, 
-                                                char Symbol,
-                                                Rewriter *TheRewriter,
-                                                SourceManager *SrcManager)
+                                                 char Symbol,
+                                                 Rewriter *TheRewriter,
+                                                 SourceManager *SrcManager)
 {
   SourceLocation EndLoc = getEndLocationFromBegin(Range, TheRewriter);
     
@@ -77,6 +77,18 @@ SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range,
   int Offset = getOffsetUntil(EndBuf, Symbol);
   return EndLoc.getLocWithOffset(Offset);
 }
+
+#if 0
+SourceLocation RewriteUtils::getLocationUntil(SourceLocation StartLoc,
+                                              char Symbol,
+                                              Rewriter *TheRewriter,
+                                              SourceManager *SrcManager)
+{
+  const char *Buf = SrcManager->getCharacterData(StartLoc);
+  int Offset = getOffsetUntil(Buf, Symbol);
+  return StartLoc.getLocWithOffset(Offset);
+}
+#endif
 
 SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range, 
                                                 char Symbol,
@@ -566,5 +578,92 @@ bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
   return !TheRewriter->ReplaceText(FD->getNameInfo().getLoc(),
                                    FD->getNameAsString().length(),
                                    NameStr);
+}
+
+void RewriteUtils::getStringBetweenLocs(std::string &Str, 
+                                        SourceLocation LocStart,
+                                        SourceLocation LocEnd, 
+                                        Rewriter *TheRewriter,
+                                        SourceManager *SrcManager)
+{
+  const char *StartBuf = SrcManager->getCharacterData(LocStart);
+  const char *EndBuf = SrcManager->getCharacterData(LocEnd);
+  TransAssert(StartBuf < EndBuf);
+  size_t Off = EndBuf - StartBuf;
+  Str.assign(StartBuf, Off);
+}
+
+bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR, 
+                                   std::string &Str,
+                                   Rewriter *TheRewriter,
+                                   SourceManager *SrcManager)
+{
+  if (DGR.isSingleDecl()) {
+    Decl *D = DGR.getSingleDecl();
+    VarDecl *VD = dyn_cast<VarDecl>(D);
+    TransAssert(VD && "Bad VarDecl!");
+
+    SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD, TheRewriter);
+    SourceRange VarRange = VD->getSourceRange();
+
+    SourceLocation LocEnd = 
+      getEndLocationUntil(VarRange, ';', TheRewriter, SrcManager);
+
+    getStringBetweenLocs(Str, TypeLocEnd, LocEnd, TheRewriter, SrcManager);
+
+    SourceLocation StartLoc = VarRange.getBegin();
+    SourceLocation NewEndLoc = 
+      getLocationAfter(LocEnd, ';', TheRewriter, SrcManager);
+    return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
+  }
+
+  DeclGroup DG = DGR.getDeclGroup();
+  size_t Sz = DG.size();
+  TransAssert(Sz > 1);
+
+  DeclGroupRef::iterator I = DGR.begin();
+  DeclGroupRef::iterator E = DGR.end();
+  --E;
+
+  Decl *FirstD = (*I);
+  VarDecl *FirstVD = dyn_cast<VarDecl>(FirstD);
+  Decl *LastD = (*E);
+  VarDecl *LastVD = dyn_cast<VarDecl>(LastD);
+
+  TransAssert(FirstVD && "Bad First VarDecl!");
+  TransAssert(LastVD && "Bad First VarDecl!");
+
+  SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(FirstVD, TheRewriter);
+  SourceRange LastVarRange = LastVD->getSourceRange();
+  SourceLocation LastEndLoc = 
+    getEndLocationUntil(LastVarRange, ';', TheRewriter, SrcManager);
+  getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc, 
+                       TheRewriter, SrcManager);
+
+  SourceLocation StartLoc = FirstVD->getLocStart();
+  SourceLocation NewLastEndLoc = 
+      getLocationAfter(LastEndLoc, ';', TheRewriter, SrcManager);
+  return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewLastEndLoc)));
+}
+
+SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR,
+                                          Rewriter* TheRewriter,
+                                          SourceManager *SrcManager)
+{
+  Decl *LastD;
+
+  if (DGR.isSingleDecl()) {
+    LastD = DGR.getSingleDecl();
+  }
+  else {
+    DeclGroupRef::iterator E = DGR.end();
+    --E;
+    LastD = (*E);
+  }
+
+  VarDecl *VD = dyn_cast<VarDecl>(LastD);
+  TransAssert(VD && "Bad VD!");
+  SourceRange VarRange = VD->getSourceRange();
+  return getEndLocationFromBegin(VarRange, TheRewriter);
 }
 
