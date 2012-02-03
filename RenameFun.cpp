@@ -122,17 +122,41 @@ void RenameFun::HandleTopLevelDecl(DeclGroupRef D)
   }
 }
 
+bool RenameFun::isConsecutiveNumbersFromOne(void)
+{
+  size_t Sz = AllValidNumbers.size();
+  if (!Sz)
+    return true;
+
+  bool hasOne = AllValidNumbers.count(1);
+  if (!hasOne)
+    return false;
+
+  if (Sz == 1) {
+    return hasOne;
+  }
+
+  std::set<unsigned int>::iterator I = 
+    max_element(AllValidNumbers.begin(), AllValidNumbers.end());
+  return ((*I) == Sz);
+}
+
+bool RenameFun::hasValidFuns(void)
+{
+  return (HasValidFuns || !isConsecutiveNumbersFromOne());
+}
+
 void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (QueryInstanceOnly) {
-    if (HasValidFuns)
+    if (hasValidFuns())
       ValidInstanceNum = 1;
     else
       ValidInstanceNum = 0;
     return;
   }
 
-  if (!HasValidFuns) {
+  if (!hasValidFuns()) {
     TransError = TransNoValidFunsError;
     return;
   }
@@ -163,6 +187,7 @@ bool RenameFun::hasValidPostfix(const std::string &Name)
   if (!(TmpSS >> Value))
     return false;
 
+  AllValidNumbers.insert(Value);
   return true;
 }
 void RenameFun::addFun(FunctionDecl *FD)

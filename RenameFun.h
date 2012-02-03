@@ -2,7 +2,7 @@
 #define RENAME_FUN_H
 
 #include <string>
-#include <vector>
+#include <set>
 #include "llvm/ADT/DenseMap.h"
 #include "Transformation.h"
 
@@ -48,11 +48,17 @@ private:
 
   void addFun(clang::FunctionDecl *FD);
 
+  bool isConsecutiveNumbersFromOne(void);
+
+  bool hasValidFuns(void);
+
   RNFunCollectionVisitor *FunCollectionVisitor;
 
   RenameFunVisitor *RenameVisitor;
 
   llvm::DenseMap<clang::FunctionDecl *, std::string> FunToNameMap;
+
+  std::set<unsigned int> AllValidNumbers;
 
   const std::string FunNamePrefix;
 
