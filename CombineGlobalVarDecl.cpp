@@ -19,7 +19,11 @@ for the code below: \
   int c; \
   int d; \
 We will need to invoke this transformation twice \
-to achieve a complete combination. \n";
+to achieve a complete combination. \
+Note that this transformation always tries to combine \
+the rest of declarations with the very first one, \
+so it is an unsound transformation and could result \
+in compilation failures. \n";
 
 static RegisterTransformation<CombineGlobalVarDecl>
          Trans("combine-global-var", DescriptionMsg);
