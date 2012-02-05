@@ -20,6 +20,9 @@ for the code below: \
   int d; \
 We will need to invoke this transformation twice \
 to achieve a complete combination. \
+This pass only combines declarations with exactly \
+the same type, e.g., it won't combine int *x and int y,\
+although it's valid we can have int *x, y in a DeclGroup. \
 Note that this transformation always tries to combine \
 the rest of declarations with the very first one, \
 so it is an unsound transformation and could result \
@@ -64,6 +67,14 @@ void CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR)
       }
     }
   }
+
+  // Note that it's unnecessary to keep all encountered
+  // DeclGroupRefs. We could choose a light way similar
+  // to what we implemented in CombineLocalVarDecl.
+  // I kept the code here because I feel we probably 
+  // need more combinations, i.e., not only combine the
+  // first DeclGroup with others, but we could combine
+  // the second one and the third one. 
   DV->push_back(DGR.getAsOpaquePtr());
 }
  
