@@ -24,7 +24,8 @@ LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
-                 RenameVar.o RenameFun.o RenameParam.o CombineGlobalVarDecl.o
+                 RenameVar.o RenameFun.o RenameParam.o CombineGlobalVarDecl.o \
+                 CombineLocalVarDecl.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -68,6 +69,8 @@ RenameFun.o: RenameFun.cpp RenameFun.h Transformation.o
 RenameParam.o: RenameParam.cpp RenameParam.h Transformation.o
 
 CombineGlobalVarDecl.o: CombineGlobalVarDecl.cpp CombineGlobalVarDecl.h Transformation.o
+
+CombineLocalVarDecl.o: CombineLocalVarDecl.cpp CombineLocalVarDecl.h Transformation.o
 
 clean:
 	rm -rf *.o
