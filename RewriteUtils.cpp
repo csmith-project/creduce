@@ -667,3 +667,19 @@ SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR,
   return getEndLocationFromBegin(VarRange, TheRewriter);
 }
 
+SourceLocation RewriteUtils::getDeclStmtEndLoc(DeclStmt *DS,
+                                          Rewriter* TheRewriter,
+                                          SourceManager *SrcManager)
+{
+  DeclGroupRef DGR = DS->getDeclGroup();
+  return getDeclGroupRefEndLoc(DGR, TheRewriter, SrcManager);
+}
+
+bool RewriteUtils::getDeclStmtStrAndRemove(DeclStmt *DS, 
+                                   std::string &Str,
+                                   Rewriter *TheRewriter,
+                                   SourceManager *SrcManager)
+{
+  DeclGroupRef DGR = DS->getDeclGroup();
+  return getDeclGroupStrAndRemove(DGR, Str, TheRewriter, SrcManager);
+}

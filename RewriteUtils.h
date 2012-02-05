@@ -99,11 +99,21 @@ public:
                                    clang::Rewriter *TheRewriter,
                                    clang::SourceManager *SrcManager);
 
-  static bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, std::string &Str,
+  static bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, 
+                                       std::string &Str,
                                        clang::Rewriter *TheRewriter,
                                        clang::SourceManager *SrcManager);
 
   static clang::SourceLocation getDeclGroupRefEndLoc(clang::DeclGroupRef DGR,
+                                          clang::Rewriter* TheRewriter,
+                                          clang::SourceManager *SrcManager);
+
+  static bool getDeclStmtStrAndRemove(clang::DeclStmt *DS, 
+                                      std::string &Str,
+                                      clang::Rewriter *TheRewriter,
+                                      clang::SourceManager *SrcManager);
+
+  static clang::SourceLocation getDeclStmtEndLoc(clang::DeclStmt *DS,
                                           clang::Rewriter* TheRewriter,
                                           clang::SourceManager *SrcManager);
 
