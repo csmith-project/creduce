@@ -25,7 +25,9 @@ For example, for the following cod3: \
     } \
   } \
 We will only combine x and y, and won't touch z, \
-because z is not in the same DeclContext as x and y. \n";
+because z is not in the same DeclContext as x and y. \
+Note that this transformation is unsound for the same \
+reason as combine-global-var. \n";
 
 static RegisterTransformation<CombineLocalVarDecl>
          Trans("combine-local-var", DescriptionMsg);
