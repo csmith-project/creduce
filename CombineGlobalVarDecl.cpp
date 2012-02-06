@@ -14,10 +14,10 @@ using namespace llvm;
 static const char *DescriptionMsg =
 "Combine global variable declarations with the same type. \
 Each iteration only does one combination, i.e., \
-for the code below: \
-  int a, b; \
-  int c; \
-  int d; \
+for the code below: \n\
+  int a, b; \n\
+  int c; \n\
+  int d; \n\
 We will need to invoke this transformation twice \
 to achieve a complete combination. \
 This pass only combines declarations with exactly \

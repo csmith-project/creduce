@@ -16,14 +16,14 @@ static const char *DescriptionMsg =
 This transformation records the location of the first \
 local variable declaration, and tries to combine other \
 declarations in the same DeclContext as the first one. \
-For example, for the following cod3: \
-  int foo(void) { \
-    int x; \
-    int y; \
-    if(...) { \
-      int z; \
-    } \
-  } \
+For example, for the following cod3: \n\
+  int foo(void) { \n\
+    int x; \n\
+    int y; \n\
+    if(...) { \n\
+      int z; \n\
+    } \n\
+  } \n\
 We will only combine x and y, and won't touch z, \
 because z is not in the same DeclContext as x and y. \
 Note that this transformation is unsound for the same \
