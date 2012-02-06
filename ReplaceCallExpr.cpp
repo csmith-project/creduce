@@ -106,6 +106,10 @@ bool ReplaceCallExprVisitor::isValidValueDecl(const ValueDecl *ValueD)
   
   if (!VarD || VarD->isLocalVarDecl())
     return false;
+
+  if (VarD->hasGlobalStorage())
+    return true;
+
   return (dyn_cast<ParmVarDecl>(VarD) != NULL);
 }
 
