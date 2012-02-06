@@ -12,7 +12,7 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Replace a CallExpr with a known expression from \
+"Replace a CallExpr with a return expression from \
 this callee's body. The transformation fires only \
 if the components of the return expression are one \
 of the following: \n\
