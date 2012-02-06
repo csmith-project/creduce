@@ -1,0 +1,508 @@
+#include "ReplaceCallExpr.h"
+
+#include <sstream>
+
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Basic/SourceManager.h"
+
+#include "RewriteUtils.h"
+#include "TransformationManager.h"
+
+using namespace clang;
+using namespace llvm;
+
+static const char *DescriptionMsg =
+"Replace a CallExpr with a known expression from \
+this callee's body. The transformation fires only \
+if the components of the return expression are one \
+of the following: \n\
+  * global variables \n\
+  * parameters \n\
+  * constants \n\
+If a callee has several return statements, all of them \
+will be exercised separately, i.e., the transformation \
+will choose one for each iteration. \
+This pass is unsound because the side-effect on globals \
+and parameters caused by callees are not captured. \n";
+
+static RegisterTransformation<ReplaceCallExpr>
+         Trans("replace-callexpr", DescriptionMsg);
+
+class ReplaceCallExprVisitor : public 
+  RecursiveASTVisitor<ReplaceCallExprVisitor> {
+
+public:
+
+  explicit ReplaceCallExprVisitor(ReplaceCallExpr *Instance)
+    : ConsumerInstance(Instance),
+      CurrentReturnStmt(NULL)
+  { }
+
+  bool VisitCallExpr(CallExpr *CE);
+
+  bool VisitReturnStmt(ReturnStmt *RS);
+
+private:
+
+  bool isValidReturnStmt(ReturnStmt *RS);
+
+  bool isValidExpr(const Expr *E);
+
+  bool isValidNamedDecl(const NamedDecl *ND);
+
+  bool isValidValueDecl(const ValueDecl *VD);
+
+  bool isValidDeclRefExpr(const DeclRefExpr *DE);
+
+  ReplaceCallExpr *ConsumerInstance;
+
+  ReturnStmt *CurrentReturnStmt;
+};
+
+bool ReplaceCallExprVisitor::isValidReturnStmt(ReturnStmt *RS)
+{
+  Expr *E = RS->getRetValue();
+  if (!E)
+    return false;
+
+  const Type *T = E->getType().getTypePtr();
+  if (T->isVoidType())
+    return false;
+
+  
+  CurrentReturnStmt = RS;
+  bool RV = isValidExpr(E);
+  CurrentReturnStmt = NULL;
+  return RV;
+}
+
+bool ReplaceCallExprVisitor::VisitReturnStmt(ReturnStmt *RS)
+{
+  TransAssert(ConsumerInstance->CurrentFD && "Bad CurrentFD!");
+  if (!isValidReturnStmt(RS))
+    return true;
+
+  ConsumerInstance->addOneReturnStmt(RS);
+  return true;
+}
+
+bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
+{
+  FunctionDecl *FD = CE->getDirectCallee();
+  if (!FD)
+    return true;
+
+  const Type *T = CE->getCallReturnType().getTypePtr();
+  if (T->isVoidType())
+    return true;
+
+  ConsumerInstance->AllCallExprs.push_back(CE);
+  return true;
+}
+
+bool ReplaceCallExprVisitor::isValidValueDecl(const ValueDecl *ValueD)
+{
+  const VarDecl *VarD = dyn_cast<VarDecl>(ValueD);
+  
+  if (!VarD || VarD->isLocalVarDecl())
+    return false;
+  return (dyn_cast<ParmVarDecl>(VarD) != NULL);
+}
+
+bool ReplaceCallExprVisitor::isValidNamedDecl(const NamedDecl *ND)
+{
+  const DeclContext *Ctx = ND->getDeclContext();
+  const FunctionDecl *FD = dyn_cast<FunctionDecl>(Ctx);
+
+  // local named decl
+  if (FD)
+    return false;
+
+  const ValueDecl *VD = dyn_cast<ValueDecl>(ND);
+  return (VD && isValidValueDecl(VD));
+}
+
+bool ReplaceCallExprVisitor::isValidDeclRefExpr(const DeclRefExpr *DE)
+{
+  const ValueDecl *OrigDecl = DE->getDecl();
+  bool RV = isValidValueDecl(OrigDecl);
+  if (!RV)
+    return false;
+
+  if (!dyn_cast<ParmVarDecl>(OrigDecl))
+    return RV;
+
+  ConsumerInstance->addOneParmRef(CurrentReturnStmt, DE);
+
+  return RV;
+}
+
+bool ReplaceCallExprVisitor::isValidExpr(const Expr *E)
+{
+  TransAssert(E && "NULL Expr!");
+
+  switch(E->getStmtClass()) {
+  case Expr::FloatingLiteralClass:
+  case Expr::StringLiteralClass:
+  case Expr::IntegerLiteralClass:
+  case Expr::GNUNullExprClass:
+  case Expr::CharacterLiteralClass: // Fall-through
+    return true;
+
+  case Expr::ParenExprClass:
+    return isValidExpr(cast<ParenExpr>(E)->getSubExpr());
+
+  case Expr::ImplicitCastExprClass:
+  case Expr::CStyleCastExprClass: // Fall-through
+    return isValidExpr(cast<CastExpr>(E)->getSubExpr());
+
+  case Expr::UnaryOperatorClass:
+    return isValidExpr(cast<UnaryOperator>(E)->getSubExpr());
+
+  case Expr::BinaryOperatorClass: {
+    const BinaryOperator *BE = cast<BinaryOperator>(E);
+    return isValidExpr(BE->getLHS()) && isValidExpr(BE->getRHS());
+  }
+
+  case Expr::BinaryConditionalOperatorClass: {
+    const BinaryConditionalOperator *BE = cast<BinaryConditionalOperator>(E);
+    return isValidExpr(BE->getCommon()) && isValidExpr(BE->getFalseExpr());
+  }
+
+  case Expr::ConditionalOperatorClass: {
+    const ConditionalOperator *CE = cast<ConditionalOperator>(E);
+    return (isValidExpr(CE->getCond()) && 
+            isValidExpr(CE->getTrueExpr()) &&
+            isValidExpr(CE->getFalseExpr()));
+  }
+
+  case Expr::SizeOfPackExprClass: {
+    const SizeOfPackExpr *SE = cast<SizeOfPackExpr>(E);
+    NamedDecl *ND = SE->getPack();
+    return isValidNamedDecl(ND);
+  }
+
+  case Expr::OffsetOfExprClass: {
+    const OffsetOfExpr *OE = cast<OffsetOfExpr>(E);
+    for (unsigned Idx = 0; Idx < OE->getNumExpressions(); ++Idx) {
+      if (!isValidExpr(OE->getIndexExpr(Idx)))
+        return false;
+    }
+    return true;
+  }
+
+  case Expr::MemberExprClass: {
+    const MemberExpr *ME = cast<MemberExpr>(E);
+    return isValidExpr(ME->getBase());
+  }
+
+  case Expr::ArraySubscriptExprClass: {
+    const ArraySubscriptExpr *AE = cast<ArraySubscriptExpr>(E);
+    return isValidExpr(AE->getIdx()) && isValidExpr(AE->getBase());
+  }
+
+  case Expr::DeclRefExprClass: {
+    const DeclRefExpr *DE = cast<DeclRefExpr>(E);
+    return isValidDeclRefExpr(DE);
+  }
+
+  default:
+    return false;
+  }
+
+  TransAssert(0 && "Unreachable code!");
+  return false;
+}
+
+void ReplaceCallExpr::Initialize(ASTContext &context) 
+{
+  Context = &context;
+  SrcManager = &Context->getSourceManager();
+  CollectionVisitor = new ReplaceCallExprVisitor(this);
+  TheRewriter.setSourceMgr(Context->getSourceManager(), 
+                           Context->getLangOptions());
+}
+
+void ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
+{
+  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
+    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
+    if (FD && FD->isThisDeclarationADefinition())
+      CurrentFD = FD;
+      CollectionVisitor->TraverseDecl(FD);
+      CurrentFD = NULL;
+  }
+}
+ 
+void ReplaceCallExpr::HandleTranslationUnit(ASTContext &Ctx)
+{
+  doAnalysis();
+  if (QueryInstanceOnly)
+    return;
+
+  if (TransformationCounter > ValidInstanceNum) {
+    TransError = TransMaxInstanceError;
+    return;
+  }
+
+  TransAssert(TheCallExpr && "NULL TheCallExpr!");
+  TransAssert(TheReturnStmt && "NULL TheReturnStmt");
+
+  Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+
+  replaceCallExpr();
+
+  if (Ctx.getDiagnostics().hasErrorOccurred() ||
+      Ctx.getDiagnostics().hasFatalErrorOccurred())
+    TransError = TransInternalError;
+}
+
+void ReplaceCallExpr::addOneReturnStmt(ReturnStmt *RS)
+{
+  DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
+    FuncToReturnStmts.find(CurrentFD);
+  ReturnStmtsVector *V;
+  if (I == FuncToReturnStmts.end()) {
+    V = new ReturnStmtsVector::SmallVector();
+    TransAssert(V);
+    FuncToReturnStmts[CurrentFD] = V;
+  }
+  else {
+    V = (*I).second;
+  }
+
+  TransAssert((std::find(V->begin(), V->end(), RS) == V->end()) &&
+              "Duplicated ReturnStmt!");
+  V->push_back(RS);
+}
+
+void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
+{
+  TransAssert(RS && "NULL ReturnStmt!");
+  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
+    ReturnStmtToParmRefs.find(RS);
+  ParmRefsVector *V;
+  if (I == ReturnStmtToParmRefs.end()) {
+    V = new ParmRefsVector::SmallVector();
+    TransAssert(V);
+    ReturnStmtToParmRefs[RS] = V;
+  }
+  else {
+    V = (*I).second;
+  }
+  
+  TransAssert((std::find(V->begin(), V->end(), DE) == V->end()) &&
+              "Duplicated ParmRef!");
+  V->push_back(DE);
+}
+
+bool ReplaceCallExpr::hasUnmatchedParmArg(ReturnStmt *RS, 
+                                          CallExpr *CE)
+{
+  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator RI =
+    ReturnStmtToParmRefs.find(RS);
+  if (RI == ReturnStmtToParmRefs.end())
+    return false;
+
+  ParmRefsVector *PVector = (*RI).second;
+  unsigned int ArgNum = CE->getNumArgs();
+
+  FunctionDecl *FD = CE->getDirectCallee();
+  for (ParmRefsVector::const_iterator PI = PVector->begin(), 
+       PE = PVector->end(); PI != PE; ++PI) {
+
+    const ValueDecl *OrigDecl = (*PI)->getDecl();
+    const ParmVarDecl *PD = dyn_cast<ParmVarDecl>(OrigDecl);
+    unsigned int Pos = 0;
+    for(FunctionDecl::param_const_iterator I = FD->param_begin(),
+        E = FD->param_end(); I != E; ++I) {
+      if (PD == (*I))
+        break;
+      Pos++;
+    }
+
+    if (Pos >= ArgNum)
+      return true;
+  }
+  return false;
+}
+
+void ReplaceCallExpr::doAnalysis(void)
+{
+  for (SmallVector<CallExpr *, 10>::iterator CI = AllCallExprs.begin(),
+       CE = AllCallExprs.end(); CI != CE; ++CI) {
+    FunctionDecl *CalleeDecl = (*CI)->getDirectCallee(); 
+    TransAssert(CalleeDecl && "Bad CalleeDecl!");
+        
+    DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
+      FuncToReturnStmts.find(CalleeDecl);
+    if (I == FuncToReturnStmts.end())
+      continue;
+
+    ReturnStmtsVector *RVector = (*I).second;
+    TransAssert(RVector && "NULL RVector!");
+    for (ReturnStmtsVector::iterator RI = RVector->begin(),
+         RE = RVector->end(); RI != RE; ++RI) {
+      if (hasUnmatchedParmArg(*RI, *CI))
+        continue;
+
+      ValidInstanceNum++;
+      if (TransformationCounter != ValidInstanceNum)
+        continue;
+
+      TheCallExpr = (*CI);
+      TheReturnStmt = (*RI);
+    }
+  }
+}
+
+void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE, 
+                                       std::string &ParmRefStr)
+{
+  const ValueDecl *OrigDecl = DE->getDecl();
+  const ParmVarDecl *PD = dyn_cast<ParmVarDecl>(OrigDecl);
+  TransAssert(PD && "Bad ParmVarDecl!");
+
+  FunctionDecl *FD = TheCallExpr->getDirectCallee();
+
+  unsigned int Pos = 0;
+  for(FunctionDecl::param_const_iterator I = FD->param_begin(),
+      E = FD->param_end(); I != E; ++I) {
+    TransAssert((Pos < TheCallExpr->getNumArgs()) && 
+                "Unmatched Parm and Arg!");
+    if (PD != (*I)) {
+      Pos++;
+      continue;
+    }
+
+    const Expr *Arg = TheCallExpr->getArg(Pos)->IgnoreParenImpCasts();
+    RewriteUtils::getExprString(Arg, ParmRefStr, &TheRewriter, SrcManager);
+    ParmRefStr = "(" + ParmRefStr + ")";
+
+    const Type *ParmT = PD->getType().getTypePtr();
+    const Type *CanParmT = Context->getCanonicalType(ParmT); 
+    const Type *ArgT = Arg->getType().getTypePtr();
+    const Type *CanArgT = Context->getCanonicalType(ArgT); 
+    if (CanParmT != CanArgT) {
+      std::string TypeCastStr = PD->getType().getAsString();
+      ParmRefStr = "(" + TypeCastStr + ")" + ParmRefStr;
+    }
+    return;
+  }
+  TransAssert(0 && "Unreachable Code!");
+}
+
+void ReplaceCallExpr::insertParmRef
+      (std::vector< std::pair<const DeclRefExpr *, int> > &SortedParmRefs,
+       const DeclRefExpr *ParmRef, int Off)
+{
+  std::pair<const DeclRefExpr *, int> ParmOffPair(ParmRef, Off);
+  if (SortedParmRefs.empty()) {
+    SortedParmRefs.push_back(ParmOffPair);
+    return;
+  }
+
+  std::vector< std::pair<const DeclRefExpr *, int> >::iterator I, E;
+  for(I = SortedParmRefs.begin(), E = SortedParmRefs.end(); I != E; ++I) {
+    int TmpOff = (*I).second;
+    if (Off < TmpOff)
+      break;
+  }
+
+  if (I == E)
+    SortedParmRefs.push_back(ParmOffPair);
+  else 
+    SortedParmRefs.insert(I, ParmOffPair);
+}
+
+void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf, 
+       DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap,
+       std::vector< std::pair<const DeclRefExpr *, int> > &SortedParmRefs)
+{
+  for(DenseMap<const DeclRefExpr *, std::string>::iterator 
+      I = ParmRefToStrMap.begin(), E = ParmRefToStrMap.end(); I != E; ++I) {
+
+    const DeclRefExpr *ParmRef = (*I).first;
+    SourceLocation ParmRefLocStart = ParmRef->getLocStart();
+    const char *ParmRefStartBuf = 
+      SrcManager->getCharacterData(ParmRefLocStart);
+
+    int Off = ParmRefStartBuf - StartBuf;
+    TransAssert((Off >= 0) && "Bad Offset!");
+    insertParmRef(SortedParmRefs, ParmRef, Off);
+  }
+}
+       
+void ReplaceCallExpr::replaceParmRefs(std::string &RetStr, const Expr *RetE,
+       DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap)
+{
+  SourceLocation StartLoc = RetE->getLocStart();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
+  std::vector< std::pair<const DeclRefExpr *, int> > SortedParmRefs;
+  // Must sort ParmRefs to make Delta value correct
+  sortParmRefsByOffs(StartBuf, ParmRefToStrMap, SortedParmRefs);
+
+  int Delta = 0;
+  for(std::vector< std::pair<const DeclRefExpr *, int> >::iterator
+      I = SortedParmRefs.begin(), E = SortedParmRefs.end(); I != E; ++I) {
+
+    const DeclRefExpr *ParmRef = (*I).first;
+    const ValueDecl *OrigDecl = ParmRef->getDecl();
+    size_t ParmRefSize = OrigDecl->getNameAsString().size();
+
+    int Off = (*I).second + Delta;
+    std::string NewStr = ParmRefToStrMap[ParmRef];
+    RetStr.replace(Off, ParmRefSize, NewStr);
+    Delta += (NewStr.size() - ParmRefSize);
+  }
+}  
+
+void ReplaceCallExpr::replaceCallExpr(void)
+{
+  Expr *RetE = TheReturnStmt->getRetValue();
+  TransAssert(RetE && "Bad Return Value!");
+
+  DenseMap<const DeclRefExpr *, std::string> ParmRefToStrMap;
+
+  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
+    ReturnStmtToParmRefs.find(TheReturnStmt);
+  
+  if (I != ReturnStmtToParmRefs.end()) {
+    ParmRefsVector *PVector = (*I).second;
+    TransAssert(PVector);
+    for (ParmRefsVector::const_iterator I = PVector->begin(), 
+         E = PVector->end(); I != E; ++I) {
+      std::string ParmRefStr("");
+      getNewParmRefStr((*I), ParmRefStr);
+      ParmRefToStrMap[(*I)] = ParmRefStr;
+    }
+  }
+
+  std::string RetString;
+  RewriteUtils::getExprString(RetE, RetString, &TheRewriter, SrcManager);
+
+  replaceParmRefs(RetString, RetE, ParmRefToStrMap);
+  std::string ParenRetString = "(" + RetString + ")";
+  RewriteUtils::replaceExpr(TheCallExpr, ParenRetString, 
+                            &TheRewriter, SrcManager);
+}
+
+ReplaceCallExpr::~ReplaceCallExpr(void)
+{
+  if (CollectionVisitor)
+    delete CollectionVisitor;
+
+  for (DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator 
+       I = FuncToReturnStmts.begin(), E = FuncToReturnStmts.end();
+       I != E; ++I) {
+    delete (*I).second;
+  }
+
+  for (DenseMap<ReturnStmt *, ParmRefsVector *>::iterator 
+       I = ReturnStmtToParmRefs.begin(), E = ReturnStmtToParmRefs.end();
+       I != E; ++I) {
+    delete (*I).second;
+  }
+}
+
