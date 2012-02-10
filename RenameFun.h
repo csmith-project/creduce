@@ -50,6 +50,8 @@ private:
 
   bool isConsecutiveNumbersFromOne(void);
 
+  bool isSpecialFun(const std::string &Name);
+
   bool hasValidFuns(void);
 
   RNFunCollectionVisitor *FunCollectionVisitor;
