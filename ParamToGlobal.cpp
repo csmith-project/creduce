@@ -31,16 +31,20 @@ public:
 
   bool VisitDeclRefExpr(DeclRefExpr *ParmRefExpr);
 
+  void rewriteAllCallExprs(void);
+
 private:
 
   ParamToGlobal *ConsumerInstance;
+
+  SmallVector<CallExpr *, 10> AllCallExprs;
 
   bool rewriteFuncDecl(FunctionDecl *FP);
 
   bool rewriteParam(const ParmVarDecl *PV, 
                     unsigned int NumParams);
 
-  bool rewriteCalleeExpr(CallExpr *CallE);
+  bool rewriteOneCallExpr(CallExpr *CallE);
 
   bool makeParamAsGlobalVar(FunctionDecl *FP,
                             const ParmVarDecl *PV);
@@ -84,6 +88,7 @@ void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
   TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  TransformationASTVisitor->rewriteAllCallExprs();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -111,18 +116,14 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
   for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
        PE = FD->param_end(); PI != PE; ++PI) {
-    const ParmVarDecl *PV = (*PI);
-    QualType PVType = PV->getOriginalType();
-    if (PVType.getTypePtr()->isIntegralOrEnumerationType()) {
-      ValidInstanceNum++;
+    ValidInstanceNum++;
 
-      if (ValidInstanceNum == TransformationCounter) {
-        TheFuncDecl = FD;
-        TheParamPos = ParamPos;
-      }
-
-      IsValid = true;
+    if (ValidInstanceNum == TransformationCounter) {
+      TheFuncDecl = FD;
+      TheParamPos = ParamPos;
     }
+
+    IsValid = true;
     ParamPos++;
   }
   return IsValid;
@@ -202,13 +203,21 @@ bool PToGASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
   return true;
 }
 
-bool PToGASTVisitor::rewriteCalleeExpr(CallExpr *CallE)
+bool PToGASTVisitor::rewriteOneCallExpr(CallExpr *CallE)
 {
   return 
     RewriteUtils::removeArgFromCallExpr(CallE, 
                                         ConsumerInstance->TheParamPos,
                                         &(ConsumerInstance->TheRewriter),
                                         ConsumerInstance->SrcManager);
+}
+
+void PToGASTVisitor::rewriteAllCallExprs(void)
+{
+  while (!AllCallExprs.empty()) {
+    CallExpr *CallE = AllCallExprs.pop_back_val();
+    rewriteOneCallExpr(CallE);
+  }
 }
 
 bool PToGASTVisitor::VisitCallExpr(CallExpr *CallE) 
@@ -221,7 +230,16 @@ bool PToGASTVisitor::VisitCallExpr(CallExpr *CallE)
     return true;
 
   // We now have a correct CallExpr
-  return rewriteCalleeExpr(CallE);
+  // Here we only collect these valid CallExprs, and 
+  // will rewrite them later in a reverse order. 
+  // The reason is that if we have code like below:
+  //    foo(foo(1));
+  // we want to rewrite the nested foo(1) first.
+  // If we rewrite the outside foo first, we will
+  // end up with bad transformation when we try to 
+  // rewrite foo(1), which has been removed. 
+  AllCallExprs.push_back(CallE);
+  return true;
 }
 
 bool PToGASTVisitor::VisitDeclRefExpr(DeclRefExpr *ParmRefExpr)
