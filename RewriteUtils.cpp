@@ -234,7 +234,6 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   TransAssert(Arg && "Null arg!");
 
   SourceRange ArgRange = Arg->getSourceRange();
-  std::string TmpStr = TheRewriter->getRewrittenText(ArgRange);
   int RangeSize = TheRewriter->getRangeSize(ArgRange);
 
   if (RangeSize == -1)
