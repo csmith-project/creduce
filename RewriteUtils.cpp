@@ -234,6 +234,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   TransAssert(Arg && "Null arg!");
 
   SourceRange ArgRange = Arg->getSourceRange();
+  std::string TmpStr = TheRewriter->getRewrittenText(ArgRange);
   int RangeSize = TheRewriter->getRangeSize(ArgRange);
 
   if (RangeSize == -1)
@@ -263,8 +264,29 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
                                      RangeSize - Offset));
   }
 
+  // We cannot use SrcManager->getCharacterData(StartLoc) to get the buffer,
+  // because it returns the unmodified string. I've tried to use 
+  // getEndlocationUntil(ArgRange, ",", ...) call, but still failed. 
+  // Seems in some cases, it returns bad results for a complex case like:
+  //  foo(...foo(...), ...)
+  // So I ended up with this ugly way - get the end loc from the next arg.
+  Expr *NextArg = CallE->getArg(ParamPos+1);
+  SourceRange NextArgRange = NextArg->getSourceRange();
+  SourceLocation NextStartLoc = NextArgRange.getBegin();
+  const char *NextStartBuf = SrcManager->getCharacterData(NextStartLoc);
+  int Offset = 0;
+  while (*NextStartBuf != ',') {
+      NextStartBuf--;
+      Offset--;
+  }
+
+  SourceLocation NewEndLoc = NextStartLoc.getLocWithOffset(Offset);
+//    getEndLocationUntil(ArgRange, ',', TheRewriter, SrcManager);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
+/*
   int NewRangeSize = 0;
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  const char *NewStartBuf = StartBuf - 1;
 
   TransAssert(StartBuf && "Invalid start buffer!");
   while (NewRangeSize < RangeSize) {
@@ -280,6 +302,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
 
   TheRewriter->RemoveText(StartLoc, NewRangeSize + 1);
   return true;
+*/
 }
 
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(VarDecl *VD,
