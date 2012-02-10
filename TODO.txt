@@ -14,3 +14,9 @@ do copy propagation
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
+simplify if/foo statements 
+from:
+  if (stuff1) { stuff2 }
+to
+  stuff1
+  stuff2 
