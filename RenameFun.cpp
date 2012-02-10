@@ -171,9 +171,22 @@ void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+bool RenameFun::isSpecialFun(const std::string &Name)
+{
+  if ((Name.compare("main") == 0) ||
+      (Name.compare("printf") == 0))
+    return true;
+  else
+    return false;
+}
+
 bool RenameFun::hasValidPostfix(const std::string &Name)
 {
   unsigned int Value;
+
+  // Don't rename special functions
+  if (isSpecialFun(Name))
+    return true;
 
   if (Name.size() <= 2)
     return false;
@@ -192,6 +205,11 @@ bool RenameFun::hasValidPostfix(const std::string &Name)
 }
 void RenameFun::addFun(FunctionDecl *FD)
 {
+  std::string Name = FD->getNameAsString();
+  // Skip special functions
+  if (isSpecialFun(Name))
+    FunToNameMap[FD] = Name;
+
   if (FunToNameMap.find(FD) != FunToNameMap.end())
     return;
 
