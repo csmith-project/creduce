@@ -383,6 +383,26 @@ bool RewriteUtils::getExprString(const Expr *E,
   return true;
 }
 
+bool RewriteUtils::getStmtString(const Stmt *S, 
+                                 std::string &Str,
+                                 Rewriter *TheRewriter,
+                                 SourceManager *SrcManager)
+{
+  SourceRange StmtRange = S->getSourceRange();
+   
+  int RangeSize = TheRewriter->getRangeSize(StmtRange);
+  if (RangeSize == -1)
+    return false;
+
+  SourceLocation StartLoc = StmtRange.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
+  Str.assign(StartBuf, RangeSize);
+
+  return true;
+}
+
+
 bool RewriteUtils::replaceExpr(const Expr *E, 
                                const std::string &ES,
                                Rewriter *TheRewriter,

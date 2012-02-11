@@ -46,6 +46,11 @@ public:
                             clang::Rewriter *TheRewriter,
                             clang::SourceManager *SrcManager);
 
+  static bool getStmtString(const clang::Stmt *S, 
+                            std::string &Str,
+                            clang::Rewriter *TheRewriter,
+                            clang::SourceManager *SrcManager);
+
   static bool replaceExpr(const clang::Expr *E, 
                           const std::string &ES,
                           clang::Rewriter *TheRewriter,
