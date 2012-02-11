@@ -12,9 +12,7 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"A really simple inliner replaces a callexpr if it \n\
-  * stands for a call to a leave function; \n\
-  * AND is a standalone statement;\n";
+"A really simple inliner\n";
 
 static RegisterTransformation<SimpleInliner>
          Trans("simple-inliner", DescriptionMsg);
