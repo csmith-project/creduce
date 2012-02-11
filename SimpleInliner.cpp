@@ -58,6 +58,25 @@ private:
   unsigned int NumStmts;
 };
 
+class SimpleInlinerFunctionVisitor : public 
+  RecursiveASTVisitor<SimpleInlinerFunctionVisitor> {
+
+public:
+
+  explicit SimpleInlinerFunctionVisitor(SimpleInliner *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitReturnStmt(ReturnStmt *RS);
+
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
+
+private:
+
+  SimpleInliner *ConsumerInstance;
+
+};
+
 bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
   FunctionDecl *FD = CE->getDirectCallee();
@@ -154,11 +173,29 @@ bool SimpleInlinerCollectionVisitor::VisitBinaryOperator(BinaryOperator *S)
   return true;
 }
 
+bool SimpleInlinerFunctionVisitor::VisitReturnStmt(ReturnStmt *RS)
+{
+  ConsumerInstance->ReturnStmts.push_back(RS);
+  return true;
+}
+
+bool SimpleInlinerFunctionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
+{
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const ParmVarDecl *PD = dyn_cast<ParmVarDecl>(OrigDecl);
+  if (PD)
+     ConsumerInstance->ParmRefs.push_back(DRE); 
+  return true;
+}
+
 void SimpleInliner::Initialize(ASTContext &context) 
 {
   Context = &context;
   SrcManager = &Context->getSourceManager();
+  NameQueryWrap = 
+    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
   CollectionVisitor = new SimpleInlinerCollectionVisitor(this);
+  FunctionVisitor = new SimpleInlinerFunctionVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
 }
@@ -174,7 +211,8 @@ void SimpleInliner::HandleTopLevelDecl(DeclGroupRef D)
     CollectionVisitor->setNumStmts(0);
     CollectionVisitor->TraverseDecl(FD);
 
-    if (CollectionVisitor->getNumStmts() <= MaxNumStmts) {
+    if ((CollectionVisitor->getNumStmts() <= MaxNumStmts) &&
+        !FD->isVariadic()) {
       ValidFunctionDecls.insert(FD->getCanonicalDecl());
     }
   }
@@ -191,10 +229,15 @@ void SimpleInliner::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
+  TransAssert(CurrentFD && "NULL CurrentFD!");
   TransAssert(TheCallExpr && "NULL TheCallExpr!");
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
+  NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
+  NamePostfix = NameQueryWrap->getMaxNamePostfix() + 1;
+
+  FunctionVisitor->TraverseDecl(CurrentFD);
   replaceCallExpr();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -272,14 +315,67 @@ void SimpleInliner::doAnalysis(void)
   }
 }
 
+std::string SimpleInliner::getNewTmpName(void)
+{
+  std::stringstream SS;
+  SS << RewriteUtils::getTmpVarNamePrefix() << NamePostfix;
+  NamePostfix++;
+  return SS.str();
+}
+
+void SimpleInliner::createReturnVar(void)
+{
+  const Type *FDType = CurrentFD->getResultType().getTypePtr();
+  const Type *CallExprType = TheCallExpr->getCallReturnType().getTypePtr();
+
+  // We don't need tmp var
+  if (FDType->isVoidType() && CallExprType->isVoidType()) {
+    return; 
+  }
+
+  TmpVarName = getNewTmpName();
+  std::string VarStr = TmpVarName;
+  CurrentFD->getResultType().getAsStringInternal(VarStr, 
+                               Context->getPrintingPolicy());
+  RewriteUtils::addLocalVarToFunc(VarStr, TheCaller,
+                                 &TheRewriter, SrcManager);
+}
+
+void SimpleInliner::generateParamStrings(void)
+{
+  unsigned int ArgNum = TheCallExpr->getNumArgs();
+  FunctionDecl *FD = TheCallExpr->getDirectCallee();
+  unsigned int Idx;
+
+  for(Idx = 0; Idx < FD->getNumParams(); ++Idx) {
+    const ParmVarDecl *PD = FD->getParamDecl(Idx);
+    std::string ParmStr = PD->getNameAsString();
+    PD->getType().getAsStringInternal(ParmStr, 
+                                      Context->getPrintingPolicy());
+    if (Idx < ArgNum) {
+      const Expr *Arg = TheCallExpr->getArg(Idx);
+      ParmStr += " = ";
+      std::string ArgStr("");
+      RewriteUtils::getExprString(Arg, ArgStr, &TheRewriter, SrcManager);
+      ParmStr += ArgStr;
+    }
+    ParmStr += ";";
+    ParmStrings.push_back(ParmStr);
+  }
+}
+
 void SimpleInliner::replaceCallExpr(void)
 {
-  // TODO
+  // Create a new tmp var for return value
+  createReturnVar();
+  generateParamStrings();
 }
 
 SimpleInliner::~SimpleInliner(void)
 {
   if (CollectionVisitor)
     delete CollectionVisitor;
+  if (FunctionVisitor)
+    delete FunctionVisitor;
 }
 

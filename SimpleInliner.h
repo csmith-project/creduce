@@ -21,25 +21,35 @@ namespace clang {
 }
 
 class SimpleInlinerCollectionVisitor;
+class SimpleInlinerFunctionVisitor;
 
 class SimpleInliner : public Transformation {
 friend class SimpleInlinerCollectionVisitor;
+friend class SimpleInlinerFunctionVisitor;
 
 public:
 
   SimpleInliner(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      FunctionVisitor(NULL),
+      NameQueryWrap(NULL),
       TheCallExpr(NULL),
       TheCaller(NULL),
       CurrentFD(NULL),
-      MaxNumStmts(10)
+      MaxNumStmts(10),
+      TmpVarName(""),
+      NamePostfix(0)
   { }
 
   ~SimpleInliner(void);
 
 private:
   
+  typedef llvm::SmallVector<clang::ReturnStmt *, 5> ReturnStmtsVector;
+
+  typedef llvm::SmallVector<const clang::DeclRefExpr *, 5> ParmRefsVector;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -54,13 +64,29 @@ private:
 
   bool hasValidArgExprs(const clang::CallExpr *CE);
 
+  void createReturnVar(void);
+
+  void generateParamStrings(void);
+
+  std::string getNewTmpName(void);
+
   SimpleInlinerCollectionVisitor *CollectionVisitor;
+
+  SimpleInlinerFunctionVisitor *FunctionVisitor;
 
   llvm::DenseMap<clang::CallExpr *, clang::FunctionDecl *> CalleeToCallerMap;
 
   llvm::SmallVector<clang::CallExpr *, 10> AllCallExprs;
 
   llvm::SmallSet<clang::FunctionDecl *, 10> ValidFunctionDecls;
+
+  ReturnStmtsVector ReturnStmts;
+
+  ParmRefsVector ParmRefs;
+
+  llvm::SmallVector<std::string, 10> ParmStrings;
+
+  TransNameQueryWrap *NameQueryWrap;
 
   clang::CallExpr *TheCallExpr;
 
@@ -69,6 +95,10 @@ private:
   clang::FunctionDecl *CurrentFD;
 
   const unsigned int MaxNumStmts;
+
+  std::string TmpVarName;
+
+  unsigned int NamePostfix;
 
   // Unimplemented
   SimpleInliner(void);
