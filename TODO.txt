@@ -20,3 +20,11 @@ from:
 to
   stuff1
   stuff2 
+
+- turn a union into a struct
+
+- (low priority) format string reductions:
+
+ * remove anything that's not a %d or whatever from the format string
+
+ * remove a %d directive and also the corresponding argument from a printf 
