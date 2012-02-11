@@ -337,6 +337,7 @@ void SimpleInliner::createReturnVar(void)
   std::string VarStr = TmpVarName;
   CurrentFD->getResultType().getAsStringInternal(VarStr, 
                                Context->getPrintingPolicy());
+  VarStr += ";";
   RewriteUtils::addLocalVarToFunc(VarStr, TheCaller,
                                  &TheRewriter, SrcManager);
 }
@@ -359,9 +360,95 @@ void SimpleInliner::generateParamStrings(void)
       RewriteUtils::getExprString(Arg, ArgStr, &TheRewriter, SrcManager);
       ParmStr += ArgStr;
     }
-    ParmStr += ";";
+    ParmStr += ";\n";
     ParmStrings.push_back(ParmStr);
   }
+}
+
+void SimpleInliner::insertReturnStmt
+      (std::vector< std::pair<ReturnStmt *, int> > &SortedReturnStmts,
+       ReturnStmt *RS, int Off)
+{
+  std::pair<ReturnStmt *, int> ReturnStmtOffPair(RS, Off);
+  if (SortedReturnStmts.empty()) {
+    SortedReturnStmts.push_back(ReturnStmtOffPair);
+    return;
+  }
+
+  std::vector< std::pair<ReturnStmt *, int> >::iterator I, E;
+  for(I = SortedReturnStmts.begin(), E = SortedReturnStmts.end(); I != E; ++I) {
+    int TmpOff = (*I).second;
+    if (Off < TmpOff)
+      break;
+  }
+
+  if (I == E)
+    SortedReturnStmts.push_back(ReturnStmtOffPair);
+  else 
+    SortedReturnStmts.insert(I, ReturnStmtOffPair);
+}
+void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf, 
+       std::vector< std::pair<ReturnStmt *, int> > &SortedReturnStmts)
+{
+  for (ReturnStmtsVector::iterator I = ReturnStmts.begin(), 
+       E = ReturnStmts.end(); I != E; ++I) {
+    ReturnStmt *RS = (*I);
+    SourceLocation RSLocStart = RS->getLocStart();
+    const char *RSStartBuf = SrcManager->getCharacterData(RSLocStart);
+    int Off = RSStartBuf - StartBuf;
+    TransAssert((Off >= 0) && "Bad Offset!");
+  }
+}
+
+void SimpleInliner::copyFunctionBody(void)
+{
+  Stmt *Body = CurrentFD->getBody();
+  TransAssert(Body && "NULL Body!");
+
+  std::string FuncBodyStr("");
+  RewriteUtils::getStmtString(Body, FuncBodyStr, &TheRewriter, SrcManager);
+  TransAssert(FuncBodyStr[0] == '{');
+
+  SourceLocation StartLoc = Body->getLocStart();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
+  std::vector< std::pair<ReturnStmt *, int> > SortedReturnStmts;
+  sortReturnStmtsByOffs(StartBuf, SortedReturnStmts);
+
+  // Now we start rewriting
+  int Delta = 1; // skip the first { symbol
+  for(SmallVector<std::string, 10>::iterator I = ParmStrings.begin(),
+       E = ParmStrings.end(); I != E; ++I) {
+    std::string PStr = (*I);
+    FuncBodyStr.insert(Delta, PStr);
+    Delta += PStr.size();
+  }
+
+  int ReturnSZ = 6;
+  int TmpVarNameSize = static_cast<int>(TmpVarName.size());
+
+  for(std::vector< std::pair<ReturnStmt *, int> >::iterator
+      I = SortedReturnStmts.begin(), E = SortedReturnStmts.end(); 
+      I != E; ++I) {
+
+    ReturnStmt *RS = (*I).first;
+    int Off = (*I).second + Delta;
+    Expr *Exp = RS->getRetValue();
+    if (Exp) {
+      const Type *T = Exp->getType().getTypePtr();
+      if (!T->isVoidType()) {
+        FuncBodyStr.replace(Off, ReturnSZ, TmpVarName);
+        Delta += (TmpVarNameSize - ReturnSZ);
+        continue;
+      }
+    }
+    FuncBodyStr.replace(Off, ReturnSZ, "");
+    Delta -= ReturnSZ;
+  }
+
+  // TODO
+  SourceLocation TmpLoc = TheCallExpr->getLocStart();
+  TheRewriter.InsertText(TmpLoc, FuncBodyStr, /*InsertAfter=*/false);
 }
 
 void SimpleInliner::replaceCallExpr(void)
@@ -369,6 +456,9 @@ void SimpleInliner::replaceCallExpr(void)
   // Create a new tmp var for return value
   createReturnVar();
   generateParamStrings();
+  copyFunctionBody();
+  RewriteUtils::replaceExpr(TheCallExpr, TmpVarName, 
+                            &TheRewriter, SrcManager);
 }
 
 SimpleInliner::~SimpleInliner(void)

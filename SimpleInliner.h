@@ -68,7 +68,16 @@ private:
 
   void generateParamStrings(void);
 
+  void copyFunctionBody(void);
+
   std::string getNewTmpName(void);
+
+  void sortReturnStmtsByOffs(const char *StartBuf, 
+    std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts);
+
+  void insertReturnStmt
+      (std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts,
+       clang::ReturnStmt *RS, int Off);
 
   SimpleInlinerCollectionVisitor *CollectionVisitor;
 
