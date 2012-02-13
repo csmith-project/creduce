@@ -17,15 +17,17 @@ namespace clang {
   class DeclRefExpr;
   class ReturnStmt;
   class Expr;
-  class ParmVarDecl;
+  class Stmt;
 }
 
 class SimpleInlinerCollectionVisitor;
 class SimpleInlinerFunctionVisitor;
+class SimpleInlinerStmtVisitor;
 
 class SimpleInliner : public Transformation {
 friend class SimpleInlinerCollectionVisitor;
 friend class SimpleInlinerFunctionVisitor;
+friend class SimpleInlinerStmtVisitor;
 
 public:
 
@@ -33,12 +35,15 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       FunctionVisitor(NULL),
+      StmtVisitor(NULL),
       NameQueryWrap(NULL),
       TheCallExpr(NULL),
       TheCaller(NULL),
       CurrentFD(NULL),
+      TheStmt(NULL),
       MaxNumStmts(10),
       TmpVarName(""),
+      NeedParen(false),
       NamePostfix(0)
   { }
 
@@ -83,6 +88,8 @@ private:
 
   SimpleInlinerFunctionVisitor *FunctionVisitor;
 
+  SimpleInlinerStmtVisitor *StmtVisitor;
+
   llvm::DenseMap<clang::CallExpr *, clang::FunctionDecl *> CalleeToCallerMap;
 
   llvm::SmallVector<clang::CallExpr *, 10> AllCallExprs;
@@ -103,9 +110,13 @@ private:
 
   clang::FunctionDecl *CurrentFD;
 
+  clang::Stmt *TheStmt;
+
   const unsigned int MaxNumStmts;
 
   std::string TmpVarName;
+
+  bool NeedParen;
 
   unsigned int NamePostfix;
 

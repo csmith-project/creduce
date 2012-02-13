@@ -18,6 +18,7 @@
 #endif
 
 using namespace clang;
+using namespace llvm;
 
 static const char *DefaultIndentStr = "    ";
 
@@ -402,7 +403,6 @@ bool RewriteUtils::getStmtString(const Stmt *S,
   return true;
 }
 
-
 bool RewriteUtils::replaceExpr(const Expr *E, 
                                const std::string &ES,
                                Rewriter *TheRewriter,
@@ -415,6 +415,24 @@ bool RewriteUtils::replaceExpr(const Expr *E,
     return false;
 
   return !(TheRewriter->ReplaceText(ExprRange, ES));
+}
+
+bool RewriteUtils::replaceExprNotInclude(const Expr *E, 
+                               const std::string &ES,
+                               Rewriter *TheRewriter,
+                               SourceManager *SrcManager)
+{
+  SourceRange ExprRange = E->getSourceRange();
+  SourceLocation StartLoc = ExprRange.getBegin();
+  int RangeSize = TheRewriter->getRangeSize(ExprRange);
+  TransAssert((RangeSize != -1) && "Bad expr range!");
+
+  Rewriter::RewriteOptions Opts;
+  // We don't want to include the previously inserted string
+  Opts.IncludeInsertsAtBeginOfRange = false;
+
+  TheRewriter->RemoveText(ExprRange, Opts);
+  return !(TheRewriter->InsertText(StartLoc, ES));
 }
 
 std::string RewriteUtils::getStmtIndentString(Stmt *S,
@@ -512,6 +530,54 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
   
   return !(TheRewriter->InsertText(StmtLocStart, 
              AssignStmtStr, /*InsertAfter=*/false));
+}
+
+void RewriteUtils::indentAfterNewLine(StringRef Str,
+                                      std::string &NewStr,
+                                      const std::string &IndentStr)
+{
+  SmallVector<StringRef, 20> StrVec;
+  Str.split(StrVec, "\n"); 
+  NewStr = "";
+  for(SmallVector<StringRef, 20>::iterator I = StrVec.begin(), 
+      E = StrVec.end(); I != E; ++I) {
+    NewStr += ((*I).str() + "\n" + IndentStr);
+  }
+}
+
+bool RewriteUtils::addStringBeforeStmt(Stmt *BeforeStmt,
+                                   const std::string &Str,
+                                   bool NeedParen,
+                                   Rewriter *TheRewriter,
+                                   SourceManager *SrcManager)
+{
+  std::string IndentStr = 
+    RewriteUtils::getStmtIndentString(BeforeStmt, SrcManager);
+
+  if (NeedParen) {
+    SourceRange StmtRange = BeforeStmt->getSourceRange();
+    SourceLocation LocEnd = 
+      RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+
+    std::string PostStr = "\n" + IndentStr + "}";
+    if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
+      return false;
+  }
+
+  SourceLocation StmtLocStart = BeforeStmt->getLocStart();
+
+  std::string NewStr;
+
+  if (NeedParen) {
+    NewStr = "{\n";
+  }
+  NewStr += Str;
+  NewStr += "\n";
+  
+  std::string IndentedStr;
+  indentAfterNewLine(NewStr, IndentedStr, IndentStr);
+  return !(TheRewriter->InsertText(StmtLocStart, 
+             IndentedStr, /*InsertAfter=*/false));
 }
 
 bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt, 

@@ -77,6 +77,46 @@ private:
 
 };
 
+class SimpleInlinerStmtVisitor : public 
+  RecursiveASTVisitor<SimpleInlinerStmtVisitor> {
+
+public:
+
+  explicit SimpleInlinerStmtVisitor(SimpleInliner *Instance)
+    : ConsumerInstance(Instance),
+      CurrentStmt(NULL),
+      NeedParen(false)
+  { }
+
+  bool VisitCompoundStmt(CompoundStmt *S);
+
+  bool VisitIfStmt(IfStmt *IS);
+
+  bool VisitForStmt(ForStmt *FS);
+
+  bool VisitWhileStmt(WhileStmt *WS);
+
+  bool VisitDoStmt(DoStmt *DS);
+
+  bool VisitCaseStmt(CaseStmt *CS);
+
+  bool VisitDefaultStmt(DefaultStmt *DS);
+
+  void visitNonCompoundStmt(Stmt *S);
+
+  bool VisitCallExpr(CallExpr *CallE);
+
+private:
+
+  SimpleInliner *ConsumerInstance;
+
+  Stmt *CurrentStmt;
+
+  bool NeedParen;
+
+};
+
+
 bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
   FunctionDecl *FD = CE->getDirectCallee();
@@ -188,6 +228,129 @@ bool SimpleInlinerFunctionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   return true;
 }
 
+bool SimpleInlinerStmtVisitor::VisitCompoundStmt(CompoundStmt *CS)
+{
+  for (CompoundStmt::body_iterator I = CS->body_begin(),
+       E = CS->body_end(); I != E; ++I) {
+    CurrentStmt = (*I);
+    TraverseStmt(*I);
+  }
+  return false;
+}
+
+void SimpleInlinerStmtVisitor::visitNonCompoundStmt(Stmt *S)
+{
+  if (!S)
+    return;
+
+  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
+  if (CS) {
+    VisitCompoundStmt(CS);
+    return;
+  }
+
+  CurrentStmt = (S);
+  NeedParen = true;
+  TraverseStmt(S);
+  NeedParen = false;
+}
+
+// It is used to handle the case where if-then or else branch
+// is not treated as a CompoundStmt. So it cannot be traversed
+// from VisitCompoundStmt, e.g.,
+//   if (x)
+//     foo(bar())
+bool SimpleInlinerStmtVisitor::VisitIfStmt(IfStmt *IS)
+{
+  Expr *E = IS->getCond();
+  TraverseStmt(E);
+
+  Stmt *ThenB = IS->getThen();
+  visitNonCompoundStmt(ThenB);
+
+  Stmt *ElseB = IS->getElse();
+  visitNonCompoundStmt(ElseB);
+
+  return false;
+}
+
+// It causes unsound transformation because 
+// the semantics of loop execution has been changed. 
+// For example,
+//   int foo(int x)
+//   {
+//     int i;
+//     for(i = 0; i < bar(bar(x)); i++)
+//       ...
+//   }
+// will be transformed to:
+//   int foo(int x)
+//   {
+//     int i;
+//     int tmp_var = bar(x);
+//     for(i = 0; i < bar(tmp_var); i++)
+//       ...
+//   }
+bool SimpleInlinerStmtVisitor::VisitForStmt(ForStmt *FS)
+{
+  Stmt *Init = FS->getInit();
+  TraverseStmt(Init);
+
+  Expr *Cond = FS->getCond();
+  TraverseStmt(Cond);
+
+  Expr *Inc = FS->getInc();
+  TraverseStmt(Inc);
+
+  Stmt *Body = FS->getBody();
+  visitNonCompoundStmt(Body);
+  return false;
+}
+
+bool SimpleInlinerStmtVisitor::VisitWhileStmt(WhileStmt *WS)
+{
+  Expr *E = WS->getCond();
+  TraverseStmt(E);
+
+  Stmt *Body = WS->getBody();
+  visitNonCompoundStmt(Body);
+  return false;
+}
+
+bool SimpleInlinerStmtVisitor::VisitDoStmt(DoStmt *DS)
+{
+  Expr *E = DS->getCond();
+  TraverseStmt(E);
+
+  Stmt *Body = DS->getBody();
+  visitNonCompoundStmt(Body);
+  return false;
+}
+
+bool SimpleInlinerStmtVisitor::VisitCaseStmt(CaseStmt *CS)
+{
+  Stmt *Body = CS->getSubStmt();
+  visitNonCompoundStmt(Body);
+  return false;
+}
+
+bool SimpleInlinerStmtVisitor::VisitDefaultStmt(DefaultStmt *DS)
+{
+  Stmt *Body = DS->getSubStmt();
+  visitNonCompoundStmt(Body);
+  return false;
+}
+
+bool SimpleInlinerStmtVisitor::VisitCallExpr(CallExpr *CallE) 
+{
+  if (ConsumerInstance->TheCallExpr == CallE) {
+    ConsumerInstance->TheStmt = CurrentStmt;
+    ConsumerInstance->NeedParen = NeedParen;
+    // Stop recursion
+    return false;
+  }
+  return true;
+}
 void SimpleInliner::Initialize(ASTContext &context) 
 {
   Context = &context;
@@ -196,6 +359,7 @@ void SimpleInliner::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
   CollectionVisitor = new SimpleInlinerCollectionVisitor(this);
   FunctionVisitor = new SimpleInlinerFunctionVisitor(this);
+  StmtVisitor = new SimpleInlinerStmtVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
 }
@@ -238,6 +402,9 @@ void SimpleInliner::HandleTranslationUnit(ASTContext &Ctx)
   NamePostfix = NameQueryWrap->getMaxNamePostfix() + 1;
 
   FunctionVisitor->TraverseDecl(CurrentFD);
+  StmtVisitor->TraverseDecl(TheCaller);
+
+  TransAssert(TheStmt && "NULL TheStmt!");
   replaceCallExpr();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -307,6 +474,19 @@ void SimpleInliner::doAnalysis(void)
 
     ValidInstanceNum++;
     if (TransformationCounter == ValidInstanceNum) {
+      // It's possible the direct callee is not a definition
+      if (!CalleeDecl->isThisDeclarationADefinition()) {
+        CalleeDecl = CalleeDecl->getFirstDeclaration();
+        for(FunctionDecl::redecl_iterator RI = CalleeDecl->redecls_begin(),
+            RE = CalleeDecl->redecls_end(); RI != RE; ++RI) {
+          if ((*RI)->isThisDeclarationADefinition()) {
+            CalleeDecl = (*RI);
+            break;
+          }
+        }
+      }
+      TransAssert(CalleeDecl->isThisDeclarationADefinition() && 
+                  "Bad CalleeDecl!");
       CurrentFD = CalleeDecl;
       TheCaller = CalleeToCallerMap[(*CI)];
       TransAssert(TheCaller && "NULL TheCaller!");
@@ -387,6 +567,7 @@ void SimpleInliner::insertReturnStmt
   else 
     SortedReturnStmts.insert(I, ReturnStmtOffPair);
 }
+
 void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf, 
        std::vector< std::pair<ReturnStmt *, int> > &SortedReturnStmts)
 {
@@ -397,6 +578,7 @@ void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf,
     const char *RSStartBuf = SrcManager->getCharacterData(RSLocStart);
     int Off = RSStartBuf - StartBuf;
     TransAssert((Off >= 0) && "Bad Offset!");
+    insertReturnStmt(SortedReturnStmts, RS, Off);
   }
 }
 
@@ -424,8 +606,11 @@ void SimpleInliner::copyFunctionBody(void)
     Delta += PStr.size();
   }
 
+  // restore the effect of {
+  Delta--;
   int ReturnSZ = 6;
-  int TmpVarNameSize = static_cast<int>(TmpVarName.size());
+  std::string TmpVarStr = TmpVarName + " = ";
+  int TmpVarNameSize = static_cast<int>(TmpVarStr.size());
 
   for(std::vector< std::pair<ReturnStmt *, int> >::iterator
       I = SortedReturnStmts.begin(), E = SortedReturnStmts.end(); 
@@ -437,7 +622,7 @@ void SimpleInliner::copyFunctionBody(void)
     if (Exp) {
       const Type *T = Exp->getType().getTypePtr();
       if (!T->isVoidType()) {
-        FuncBodyStr.replace(Off, ReturnSZ, TmpVarName);
+        FuncBodyStr.replace(Off, ReturnSZ, TmpVarStr);
         Delta += (TmpVarNameSize - ReturnSZ);
         continue;
       }
@@ -446,9 +631,8 @@ void SimpleInliner::copyFunctionBody(void)
     Delta -= ReturnSZ;
   }
 
-  // TODO
-  SourceLocation TmpLoc = TheCallExpr->getLocStart();
-  TheRewriter.InsertText(TmpLoc, FuncBodyStr, /*InsertAfter=*/false);
+  RewriteUtils::addStringBeforeStmt(TheStmt, FuncBodyStr, NeedParen,
+                                    &TheRewriter, SrcManager);
 }
 
 void SimpleInliner::replaceCallExpr(void)
@@ -457,7 +641,8 @@ void SimpleInliner::replaceCallExpr(void)
   createReturnVar();
   generateParamStrings();
   copyFunctionBody();
-  RewriteUtils::replaceExpr(TheCallExpr, TmpVarName, 
+
+  RewriteUtils::replaceExprNotInclude(TheCallExpr, TmpVarName,
                             &TheRewriter, SrcManager);
 }
 
@@ -467,5 +652,7 @@ SimpleInliner::~SimpleInliner(void)
     delete CollectionVisitor;
   if (FunctionVisitor)
     delete FunctionVisitor;
+  if (StmtVisitor)
+    delete StmtVisitor;
 }
 

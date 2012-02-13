@@ -56,6 +56,11 @@ public:
                           clang::Rewriter *TheRewriter,
                           clang::SourceManager *SrcManager);
 
+  static bool replaceExprNotInclude(const clang::Expr *E, 
+                          const std::string &ES,
+                          clang::Rewriter *TheRewriter,
+                          clang::SourceManager *SrcManager);
+
   static bool addLocalVarToFunc(const std::string &VarStr,
                                 clang::FunctionDecl *FD,
                                 clang::Rewriter *TheRewriter,
@@ -70,6 +75,12 @@ public:
                                      bool NeedParen,
                                      clang::Rewriter *TheRewriter,
                                      clang::SourceManager *SrcManager);
+
+  static bool addStringBeforeStmt(clang::Stmt *BeforeStmt,
+                                  const std::string &Str,
+                                  bool NeedParen,
+                                  clang::Rewriter *TheRewriter,
+                                  clang::SourceManager *SrcManager);
 
   static bool addStringAfterStmt(clang::Stmt *AfterStmt, 
                                  const std::string &Str,
@@ -160,6 +171,10 @@ private:
                          const std::string &Substr, 
                          clang::Rewriter *TheRewriter,
                          clang::SourceManager *SrcManager);
+
+  static void indentAfterNewLine(llvm::StringRef Str,
+                                 std::string &NewStr,
+                                 const std::string &IndentStr);
 
   RewriteUtils(void);
 
