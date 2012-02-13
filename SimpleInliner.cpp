@@ -31,7 +31,7 @@ Steps of inlining: \n\
 Each transformation iteration only transforms one callexpr, \
 also it will keep the inlined function body unchanged. \
 If the inlined body has no reference anymore, c_delta \
-will remove it entirely. \\n";
+will remove it entirely. \n";
 
 static RegisterTransformation<SimpleInliner>
          Trans("simple-inliner", DescriptionMsg);
