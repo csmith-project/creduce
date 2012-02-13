@@ -131,8 +131,14 @@ bool BSCollectionVisitor::VisitIfStmt(IfStmt *IS)
 //   }
 bool BSCollectionVisitor::VisitForStmt(ForStmt *FS)
 {
-  Expr *E = FS->getCond();
-  TraverseStmt(E);
+  Stmt *Init = FS->getInit();
+  TraverseStmt(Init);
+
+  Expr *Cond = FS->getCond();
+  TraverseStmt(Cond);
+
+  Expr *Inc = FS->getInc();
+  TraverseStmt(Inc);
 
   Stmt *Body = FS->getBody();
   visitNonCompoundStmt(Body);
