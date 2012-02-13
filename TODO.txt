@@ -1,9 +1,5 @@
 TODO list:
 
-inline a function call
-  only for small functions, and only when delta has already
-  gotten pretty far
-
 remove level of pointer indirection from a variable
 
 remove array dimension from a variable
@@ -20,6 +16,13 @@ from:
 to
   stuff1
   stuff2 
+
+simplify a comma expression below:
+from
+  x = (y, z);
+to 
+  y;
+  x = z;
 
 - turn a union into a struct
 
