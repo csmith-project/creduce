@@ -22,6 +22,9 @@ then it's legitimate. \n\
 Steps of inlining: \n\
   * create a tmp var for function return value; \n\
   * create a new block which is a copy of the inlined function; \n\
+  * at the top of this newly block, inlined function's parameters \
+    will be declared as local vars with callexpr's arguments as their \
+    initialization values (if any) \n\
   * inside this newly block, replace all return statements as \
     assignment statements, where the LHS is the created tmp var \
     (Note that if the inlined function returns void, then \
