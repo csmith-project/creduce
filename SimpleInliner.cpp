@@ -12,7 +12,26 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"A really simple inliner\n";
+"A really simple inliner. \
+This transformation does a simple source-to-source \
+inlining. To avoid the abuse of inlining, I put \
+some constraints on the size of a function which \
+can be inlined - if a function has less than 10 statements, \
+then it's legitimate. \n\
+\n\
+Steps of inlining: \n\
+  * create a tmp var for function return value; \n\
+  * create a new block which is a copy of the inlined function; \n\
+  * inside this newly block, replace all return statements as \
+    assignment statements, where the LHS is the created tmp var \
+    (Note that if the inlined function returns void, then \
+     this step is skipped) \n\
+  * replace the callexpr with tmp var above \n\
+\n\
+Each transformation iteration only transforms one callexpr, \
+also it will keep the inlined function body unchanged. \
+If the inlined body has no reference anymore, c_delta \
+will remove it entirely. \\n";
 
 static RegisterTransformation<SimpleInliner>
          Trans("simple-inliner", DescriptionMsg);
