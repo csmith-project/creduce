@@ -167,7 +167,11 @@ void RenameParam::HandleTranslationUnit(ASTContext &Ctx)
 bool RenameParam::getPostfixValue(const std::string &Name, 
                                   unsigned int &Value)
 {
-  if (Name.size() <= 1)
+  // It's an unamed parameter, we skip it
+  if (Name.size() == 0)
+    return true;
+
+  if (Name.size() == 1)
     return false;
 
   std::string Prefix = Name.substr(0, 1);
