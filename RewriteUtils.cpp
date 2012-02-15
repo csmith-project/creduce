@@ -127,77 +127,6 @@ SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc,
   return StartLoc.getLocWithOffset(Offset);
 }
 
-// ISSUE:
-// This is way too ugly. I cannot rely on the LocStart of VD.
-// The root cause is that there are some conflicts between the return buffer
-// from SrcManager and RangeSize from getRangeSize. For example, let
-// say we have:
-//   int abcdefgh, xy;
-// Suppose VarDecl "abcdefgh" has been renamed to "a", now we are working on xyz.
-// I can get the range size of xyz. Here the range size is strlen("int a, xy").
-// But when I invoke SrcManager->getCharacterData(TypeLocEnd), which gives
-// me the original declaration string, i.e., "int abcdefgh, xy". 
-// Then I am getting trouble to require a substring which contains "xy", 
-// because TmpStr(Buffer_of_TypeLocEnd, RangeSize) will return "abcdefg". 
-// And hence the assertions on Pos will fail. 
-//
-// Any better to handle it?
-SourceLocation RewriteUtils::getVarNameLocation(VarDecl *VD,
-                                                SourceLocation TypeLocEnd,
-                                                const std::string &Substr,
-                                                Rewriter *TheRewriter,
-                                                SourceManager *SrcManager)
-{
-  SourceRange VarRange = VD->getSourceRange();
-  SourceLocation VarEndLoc;
-
-  const char *StartBuf, *EndBuf;
-  int Offset = 0;
-  int OffsetDelta = 0;
-
-  const Type *T = VD->getType().getTypePtr();
-  if (VD->hasInit() || T->isArrayType()) {
-    if (VD->hasInit()) {
-      Expr *E = VD->getInit();
-      SourceRange ExprRange = E->getSourceRange();
-      VarEndLoc = ExprRange.getBegin();
-    }
-    else {
-      // In this case, VarEndLoc pointsto '['
-      VarEndLoc = VarRange.getEnd();
-    }
-    StartBuf = SrcManager->getCharacterData(TypeLocEnd);
-    EndBuf = SrcManager->getCharacterData(VarEndLoc);
-
-    while (EndBuf != StartBuf) {
-      Offset++;
-      EndBuf--;
-      if (*EndBuf == ',') {
-        break;
-      }
-    }
-    StartBuf = EndBuf;
-    OffsetDelta = Offset;
-  }
-  else {
-    // If a VarDecl doesn't have initializer or it's not of type array,
-    // EndLoc actually points to itself. 
-    VarEndLoc = VarRange.getEnd();
-    StartBuf = SrcManager->getCharacterData(VarEndLoc);
-    EndBuf = StartBuf;
-    while ((*EndBuf != ';') && (*EndBuf != '\n') && (*EndBuf != '\0')) {
-      Offset++;
-      EndBuf++;
-    }
-  }
-
-  std::string TmpStr(StartBuf, Offset);
-  size_t Pos = TmpStr.find(Substr);
-  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
-
-  return VarEndLoc.getLocWithOffset(static_cast<int>(Pos) - OffsetDelta);
-}
-
 SourceLocation RewriteUtils::getParamSubstringLocation(SourceLocation StartLoc,
                                               size_t Size,
                                               const std::string &Substr,
@@ -692,39 +621,12 @@ bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
-bool RewriteUtils::varDeclStartWithType(VarDecl *VD,
-                                     SourceManager *SrcManager)
-{
-  SourceRange VarRange = VD->getSourceRange();
-  SourceLocation VarStartLoc = VarRange.getBegin();
-  const char *VarStartBuf = SrcManager->getCharacterData(VarStartLoc);
-
-  TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
-  SourceRange TypeRange = VarTypeLoc.getSourceRange();
-  SourceLocation TypeStartLoc = TypeRange.getBegin();
-  const char *TypeStartBuf = SrcManager->getCharacterData(TypeStartLoc);
-
-  return (VarStartBuf == TypeStartBuf);
-}
-
 bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
                                       const std::string &NameStr,
                                       Rewriter *TheRewriter,
                                       SourceManager *SrcManager)
 {
-  SourceRange VarRange = VD->getSourceRange();
-  SourceLocation NameLocStart;
-
-  if (varDeclStartWithType(VD, SrcManager)) {
-    SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD, TheRewriter);
-    NameLocStart = 
-      getVarNameLocation(VD, TypeLocEnd, VD->getNameAsString(), 
-                         TheRewriter, SrcManager);
-  }
-  else {
-    NameLocStart = VarRange.getBegin();
-  }
-
+  SourceLocation NameLocStart = VD->getLocation();
   return !(TheRewriter->ReplaceText(NameLocStart, 
              VD->getNameAsString().size(), NameStr));
 }
