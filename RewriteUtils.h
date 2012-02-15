@@ -160,21 +160,32 @@ private:
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
 
-  static bool isTheFirstVarDecl(clang::VarDecl *VD,
-                                clang::SourceManager *SrcManager);
+  static bool VarDeclStartWithType(clang::VarDecl *VD,
+                                   clang::SourceManager *SrcManager);
 
   static clang::SourceLocation getVarDeclTypeLocEnd(clang::VarDecl *VD,
                                  clang::Rewriter *TheRewriter);
 
   static clang::SourceLocation 
-    getSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
+    getParamSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
                          const std::string &Substr, 
                          clang::Rewriter *TheRewriter,
                          clang::SourceManager *SrcManager);
 
+  static clang::SourceLocation 
+    getVarNameLocation(clang::VarDecl *VD, 
+                       clang::SourceLocation TypeLocEnd,
+                       const std::string &Substr, 
+                       clang::Rewriter *TheRewriter,
+                       clang::SourceManager *SrcManager);
+
   static void indentAfterNewLine(llvm::StringRef Str,
                                  std::string &NewStr,
                                  const std::string &IndentStr);
+
+  static unsigned getOffsetBetweenLocations(clang::SourceLocation StartLoc,
+                                            clang::SourceLocation EndLoc,
+                                            clang::SourceManager *SrcManager);
 
   RewriteUtils(void);
 
