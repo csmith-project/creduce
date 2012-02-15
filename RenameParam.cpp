@@ -96,7 +96,7 @@ bool RenameParamVisitor::VisitFunctionDecl(FunctionDecl *FD)
     std::stringstream TmpSS;
     TmpSS << ConsumerInstance->ParamNamePrefix << CurrPostfix;
 
-    RewriteUtils::replaceParamVarDeclName(PD, TmpSS.str(), 
+    RewriteUtils::replaceVarDeclName(PD, TmpSS.str(), 
            &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
 
     if (FD->isThisDeclarationADefinition()) {

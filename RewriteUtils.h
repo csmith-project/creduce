@@ -97,11 +97,6 @@ public:
                               clang::Rewriter *TheRewriter,
                               clang::SourceManager *SrcManager);
 
-  static bool replaceParamVarDeclName(clang::ParmVarDecl *VD,
-                              const std::string &NameStr,
-                              clang::Rewriter *TheRewriter,
-                              clang::SourceManager *SrcManager);
-
   static bool replaceFunctionDeclName(clang::FunctionDecl *FD,
                               const std::string &NameStr,
                               clang::Rewriter *TheRewriter,
