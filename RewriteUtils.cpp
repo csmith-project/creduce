@@ -128,8 +128,8 @@ SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc,
 }
 
 // ISSUE:
-// This is way to ugly. I cannot rely on the LocStart of VD.
-// The root is that there are some conflicts between the return buffer
+// This is way too ugly. I cannot rely on the LocStart of VD.
+// The root cause is that there are some conflicts between the return buffer
 // from SrcManager and RangeSize from getRangeSize. For example, let
 // say we have:
 //   int abcdefgh, xy;
@@ -692,7 +692,7 @@ bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
-bool RewriteUtils::VarDeclStartWithType(VarDecl *VD,
+bool RewriteUtils::varDeclStartWithType(VarDecl *VD,
                                      SourceManager *SrcManager)
 {
   SourceRange VarRange = VD->getSourceRange();
@@ -715,7 +715,7 @@ bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
   SourceRange VarRange = VD->getSourceRange();
   SourceLocation NameLocStart;
 
-  if (VarDeclStartWithType(VD, SrcManager)) {
+  if (varDeclStartWithType(VD, SrcManager)) {
     SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD, TheRewriter);
     NameLocStart = 
       getVarNameLocation(VD, TypeLocEnd, VD->getNameAsString(), 

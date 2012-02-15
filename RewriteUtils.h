@@ -160,7 +160,7 @@ private:
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
 
-  static bool VarDeclStartWithType(clang::VarDecl *VD,
+  static bool varDeclStartWithType(clang::VarDecl *VD,
                                    clang::SourceManager *SrcManager);
 
   static clang::SourceLocation getVarDeclTypeLocEnd(clang::VarDecl *VD,
