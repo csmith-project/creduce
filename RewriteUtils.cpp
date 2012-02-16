@@ -294,28 +294,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   }
 
   SourceLocation NewEndLoc = NextStartLoc.getLocWithOffset(Offset);
-//    getEndLocationUntil(ArgRange, ',', TheRewriter, SrcManager);
   return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
-/*
-  int NewRangeSize = 0;
-  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
-  const char *NewStartBuf = StartBuf - 1;
-
-  TransAssert(StartBuf && "Invalid start buffer!");
-  while (NewRangeSize < RangeSize) {
-    StartBuf++;
-    NewRangeSize++;
-  }
-
-  TransAssert(StartBuf && "Invalid start buffer!");
-  while (*StartBuf != ',') {
-    StartBuf++;
-    NewRangeSize++;
-  }
-
-  TheRewriter->RemoveText(StartLoc, NewRangeSize + 1);
-  return true;
-*/
 }
 
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(VarDecl *VD,
@@ -354,6 +333,12 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   // VD is the first declaration in a declaration group.
   // We keep the leading type string
   if (IsFirstDecl) {
+    // We need to get the outest TypeLocEnd instead of the StartLoc of
+    // a var name, because we need to handle the case below:
+    //   int *x, *y;
+    // If we rely on the StartLoc of a var name, then we will make bad
+    // transformation like:
+    //   int * *y;
     SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD, TheRewriter);
 
     SourceLocation NewEndLoc = 
@@ -366,6 +351,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   TransAssert(PrevDecl && "PrevDecl cannot be NULL!");
   SourceLocation VarEndLoc = VarRange.getEnd();
   SourceRange PrevDeclRange = PrevDecl->getSourceRange();
+
   SourceLocation PrevDeclEndLoc = 
     getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
 
@@ -664,6 +650,13 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     VarDecl *VD = dyn_cast<VarDecl>(D);
     TransAssert(VD && "Bad VarDecl!");
 
+    // We need to get the outest TypeLocEnd instead of the StartLoc of
+    // a var name, because we need to handle the case below:
+    //   int *x;
+    //   int *y;
+    // If we rely on the StartLoc of a var name, then we will make bad
+    // transformation like:
+    //   int *x, y;
     SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD, TheRewriter);
     SourceRange VarRange = VD->getSourceRange();
 
