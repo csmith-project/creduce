@@ -20,7 +20,7 @@ For example, for the following cod3: \n\
   int foo(void) { \n\
     int x; \n\
     int y; \n\
-    if(...) { \n\
+    if (...) { \n\
       int z; \n\
     } \n\
   } \n\
@@ -64,7 +64,7 @@ const Type *CombLocalVarCollectionVisitor::getTypeFromDeclStmt(DeclStmt *DS)
   }
 
   VarDecl *VD = dyn_cast<VarDecl>(D);
-  if(!VD)
+  if (!VD)
     return NULL;
   
   return VD->getType().getTypePtr();

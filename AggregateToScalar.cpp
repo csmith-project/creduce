@@ -194,7 +194,7 @@ bool AggregateToScalar::addTmpVar(VarDecl *VD,
     return RewriteUtils::addLocalVarToFunc(VarStr, FD,
                                            &TheRewriter, SrcManager);
   }
-  else if( VD->isLocalVarDecl()) {
+  else if (VD->isLocalVarDecl()) {
     DeclStmt *TheDeclStmt = VarDeclToDeclStmtMap[VD];
     TransAssert(TheDeclStmt && "NULL TheDeclStmt");
     return RewriteUtils::addStringAfterStmt(TheDeclStmt, VarStr, 
