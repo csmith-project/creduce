@@ -333,7 +333,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   // VD is the first declaration in a declaration group.
   // We keep the leading type string
   if (IsFirstDecl) {
-    // We need to get the outest TypeLocEnd instead of the StartLoc of
+    // We need to get the outermost TypeLocEnd instead of the StartLoc of
     // a var name, because we need to handle the case below:
     //   int *x, *y;
     // If we rely on the StartLoc of a var name, then we will make bad
@@ -650,7 +650,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     VarDecl *VD = dyn_cast<VarDecl>(D);
     TransAssert(VD && "Bad VarDecl!");
 
-    // We need to get the outest TypeLocEnd instead of the StartLoc of
+    // We need to get the outermost TypeLocEnd instead of the StartLoc of
     // a var name, because we need to handle the case below:
     //   int *x;
     //   int *y;

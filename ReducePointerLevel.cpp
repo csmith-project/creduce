@@ -48,7 +48,9 @@ private:
 
   ReducePointerLevel *ConsumerInstance;
 
-  unsigned int getPointerIndirectLevel(const Type *Ty);
+  int getPointerIndirectLevel(const Type *Ty);
+
+  bool isVAArgField(DeclaratorDecl *DD);
 
 };
 
@@ -61,9 +63,17 @@ public:
     : ConsumerInstance(Instance)
   { }
 
-  // bool VisitAssignmentStmt(AssignmentStmt *AS);
+  bool VisitVarDecl(VarDecl *VD);
 
-  // bool VisitUnaryOperator(UnaryOperator *UO);
+  bool VisitFieldDecl(FieldDecl *FD);
+
+  bool VisitUnaryOperator(UnaryOperator *UO);
+
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
+
+  bool VisitMemberExpr(MemberExpr *ME);
+
+  bool VisitArraySubscriptExpr(ArraySubscriptExpr *ASE);
 
 private:
 
@@ -71,10 +81,9 @@ private:
 
 };
 
-unsigned int 
-PointerLevelCollectionVisitor::getPointerIndirectLevel(const Type *Ty)
+int PointerLevelCollectionVisitor::getPointerIndirectLevel(const Type *Ty)
 {
-  unsigned int IndirectLevel = 0;
+  int IndirectLevel = 0;
   QualType QT = Ty->getPointeeType();;
   while (!QT.isNull()) {
     IndirectLevel++;
@@ -83,25 +92,41 @@ PointerLevelCollectionVisitor::getPointerIndirectLevel(const Type *Ty)
   return IndirectLevel;
 }
  
+// Any better way to ginore these two fields 
+// coming from __builtin_va_arg ?
+bool PointerLevelCollectionVisitor::isVAArgField(DeclaratorDecl *DD)
+{
+  std::string Name = DD->getNameAsString();
+  return (!Name.compare("reg_save_area") || 
+          !Name.compare("overflow_arg_area"));
+}
+
 // I skipped IndirectFieldDecl for now
 bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 {
+  if (isVAArgField(DD))
+    return true;
+
   // Only consider FieldDecl and VarDecl
-  Kind K = DD->getKind();
-  if (!(K == Decl::FieldDecl) && !(K == Decl::VarDecl))
+  Decl::Kind K = DD->getKind();
+  if (!(K == Decl::Field) && !(K == Decl::Var))
     return true;
 
   const Type *Ty = DD->getType().getTypePtr();
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
+  if (ArrayTy)
+    Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
   if (!Ty->isPointerType())
     return true;
 
-  DeclaratorDecl *CanonicalDD = DD->getCanonicalDecl();
+  DeclaratorDecl *CanonicalDD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
+  TransAssert(CanonicalDD && "Bad DeclaratorDecl!");
   if (ConsumerInstance->VisitedDecls.count(CanonicalDD))
     return true;
 
   ConsumerInstance->ValidDecls.insert(CanonicalDD);
   ConsumerInstance->VisitedDecls.insert(CanonicalDD);
-  unsigned int IndirectLevel = getPointerIndirectLevel(Ty);
+  int IndirectLevel = getPointerIndirectLevel(Ty);
   TransAssert((IndirectLevel > 0) && "Bad indirect level!");
   if (IndirectLevel > ConsumerInstance->MaxIndirectLevel)
     ConsumerInstance->MaxIndirectLevel = IndirectLevel;
@@ -116,7 +141,11 @@ bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
     return true;
 
   const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts();
-  DeclaratorDecl *DD = getCanonicalDeclaratorDecl(SubE);
+  if (!dyn_cast<DeclRefExpr>(SubE) && !dyn_cast<MemberExpr>(SubE))
+    return true;
+
+  const DeclaratorDecl *DD = 
+    ConsumerInstance->getCanonicalDeclaratorDecl(SubE);
   TransAssert(DD && "NULL DD!");
 
   ConsumerInstance->AddrTakenDecls.insert(DD);
@@ -129,20 +158,99 @@ bool PointerLevelCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
     return true;
 
   Expr *Lhs = BO->getLHS();
-  const Type *Tp = Lhs->getType().getTypePtr();
-  if (!Tp->isPointerType())
+  const Type *Ty = Lhs->getType().getTypePtr();
+  if (!Ty->isPointerType())
     return true;
 
   Expr *Rhs = BO->getRHS()->IgnoreParenCasts();
-  if (dyn_cast<DeclRefExpr>(Rhs) || dyn_cast<UnaryOperator>(Rhs))
+  if (dyn_cast<DeclRefExpr>(Rhs) || 
+      dyn_cast<UnaryOperator>(Rhs) ||
+      dyn_cast<ArraySubscriptExpr>(Rhs))
     return true;
 
-  DeclaratorDecl *DD = getCanonicalDeclaratorDecl(Lhs);
+  const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
   TransAssert(DD && "NULL DD!");
 
-  TransAssert(ConsumerInstance->ValidDecls.count(DD) && 
-              "DeclaratorDecl doesn't exist!");
   ConsumerInstance->ValidDecls.erase(DD);
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitFieldDecl(FieldDecl *FD)
+{
+  const FieldDecl *TheFD = dyn_cast<FieldDecl>(ConsumerInstance->TheDecl);
+  // TheDecl is a VarDecl
+  if (!TheFD)
+    return true;
+
+  const FieldDecl *CanonicalFD = dyn_cast<FieldDecl>(FD->getCanonicalDecl());
+  if (CanonicalFD == TheFD)
+    ConsumerInstance->rewriteFieldDecl(FD);
+
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
+{
+  const VarDecl *TheVD = dyn_cast<VarDecl>(ConsumerInstance->TheDecl);
+  if (TheVD) {
+    const VarDecl *CanonicalVD = VD->getCanonicalDecl();
+    if (CanonicalVD == TheVD) {
+      ConsumerInstance->rewriteVarDecl(VD);
+      return true;
+    }
+  }
+
+  // TheDecl is a FieldDecl. 
+  // But we still need to handle VarDecls which are type of 
+  // struct/union where TheField could reside, if these VarDecls
+  // have initializers
+
+  if (!VD->hasInit())
+    return true;
+
+  const Type *VDTy = VD->getType().getTypePtr();
+  if (!VDTy->isAggregateType())
+    return true;
+
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy);
+  if (ArrayTy) {
+    const Type *ArrayElemTy = ConsumerInstance->getArrayBaseElemType(ArrayTy);
+    if (!ArrayElemTy->isStructureType() && !ArrayElemTy->isUnionType())
+      return true;
+    const RecordType *RDTy = dyn_cast<RecordType>(ArrayElemTy);
+    TransAssert(RDTy && "Bad RDTy!");
+    const RecordDecl *RD = RDTy->getDecl();
+    ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
+    return true;
+  }
+
+  const RecordType *RDTy = dyn_cast<RecordType>(VDTy);
+  const RecordDecl *RD = RDTy->getDecl();
+  ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitUnaryOperator(UnaryOperator *UO)
+{
+  // TODO
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
+{
+  // TODO
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
+{
+  // TODO
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
+{
+  // TODO
   return true;
 }
 
@@ -166,7 +274,7 @@ void ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D)
 void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
 {
   doAnalysis();
-
+  
   if (QueryInstanceOnly)
     return;
 
@@ -180,6 +288,7 @@ void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
   TransAssert(TheDecl && "NULL TheDecl!");
 
+  setRecordDecl();
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -189,26 +298,82 @@ void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
 
 void ReducePointerLevel::doAnalysis(void)
 {
-  // TODO
+  DeclSet *Decls;
+
+  Decls = AllPtrDecls[MaxIndirectLevel];
+  if (Decls) {
+    for (DeclSet::const_iterator I = Decls->begin(), E = Decls->end();
+         I != E; ++I) {
+      if (!ValidDecls.count(*I))
+        continue;
+      ValidInstanceNum++;
+      if (TransformationCounter == ValidInstanceNum)
+        TheDecl = *I;
+    }
+  }
+
+  for (int Idx = MaxIndirectLevel - 1; Idx > 0; --Idx) {
+    Decls = AllPtrDecls[Idx];
+    if (!Decls)
+      continue;
+
+    for (DeclSet::const_iterator I = Decls->begin(), E = Decls->end();
+         I != E; ++I) {
+      if (!ValidDecls.count(*I) || AddrTakenDecls.count(*I))
+        continue;
+      ValidInstanceNum++;
+      if (TransformationCounter == ValidInstanceNum)
+        TheDecl = *I;
+    }
+  }
 }
 
-const DeclRefExpr *ReducePointerLevel::getRefDecl(const Expr *Exp)
+void ReducePointerLevel::setRecordDecl(void)
 {
-  // FIXME
-  const Expr *E = Exp->IgnoreParens();
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
-  if (DRE)
-    return DRE;
+  const FieldDecl *TheFD = dyn_cast<FieldDecl>(TheDecl);
+  if (!TheFD)
+    return;
 
-  const UnaryOperator *DerefE = dyn_cast<UnaryOperator>(DRE);
-  TransAssert(DerefE && "Bad DerefE!");
-  TransAssert((DerefE->getOpcode() == UO_Deref) && "Non-Deref Opcode!");
-  const Expr *SubE = DerefE->getSubExpr();
+  TheRecordDecl = TheFD->getParent();
+}
+
+const Expr *
+ReducePointerLevel::ignoreSubscriptExprParenCasts(const Expr *E)
+{
+  const Expr *NewE = E->IgnoreParenCasts();
+  const ArraySubscriptExpr *ASE;
+  while (true) {
+    ASE = dyn_cast<ArraySubscriptExpr>(NewE);
+    if (!ASE)
+      break;
+    NewE = ASE->getBase()->IgnoreParenCasts();
+  }
+  TransAssert(NewE && "NULL NewE!");
+  return NewE;
+}
+
+const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
+{
+  const Expr *E = 
+    ignoreSubscriptExprParenCasts(Exp);
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+
+  if (DRE)
+    return getCanonicalDeclaratorDecl(DRE);
+
+  const MemberExpr *ME = dyn_cast<MemberExpr>(E);
+  if (ME)
+    return getCanonicalDeclaratorDecl(ME);
+
+  const UnaryOperator *UE = dyn_cast<UnaryOperator>(E);
+  TransAssert(UE && "Bad UnaryOperator!");
+  TransAssert((UE->getOpcode() == UO_Deref) && "Non-Deref Opcode!");
+  const Expr *SubE = UE->getSubExpr();
   return getRefDecl(SubE);
 }
 
 void ReducePointerLevel::addOneDecl(const DeclaratorDecl *DD, 
-                                       unsigned int IndirectLevel)
+                                    int IndirectLevel)
 {
   DeclSet *DDSet = AllPtrDecls[IndirectLevel];
   if (!DDSet) {
@@ -222,15 +387,15 @@ const DeclaratorDecl *
 ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
 {
   const DeclaratorDecl *DD;
-  const DeclRefExpr *DRE;
-  const MemberExpr *ME;
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+  const MemberExpr *ME = dyn_cast<MemberExpr>(E);
 
-  if ( (DRE = dyn_cast<DeclRef>(E)) ) {
+  if (DRE) {
     const ValueDecl *ValueD = DRE->getDecl();
     DD = dyn_cast<DeclaratorDecl>(ValueD);
     TransAssert(DD && "Bad Declarator!"); 
   }
-  else if ( (ME = dyn_cast<MemberExpr>(E)) ) {
+  else if (ME) {
     ValueDecl *OrigDecl = ME->getMemberDecl();
     FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
@@ -238,8 +403,47 @@ ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
     TransAssert(FD && "Unsupported C++ getMemberDecl!\n");
     DD = dyn_cast<DeclaratorDecl>(OrigDecl);
   }
+  else {
+    TransAssert(0 && "Bad Decl!");
+  }
 
-  return DD->getCanonicalDecl();
+  const DeclaratorDecl *CanonicalDD = 
+    dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
+  TransAssert(CanonicalDD && "NULL CanonicalDD!");
+  return CanonicalDD;
+}
+
+const Type *ReducePointerLevel::getArrayBaseElemType(const ArrayType *ArrayTy)
+{
+  const Type *ArrayElemTy = ArrayTy->getElementType().getTypePtr();
+  while (ArrayElemTy->isArrayType()) {
+    const ArrayType *AT = dyn_cast<ArrayType>(ArrayElemTy);
+    ArrayElemTy = AT->getElementType().getTypePtr();
+  }
+  TransAssert(ArrayElemTy && "Bad Array Element Type!");
+  return ArrayElemTy;
+}
+
+void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
+{
+  // TODO 
+}
+
+void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
+{
+  // TODO 
+}
+
+void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 
+                                           const Expr *Init)
+{
+  // TODO  
+}
+
+void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD, 
+                                          const Expr *Init)
+{
+  // TODO  
 }
 
 ReducePointerLevel::~ReducePointerLevel(void)

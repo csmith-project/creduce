@@ -9,9 +9,13 @@
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
-  class VarDecl;
   class Expr;
-  class DeclRefExpr;
+  class DeclaratorDecl;
+  class RecordDecl;
+  class FieldDecl;
+  class VarDecl;
+  class Type;
+  class ArrayType;
 }
 
 class PointerLevelCollectionVisitor;
@@ -28,7 +32,8 @@ public:
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
       MaxIndirectLevel(0),
-      TheVarDecl(NULL)
+      TheDecl(NULL),
+      TheRecordDecl(NULL)
   { }
 
   ~ReducePointerLevel(void);
@@ -37,7 +42,7 @@ private:
   
   typedef llvm::SmallPtrSet<const clang::DeclaratorDecl *, 20> DeclSet;
 
-  typedef llvm::DenseMap<unsigned int, DeclSet *> LevelToDeclMap;
+  typedef llvm::DenseMap<int, DeclSet *> LevelToDeclMap;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -45,11 +50,31 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  const clang::DeclRefExpr *getRefDecl(const clang::Expr *Exp);
+  const clang::DeclaratorDecl *getRefDecl(const clang::Expr *Exp);
 
-  void addOneDecl(const clang::DeclaratorDecl *DD, unsigned int IndirectLevel);
+  const clang::DeclaratorDecl *
+          getCanonicalDeclaratorDecl(const clang::Expr *E);
+
+  const clang::Expr *
+          ignoreSubscriptExprParenCasts(const clang::Expr *E);
+
+  const clang::Type *getArrayBaseElemType(const clang::ArrayType *ArrayTy);
+
+  void addOneDecl(const clang::DeclaratorDecl *DD, int IndirectLevel);
 
   void doAnalysis(void);
+
+  void setRecordDecl(void);
+
+  void rewriteVarDecl(const clang::VarDecl *VD);
+
+  void rewriteFieldDecl(const clang::FieldDecl *FD);
+
+  void rewriteRecordInit(const clang::RecordDecl *RD,
+                         const clang::Expr *Init);
+
+  void rewriteArrayInit(const clang::RecordDecl *RD,
+                         const clang::Expr *Init);
 
   DeclSet VisitedDecls;
 
@@ -63,9 +88,11 @@ private:
 
   PointerLevelRewriteVisitor *RewriteVisitor;
 
-  unsigned int MaxIndirectLevel;
+  int MaxIndirectLevel;
 
-  clang::DeclaratorDecl *TheDecl;
+  const clang::DeclaratorDecl *TheDecl;
+
+  const clang::RecordDecl *TheRecordDecl ;
 
   // Unimplemented
   ReducePointerLevel(void);
