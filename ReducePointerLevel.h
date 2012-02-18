@@ -3,27 +3,30 @@
 
 #include <string>
 #include "Transformation.h"
-#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/DenseMap.h"
 
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class VarDecl;
+  class Expr;
+  class DeclRefExpr;
 }
 
 class PointerLevelCollectionVisitor;
-class PointerLevelAnalysisVisitor;
+class PointerLevelRewriteVisitor;
 
 class ReducePointerLevel : public Transformation {
 friend class PointerLevelCollectionVisitor;
-friend class PointerLevelAnalysisVisitor;
+friend class PointerLevelRewriteVisitor;
 
 public:
 
   ReducePointerLevel(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
-      AnalysisVisitor(NULL),
+      RewriteVisitor(NULL),
       MaxIndirectLevel(0),
       TheVarDecl(NULL)
   { }
@@ -32,9 +35,9 @@ public:
 
 private:
   
-  typedef llvm::SmallPtrSet<const clang::VarDecl *, 20> VarDeclsSet;
+  typedef llvm::SmallPtrSet<const clang::DeclaratorDecl *, 20> DeclSet;
 
-  typedef llvm::DenseMap<unsigned int, VarDeclsSet *> LevelToVarMap;
+  typedef llvm::DenseMap<unsigned int, DeclSet *> LevelToDeclMap;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -42,19 +45,27 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  VarDeclsSet VisitedVarDecls;
+  const clang::DeclRefExpr *getRefDecl(const clang::Expr *Exp);
 
-  VarDeclsSet ValidVarDecls;
+  void addOneDecl(const clang::DeclaratorDecl *DD, unsigned int IndirectLevel);
 
-  LevelToVarMap AllPtrVarDecls;
+  void doAnalysis(void);
+
+  DeclSet VisitedDecls;
+
+  DeclSet ValidDecls;
+
+  DeclSet AddrTakenDecls;
+
+  LevelToDeclMap AllPtrDecls;
 
   PointerLevelCollectionVisitor *CollectionVisitor;
 
-  PointerLevelAnalysisVisitor *AnalysisVisitor;
+  PointerLevelRewriteVisitor *RewriteVisitor;
 
   unsigned int MaxIndirectLevel;
 
-  clang::VarDecl *TheVarDecl;
+  clang::DeclaratorDecl *TheDecl;
 
   // Unimplemented
   ReducePointerLevel(void);
