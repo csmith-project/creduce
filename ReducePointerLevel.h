@@ -60,11 +60,19 @@ private:
 
   const clang::Type *getArrayBaseElemType(const clang::ArrayType *ArrayTy);
 
+  unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
+
   void addOneDecl(const clang::DeclaratorDecl *DD, int IndirectLevel);
 
   void doAnalysis(void);
 
   void setRecordDecl(void);
+
+  void getNewLocalInitStr(const clang::Expr *Init, 
+                          std::string &NewInitStr);
+
+  void getNewGlobalInitStr(const clang::Expr *Init, 
+                           std::string &NewInitStr);
 
   void rewriteVarDecl(const clang::VarDecl *VD);
 

@@ -424,20 +424,147 @@ const Type *ReducePointerLevel::getArrayBaseElemType(const ArrayType *ArrayTy)
   return ArrayElemTy;
 }
 
+unsigned int ReducePointerLevel::getArrayDimension(const ArrayType *ArrayTy)
+{
+  unsigned int Dim = 1;
+  const Type *ArrayElemTy = ArrayTy->getElementType().getTypePtr();
+  while (ArrayElemTy->isArrayType()) {
+    const ArrayType *AT = dyn_cast<ArrayType>(ArrayElemTy);
+    ArrayElemTy = AT->getElementType().getTypePtr();
+    Dim++;
+  }
+  return Dim;
+}
+
+void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init, 
+                                             std::string &NewInitStr)
+{
+  // TODO
+}
+
+void ReducePointerLevel::getNewLocalInitStr(const Expr *Init, 
+                                            std::string &NewInitStr)
+{
+  const Expr *E = Init->IgnoreParenCasts();
+  
+  switch(E->getStmtClass()) {
+  // catch the case like int *p = 0;
+  case Expr::IntegerLiteralClass:
+    RewriteUtils::getExprString(Init, NewInitStr, &TheRewriter, SrcManager);
+    return;
+
+  case Expr::StringLiteralClass:
+    NewInitStr = 'a';
+    return;
+
+  case Expr::UnaryOperatorClass: {
+    const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
+    const Expr *SubE = UO->getSubExpr();
+    TransAssert(SubE && "Bad Sub Expr!");
+    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
+
+    size_t Pos;
+    UnaryOperator::Opcode Op = UO->getOpcode();
+    if (Op == UO_AddrOf) {
+      Pos = NewInitStr.find_first_of('&');
+      TransAssert((Pos != std::string::npos) && "No & operator!");
+      NewInitStr.erase(Pos, 1);
+    }
+    else if (Op == UO_Deref) {
+      Pos = NewInitStr.find_first_of('*');
+      TransAssert((Pos != std::string::npos) && "No & operator!");
+      NewInitStr.insert(Pos, "*");
+    }
+    else {
+      TransAssert(0 && "Bad UnaryOperator!");
+    }
+
+    return;
+  }
+
+  case Expr::DeclRefExprClass: {
+    const DeclRefExpr *DE = cast<DeclRefExpr>(E);
+    const Type *VT = DE->getType().getTypePtr();
+    const ArrayType *AT = dyn_cast<ArrayType>(VT);
+    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
+
+    // handle case like:
+    // int a[10];
+    // int *p = (int*)a;
+    if (AT) {
+      unsigned int Dim = getArrayDimension(AT);
+      std::string ArrayElemsStr("");
+      for (unsigned int I = 0; I < Dim; ++I) {
+        ArrayElemsStr += "[0]";
+      }
+      NewInitStr += ArrayElemsStr;
+    }
+    else {
+      NewInitStr = "*" + NewInitStr;
+    }
+    return;
+  }
+
+  case Expr::MemberExprClass:
+  case Expr::ArraySubscriptExprClass: {
+    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
+    NewInitStr = "*(" + NewInitStr + ")";
+    return;
+  }
+
+  default:
+    TransAssert(0 && "Uncatched initializer!");
+  }
+  TransAssert(0 && "Unreachable code!");
+}
+
 void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
 {
-  // TODO 
+  RewriteUtils::removeAStarBefore(VD, &TheRewriter, SrcManager); 
+  const Expr *Init = VD->getInit();
+  if (!Init)
+    return;
+  
+  const InitListExpr *InitList = dyn_cast<InitListExpr>(Init);
+  if (InitList)
+    Init = InitList->getInit(0);
+
+  std::string NewInitStr("");
+  if (VD->hasLocalStorage()) {
+    getNewLocalInitStr(Init, NewInitStr);
+  }
+  else {
+    // Global var cannot have non-const initializer,
+    // e.g., "int *p = &g;" ==> "int p = g" is invalid.
+    // So we need to do more work. 
+    // Get the init string of RHS var:
+    // The transformation will look like:
+    // (1) int g = 1;
+    //     int *p = &g; ==> int p = 1;
+    // (2) int g[2] = {1, 2};
+    //     int *p = &g[1]; ==> int p = 2;
+    // (2) int g[2] = {1, 2};
+    //     int *p = &g; ==> int p = 1;
+    // (4) struct S g = {1, 2};
+    //     int *p = &g.f1; ==> int p = 1;
+    getNewGlobalInitStr(Init, NewInitStr);
+  }
+
+  if (NewInitStr.empty())
+    RewriteUtils::removeVarInitExpr(VD, &TheRewriter, SrcManager);
+  else
+    RewriteUtils::replaceExpr(Init, NewInitStr, &TheRewriter, SrcManager);
 }
 
 void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
 {
-  // TODO 
+  RewriteUtils::removeAStarBefore(FD, &TheRewriter, SrcManager); 
 }
 
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 
                                            const Expr *Init)
 {
-  // TODO  
+  // TODO
 }
 
 void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD, 
