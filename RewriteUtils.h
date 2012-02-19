@@ -128,6 +128,14 @@ public:
                                           clang::Rewriter* TheRewriter,
                                           clang::SourceManager *SrcManager);
 
+  static bool removeAStarBefore(const clang::Decl *D,
+                                clang::Rewriter *TheRewriter,
+                                clang::SourceManager *SrcManager);
+
+  static bool removeVarInitExpr(const clang::VarDecl *VD, 
+                                clang::Rewriter *TheRewriter, 
+                                clang::SourceManager *SrcManager);
+
 private:
 
   static const char *TmpVarNamePrefix;
@@ -137,6 +145,11 @@ private:
   static int getSkippingOffset(const char *Buf, char Symbol);
 
   static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
+                                           char Symbol, 
+                                           clang::Rewriter *TheRewriter,
+                                           clang::SourceManager *SrcManager);
+
+  static clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
                                            char Symbol, 
                                            clang::Rewriter *TheRewriter,
                                            clang::SourceManager *SrcManager);

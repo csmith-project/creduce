@@ -92,17 +92,15 @@ SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range,
   return EndLoc.getLocWithOffset(Offset);
 }
 
-#if 0
-SourceLocation RewriteUtils::getLocationUntil(SourceLocation StartLoc,
+SourceLocation RewriteUtils::getLocationUntil(SourceLocation Loc, 
                                               char Symbol,
                                               Rewriter *TheRewriter,
                                               SourceManager *SrcManager)
 {
-  const char *Buf = SrcManager->getCharacterData(StartLoc);
+  const char *Buf = SrcManager->getCharacterData(Loc);
   int Offset = getOffsetUntil(Buf, Symbol);
-  return StartLoc.getLocWithOffset(Offset);
+  return Loc.getLocWithOffset(Offset);
 }
-#endif
 
 SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range, 
                                                 char Symbol,
@@ -737,3 +735,35 @@ bool RewriteUtils::getDeclStmtStrAndRemove(DeclStmt *DS,
   DeclGroupRef DGR = DS->getDeclGroup();
   return getDeclGroupStrAndRemove(DGR, Str, TheRewriter, SrcManager);
 }
+
+bool RewriteUtils::removeAStarBefore(const Decl *D,
+                                     Rewriter *TheRewriter,
+                                     SourceManager *SrcManager)
+{
+  SourceLocation LocStart = D->getLocation();
+  const char *StartBuf = SrcManager->getCharacterData(LocStart);
+  int Offset = 0;
+  while (*StartBuf != '*') {
+    StartBuf--;
+    Offset--;
+  }
+  SourceLocation StarLoc =  LocStart.getLocWithOffset(Offset);
+  return !TheRewriter->RemoveText(StarLoc, 1);
+}
+
+bool RewriteUtils::removeVarInitExpr(const VarDecl *VD, 
+                                     Rewriter *TheRewriter, 
+                                     SourceManager *SrcManager)
+{
+  TransAssert(VD->hasInit() && "VarDecl doesn't have an Init Expr!");
+  SourceLocation NameStartLoc = VD->getLocation();
+
+  SourceLocation InitStartLoc = 
+    getLocationUntil(NameStartLoc, '=', TheRewriter, SrcManager);
+
+  const Expr *Init = VD->getInit();
+  SourceRange ExprRange = Init->getSourceRange();
+  SourceLocation InitEndLoc = ExprRange.getEnd();
+  return !TheRewriter->RemoveText(SourceRange(InitStartLoc, InitEndLoc));
+}
+
