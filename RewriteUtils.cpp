@@ -751,6 +751,30 @@ bool RewriteUtils::removeAStarBefore(const Decl *D,
   return !TheRewriter->RemoveText(StarLoc, 1);
 }
 
+bool RewriteUtils::removeAStarAfter(const UnaryOperator *UO,
+                                    Rewriter *TheRewriter,
+                                    SourceManager *SrcManager)
+{
+  SourceRange ExprRange = UO->getSourceRange();
+  SourceLocation LocStart = ExprRange.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(LocStart);
+  int Offset = 0;
+  while (*StartBuf != '*') {
+    StartBuf--;
+    Offset--;
+  }
+  SourceLocation StarLoc =  LocStart.getLocWithOffset(Offset);
+  return !TheRewriter->RemoveText(StarLoc, 1);
+}
+
+bool RewriteUtils::insertAStarBefore(const Decl *D,
+                                     Rewriter *TheRewriter,
+                                     SourceManager *SrcManager)
+{
+  SourceLocation LocStart = D->getLocation();
+  return !TheRewriter->InsertTextBefore(LocStart, "*");
+}
+
 bool RewriteUtils::removeVarInitExpr(const VarDecl *VD, 
                                      Rewriter *TheRewriter, 
                                      SourceManager *SrcManager)

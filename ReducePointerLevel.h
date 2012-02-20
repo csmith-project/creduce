@@ -16,6 +16,11 @@ namespace clang {
   class VarDecl;
   class Type;
   class ArrayType;
+  class RecordType;
+  class InitListExpr;
+  class ArraySubscriptExpr;
+  class MemberExpr;
+  class UnaryOperator;
 }
 
 class PointerLevelCollectionVisitor;
@@ -44,11 +49,20 @@ private:
 
   typedef llvm::DenseMap<int, DeclSet *> LevelToDeclMap;
 
+  typedef void (ReducePointerLevel::*InitListHandler)(const clang::Expr *Init,
+                                                      std::string &InitStr);
+
+  typedef llvm::SmallVector<unsigned int, 10> IndexVector;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
+
+  void getInitListExprString(const clang::InitListExpr *ILE,
+                             std::string &InitStr,
+                             InitListHandler Handler);
 
   const clang::DeclaratorDecl *getRefDecl(const clang::Expr *Exp);
 
@@ -60,6 +74,23 @@ private:
 
   const clang::Type *getArrayBaseElemType(const clang::ArrayType *ArrayTy);
 
+  const clang::Expr *getArrayBaseExprAndIdxs(
+          const clang::ArraySubscriptExpr *ASE, IndexVector &Idxs);
+
+  const clang::Expr *getArraySubscriptElem(
+          const clang::ArraySubscriptExpr *ASE);
+
+  const clang::Expr *getInitExprByIndex(IndexVector &Idxs,
+                                        const clang::InitListExpr *ILE);
+
+  const clang::Expr *getMemberExprBaseExprAndIdxs(const clang::MemberExpr *ME,
+                                                  IndexVector &Idx);
+
+  const clang::Expr *getInitExprFromBase(const clang::Expr *BaseE,
+                                         IndexVector &Idxs);
+
+  const clang::Expr *getMemberExprElem(const clang::MemberExpr *ME);
+
   unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
 
   void addOneDecl(const clang::DeclaratorDecl *DD, int IndirectLevel);
@@ -68,11 +99,17 @@ private:
 
   void setRecordDecl(void);
 
+  const clang::RecordType *getRecordType(const clang::Type *T);
+
   void getNewLocalInitStr(const clang::Expr *Init, 
-                          std::string &NewInitStr);
+                          std::string &InitStr);
 
   void getNewGlobalInitStr(const clang::Expr *Init, 
-                           std::string &NewInitStr);
+                           std::string &InitStr);
+
+  const clang::Expr *getFirstInitListElem(const clang::InitListExpr *E);
+
+  void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
   void rewriteVarDecl(const clang::VarDecl *VD);
 
@@ -83,6 +120,10 @@ private:
 
   void rewriteArrayInit(const clang::RecordDecl *RD,
                          const clang::Expr *Init);
+
+  void rewriteDerefOp(const clang::UnaryOperator *UO);
+
+  void rewriteDeclRefExpr(const clang::DeclaratorDecl *DD);
 
   DeclSet VisitedDecls;
 

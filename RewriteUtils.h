@@ -16,6 +16,7 @@ namespace clang {
   class FunctionDecl;
   class Stmt;
   class DeclGroupRef;
+  class UnaryOperator;
 }
 
 class RewriteUtils {
@@ -129,6 +130,14 @@ public:
                                           clang::SourceManager *SrcManager);
 
   static bool removeAStarBefore(const clang::Decl *D,
+                                clang::Rewriter *TheRewriter,
+                                clang::SourceManager *SrcManager);
+
+  static bool removeAStarAfter(const clang::UnaryOperator *UO,
+                               clang::Rewriter *TheRewriter,
+                               clang::SourceManager *SrcManager);
+
+  static bool insertAStarBefore(const clang::Decl *D,
                                 clang::Rewriter *TheRewriter,
                                 clang::SourceManager *SrcManager);
 

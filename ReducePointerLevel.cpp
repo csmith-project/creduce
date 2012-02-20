@@ -71,8 +71,6 @@ public:
 
   bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
-  bool VisitMemberExpr(MemberExpr *ME);
-
   bool VisitArraySubscriptExpr(ArraySubscriptExpr *ASE);
 
 private:
@@ -198,6 +196,12 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
       ConsumerInstance->rewriteVarDecl(VD);
       return true;
     }
+
+    // Because VD must not be addr-taken, we don't have cases like:
+    //  int **p2 = &p1;
+    //  where p1 is TheVD
+    // It's safe to return from here.
+    return true;
   }
 
   // TheDecl is a FieldDecl. 
@@ -217,14 +221,15 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
     const Type *ArrayElemTy = ConsumerInstance->getArrayBaseElemType(ArrayTy);
     if (!ArrayElemTy->isStructureType() && !ArrayElemTy->isUnionType())
       return true;
-    const RecordType *RDTy = dyn_cast<RecordType>(ArrayElemTy);
+    const RecordType *RDTy = ConsumerInstance->getRecordType(ArrayElemTy);
     TransAssert(RDTy && "Bad RDTy!");
     const RecordDecl *RD = RDTy->getDecl();
     ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
     return true;
   }
 
-  const RecordType *RDTy = dyn_cast<RecordType>(VDTy);
+  const RecordType *RDTy = ConsumerInstance->getRecordType(VDTy);
+  TransAssert(RDTy && "Bad RecordType!");
   const RecordDecl *RD = RDTy->getDecl();
   ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
   return true;
@@ -232,19 +237,31 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
 
 bool PointerLevelRewriteVisitor::VisitUnaryOperator(UnaryOperator *UO)
 {
-  // TODO
+  UnaryOperator::Opcode Op = UO->getOpcode();
+  if (Op != UO_Deref)
+    return true;
+
+  const Expr *SubE = UO->getSubExpr();
+  const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(SubE);
+  if (DD == ConsumerInstance->TheDecl) {
+    ConsumerInstance->rewriteDerefOp(UO);
+    return false;
+  }
+
   return true;
 }
 
 bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
-  // TODO
-  return true;
-}
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+  TransAssert(DD && "Bad VarDecl!");
 
-bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
-{
-  // TODO
+  if (DD == ConsumerInstance->TheDecl) {
+    ConsumerInstance->rewriteDeclRefExpr(DD);
+    return false;
+  }
+
   return true;
 }
 
@@ -436,44 +453,280 @@ unsigned int ReducePointerLevel::getArrayDimension(const ArrayType *ArrayTy)
   return Dim;
 }
 
-void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init, 
-                                             std::string &NewInitStr)
+const Expr *ReducePointerLevel::getFirstInitListElem(const InitListExpr *ILE)
 {
-  // TODO
+  const Expr *E = NULL;
+  unsigned InitNum = ILE->getNumInits();
+  for (unsigned int I = 0; I < InitNum; ++I) {
+    E = ILE->getInit(I);
+    ILE = dyn_cast<InitListExpr>(E);
+    if (ILE) {
+      E = getFirstInitListElem(ILE);
+    }
+
+    if (E)
+      return E;
+  }
+  return NULL;
+}
+
+const Expr *ReducePointerLevel::getInitExprByIndex(IndexVector &Idxs,
+                                                   const InitListExpr *ILE)
+{
+  const InitListExpr *SubILE = ILE;
+  const Expr *Exp = NULL;
+  unsigned int Count = 0;
+  for (IndexVector::const_reverse_iterator I = Idxs.rbegin(),
+       E = Idxs.rend(); I != E; ++I) {
+    Count++;
+    unsigned int Idx;
+
+    const Type *T = SubILE->getType().getTypePtr();
+    if (T->isUnionType())
+      Idx = 0;
+    else
+      Idx = (*I);
+
+    // Incomplete initialization list
+    if (Idx >= SubILE->getNumInits())
+      return NULL;
+
+    Exp = SubILE->getInit(Idx);
+    TransAssert(Exp && "NULL Exp!");
+
+    SubILE = dyn_cast<InitListExpr>(Exp);
+    if (!SubILE)
+      break;
+  }
+
+  TransAssert(Exp && "Exp cannot be NULL");
+  TransAssert(Count == Idxs.size());
+  return Exp;
+}
+
+const Expr *ReducePointerLevel::getArrayBaseExprAndIdxs(
+        const ArraySubscriptExpr *ASE, IndexVector &Idxs)
+{
+  const Expr *BaseE;
+  while (ASE) {
+    const Expr *IdxE = ASE->getIdx();
+    unsigned int Idx = 0;
+    llvm::APSInt Result;
+    if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
+      std::string IntStr = Result.toString(10);
+      std::stringstream TmpSS(IntStr);
+      if (!(TmpSS >> Idx))
+        TransAssert(0 && "Non-integer value!");
+    }
+    BaseE = ASE->getBase()->IgnoreParenCasts();
+    ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
+    Idxs.push_back(Idx);
+  }
+  return BaseE;
+}
+
+const Expr *ReducePointerLevel::getInitExprFromBase(const Expr *BaseE,
+                                                    IndexVector &Idxs)
+{
+  TransAssert(BaseE && "Bad Array Base Expression!");
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
+  TransAssert(DRE && "Bad DeclRefExpr!");
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+  TransAssert(VD && "Bad VarDecl!");
+  const Expr *InitE = VD->getAnyInitializer();
+
+  if (!InitE)
+    return NULL;
+
+  const InitListExpr *ILE = dyn_cast<InitListExpr>(InitE);
+  TransAssert(ILE && "Bad InitListExpr!");
+  return getInitExprByIndex(Idxs, ILE);
+}
+
+const Expr *ReducePointerLevel::getArraySubscriptElem(
+              const ArraySubscriptExpr *ASE)
+{
+  IndexVector ArrayDims;
+  const Expr *BaseE = getArrayBaseExprAndIdxs(ASE, ArrayDims);
+  return getInitExprFromBase(BaseE, ArrayDims);
+}
+
+const Expr *ReducePointerLevel::getMemberExprBaseExprAndIdxs(
+        const MemberExpr *ME, IndexVector &Idxs)
+{
+  const Expr *BaseE = NULL;
+  while (ME) {
+    ValueDecl *VD = ME->getMemberDecl();
+    FieldDecl *FD = dyn_cast<FieldDecl>(VD);
+    TransAssert(FD && "Bad FD!\n");
+    unsigned int Idx = FD->getFieldIndex();
+    Idxs.push_back(Idx);
+  
+    BaseE = ME->getBase()->IgnoreParenCasts();
+    const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
+    if (ASE) {
+      BaseE = getArrayBaseExprAndIdxs(ASE, Idxs);
+      if (!BaseE)
+        return NULL;
+    }
+    ME = dyn_cast<MemberExpr>(BaseE);
+  }
+  return BaseE;
+}
+
+const Expr *ReducePointerLevel::getMemberExprElem(const MemberExpr *ME)
+{
+  IndexVector Idxs;
+  const Expr *BaseE = getMemberExprBaseExprAndIdxs(ME, Idxs);
+  return getInitExprFromBase(BaseE, Idxs);
+}
+
+void ReducePointerLevel::getInitListExprString(const InitListExpr *ILE,
+                                               std::string &NewInitStr,
+                                               InitListHandler Handler)
+{
+  unsigned int NumInits = ILE->getNumInits();
+  NewInitStr = "{";
+  for (unsigned int I = 0; I < NumInits; ++I) {
+    const Expr *SubInitE = ILE->getInit(I);
+    std::string SubInitStr("");
+    (this->*Handler)(SubInitE, SubInitStr);
+    if (I == 0)
+      NewInitStr += SubInitStr;
+    else
+      NewInitStr += ("," + SubInitStr);
+  }
+  NewInitStr += "}";
+  return; 
+}
+
+void ReducePointerLevel::copyInitStr(const Expr *Exp,
+                                     std::string &InitStr)
+{
+  const Expr *E = Exp->IgnoreParenCasts();
+  
+  switch(E->getStmtClass()) {
+  case Expr::DeclRefExprClass: {
+    const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+    const ValueDecl *OrigDecl = DRE->getDecl();
+    const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+    TransAssert(VD && "Bad VarDecl!");
+    const Expr *InitE = VD->getAnyInitializer();
+    if (!InitE)
+      return;
+
+    const Type *VT = VD->getType().getTypePtr();
+    const ArrayType *AT = dyn_cast<ArrayType>(VT);
+    if (AT) {
+      const InitListExpr *ILE = dyn_cast<InitListExpr>(InitE);
+      if (ILE) {
+        const Expr *ElemE = getFirstInitListElem(ILE);
+        if (!ElemE)
+          return; 
+        InitE = ElemE;
+      }
+    }
+    RewriteUtils::getExprString(InitE, InitStr,
+                                &TheRewriter, SrcManager);
+
+    return;
+  }
+  
+  case Expr::ArraySubscriptExprClass: {
+    const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
+    const Expr *ElemE = getArraySubscriptElem(ASE);
+    if (ElemE)
+      RewriteUtils::getExprString(ElemE, InitStr,
+                                  &TheRewriter, SrcManager);
+    return;
+  }
+
+  case Expr::MemberExprClass: {
+    const MemberExpr *ME = dyn_cast<MemberExpr>(E);
+    const Expr *ElemE = getMemberExprElem(ME);
+    if (ElemE)
+      RewriteUtils::getExprString(ElemE, InitStr,
+                                  &TheRewriter, SrcManager);
+    return;
+  }
+
+  default:
+    TransAssert(0 && "Uncatched initializer!");
+  }
+  TransAssert(0 && "Unreachable code!");
+}
+
+void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init, 
+                                             std::string &InitStr)
+{
+  const Expr *E = Init->IgnoreParenCasts();
+  
+  switch(E->getStmtClass()) {
+  case Expr::IntegerLiteralClass:
+    RewriteUtils::getExprString(Init, InitStr, &TheRewriter, SrcManager);
+    return;
+
+  case Expr::StringLiteralClass:
+    InitStr = 'a';
+    return;
+
+  case Expr::UnaryOperatorClass: {
+    const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
+    TransAssert((UO->getOpcode() == UO_AddrOf) && "None Unary Operator!");
+
+    const Expr *SubE = UO->getSubExpr();
+    TransAssert(SubE && "Bad Sub Expr!");
+    // Now we try to get the init string of this addr-taken var/array_var/field
+    copyInitStr(SubE, InitStr);
+    return;
+  }
+
+  case Expr::InitListExprClass: {
+    const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
+    getInitListExprString(ILE, InitStr, 
+                          &ReducePointerLevel::getNewGlobalInitStr);
+    return;
+  }
+
+  default:
+    TransAssert(0 && "Uncatched initializer!");
+  }
+  TransAssert(0 && "Unreachable code!");
 }
 
 void ReducePointerLevel::getNewLocalInitStr(const Expr *Init, 
-                                            std::string &NewInitStr)
+                                            std::string &InitStr)
 {
   const Expr *E = Init->IgnoreParenCasts();
   
   switch(E->getStmtClass()) {
   // catch the case like int *p = 0;
   case Expr::IntegerLiteralClass:
-    RewriteUtils::getExprString(Init, NewInitStr, &TheRewriter, SrcManager);
+    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
     return;
 
   case Expr::StringLiteralClass:
-    NewInitStr = 'a';
+    InitStr = 'a';
     return;
 
   case Expr::UnaryOperatorClass: {
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
     const Expr *SubE = UO->getSubExpr();
     TransAssert(SubE && "Bad Sub Expr!");
-    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
+    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
 
     size_t Pos;
     UnaryOperator::Opcode Op = UO->getOpcode();
     if (Op == UO_AddrOf) {
-      Pos = NewInitStr.find_first_of('&');
+      Pos = InitStr.find_first_of('&');
       TransAssert((Pos != std::string::npos) && "No & operator!");
-      NewInitStr.erase(Pos, 1);
+      InitStr.erase(Pos, 1);
     }
     else if (Op == UO_Deref) {
-      Pos = NewInitStr.find_first_of('*');
+      Pos = InitStr.find_first_of('*');
       TransAssert((Pos != std::string::npos) && "No & operator!");
-      NewInitStr.insert(Pos, "*");
+      InitStr.insert(Pos, "*");
     }
     else {
       TransAssert(0 && "Bad UnaryOperator!");
@@ -483,11 +736,11 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
   }
 
   case Expr::DeclRefExprClass: {
-    const DeclRefExpr *DE = cast<DeclRefExpr>(E);
+    const DeclRefExpr *DE = dyn_cast<DeclRefExpr>(E);
+    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+
     const Type *VT = DE->getType().getTypePtr();
     const ArrayType *AT = dyn_cast<ArrayType>(VT);
-    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
-
     // handle case like:
     // int a[10];
     // int *p = (int*)a;
@@ -497,24 +750,31 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
       for (unsigned int I = 0; I < Dim; ++I) {
         ArrayElemsStr += "[0]";
       }
-      NewInitStr += ArrayElemsStr;
+      InitStr += ArrayElemsStr;
     }
     else {
-      NewInitStr = "*" + NewInitStr;
+      InitStr = "*" + InitStr;
     }
     return;
   }
 
-  case Expr::MemberExprClass:
+  case Expr::MemberExprClass: // Fall-through
   case Expr::ArraySubscriptExprClass: {
-    RewriteUtils::getExprString(E, NewInitStr, &TheRewriter, SrcManager);
-    NewInitStr = "*(" + NewInitStr + ")";
+    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+    InitStr = "*(" + InitStr + ")";
     return;
   }
 
+  case Expr::InitListExprClass: {
+    const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
+    getInitListExprString(ILE, InitStr, 
+                          &ReducePointerLevel::getNewLocalInitStr);
+    return; 
+  }
   default:
     TransAssert(0 && "Uncatched initializer!");
   }
+
   TransAssert(0 && "Unreachable code!");
 }
 
@@ -525,10 +785,6 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
   if (!Init)
     return;
   
-  const InitListExpr *InitList = dyn_cast<InitListExpr>(Init);
-  if (InitList)
-    Init = InitList->getInit(0);
-
   std::string NewInitStr("");
   if (VD->hasLocalStorage()) {
     getNewLocalInitStr(Init, NewInitStr);
@@ -556,21 +812,45 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
     RewriteUtils::replaceExpr(Init, NewInitStr, &TheRewriter, SrcManager);
 }
 
+const RecordType *ReducePointerLevel::getRecordType(const Type *T)
+{
+  if (T->isUnionType())
+    return T->getAsUnionType();
+  else if (T->isStructureType())
+    return T->getAsStructureType();
+  else
+    return NULL;
+}
+
 void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
 {
   RewriteUtils::removeAStarBefore(FD, &TheRewriter, SrcManager); 
 }
 
+void ReducePointerLevel::rewriteDerefOp(const UnaryOperator *UO)
+{
+  RewriteUtils::removeAStarAfter(UO, &TheRewriter, SrcManager);
+}
+
+void ReducePointerLevel::rewriteDeclRefExpr(const DeclaratorDecl *DD)
+{
+  RewriteUtils::insertAStarBefore(DD, &TheRewriter, SrcManager);
+}
+
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 
                                            const Expr *Init)
 {
-  // TODO
+  // FIXME: Csmith doesn't have pointer fields, I will
+  // leave this function as future work 
+  TransAssert(0 && "Unsupported feature!");
 }
 
 void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD, 
                                           const Expr *Init)
 {
-  // TODO  
+  // FIXME: Csmith doesn't have pointer fields, I will
+  // leave this function as future work 
+  TransAssert(0 && "Unsupported feature!");
 }
 
 ReducePointerLevel::~ReducePointerLevel(void)
