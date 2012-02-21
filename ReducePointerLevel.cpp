@@ -15,7 +15,7 @@ static const char *DescriptionMsg =
 "Reduce pointer indirect level for a global/local variable. \
 All valid variables are sorted by their indirect levels. \
 The pass will ensure to first choose a valid variable \
-with the largest indirect level. This mechanism could \
+with the largest indirect level. This approach could \
 reduce the complexity of our implementation, because \
 we don't have to consider the case where the chosen variable \
 with the largest indirect level would be address-taken. \
@@ -69,9 +69,9 @@ public:
 
   bool VisitUnaryOperator(UnaryOperator *UO);
 
-  bool VisitDeclRefExpr(DeclRefExpr *DRE);
+  bool VisitBinaryOperator(BinaryOperator *BO);
 
-  bool VisitArraySubscriptExpr(ArraySubscriptExpr *ASE);
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
 private:
 
@@ -139,11 +139,16 @@ bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
     return true;
 
   const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts();
-  if (!dyn_cast<DeclRefExpr>(SubE) && !dyn_cast<MemberExpr>(SubE))
+  if (!dyn_cast<DeclRefExpr>(SubE) && !dyn_cast<MemberExpr>(SubE) &&
+      !dyn_cast<ArraySubscriptExpr>(SubE))
     return true;
 
+/*
   const DeclaratorDecl *DD = 
     ConsumerInstance->getCanonicalDeclaratorDecl(SubE);
+*/
+  const DeclaratorDecl *DD = 
+    ConsumerInstance->getRefDecl(SubE);
   TransAssert(DD && "NULL DD!");
 
   ConsumerInstance->AddrTakenDecls.insert(DD);
@@ -163,7 +168,8 @@ bool PointerLevelCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
   Expr *Rhs = BO->getRHS()->IgnoreParenCasts();
   if (dyn_cast<DeclRefExpr>(Rhs) || 
       dyn_cast<UnaryOperator>(Rhs) ||
-      dyn_cast<ArraySubscriptExpr>(Rhs))
+      dyn_cast<ArraySubscriptExpr>(Rhs) ||
+      dyn_cast<MemberExpr>(Rhs))
     return true;
 
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
@@ -194,7 +200,6 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
     const VarDecl *CanonicalVD = VD->getCanonicalDecl();
     if (CanonicalVD == TheVD) {
       ConsumerInstance->rewriteVarDecl(VD);
-      return true;
     }
 
     // Because VD must not be addr-taken, we don't have cases like:
@@ -243,11 +248,54 @@ bool PointerLevelRewriteVisitor::VisitUnaryOperator(UnaryOperator *UO)
 
   const Expr *SubE = UO->getSubExpr();
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(SubE);
-  if (DD == ConsumerInstance->TheDecl) {
-    ConsumerInstance->rewriteDerefOp(UO);
-    return false;
-  }
+  if (DD != ConsumerInstance->TheDecl)
+    return true;
 
+  const DeclRefExpr *DRE = ConsumerInstance->getDeclRefExpr(SubE);
+  if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
+    return true;
+
+  ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+  ConsumerInstance->rewriteDerefOp(UO);
+
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
+{
+  if (!BO->isAssignmentOp() && !BO->isCompoundAssignmentOp())
+    return true;
+
+  const Expr *Lhs = BO->getLHS();
+  const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
+  TransAssert(DD && "NULL DD!");
+  if (DD != ConsumerInstance->TheDecl)
+    return true;
+
+  const DeclRefExpr *DRE = ConsumerInstance->getDeclRefExpr(Lhs);
+  if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
+    return true;
+  ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+
+  const Expr *Rhs = BO->getRHS();
+  const Type *Ty = Lhs->getType().getTypePtr();
+  if (Ty->isPointerType()) {
+    const Expr *DirectRhs = Rhs->IgnoreParenCasts();
+    const UnaryOperator *UO = dyn_cast<UnaryOperator>(DirectRhs);
+    if (UO && (UO->getOpcode() == UO_AddrOf)) {
+      return RewriteUtils::removeAnAddrOfAfter(Rhs, 
+                    &ConsumerInstance->TheRewriter,
+                    ConsumerInstance->SrcManager);
+    }
+
+    return RewriteUtils::insertAStarBefore(Rhs, &ConsumerInstance->TheRewriter,
+                                           ConsumerInstance->SrcManager);
+  }
+  else if (Ty->isStructureType() || Ty->isUnionType() || 
+           Ty->isIntegerType()) {
+    return RewriteUtils::removeAStarAfter(Lhs, &ConsumerInstance->TheRewriter,
+                                          ConsumerInstance->SrcManager);
+  }
   return true;
 }
 
@@ -257,17 +305,11 @@ bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(OrigDecl);
   TransAssert(DD && "Bad VarDecl!");
 
-  if (DD == ConsumerInstance->TheDecl) {
-    ConsumerInstance->rewriteDeclRefExpr(DD);
-    return false;
+  if ((DD == ConsumerInstance->TheDecl) &&
+     !(ConsumerInstance->VisitedDeclRefExprs.count(DRE))) {
+    ConsumerInstance->rewriteDeclRefExpr(DRE);
   }
 
-  return true;
-}
-
-bool PointerLevelRewriteVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
-{
-  // TODO
   return true;
 }
 
@@ -369,6 +411,24 @@ ReducePointerLevel::ignoreSubscriptExprParenCasts(const Expr *E)
   return NewE;
 }
 
+const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
+{
+  const Expr *E = 
+    ignoreSubscriptExprParenCasts(Exp);
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+
+  if (DRE)
+    return DRE;
+
+  const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
+  TransAssert(UO && "Bad UnaryOperator!");
+  UnaryOperator::Opcode Op = UO->getOpcode();
+  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
+              "Non-Deref-or-AddrOf Opcode!");
+  const Expr *SubE = UO->getSubExpr();
+  return getDeclRefExpr(SubE);
+}
+
 const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
 {
   const Expr *E = 
@@ -382,10 +442,12 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
   if (ME)
     return getCanonicalDeclaratorDecl(ME);
 
-  const UnaryOperator *UE = dyn_cast<UnaryOperator>(E);
-  TransAssert(UE && "Bad UnaryOperator!");
-  TransAssert((UE->getOpcode() == UO_Deref) && "Non-Deref Opcode!");
-  const Expr *SubE = UE->getSubExpr();
+  const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
+  TransAssert(UO && "Bad UnaryOperator!");
+  UnaryOperator::Opcode Op = UO->getOpcode();
+  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
+              "Non-Deref-or-AddrOf Opcode!");
+  const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
 }
 
@@ -511,7 +573,7 @@ const Expr *ReducePointerLevel::getArrayBaseExprAndIdxs(
   while (ASE) {
     const Expr *IdxE = ASE->getIdx();
     unsigned int Idx = 0;
-    llvm::APSInt Result;
+    APSInt Result;
     if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
       std::string IntStr = Result.toString(10);
       std::stringstream TmpSS(IntStr);
@@ -689,6 +751,12 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
     return;
   }
 
+  case Expr::DeclRefExprClass: {
+    const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+    copyInitStr(DRE, InitStr);
+    return;
+  }
+
   default:
     TransAssert(0 && "Uncatched initializer!");
   }
@@ -832,9 +900,9 @@ void ReducePointerLevel::rewriteDerefOp(const UnaryOperator *UO)
   RewriteUtils::removeAStarAfter(UO, &TheRewriter, SrcManager);
 }
 
-void ReducePointerLevel::rewriteDeclRefExpr(const DeclaratorDecl *DD)
+void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
 {
-  RewriteUtils::insertAStarBefore(DD, &TheRewriter, SrcManager);
+  RewriteUtils::insertAnAddrOfBefore(DRE, &TheRewriter, SrcManager);
 }
 
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 
@@ -842,7 +910,6 @@ void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD,
 {
   // FIXME: Csmith doesn't have pointer fields, I will
   // leave this function as future work 
-  TransAssert(0 && "Unsupported feature!");
 }
 
 void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD, 
@@ -850,7 +917,6 @@ void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD,
 {
   // FIXME: Csmith doesn't have pointer fields, I will
   // leave this function as future work 
-  TransAssert(0 && "Unsupported feature!");
 }
 
 ReducePointerLevel::~ReducePointerLevel(void)

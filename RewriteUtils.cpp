@@ -751,27 +751,52 @@ bool RewriteUtils::removeAStarBefore(const Decl *D,
   return !TheRewriter->RemoveText(StarLoc, 1);
 }
 
-bool RewriteUtils::removeAStarAfter(const UnaryOperator *UO,
+bool RewriteUtils::removeASymbolAfter(const Expr *E,
+                                    char Symbol,
                                     Rewriter *TheRewriter,
                                     SourceManager *SrcManager)
 {
-  SourceRange ExprRange = UO->getSourceRange();
+  SourceRange ExprRange = E->getSourceRange();
   SourceLocation LocStart = ExprRange.getBegin();
   const char *StartBuf = SrcManager->getCharacterData(LocStart);
   int Offset = 0;
-  while (*StartBuf != '*') {
-    StartBuf--;
-    Offset--;
+  while (*StartBuf != Symbol) {
+    StartBuf++;
+    Offset++;
   }
   SourceLocation StarLoc =  LocStart.getLocWithOffset(Offset);
   return !TheRewriter->RemoveText(StarLoc, 1);
 }
 
-bool RewriteUtils::insertAStarBefore(const Decl *D,
+bool RewriteUtils::removeAStarAfter(const Expr *E,
+                                    Rewriter *TheRewriter,
+                                    SourceManager *SrcManager)
+{
+  return removeASymbolAfter(E, '*', TheRewriter, SrcManager);
+}
+
+bool RewriteUtils::removeAnAddrOfAfter(const Expr *E,
+                                    Rewriter *TheRewriter,
+                                    SourceManager *SrcManager)
+{
+  return removeASymbolAfter(E, '&', TheRewriter, SrcManager);
+}
+
+bool RewriteUtils::insertAnAddrOfBefore(const DeclRefExpr *DRE,
                                      Rewriter *TheRewriter,
                                      SourceManager *SrcManager)
 {
-  SourceLocation LocStart = D->getLocation();
+  SourceRange ExprRange = DRE->getSourceRange();
+  SourceLocation LocStart = ExprRange.getBegin();
+  return !TheRewriter->InsertTextBefore(LocStart, "&");
+}
+
+bool RewriteUtils::insertAStarBefore(const Expr *E,
+                                     Rewriter *TheRewriter,
+                                     SourceManager *SrcManager)
+{
+  SourceRange ExprRange = E->getSourceRange();
+  SourceLocation LocStart = ExprRange.getBegin();
   return !TheRewriter->InsertTextBefore(LocStart, "*");
 }
 

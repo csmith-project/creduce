@@ -21,6 +21,7 @@ namespace clang {
   class ArraySubscriptExpr;
   class MemberExpr;
   class UnaryOperator;
+  class DeclRefExpr;
 }
 
 class PointerLevelCollectionVisitor;
@@ -47,6 +48,8 @@ private:
   
   typedef llvm::SmallPtrSet<const clang::DeclaratorDecl *, 20> DeclSet;
 
+  typedef llvm::SmallPtrSet<const clang::DeclRefExpr *, 20> DeclRefExprSet;
+
   typedef llvm::DenseMap<int, DeclSet *> LevelToDeclMap;
 
   typedef void (ReducePointerLevel::*InitListHandler)(const clang::Expr *Init,
@@ -65,6 +68,8 @@ private:
                              InitListHandler Handler);
 
   const clang::DeclaratorDecl *getRefDecl(const clang::Expr *Exp);
+
+  const clang::DeclRefExpr *getDeclRefExpr(const clang::Expr *Exp);
 
   const clang::DeclaratorDecl *
           getCanonicalDeclaratorDecl(const clang::Expr *E);
@@ -123,13 +128,15 @@ private:
 
   void rewriteDerefOp(const clang::UnaryOperator *UO);
 
-  void rewriteDeclRefExpr(const clang::DeclaratorDecl *DD);
+  void rewriteDeclRefExpr(const clang::DeclRefExpr *DRE);
 
   DeclSet VisitedDecls;
 
   DeclSet ValidDecls;
 
   DeclSet AddrTakenDecls;
+
+  DeclRefExprSet VisitedDeclRefExprs;
 
   LevelToDeclMap AllPtrDecls;
 
