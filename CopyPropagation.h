@@ -2,7 +2,7 @@
 #define COPY_PROPAGATION_H
 
 #include <string>
-#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/DenseMap.h"
 #include "Transformation.h"
 
@@ -24,7 +24,8 @@ public:
 
   CopyPropagation(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
-      CollectionVisitor(NULL)
+      CollectionVisitor(NULL),
+      TheCopyExpr(NULL)
   { }
 
   ~CopyPropagation(void);
@@ -40,7 +41,7 @@ private:
   typedef llvm::DenseMap<const clang::ArraySubscriptExpr *, 
                          const clang::Expr *> ArraySubToExprMap;
 
-  typedef llvm::SmallSet<const clang::Expr *, 20> ExprSet;
+  typedef llvm::SmallPtrSet<const clang::Expr *, 20> ExprSet;
 
   typedef llvm::DenseMap<const clang::Expr *, ExprSet *>
             ExprToExprsMap;
@@ -60,7 +61,9 @@ private:
   void addOneDominatedExpr(const clang::Expr *CopyE, 
                            const clang::Expr *DominatedE);
   
-  void doAnalysis(void);
+  void doCopyPropagation(void);
+
+  bool isConstantExpr(const clang::Expr *Exp);
 
   // A mapping from a var to its value at the current processing point
   VarToExprMap VarToExpr;
@@ -86,6 +89,8 @@ private:
   ExprToExprsMap DominatedMap;
 
   CopyPropCollectionVisitor *CollectionVisitor;
+
+  const clang::Expr *TheCopyExpr;
 
   // Unimplemented
   CopyPropagation(void);

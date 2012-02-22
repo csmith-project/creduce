@@ -34,12 +34,15 @@ public:
 
   explicit CopyPropCollectionVisitor(CopyPropagation *Instance)
     : ConsumerInstance(Instance),
-      BeingWritten(false)
+      BeingWritten(false),
+      BeingLValue(false)
   { }
 
   bool VisitVarDecl(VarDecl *VD);
 
   bool VisitBinaryOperator(BinaryOperator *BO);
+
+  bool VisitUnaryOperator(UnaryOperator *UO);
 
   bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
@@ -49,12 +52,24 @@ public:
 
 private:
 
+  void resetFlags(void);
+
   CopyPropagation *ConsumerInstance;
 
   // Indicate if a var/memexpr/arraysubexpr is being written.
   // Set by updateExpr and reset by VisitDeclRefExpr
   bool BeingWritten;
+
+  // It will be true for ++i, --i
+  // In this case, we cannot copy-propagate a constant to i
+  bool BeingLValue;
 };
+
+void CopyPropCollectionVisitor::resetFlags(void)
+{
+  BeingWritten = false;
+  BeingLValue = false;
+}
 
 bool CopyPropCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
@@ -92,16 +107,32 @@ bool CopyPropCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
   return true;
 }
 
+bool CopyPropCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
+{
+  UnaryOperator::Opcode Op = UO->getOpcode();
+
+  if (Op == UO_AddrOf)
+    BeingWritten = true;
+  
+  if (UO->isIncrementDecrementOp())
+    BeingLValue = true;
+
+  return true;
+}
+
 bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
   if (BeingWritten) {
-    BeingWritten = false;
+    resetFlags();
     return true;
   }
 
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
-  TransAssert(VD && "Invalid VarDecl!");
+  // DRE could refer to FunctionDecl, etc
+  if (!VD)
+    return true;
+
   const VarDecl *CanonicalVD = VD->getCanonicalDecl();
 
   const Expr *CopyE = ConsumerInstance->VarToExpr[CanonicalVD];
@@ -115,7 +146,7 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
   if (BeingWritten) {
-    BeingWritten = false;
+    resetFlags();
     return true;
   }
 
@@ -129,8 +160,12 @@ bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
     }
   }
 
-  if (CopyE)
-    ConsumerInstance->addOneDominatedExpr(CopyE, ME);
+  if (!CopyE || (BeingLValue && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingLValue = false;
+    return true;
+  }
+
+  ConsumerInstance->addOneDominatedExpr(CopyE, ME);
   return true;
 }
 
@@ -138,7 +173,7 @@ bool
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
   if (BeingWritten) {
-    BeingWritten = false;
+    resetFlags();
     return true;
   }
 
@@ -152,8 +187,12 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
     }
   }
   
+  if (!CopyE || (BeingLValue && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingLValue = false;
+    return true;
+  }
+
   ConsumerInstance->addOneDominatedExpr(CopyE, ASE);
-  return true;
   return true;
 }
 
@@ -174,7 +213,6 @@ void CopyPropagation::HandleTopLevelDecl(DeclGroupRef D)
  
 void CopyPropagation::HandleTranslationUnit(ASTContext &Ctx)
 {
-  doAnalysis();
   if (QueryInstanceOnly)
     return;
 
@@ -183,16 +221,16 @@ void CopyPropagation::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
+  TransAssert(CollectionVisitor && "NULL CollectionVisitor!");
+
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+  TransAssert(TheCopyExpr && "NULL TheCopyExpr!");
+
+  doCopyPropagation();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
-}
-
-void CopyPropagation::doAnalysis(void)
-{
-  // TODO
 }
 
 // Note we skip InitListExpr, so some likely valid cases won't be handled:
@@ -212,6 +250,25 @@ bool CopyPropagation::isValidExpr(const Expr *Exp)
   case Expr::DeclRefExprClass:
   case Expr::MemberExprClass:
   case Expr::ArraySubscriptExprClass: // Fall-through
+    return true;
+
+  default:
+    return false;
+  }
+  TransAssert(0 && "Unreachable code!");
+  return false;
+}
+
+bool CopyPropagation::isConstantExpr(const Expr *Exp)
+{
+  const Expr *E = Exp->IgnoreParenCasts();
+
+  switch(E->getStmtClass()) {
+  case Expr::FloatingLiteralClass:
+  case Expr::StringLiteralClass:
+  case Expr::IntegerLiteralClass:
+  case Expr::GNUNullExprClass:
+  case Expr::CharacterLiteralClass: // Fall-through
     return true;
 
   default:
@@ -266,13 +323,29 @@ void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
 {
   ExprSet *ESet = DominatedMap[CopyE];
   if (!ESet) {
-    ESet = new ExprSet::SmallSet();
+    ESet = new ExprSet::SmallPtrSet();
     TransAssert(ESet && "Couldn't new ExprSet");
     DominatedMap[CopyE] = ESet;
+
+    ValidInstanceNum++;
+    if (TransformationCounter == ValidInstanceNum)
+      TheCopyExpr = CopyE;
   }
   ESet->insert(DominatedE);
 }
   
+void CopyPropagation::doCopyPropagation(void)
+{
+  std::string CopyStr("");
+  RewriteUtils::getExprString(TheCopyExpr, CopyStr, 
+                              &TheRewriter, SrcManager);
+  ExprSet *ESet = DominatedMap[TheCopyExpr];
+  TransAssert(ESet && "Empty Expr Set!");
+  for (ExprSet::iterator I = ESet->begin(), E = ESet->end(); I != E; ++I) {
+    RewriteUtils::replaceExpr((*I), CopyStr, &TheRewriter, SrcManager);
+  }
+}
+
 CopyPropagation::~CopyPropagation(void)
 {
   if (CollectionVisitor)
