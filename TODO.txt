@@ -1,7 +1,5 @@
 TODO list:
 
-remove level of pointer indirection from a variable
-
 remove array dimension from a variable
 
 do copy propagation
@@ -25,6 +23,8 @@ replace a function call foo(x, y) with
 
   * a comma expr, (x, y, rv)
     where rv is a value with the correct type
+
+remove unused vars
 
 simplify a comma expression below:
 from
