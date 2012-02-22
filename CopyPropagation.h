@@ -42,6 +42,9 @@ private:
 
   typedef llvm::SmallSet<const clang::Expr *, 20> ExprSet;
 
+  typedef llvm::DenseMap<const clang::Expr *, ExprSet *>
+            ExprToExprsMap;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -53,6 +56,9 @@ private:
   void updateExpr(const clang::Expr *E, const clang::Expr *CopyE);
 
   void invalidateExpr(const clang::Expr *E);
+
+  void addOneDominatedExpr(const clang::Expr *CopyE, 
+                           const clang::Expr *DominatedE);
   
   void doAnalysis(void);
 
@@ -69,12 +75,15 @@ private:
   // Only hold visited MemberExpr and ArraySubscriptExpr. 
   // Used for distinguishing a valid Member/ArraySubscript expr
   // and a Member/ArraySubscript expr which will get a copy from its
-  // corresponding initializer. The benifit is that we don't have to
+  // corresponding initializer. The advantage is that we don't have to
   // set up initial value for all the fields of a var which has an aggregate
   // type. We only need to retrieve the initial value of a field on demand.
   // We don't need to do this for VarDecl because we can directly get its
   // initial value.
   ExprSet VisitedMEAndASE;
+
+  // A mapping from an Expr to its dominating Exprs
+  ExprToExprsMap DominatedMap;
 
   CopyPropCollectionVisitor *CollectionVisitor;
 

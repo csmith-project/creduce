@@ -74,30 +74,6 @@ private:
   const clang::DeclaratorDecl *
           getCanonicalDeclaratorDecl(const clang::Expr *E);
 
-  const clang::Expr *
-          ignoreSubscriptExprParenCasts(const clang::Expr *E);
-
-  const clang::Type *getArrayBaseElemType(const clang::ArrayType *ArrayTy);
-
-  const clang::Expr *getArrayBaseExprAndIdxs(
-          const clang::ArraySubscriptExpr *ASE, IndexVector &Idxs);
-
-  const clang::Expr *getArraySubscriptElem(
-          const clang::ArraySubscriptExpr *ASE);
-
-  const clang::Expr *getInitExprByIndex(IndexVector &Idxs,
-                                        const clang::InitListExpr *ILE);
-
-  const clang::Expr *getMemberExprBaseExprAndIdxs(const clang::MemberExpr *ME,
-                                                  IndexVector &Idx);
-
-  const clang::Expr *getInitExprFromBase(const clang::Expr *BaseE,
-                                         IndexVector &Idxs);
-
-  const clang::Expr *getMemberExprElem(const clang::MemberExpr *ME);
-
-  unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
-
   void addOneDecl(const clang::DeclaratorDecl *DD, int IndirectLevel);
 
   void doAnalysis(void);
@@ -106,6 +82,8 @@ private:
 
   const clang::RecordType *getRecordType(const clang::Type *T);
 
+  void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
+
   void getNewLocalInitStr(const clang::Expr *Init, 
                           std::string &InitStr);
 
@@ -113,8 +91,6 @@ private:
                            std::string &InitStr);
 
   const clang::Expr *getFirstInitListElem(const clang::InitListExpr *E);
-
-  void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
   void rewriteVarDecl(const clang::VarDecl *VD);
 

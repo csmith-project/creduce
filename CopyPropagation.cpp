@@ -99,20 +99,61 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
   }
 
-  // TODO
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+  TransAssert(VD && "Invalid VarDecl!");
+  const VarDecl *CanonicalVD = VD->getCanonicalDecl();
+
+  const Expr *CopyE = ConsumerInstance->VarToExpr[CanonicalVD];
+  if (!CopyE)
+    return true;
+
+  ConsumerInstance->addOneDominatedExpr(CopyE, DRE);
   return true;
 }
 
 bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
-  // TODO
+  if (BeingWritten) {
+    BeingWritten = false;
+    return true;
+  }
+
+  const Expr *CopyE = ConsumerInstance->MemberExprToExpr[ME];
+  if (!CopyE) {
+    if (!ConsumerInstance->VisitedMEAndASE.count(ME)) {
+      CopyE = ConsumerInstance->getMemberExprElem(ME);
+    }
+    else {
+      return true;
+    }
+  }
+
+  if (CopyE)
+    ConsumerInstance->addOneDominatedExpr(CopyE, ME);
   return true;
 }
 
 bool 
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
-  // TODO
+  if (BeingWritten) {
+    BeingWritten = false;
+    return true;
+  }
+
+  const Expr *CopyE = ConsumerInstance->ArraySubToExpr[ASE];
+  if (!CopyE) {
+    if (!ConsumerInstance->VisitedMEAndASE.count(ASE)) {
+      CopyE = ConsumerInstance->getArraySubscriptElem(ASE);
+    }
+    else {
+      return true;
+    }
+  }
+  
+  ConsumerInstance->addOneDominatedExpr(CopyE, ASE);
+  return true;
   return true;
 }
 
@@ -189,7 +230,8 @@ void CopyPropagation::updateExpr(const Expr *E, const Expr *CopyE)
     const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
 
     TransAssert(VD && "Bad VD!");
-    VarToExpr[VD] = CopyE;
+    const VarDecl *CanonicalVD = VD->getCanonicalDecl();
+    VarToExpr[CanonicalVD] = CopyE;
     return;
   }
 
@@ -219,8 +261,26 @@ void CopyPropagation::invalidateExpr(const Expr *E)
   updateExpr(E, NULL);
 }
 
+void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
+                                          const Expr *DominatedE)
+{
+  ExprSet *ESet = DominatedMap[CopyE];
+  if (!ESet) {
+    ESet = new ExprSet::SmallSet();
+    TransAssert(ESet && "Couldn't new ExprSet");
+    DominatedMap[CopyE] = ESet;
+  }
+  ESet->insert(DominatedE);
+}
+  
 CopyPropagation::~CopyPropagation(void)
 {
   if (CollectionVisitor)
     delete CollectionVisitor;
+
+  for (ExprToExprsMap::iterator I = DominatedMap.begin(),
+       E = DominatedMap.end(); I != E; ++I) {
+    delete (*I).second;
+  }
 }
+

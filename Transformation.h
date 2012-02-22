@@ -18,6 +18,12 @@ namespace clang {
   class ASTContext;
   class SourceManager;
   class Decl;
+  class Expr;
+  class ArrayType;
+  class InitListExpr;
+  class ArraySubscriptExpr;
+  class MemberExpr;
+  class Type;
 }
 
 typedef enum {
@@ -88,6 +94,34 @@ public:
   }
 
 protected:
+
+  typedef llvm::SmallVector<unsigned int, 10> IndexVector;
+
+  unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
+
+  const clang::Type *
+    getArrayBaseElemType(const clang::ArrayType *ArrayTy);
+
+  const clang::Expr *
+    getArraySubscriptElem(const clang::ArraySubscriptExpr *ASE);
+
+  const clang::Expr *
+    ignoreSubscriptExprParenCasts(const clang::Expr *E);
+
+  const clang::Expr *getMemberExprElem(const clang::MemberExpr *ME);
+
+  const clang::Expr *
+    getArrayBaseExprAndIdxs(const clang::ArraySubscriptExpr *ASE, 
+                            IndexVector &Idxs);
+
+  const clang::Expr *getInitExprByIndex(IndexVector &Idxs,
+                                        const clang::InitListExpr *ILE);
+
+  const clang::Expr *getMemberExprBaseExprAndIdxs(const clang::MemberExpr *ME,
+                                                  IndexVector &Idx);
+
+  const clang::Expr *getInitExprFromBase(const clang::Expr *BaseE,
+                                         IndexVector &Idxs);
 
   const std::string &Name;
 
