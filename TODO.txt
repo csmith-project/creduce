@@ -17,6 +17,15 @@ to
   stuff1
   stuff2 
 
+replace a function call foo(x, y) with
+  * value with correct type
+    - for integer, make it as 0
+    - for pointer, make it as NULL
+    - for struct, add a new global tmp var
+
+  * a comma expr, (x, y, rv)
+    where rv is a value with the correct type
+
 simplify a comma expression below:
 from
   x = (y, z);
