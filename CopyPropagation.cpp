@@ -21,11 +21,10 @@ assignment or initilizer will be propagated. \
 Here \"simple assignment\" is defined as: \n\
   x = y \n\
 where both x and y are either variables, member expressions \
-or array subscript expressions. For example, \
-x = foo() is not considered as a simple assignment. \
-Copy propagation of LHS will stop upon \
-any non-simple assignment. Therefore, in the above example, foo() \
-will not be propagated. \n";
+or array subscript expressions (y could be a constant). \
+For example, x = foo() is not considered as a simple assignment. \
+Copy propagation of LHS will stop upon any non-simple assignment. \
+Therefore, in the above example, foo() will not be propagated. \n";
 
 static RegisterTransformation<CopyPropagation>
          Trans("copy-propagation", DescriptionMsg);
@@ -34,7 +33,8 @@ class CopyPropCollectionVisitor : public RecursiveASTVisitor<CopyPropCollectionV
 public:
 
   explicit CopyPropCollectionVisitor(CopyPropagation *Instance)
-    : ConsumerInstance(Instance)
+    : ConsumerInstance(Instance),
+      BeingWritten(false)
   { }
 
   bool VisitVarDecl(VarDecl *VD);
@@ -51,6 +51,9 @@ private:
 
   CopyPropagation *ConsumerInstance;
 
+  // Indicate if a var/memexpr/arraysubexpr is being written.
+  // Set by updateExpr and reset by VisitDeclRefExpr
+  bool BeingWritten;
 };
 
 bool CopyPropCollectionVisitor::VisitVarDecl(VarDecl *VD)
@@ -58,14 +61,7 @@ bool CopyPropCollectionVisitor::VisitVarDecl(VarDecl *VD)
   if (!VD->hasInit())
     return true;
 
-  const Expr *Init = VD->getInit()->IgnoreParenCasts();
-
-  // Skip init list, note it also skips code like:
-  //   int i = {1};
-  // But this kind of code almost couldn't happen,
-  // because c_delta will remove {} pair.
-  if (dyn_cast<InitListExpr>(Init))
-    return true;
+  const Expr *Init = VD->getInit();
 
   if (ConsumerInstance->isValidExpr(Init)) {
     const VarDecl *CanonicalVD = VD->getCanonicalDecl();
@@ -85,28 +81,38 @@ bool CopyPropCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
     return true;
 
   const Expr *Rhs = BO->getRHS()->IgnoreParenCasts();
+
+  BeingWritten = true;
   if (!ConsumerInstance->isValidExpr(Rhs)) {
     ConsumerInstance->invalidateExpr(Lhs);
     return true;
   }
-  
+
   ConsumerInstance->updateExpr(Lhs, Rhs);
   return true;
 }
 
 bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
+  if (BeingWritten) {
+    BeingWritten = false;
+    return true;
+  }
+
+  // TODO
   return true;
 }
 
 bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
+  // TODO
   return true;
 }
 
 bool 
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
+  // TODO
   return true;
 }
 
@@ -148,11 +154,30 @@ void CopyPropagation::doAnalysis(void)
   // TODO
 }
 
-bool CopyPropagation::isValidExpr(const Expr *E)
+// Note we skip InitListExpr, so some likely valid cases won't be handled:
+//   int i = {1};
+// But this kind of code almost couldn't happen,
+// because c_delta will remove {} pair.
+bool CopyPropagation::isValidExpr(const Expr *Exp)
 {
-  return (dyn_cast<DeclRefExpr>(E) ||
-          dyn_cast<MemberExpr>(E) ||
-          dyn_cast<ArraySubscriptExpr>(E));
+  const Expr *E = Exp->IgnoreParenCasts();
+
+  switch(E->getStmtClass()) {
+  case Expr::FloatingLiteralClass:
+  case Expr::StringLiteralClass:
+  case Expr::IntegerLiteralClass:
+  case Expr::GNUNullExprClass:
+  case Expr::CharacterLiteralClass:
+  case Expr::DeclRefExprClass:
+  case Expr::MemberExprClass:
+  case Expr::ArraySubscriptExprClass: // Fall-through
+    return true;
+
+  default:
+    return false;
+  }
+  TransAssert(0 && "Unreachable code!");
+  return false;
 }
 
 void CopyPropagation::updateExpr(const Expr *E, const Expr *CopyE)
@@ -171,12 +196,14 @@ void CopyPropagation::updateExpr(const Expr *E, const Expr *CopyE)
   case Expr::MemberExprClass: {
     const MemberExpr *ME = dyn_cast<MemberExpr>(E);
     MemberExprToExpr[ME] = CopyE;
+    VisitedMEAndASE.insert(E);
     return;
   }
 
   case Expr::ArraySubscriptExprClass: {
     const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
     ArraySubToExpr[ASE] = CopyE;
+    VisitedMEAndASE.insert(E);
     return;
   }
 

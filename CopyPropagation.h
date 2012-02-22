@@ -2,7 +2,7 @@
 #define COPY_PROPAGATION_H
 
 #include <string>
-#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/DenseMap.h"
 #include "Transformation.h"
 
@@ -40,6 +40,8 @@ private:
   typedef llvm::DenseMap<const clang::ArraySubscriptExpr *, 
                          const clang::Expr *> ArraySubToExprMap;
 
+  typedef llvm::SmallSet<const clang::Expr *, 20> ExprSet;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -63,6 +65,16 @@ private:
   // A mapping from a arraysubscript expr to its value at
   // the current processing point
   ArraySubToExprMap ArraySubToExpr;
+
+  // Only hold visited MemberExpr and ArraySubscriptExpr. 
+  // Used for distinguishing a valid Member/ArraySubscript expr
+  // and a Member/ArraySubscript expr which will get a copy from its
+  // corresponding initializer. The benifit is that we don't have to
+  // set up initial value for all the fields of a var which has an aggregate
+  // type. We only need to retrieve the initial value of a field on demand.
+  // We don't need to do this for VarDecl because we can directly get its
+  // initial value.
+  ExprSet VisitedMEAndASE;
 
   CopyPropCollectionVisitor *CollectionVisitor;
 
