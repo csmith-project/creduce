@@ -35,7 +35,7 @@ public:
   explicit CopyPropCollectionVisitor(CopyPropagation *Instance)
     : ConsumerInstance(Instance),
       BeingWritten(false),
-      BeingLValue(false)
+      BeingIncDec(false)
   { }
 
   bool VisitVarDecl(VarDecl *VD);
@@ -62,13 +62,13 @@ private:
 
   // It will be true for ++i, --i
   // In this case, we cannot copy-propagate a constant to i
-  bool BeingLValue;
+  bool BeingIncDec;
 };
 
 void CopyPropCollectionVisitor::resetFlags(void)
 {
   BeingWritten = false;
-  BeingLValue = false;
+  BeingIncDec = false;
 }
 
 bool CopyPropCollectionVisitor::VisitVarDecl(VarDecl *VD)
@@ -115,7 +115,7 @@ bool CopyPropCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
     BeingWritten = true;
   
   if (UO->isIncrementDecrementOp())
-    BeingLValue = true;
+    BeingIncDec = true;
 
   return true;
 }
@@ -136,8 +136,10 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   const VarDecl *CanonicalVD = VD->getCanonicalDecl();
 
   const Expr *CopyE = ConsumerInstance->VarToExpr[CanonicalVD];
-  if (!CopyE)
+  if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingIncDec = false;
     return true;
+  }
 
   ConsumerInstance->addOneDominatedExpr(CopyE, DRE);
   return true;
@@ -160,8 +162,8 @@ bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
     }
   }
 
-  if (!CopyE || (BeingLValue && ConsumerInstance->isConstantExpr(CopyE))) {
-    BeingLValue = false;
+  if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingIncDec = false;
     return true;
   }
 
@@ -187,8 +189,8 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
     }
   }
   
-  if (!CopyE || (BeingLValue && ConsumerInstance->isConstantExpr(CopyE))) {
-    BeingLValue = false;
+  if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingIncDec = false;
     return true;
   }
 
