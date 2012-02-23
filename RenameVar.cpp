@@ -108,6 +108,7 @@ void RenameVar::Initialize(ASTContext &context)
   for (char C = 'z'; C >= 'a'; C--) {
     AvailableNames.push_back(C);
   }
+  ValidInstanceNum = 1;
 }
 
 void RenameVar::HandleTopLevelDecl(DeclGroupRef D) 
@@ -119,28 +120,33 @@ void RenameVar::HandleTopLevelDecl(DeclGroupRef D)
  
 void RenameVar::HandleTranslationUnit(ASTContext &Ctx)
 {
-  analyzeVars();
+  unsigned int NumNames = AvailableNames.size();
+  unsigned int NumVars = ValidVars.size();
+
+  if ((NumVars == 0) || (NumVars > NumNames))
+    ValidInstanceNum = 0;
+
   if (QueryInstanceOnly) {
-    if ((TransformationCounter == 0) || 
-        (TransformationCounter > ValidInstanceNum))
-      ValidInstanceNum = 0;
-    else
-      ValidInstanceNum = 1;
     return;
   }
 
-  if (TransformationCounter > ValidInstanceNum) {
+  if (NumVars > NumNames) {
     TransError = TransMaxVarsError;
     return;
   }
-  else if (TransformationCounter == 0) {
+  else if (NumVars == 0) {
     TransError = TransNoValidVarsError;
+    return;
+  }
+  else if (TransformationCounter > ValidInstanceNum) {
+    TransError = TransMaxInstanceError;
     return;
   }
 
   TransAssert(RenameVisitor && "NULL RenameVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
+  collectVars();
   RenameVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -171,14 +177,8 @@ void RenameVar::addVar(VarDecl *VD)
   AvailableNames.erase(I);
 }
 
-void RenameVar::analyzeVars(void)
+void RenameVar::collectVars(void)
 {
-  ValidInstanceNum = AvailableNames.size();
-  TransformationCounter = ValidVars.size();
-
-  if (TransformationCounter > ValidInstanceNum)
-    return;
-
   for (std::vector<VarDecl*>::iterator I = ValidVars.begin(),
        E = ValidVars.end(); I != E; ++I) {
     VarDecl *VD = (*I);

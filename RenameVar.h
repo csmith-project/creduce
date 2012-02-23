@@ -44,7 +44,7 @@ private:
 
   void addVar(clang::VarDecl *VD);
 
-  void analyzeVars(void);
+  void collectVars(void);
 
   RNVCollectionVisitor *VarCollectionVisitor;
 
