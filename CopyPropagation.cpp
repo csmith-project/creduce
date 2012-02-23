@@ -35,6 +35,7 @@ public:
   explicit CopyPropCollectionVisitor(CopyPropagation *Instance)
     : ConsumerInstance(Instance),
       BeingWritten(false),
+      BeingAddrTaken(false),
       BeingIncDec(false)
   { }
 
@@ -60,15 +61,29 @@ private:
   // Set by updateExpr and reset by VisitDeclRefExpr
   bool BeingWritten;
 
+  bool BeingAddrTaken;
+
   // It will be true for ++i, --i
   // In this case, we cannot copy-propagate a constant to i
   bool BeingIncDec;
+
+  // For MemberExpr and ArraySubscriptExpr, we don't want to 
+  // track the partial element. For example, a[0][0][0],
+  // VisitArraySubscriptExpr will visit:
+  //   a[0][0][0]
+  //   a[0][0]
+  //   a[0]
+  // We only want to track the first one. This flag will be
+  // reset when we reach a.
+  bool BeingPartial;
 };
 
 void CopyPropCollectionVisitor::resetFlags(void)
 {
   BeingWritten = false;
+  BeingAddrTaken = false;
   BeingIncDec = false;
+  BeingPartial = false;
 }
 
 bool CopyPropCollectionVisitor::VisitVarDecl(VarDecl *VD)
@@ -111,8 +126,10 @@ bool CopyPropCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
 {
   UnaryOperator::Opcode Op = UO->getOpcode();
 
-  if (Op == UO_AddrOf)
-    BeingWritten = true;
+  if (Op == UO_AddrOf) {
+    BeingAddrTaken = true;
+    return true;
+  }
   
   if (UO->isIncrementDecrementOp())
     BeingIncDec = true;
@@ -122,10 +139,13 @@ bool CopyPropCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
 
 bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
-  if (BeingWritten) {
+  if (BeingWritten || BeingAddrTaken || BeingPartial) {
     resetFlags();
     return true;
   }
+
+  if (!BeingPartial)
+    BeingPartial = true;
 
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
@@ -147,10 +167,13 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
 bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
-  if (BeingWritten) {
-    resetFlags();
+  if (BeingWritten || BeingAddrTaken || BeingPartial) {
+    // resetFlags();
     return true;
   }
+
+  if (!BeingPartial)
+    BeingPartial = true;
 
   const Expr *CopyE = ConsumerInstance->MemberExprToExpr[ME];
   if (!CopyE) {
@@ -174,10 +197,13 @@ bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 bool 
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
-  if (BeingWritten) {
-    resetFlags();
+  if (BeingWritten || BeingAddrTaken || BeingPartial) {
+    // resetFlags();
     return true;
   }
+
+  if (!BeingPartial)
+    BeingPartial = true;;
 
   const Expr *CopyE = ConsumerInstance->ArraySubToExpr[ASE];
   if (!CopyE) {
