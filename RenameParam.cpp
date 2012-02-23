@@ -130,6 +130,7 @@ void RenameParam::Initialize(ASTContext &context)
   RenameVisitor = new RenameParamVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
+  ValidInstanceNum = 1;
 }
 
 void RenameParam::HandleTopLevelDecl(DeclGroupRef D) 
@@ -142,15 +143,17 @@ void RenameParam::HandleTopLevelDecl(DeclGroupRef D)
 void RenameParam::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (QueryInstanceOnly) {
-    if (HasValidParams)
-      ValidInstanceNum = 1;
-    else
+    if (!HasValidParams)
       ValidInstanceNum = 0;
     return;
   }
 
   if (!HasValidParams) {
     TransError = TransNoValidParamsError;
+    return;
+  }
+  else if (TransformationCounter > ValidInstanceNum) {
+    TransError = TransMaxInstanceError;
     return;
   }
 

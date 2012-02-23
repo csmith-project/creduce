@@ -113,6 +113,7 @@ void RenameFun::Initialize(ASTContext &context)
   RenameVisitor = new RenameFunVisitor(this);
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
                            Context->getLangOptions());
+  ValidInstanceNum = 1;
 }
 
 void RenameFun::HandleTopLevelDecl(DeclGroupRef D) 
@@ -158,6 +159,10 @@ void RenameFun::HandleTranslationUnit(ASTContext &Ctx)
 
   if (!hasValidFuns()) {
     TransError = TransNoValidFunsError;
+    return;
+  }
+  else if (TransformationCounter > ValidInstanceNum) {
+    TransError = TransMaxInstanceError;
     return;
   }
 
