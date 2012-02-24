@@ -36,7 +36,7 @@ public:
                                     clang::SourceManager *SrcManager);
                                     
   static bool removeVarFromDeclStmt(clang::DeclStmt *DS,
-                                    clang::VarDecl *VD,
+                                    const clang::VarDecl *VD,
                                     clang::Decl *PrevDecl,
                                     bool IsFirstDecl,
                                     clang::Rewriter *TheRewriter,
@@ -158,6 +158,11 @@ public:
                                 clang::Rewriter *TheRewriter, 
                                 clang::SourceManager *SrcManager);
 
+  static bool removeVarDecl(const clang::VarDecl *VD,
+                            clang::DeclGroupRef DGR,
+                            clang::Rewriter *TheRewriter,
+                            clang::SourceManager *SrcManager);
+
 private:
 
   static const char *TmpVarNamePrefix;
@@ -190,7 +195,7 @@ private:
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
 
-  static clang::SourceLocation getVarDeclTypeLocEnd(clang::VarDecl *VD,
+  static clang::SourceLocation getVarDeclTypeLocEnd(const clang::VarDecl *VD,
                                  clang::Rewriter *TheRewriter);
 
   static clang::SourceLocation 

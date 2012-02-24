@@ -295,7 +295,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
 }
 
-SourceLocation RewriteUtils::getVarDeclTypeLocEnd(VarDecl *VD,
+SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD,
                                                   Rewriter *TheRewriter)
 {
   TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
@@ -313,7 +313,7 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(VarDecl *VD,
 }
 
 bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
-                                         VarDecl *VD,
+                                         const VarDecl *VD,
                                          Decl *PrevDecl,
                                          bool IsFirstDecl,
                                          Rewriter *TheRewriter,
@@ -814,5 +814,52 @@ bool RewriteUtils::removeVarInitExpr(const VarDecl *VD,
   SourceRange ExprRange = Init->getSourceRange();
   SourceLocation InitEndLoc = ExprRange.getEnd();
   return !TheRewriter->RemoveText(SourceRange(InitStartLoc, InitEndLoc));
+}
+
+bool RewriteUtils::removeVarDecl(const VarDecl *VD,
+                                 DeclGroupRef DGR,
+                                 Rewriter *TheRewriter,
+                                 SourceManager *SrcManager)
+{
+  SourceRange VarRange = VD->getSourceRange();
+
+  if (DGR.isSingleDecl()) {
+    return !(TheRewriter->RemoveText(VarRange));
+  }
+
+  DeclGroupRef::const_iterator I = DGR.begin();
+  const VarDecl *FirstVD = dyn_cast<VarDecl>(*I);
+  TransAssert(FirstVD && "Not a valid VarDecl!");
+
+  if (VD == FirstVD) {
+    SourceLocation StartLoc = getVarDeclTypeLocEnd(VD, TheRewriter);
+
+    SourceLocation EndLoc = 
+      getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
+
+    return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+  }
+
+  const VarDecl *PrevVD = FirstVD;
+  const VarDecl *CurrVD = NULL;
+  ++I;
+  DeclGroupRef::const_iterator E = DGR.end();
+  for (; I != E; ++I) {
+    CurrVD = dyn_cast<VarDecl>(*I);
+    TransAssert(CurrVD && "Not a valid VarDecl!");
+    if (VD == CurrVD)
+      break;
+    PrevVD = CurrVD;
+  }
+
+  TransAssert((VD == CurrVD) && "Cannot find VD!");
+
+  SourceLocation VarEndLoc = VarRange.getEnd();
+  SourceRange PrevDeclRange = PrevVD->getSourceRange();
+
+  SourceLocation PrevDeclEndLoc = 
+    getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
+
+  return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
 
