@@ -174,7 +174,7 @@ void TransformationManager::printTransformations(void)
   for (I = TransformationsMap.begin(), 
        E = TransformationsMap.end();
        I != E; ++I) {
-    llvm::outs() << "  " << (*I).first << ": "; 
+    llvm::outs() << "  [" << (*I).first << "]: "; 
     llvm::outs() << (*I).second->getDescription() << "\n";
   }
 }
