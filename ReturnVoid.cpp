@@ -11,7 +11,7 @@ static const char *DescriptionMsg =
 "Make a function return void. \
 Only change the prototype of the function and \
 delete all return statements in the function, \
-but skip the call sites of this function.";
+but skip the call sites of this function.\n";
  
 static RegisterTransformation<ReturnVoid> 
          Trans("return-void", DescriptionMsg);
