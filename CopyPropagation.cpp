@@ -349,6 +349,9 @@ void CopyPropagation::invalidateExpr(const Expr *E)
 void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
                                           const Expr *DominatedE)
 {
+  if (CopyE == DominatedE)
+    return;
+
   ExprSet *ESet = DominatedMap[CopyE];
   if (!ESet) {
     ESet = new ExprSet::SmallPtrSet();
