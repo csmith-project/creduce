@@ -829,9 +829,23 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
 
   DeclGroupRef::const_iterator I = DGR.begin();
   const VarDecl *FirstVD = dyn_cast<VarDecl>(*I);
-  TransAssert(FirstVD && "Not a valid VarDecl!");
+  // We cannot dyn_cast (*I) to VarDecl, because it could be a struct decl,
+  // e.g., struct S1 { int f1; } s2 = {1}, where FirstDecl is
+  // struct S1 {int f1;}. We need to skip it
+  if (!FirstVD) {
+    ++I;
+    TransAssert((I != DGR.end()) && "Bad Decl!");
+    FirstVD = dyn_cast<VarDecl>(*I);
+    TransAssert(FirstVD && "Invalid Var Decl!");
+    if (VD == FirstVD) {
+      SourceLocation StartLoc = VD->getLocation();
+      SourceLocation EndLoc = 
+        getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
 
-  if (VD == FirstVD) {
+      return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+    }
+  }
+  else if (VD == FirstVD) {
     SourceLocation StartLoc = getVarDeclTypeLocEnd(VD, TheRewriter);
 
     SourceLocation EndLoc = 
