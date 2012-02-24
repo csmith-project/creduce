@@ -11,7 +11,7 @@
 using namespace clang;
 
 static const char *DescriptionMsg =
-"Remove unused variable declarations. \n";
+"Remove unused local/global variable declarations. \n";
 
 static RegisterTransformation<RemoveUnusedVar>
          Trans("remove-unused-var", DescriptionMsg);
@@ -35,7 +35,7 @@ private:
 
 bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
 {
-  if (VD->isReferenced())
+  if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD))
     return true;
 
   ConsumerInstance->ValidInstanceNum++;
