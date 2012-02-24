@@ -144,9 +144,6 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
   }
 
-  if (!BeingPartial)
-    BeingPartial = true;
-
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
   // DRE could refer to FunctionDecl, etc
