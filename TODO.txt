@@ -24,8 +24,6 @@ replace a function call foo(x, y) with
   * a comma expr, (x, y, rv)
     where rv is a value with the correct type
 
-remove unused vars
-
 simplify a comma expression below:
 from
   x = (y, z);
