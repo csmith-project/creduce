@@ -12,10 +12,18 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Simplify a call expression with a comma expression. \
+"Simplify a call expression to a comma expression. \
 Replace function arguments with: \n\
   * 0 for integer and pointer arguments \n\
-  * a global temp variable for structs/unions\n";
+  * a global temp variable for structs/unions \n\
+and also append a representative return value which is the \n\
+the last inner expression of the comma expression. \n\
+For example, assume we have a function foo: \n\
+  int foo(int x, int *y, struct z) \
+Then this transformation will transform \
+  foo(i, p, s); \
+to \
+  (0, 0, tmp_var, 0);\n";
 
 static RegisterTransformation<SimplifyCallExpr>
          Trans("simplify-callexpr", DescriptionMsg);
