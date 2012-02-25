@@ -27,7 +27,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RenameVar.o RenameFun.o RenameParam.o CombineGlobalVarDecl.o \
                  CombineLocalVarDecl.o ReplaceCallExpr.o SimpleInliner.o \
                  RemoveUnusedFunction.o ReducePointerLevel.o LiftAssignmentExpr.o \
-                 CopyPropagation.o RemoveUnusedVar.o
+                 CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -87,6 +87,8 @@ LiftAssignmentExpr.o: LiftAssignmentExpr.cpp LiftAssignmentExpr.h Transformation
 CopyPropagation.o: CopyPropagation.cpp CopyPropagation.h Transformation.o
 
 RemoveUnusedVar.o: RemoveUnusedVar.cpp RemoveUnusedVar.h Transformation.o
+
+SimplifyCallExpr.o: SimplifyCallExpr.cpp SimplifyCallExpr.h Transformation.o
 
 clean:
 	rm -rf *.o
