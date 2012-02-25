@@ -163,6 +163,12 @@ public:
                             clang::Rewriter *TheRewriter,
                             clang::SourceManager *SrcManager);
 
+  static void getTmpTransName(unsigned Postfix, std::string &Name);
+
+  static bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
+                                     const std::string &Str,   
+                                     clang::Rewriter *TheRewriter,
+                                     clang::SourceManager *SrcManager);
 private:
 
   static const char *TmpVarNamePrefix;

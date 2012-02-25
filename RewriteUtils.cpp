@@ -1,6 +1,7 @@
 #include "RewriteUtils.h"
 
 #include <cctype>
+#include <sstream>
 #include "clang/Basic/SourceManager.h"
 #include "clang/Rewrite/Rewriter.h"
 #include "clang/AST/Decl.h"
@@ -875,5 +876,22 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
     getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
+}
+
+void RewriteUtils::getTmpTransName(unsigned Postfix, std::string &Name)
+{
+  std::stringstream SS;
+  SS << getTmpVarNamePrefix() << Postfix;
+  Name = SS.str();
+}
+
+bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
+                                          const std::string &Str,   
+                                          Rewriter *TheRewriter,
+                                          SourceManager *SrcManager)
+{
+  SourceRange FuncRange = FD->getSourceRange();
+  SourceLocation StartLoc = FuncRange.getBegin();
+  return !TheRewriter->InsertTextBefore(StartLoc, Str);
 }
 
