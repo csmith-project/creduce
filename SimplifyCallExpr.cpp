@@ -153,7 +153,7 @@ void SimplifyCallExpr::replaceCallExpr(void)
     NamePostfix++;
 
     CommaStr += ("," + RVStr);
-    Arg->getType().getAsStringInternal(RVStr, Context->getPrintingPolicy());
+    RVQualType.getAsStringInternal(RVStr, Context->getPrintingPolicy());
     RVStr += ";\n";
     RewriteUtils::insertStringBeforeFunc(CurrentFD, RVStr, 
                                     &TheRewriter, SrcManager);
