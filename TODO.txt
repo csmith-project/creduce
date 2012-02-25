@@ -2,9 +2,6 @@ TODO list:
 
 remove array dimension from a variable
 
-do copy propagation
-  especially try to replace calls and arguments with available exprs
-
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
@@ -14,15 +11,6 @@ from:
 to
   stuff1
   stuff2 
-
-replace a function call foo(x, y) with
-  * value with correct type
-    - for integer, make it as 0
-    - for pointer, make it as NULL
-    - for struct, add a new global tmp var
-
-  * a comma expr, (x, y, rv)
-    where rv is a value with the correct type
 
 simplify a comma expression below:
 from
