@@ -351,7 +351,7 @@ void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
 
   ExprSet *ESet = DominatedMap[CopyE];
   if (!ESet) {
-    ESet = new ExprSet::SmallPtrSet();
+    ESet = new ExprSet();
     TransAssert(ESet && "Couldn't new ExprSet");
     DominatedMap[CopyE] = ESet;
 

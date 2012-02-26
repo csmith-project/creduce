@@ -267,7 +267,7 @@ void ReplaceCallExpr::addOneReturnStmt(ReturnStmt *RS)
     FuncToReturnStmts.find(CurrentFD);
   ReturnStmtsVector *V;
   if (I == FuncToReturnStmts.end()) {
-    V = new ReturnStmtsVector::SmallVector();
+    V = new ReturnStmtsVector();
     TransAssert(V);
     FuncToReturnStmts[CurrentFD] = V;
   }
@@ -287,7 +287,7 @@ void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
     ReturnStmtToParmRefs.find(RS);
   ParmRefsVector *V;
   if (I == ReturnStmtToParmRefs.end()) {
-    V = new ParmRefsVector::SmallVector();
+    V = new ParmRefsVector();
     TransAssert(V);
     ReturnStmtToParmRefs[RS] = V;
   }

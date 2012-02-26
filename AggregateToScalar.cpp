@@ -340,7 +340,7 @@ void AggregateToScalar::addVarRefExpr(FieldDecl *FD, MemberExpr *ME)
       TheFieldDecl = FD;
     }
 
-    VarRefs = new VarRefsSet::set();
+    VarRefs = new VarRefsSet();
     ValidFields[FD] = VarRefs;
   }
   else {

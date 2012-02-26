@@ -52,7 +52,7 @@ void CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR)
   DeclGroupVector *DV;
   TypeToDeclMap::iterator TI = AllDeclGroups.find(CanonicalT);
   if (TI == AllDeclGroups.end()) {
-    DV = new DeclGroupVector::SmallVector();
+    DV = new DeclGroupVector();
     AllDeclGroups[CanonicalT] = DV;
   }
   else {

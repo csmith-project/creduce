@@ -439,7 +439,7 @@ void ReducePointerLevel::addOneDecl(const DeclaratorDecl *DD,
 {
   DeclSet *DDSet = AllPtrDecls[IndirectLevel];
   if (!DDSet) {
-    DDSet = new DeclSet::SmallPtrSet();
+    DDSet = new DeclSet();
     AllPtrDecls[IndirectLevel] = DDSet;
   }
   DDSet->insert(DD);

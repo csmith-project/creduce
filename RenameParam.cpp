@@ -221,7 +221,7 @@ void RenameParam::addLocalVar(VarDecl *VD)
     FunExistingVarsMap.find(CanonicalFD);
 
   if (I == FunExistingVarsMap.end()) {
-    CurrSet = new ExistingNumberSet::SmallSet();
+    CurrSet = new ExistingNumberSet();
     FunExistingVarsMap[CanonicalFD] = CurrSet;
   }
   else {
