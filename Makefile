@@ -20,7 +20,7 @@ LDFLAGS = ${LLVM_LDFLAGS}
 LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        -lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
        -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
-       ${LLVM_LIBS} 
+       ${LLVM_LIBS} -ldl
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
