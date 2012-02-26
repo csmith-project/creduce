@@ -1,5 +1,5 @@
-#ifndef STRUCT_TO_SCALAR_H
-#define STRUCT_TO_SCALAR_H
+#ifndef AGGREGATE_TO_SCALAR_H
+#define AGGREGATE_TO_SCALAR_H
 
 #include <string>
 #include <set>
