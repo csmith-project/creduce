@@ -46,7 +46,7 @@ private:
 
   bool rewriteOneCallExpr(CallExpr *CallE);
 
-  bool makeParamAsGlobalVar(FunctionDecl *FP,
+  bool makeParamAsGlobalVar(FunctionDecl *FD,
                             const ParmVarDecl *PV);
 
   std::string getNewName(FunctionDecl *FP,
@@ -159,21 +159,19 @@ std::string PToGASTVisitor::getNewName(FunctionDecl *FP,
   return NewName;
 }
 
-bool PToGASTVisitor::makeParamAsGlobalVar(FunctionDecl *FP,
+bool PToGASTVisitor::makeParamAsGlobalVar(FunctionDecl *FD,
                                           const ParmVarDecl *PV)
 {
   std::string GlobalVarStr;
 
   GlobalVarStr = PV->getType().getAsString();
   GlobalVarStr += " ";
-  GlobalVarStr += getNewName(FP, PV);
+  GlobalVarStr += getNewName(FD, PV);
   GlobalVarStr += ";\n";
 
-  SourceRange FuncRange = FP->getSourceRange();
-  SourceLocation StartLoc = FuncRange.getBegin();
-  return !(ConsumerInstance->TheRewriter.InsertText(StartLoc, 
-                                                    GlobalVarStr,
-                                                    false));
+  return RewriteUtils::insertStringBeforeFunc(FD, GlobalVarStr,
+                                              &ConsumerInstance->TheRewriter,
+                                              ConsumerInstance->SrcManager);
 }
 
 bool PToGASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
