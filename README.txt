@@ -22,4 +22,3 @@ For detailed options:
 
 (4) Known problems:
   * bad transformation on functions invovled with function pointers
-
