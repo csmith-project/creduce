@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -69,13 +68,10 @@ bool CallExprToValueVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 void CallExprToValue::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new CallExprToValueVisitor(this);
   NameQueryWrap = 
-    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+    new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
 void CallExprToValue::HandleTopLevelDecl(DeclGroupRef D) 
@@ -123,21 +119,19 @@ void CallExprToValue::replaceCallExpr(void)
   }
   else if (RVType->isUnionType() || RVType->isStructureType()) {
     std::string RVStr("");
-    RewriteUtils::getTmpTransName(NamePostfix, RVStr);
+    RewriteHelper->getTmpTransName(NamePostfix, RVStr);
     NamePostfix++;
 
     CommaStr = RVStr;
     RVQualType.getAsStringInternal(RVStr, Context->getPrintingPolicy());
     RVStr += ";\n";
-    RewriteUtils::insertStringBeforeFunc(CurrentFD, RVStr, 
-                                    &TheRewriter, SrcManager);
+    RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
   }
   else {
     CommaStr = "0";
   }
 
-  RewriteUtils::replaceExpr(TheCallExpr, CommaStr, 
-                            &TheRewriter, SrcManager);
+  RewriteHelper->replaceExpr(TheCallExpr, CommaStr);
 }
 
 CallExprToValue::~CallExprToValue(void)

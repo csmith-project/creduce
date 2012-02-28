@@ -12,7 +12,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 
@@ -60,11 +59,8 @@ private:
 
 void ParamToLocal::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   TransformationASTVisitor = new PToLASTVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -144,11 +140,9 @@ bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV,
                                  unsigned int NumParams)
 {
   return 
-    RewriteUtils::removeParamFromFuncDecl(PV, 
+    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
                                           NumParams,
-                                          ConsumerInstance->TheParamPos,
-                                          &(ConsumerInstance->TheRewriter),
-                                          ConsumerInstance->SrcManager);
+                                          ConsumerInstance->TheParamPos);
 }
 
 bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
@@ -167,9 +161,7 @@ bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
   }
   LocalVarStr += ";";
 
-  return RewriteUtils::addLocalVarToFunc(LocalVarStr, FD,
-                                         &ConsumerInstance->TheRewriter,
-                                         ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
 }
 
 bool PToLASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
@@ -201,10 +193,8 @@ bool PToLASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool PToLASTVisitor::rewriteOneCallExpr(CallExpr *CallE)
 {
   return 
-    RewriteUtils::removeArgFromCallExpr(CallE, 
-                                        ConsumerInstance->TheParamPos,
-                                        &(ConsumerInstance->TheRewriter),
-                                        ConsumerInstance->SrcManager);
+    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
+                                        ConsumerInstance->TheParamPos);
 }
 
 void PToLASTVisitor::rewriteAllCallExprs(void)

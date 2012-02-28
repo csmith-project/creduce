@@ -6,7 +6,7 @@
 //===----------------------------------------------------------------------===//
 
 #ifndef REWRITE_UTILS_H
-#define REWRITE_UTILS_h
+#define REWRITE_UTILS_H
 
 #include <string>
 #include "clang/Basic/SourceLocation.h"
@@ -28,206 +28,155 @@ namespace clang {
 
 class RewriteUtils {
 public:
-  static clang::SourceLocation getEndLocationFromBegin
-    (clang::SourceRange Range, clang::Rewriter *TheRewriter);
+  static RewriteUtils *GetInstance(clang::Rewriter *RW);
 
-  static bool removeParamFromFuncDecl(const clang::ParmVarDecl *PV,
+  static void Finalize(void);
+
+  clang::SourceLocation getEndLocationFromBegin(clang::SourceRange Range);
+
+  bool removeParamFromFuncDecl(const clang::ParmVarDecl *PV,
                                       unsigned int NumParams,
-                                      int ParamPos,
-                                      clang::Rewriter *TheRewriter,
-                                      clang::SourceManager *SrcManager);
+                                      int ParamPos);
 
-  static bool removeArgFromCallExpr(clang::CallExpr *CallE,
-                                    int ParamPos,
-                                    clang::Rewriter *TheRewriter,
-                                    clang::SourceManager *SrcManager);
+  bool removeArgFromCallExpr(clang::CallExpr *CallE,
+                                    int ParamPos);
                                     
-  static bool removeVarFromDeclStmt(clang::DeclStmt *DS,
+  bool removeVarFromDeclStmt(clang::DeclStmt *DS,
                                     const clang::VarDecl *VD,
                                     clang::Decl *PrevDecl,
-                                    bool IsFirstDecl,
-                                    clang::Rewriter *TheRewriter,
-                                    clang::SourceManager *SrcManager);
+                                    bool IsFirstDecl);
 
-  static bool getExprString(const clang::Expr *E, 
-                            std::string &ES,
-                            clang::Rewriter *TheRewriter,
-                            clang::SourceManager *SrcManager);
+  bool getExprString(const clang::Expr *E, 
+                            std::string &ES);
 
-  static bool getStmtString(const clang::Stmt *S, 
-                            std::string &Str,
-                            clang::Rewriter *TheRewriter,
-                            clang::SourceManager *SrcManager);
+  bool getStmtString(const clang::Stmt *S, 
+                            std::string &Str);
 
-  static bool replaceExpr(const clang::Expr *E, 
-                          const std::string &ES,
-                          clang::Rewriter *TheRewriter,
-                          clang::SourceManager *SrcManager);
+  bool replaceExpr(const clang::Expr *E, 
+                          const std::string &ES);
 
-  static bool replaceExprNotInclude(const clang::Expr *E, 
-                          const std::string &ES,
-                          clang::Rewriter *TheRewriter,
-                          clang::SourceManager *SrcManager);
+  bool replaceExprNotInclude(const clang::Expr *E, 
+                          const std::string &ES);
 
-  static bool addLocalVarToFunc(const std::string &VarStr,
-                                clang::FunctionDecl *FD,
-                                clang::Rewriter *TheRewriter,
-                                clang::SourceManager *SrcManager);
+  bool addLocalVarToFunc(const std::string &VarStr,
+                                clang::FunctionDecl *FD);
                                  
-  static std::string getStmtIndentString(clang::Stmt *S,
+  std::string getStmtIndentString(clang::Stmt *S,
                                          clang::SourceManager *SrcManager);
 
-  static bool addNewAssignStmtBefore(clang::Stmt *BeforeStmt,
+  bool addNewAssignStmtBefore(clang::Stmt *BeforeStmt,
                                      const std::string &VarName,
                                      clang::Expr *RHS,
-                                     bool NeedParen,
-                                     clang::Rewriter *TheRewriter,
-                                     clang::SourceManager *SrcManager);
+                                     bool NeedParen);
 
-  static bool addStringBeforeStmt(clang::Stmt *BeforeStmt,
+  bool addStringBeforeStmt(clang::Stmt *BeforeStmt,
                                   const std::string &Str,
-                                  bool NeedParen,
-                                  clang::Rewriter *TheRewriter,
-                                  clang::SourceManager *SrcManager);
+                                  bool NeedParen);
 
-  static bool addStringAfterStmt(clang::Stmt *AfterStmt, 
-                                 const std::string &Str,
-                                 clang::Rewriter *TheRewriter,
-                                 clang::SourceManager *SrcManager);
+  bool addStringAfterStmt(clang::Stmt *AfterStmt, 
+                                 const std::string &Str);
 
-  static bool addStringAfterVarDecl(clang::VarDecl *VD,
-                                    const std::string &Str,
-                                    clang::Rewriter *TheRewriter,
-                                    clang::SourceManager *SrcManager);
+  bool addStringAfterVarDecl(clang::VarDecl *VD,
+                                    const std::string &Str);
 
-  static bool replaceVarDeclName(clang::VarDecl *VD,
-                              const std::string &NameStr,
-                              clang::Rewriter *TheRewriter,
-                              clang::SourceManager *SrcManager);
+  bool replaceVarDeclName(clang::VarDecl *VD,
+                              const std::string &NameStr);
 
-  static bool replaceFunctionDeclName(clang::FunctionDecl *FD,
-                              const std::string &NameStr,
-                              clang::Rewriter *TheRewriter,
-                              clang::SourceManager *SrcManager);
+  bool replaceFunctionDeclName(clang::FunctionDecl *FD,
+                              const std::string &NameStr);
 
-  static const char *getTmpVarNamePrefix(void);
+  const char *getTmpVarNamePrefix(void);
 
-  static void getStringBetweenLocs(std::string &Str, 
+  void getStringBetweenLocs(std::string &Str, 
                                    clang::SourceLocation LocStart,
-                                   clang::SourceLocation LocEnd, 
-                                   clang::Rewriter *TheRewriter,
-                                   clang::SourceManager *SrcManager);
+                                   clang::SourceLocation LocEnd);
 
-  static bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, 
-                                       std::string &Str,
-                                       clang::Rewriter *TheRewriter,
-                                       clang::SourceManager *SrcManager);
+  bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, 
+                                       std::string &Str);
 
-  static clang::SourceLocation getDeclGroupRefEndLoc(clang::DeclGroupRef DGR,
-                                          clang::Rewriter* TheRewriter,
-                                          clang::SourceManager *SrcManager);
+  clang::SourceLocation getDeclGroupRefEndLoc(clang::DeclGroupRef DGR);
 
-  static bool getDeclStmtStrAndRemove(clang::DeclStmt *DS, 
-                                      std::string &Str,
-                                      clang::Rewriter *TheRewriter,
-                                      clang::SourceManager *SrcManager);
+  bool getDeclStmtStrAndRemove(clang::DeclStmt *DS, 
+                                      std::string &Str);
 
-  static clang::SourceLocation getDeclStmtEndLoc(clang::DeclStmt *DS,
-                                          clang::Rewriter* TheRewriter,
-                                          clang::SourceManager *SrcManager);
+  clang::SourceLocation getDeclStmtEndLoc(clang::DeclStmt *DS);
 
-  static bool removeAStarBefore(const clang::Decl *D,
-                                clang::Rewriter *TheRewriter,
-                                clang::SourceManager *SrcManager);
+  bool removeAStarBefore(const clang::Decl *D);
 
-  static bool removeAStarAfter(const clang::Expr *E,
-                               clang::Rewriter *TheRewriter,
-                               clang::SourceManager *SrcManager);
+  bool removeAStarAfter(const clang::Expr *E);
 
-  static bool removeAnAddrOfAfter(const clang::Expr *E,
-                               clang::Rewriter *TheRewriter,
-                               clang::SourceManager *SrcManager);
+  bool removeAnAddrOfAfter(const clang::Expr *E);
 
-  static bool removeASymbolAfter(const clang::Expr *E,
-                                 char Symbol,
-                                 clang::Rewriter *TheRewriter,
-                                 clang::SourceManager *SrcManager);
+  bool removeASymbolAfter(const clang::Expr *E, char Symbol);
 
-  static bool insertAnAddrOfBefore(const clang::DeclRefExpr *DRE,
-                                clang::Rewriter *TheRewriter,
-                                clang::SourceManager *SrcManager);
+  bool insertAnAddrOfBefore(const clang::DeclRefExpr *DRE);
 
-  static bool insertAStarBefore(const clang::Expr *E,
-                                clang::Rewriter *TheRewriter,
-                                clang::SourceManager *SrcManager);
+  bool insertAStarBefore(const clang::Expr *E);
 
-  static bool removeVarInitExpr(const clang::VarDecl *VD, 
-                                clang::Rewriter *TheRewriter, 
-                                clang::SourceManager *SrcManager);
+  bool removeVarInitExpr(const clang::VarDecl *VD);
 
-  static bool removeVarDecl(const clang::VarDecl *VD,
-                            clang::DeclGroupRef DGR,
-                            clang::Rewriter *TheRewriter,
-                            clang::SourceManager *SrcManager);
+  bool removeVarDecl(const clang::VarDecl *VD,
+                            clang::DeclGroupRef DGR);
 
-  static void getTmpTransName(unsigned Postfix, std::string &Name);
+  void getTmpTransName(unsigned Postfix, std::string &Name);
 
-  static bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
-                                     const std::string &Str,   
-                                     clang::Rewriter *TheRewriter,
-                                     clang::SourceManager *SrcManager);
+  bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
+                              const std::string &Str);
 private:
+
+  static RewriteUtils *Instance;
 
   static const char *TmpVarNamePrefix;
 
-  static int getOffsetUntil(const char *Buf, char Symbol);
+  clang::Rewriter *TheRewriter;
 
-  static int getSkippingOffset(const char *Buf, char Symbol);
+  clang::SourceManager *SrcManager;
 
-  static clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
-                                           char Symbol, 
-                                           clang::Rewriter *TheRewriter,
-                                           clang::SourceManager *SrcManager);
+  RewriteUtils(void)
+  : TheRewriter(NULL),
+    SrcManager(NULL)
+  { }
 
-  static clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
-                                           char Symbol, 
-                                           clang::Rewriter *TheRewriter,
-                                           clang::SourceManager *SrcManager);
+  ~RewriteUtils(void) { }
 
-  static clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
-                                           char Symbol, 
-                                           clang::Rewriter *TheRewriter,
-                                           clang::SourceManager *SrcManager);
+  int getOffsetUntil(const char *Buf, char Symbol);
 
-  static clang::SourceLocation getLocationAfter(clang::SourceLocation StartLoc,
-                                           char Symbol,
-                                           clang::Rewriter *TheRewriter,
-                                           clang::SourceManager *SrcManager);
+  int getSkippingOffset(const char *Buf, char Symbol);
 
-  static unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
+  clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
+                                            char Symbol);
+
+  clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
+                                           char Symbol);
+
+  clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
+                                           char Symbol);
+
+  clang::SourceLocation getLocationAfter(clang::SourceLocation StartLoc,
+                                           char Symbol);
+
+  unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,
                                              clang::SourceManager *SrcManager);
 
-  static clang::SourceLocation getVarDeclTypeLocEnd(const clang::VarDecl *VD,
-                                 clang::Rewriter *TheRewriter);
+  clang::SourceLocation getVarDeclTypeLocEnd(const clang::VarDecl *VD);
 
-  static clang::SourceLocation 
+  clang::SourceLocation 
     getParamSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
-                         const std::string &Substr, 
-                         clang::Rewriter *TheRewriter,
-                         clang::SourceManager *SrcManager);
+                         const std::string &Substr);
 
-  static void indentAfterNewLine(llvm::StringRef Str,
+  void indentAfterNewLine(llvm::StringRef Str,
                                  std::string &NewStr,
                                  const std::string &IndentStr);
 
-  static unsigned getOffsetBetweenLocations(clang::SourceLocation StartLoc,
+  unsigned getOffsetBetweenLocations(clang::SourceLocation StartLoc,
                                             clang::SourceLocation EndLoc,
                                             clang::SourceManager *SrcManager);
 
-  RewriteUtils(void);
+  // Unimplemented
+  RewriteUtils(const RewriteUtils &);
 
-  ~RewriteUtils(void);
+  void operator=(const RewriteUtils &);
 };
 
 #endif

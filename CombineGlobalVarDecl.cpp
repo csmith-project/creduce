@@ -13,7 +13,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -40,10 +39,7 @@ static RegisterTransformation<CombineGlobalVarDecl>
 
 void CombineGlobalVarDecl::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+  Transformation::Initialize(context);
 }
 
 void CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
@@ -115,11 +111,10 @@ void CombineGlobalVarDecl::doCombination(void)
   DeclGroupRef SecondDGR = DeclGroupRef::getFromOpaquePtr(P2);
 
   SourceLocation EndLoc = 
-    RewriteUtils::getDeclGroupRefEndLoc(FirstDGR, &TheRewriter, SrcManager);
+    RewriteHelper->getDeclGroupRefEndLoc(FirstDGR);
 
   std::string DStr;
-  RewriteUtils::getDeclGroupStrAndRemove(SecondDGR, DStr, 
-                                         &TheRewriter, SrcManager);
+  RewriteHelper->getDeclGroupStrAndRemove(SecondDGR, DStr);
   TheRewriter.InsertText(EndLoc, ", " + DStr, /*InsertAfter=*/false);
 }
 

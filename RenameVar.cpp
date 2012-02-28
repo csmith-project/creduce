@@ -13,7 +13,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -80,8 +79,7 @@ bool RenameVarVisitor::VisitVarDecl(VarDecl *VD)
     return true;
 
   std::string Name(1, (*I).second);
-  return RewriteUtils::replaceVarDeclName(VD, Name, 
-           &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->replaceVarDeclName(VD, Name);
 }
 
 bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
@@ -99,18 +97,15 @@ bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
 
   std::string Name(1, (*I).second);
-  return RewriteUtils::replaceExpr(DRE, Name, 
-           &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->replaceExpr(DRE, Name);
 }
 
 void RenameVar::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
+
   VarCollectionVisitor = new RNVCollectionVisitor(this);
   RenameVisitor = new RenameVarVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 
   for (char C = 'z'; C >= 'a'; C--) {
     AvailableNames.push_back(C);

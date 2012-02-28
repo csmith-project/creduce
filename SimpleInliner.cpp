@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -382,15 +381,12 @@ bool SimpleInlinerStmtVisitor::VisitCallExpr(CallExpr *CallE)
 }
 void SimpleInliner::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   NameQueryWrap = 
-    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
+    new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
   CollectionVisitor = new SimpleInlinerCollectionVisitor(this);
   FunctionVisitor = new SimpleInlinerFunctionVisitor(this);
   StmtVisitor = new SimpleInlinerStmtVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void SimpleInliner::HandleTopLevelDecl(DeclGroupRef D) 
@@ -527,7 +523,7 @@ void SimpleInliner::doAnalysis(void)
 std::string SimpleInliner::getNewTmpName(void)
 {
   std::stringstream SS;
-  SS << RewriteUtils::getTmpVarNamePrefix() << NamePostfix;
+  SS << RewriteHelper->getTmpVarNamePrefix() << NamePostfix;
   NamePostfix++;
   return SS.str();
 }
@@ -547,8 +543,7 @@ void SimpleInliner::createReturnVar(void)
   CurrentFD->getResultType().getAsStringInternal(VarStr, 
                                Context->getPrintingPolicy());
   VarStr += ";";
-  RewriteUtils::addLocalVarToFunc(VarStr, TheCaller,
-                                 &TheRewriter, SrcManager);
+  RewriteHelper->addLocalVarToFunc(VarStr, TheCaller);
 }
 
 void SimpleInliner::generateParamStrings(void)
@@ -566,7 +561,7 @@ void SimpleInliner::generateParamStrings(void)
       const Expr *Arg = TheCallExpr->getArg(Idx);
       ParmStr += " = ";
       std::string ArgStr("");
-      RewriteUtils::getExprString(Arg, ArgStr, &TheRewriter, SrcManager);
+      RewriteHelper->getExprString(Arg, ArgStr);
       ParmStr += ArgStr;
     }
     ParmStr += ";\n";
@@ -617,7 +612,7 @@ void SimpleInliner::copyFunctionBody(void)
   TransAssert(Body && "NULL Body!");
 
   std::string FuncBodyStr("");
-  RewriteUtils::getStmtString(Body, FuncBodyStr, &TheRewriter, SrcManager);
+  RewriteHelper->getStmtString(Body, FuncBodyStr);
   TransAssert(FuncBodyStr[0] == '{');
 
   SourceLocation StartLoc = Body->getLocStart();
@@ -660,8 +655,7 @@ void SimpleInliner::copyFunctionBody(void)
     Delta -= ReturnSZ;
   }
 
-  RewriteUtils::addStringBeforeStmt(TheStmt, FuncBodyStr, NeedParen,
-                                    &TheRewriter, SrcManager);
+  RewriteHelper->addStringBeforeStmt(TheStmt, FuncBodyStr, NeedParen);
 }
 
 void SimpleInliner::replaceCallExpr(void)
@@ -671,8 +665,7 @@ void SimpleInliner::replaceCallExpr(void)
   generateParamStrings();
   copyFunctionBody();
 
-  RewriteUtils::replaceExprNotInclude(TheCallExpr, TmpVarName,
-                            &TheRewriter, SrcManager);
+  RewriteHelper->replaceExprNotInclude(TheCallExpr, TmpVarName);
 }
 
 SimpleInliner::~SimpleInliner(void)

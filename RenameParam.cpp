@@ -13,7 +13,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -103,8 +102,7 @@ bool RenameParamVisitor::VisitFunctionDecl(FunctionDecl *FD)
     std::stringstream TmpSS;
     TmpSS << ConsumerInstance->ParamNamePrefix << CurrPostfix;
 
-    RewriteUtils::replaceVarDeclName(PD, TmpSS.str(), 
-           &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
+    ConsumerInstance->RewriteHelper->replaceVarDeclName(PD, TmpSS.str());
 
     if (FD->isThisDeclarationADefinition()) {
       ParamNameMap[*I] = TmpSS.str();
@@ -125,18 +123,14 @@ bool RenameParamVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     ParamNameMap.find(PD);
   TransAssert((I != ParamNameMap.end()) && "Bad Param!");
   
-  return RewriteUtils::replaceExpr(DRE, (*I).second, 
-           &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->replaceExpr(DRE, (*I).second);
 }
 
 void RenameParam::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   VarCollectionVisitor = new ExistingVarCollectionVisitor(this);
   RenameVisitor = new RenameParamVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
   ValidInstanceNum = 1;
 }
 

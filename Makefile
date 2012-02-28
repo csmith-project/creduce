@@ -5,7 +5,8 @@
 #
 #===----------------------------------------------------------------------===
 
-llvm_dir = ${LLVM_PATH}
+#llvm_dir = ${LLVM_PATH}
+llvm_dir = /uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0
 
 ENABLE_TRANS_ASSERT = -DENABLE_TRANS_ASSERT
 ifeq (${DISABLE_TRANS_ASSERT}, 1)

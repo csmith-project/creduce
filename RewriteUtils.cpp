@@ -30,7 +30,33 @@ using namespace llvm;
 
 static const char *DefaultIndentStr = "    ";
 
+RewriteUtils *RewriteUtils::Instance;
+
 const char *RewriteUtils::TmpVarNamePrefix = "__trans_tmp_";
+
+RewriteUtils *RewriteUtils::GetInstance(Rewriter *RW)
+{
+  if (RewriteUtils::Instance) {
+    RewriteUtils::Instance->TheRewriter = RW;
+    RewriteUtils::Instance->SrcManager = &(RW->getSourceMgr());
+    return RewriteUtils::Instance;
+  }
+
+  RewriteUtils::Instance = new RewriteUtils();
+  assert(RewriteUtils::Instance);
+
+  RewriteUtils::Instance->TheRewriter = RW;
+  RewriteUtils::Instance->SrcManager = &(RW->getSourceMgr());
+  return RewriteUtils::Instance;
+}
+
+void RewriteUtils::Finalize(void)
+{
+  if (RewriteUtils::Instance) {
+    delete RewriteUtils::Instance;
+    RewriteUtils::Instance = NULL;
+  }
+}
 
 // copied from Rewriter.cpp
 unsigned RewriteUtils::getLocationOffsetAndFileID(SourceLocation Loc,
@@ -56,8 +82,7 @@ unsigned RewriteUtils::getOffsetBetweenLocations(SourceLocation StartLoc,
   return (EndOffset - StartOffset);
 }
 
-SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range,
-                                                     Rewriter *TheRewriter)
+SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range)
 {
   int LocRangeSize = TheRewriter->getRangeSize(Range);
   if (LocRangeSize == -1)
@@ -89,11 +114,9 @@ int RewriteUtils::getSkippingOffset(const char *Buf, char Symbol)
 }
 
 SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range, 
-                                                 char Symbol,
-                                                 Rewriter *TheRewriter,
-                                                 SourceManager *SrcManager)
+                                                 char Symbol)
 {
-  SourceLocation EndLoc = getEndLocationFromBegin(Range, TheRewriter);
+  SourceLocation EndLoc = getEndLocationFromBegin(Range);
     
   const char *EndBuf = SrcManager->getCharacterData(EndLoc);
   int Offset = getOffsetUntil(EndBuf, Symbol);
@@ -101,9 +124,7 @@ SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range,
 }
 
 SourceLocation RewriteUtils::getLocationUntil(SourceLocation Loc, 
-                                              char Symbol,
-                                              Rewriter *TheRewriter,
-                                              SourceManager *SrcManager)
+                                              char Symbol)
 {
   const char *Buf = SrcManager->getCharacterData(Loc);
   int Offset = getOffsetUntil(Buf, Symbol);
@@ -111,11 +132,9 @@ SourceLocation RewriteUtils::getLocationUntil(SourceLocation Loc,
 }
 
 SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range, 
-                                                char Symbol,
-                                                Rewriter *TheRewriter,
-                                                SourceManager *SrcManager)
+                                                char Symbol)
 {
-  SourceLocation EndLoc = getEndLocationFromBegin(Range, TheRewriter);
+  SourceLocation EndLoc = getEndLocationFromBegin(Range);
     
   const char *EndBuf = SrcManager->getCharacterData(EndLoc);
   int Offset = getOffsetUntil(EndBuf, Symbol);
@@ -124,9 +143,7 @@ SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range,
 }
 
 SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc, 
-                                              char Symbol,
-                                              Rewriter *TheRewriter,
-                                              SourceManager *SrcManager)
+                                              char Symbol)
 {
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   int Offset = getSkippingOffset(StartBuf, Symbol);
@@ -135,9 +152,7 @@ SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc,
 
 SourceLocation RewriteUtils::getParamSubstringLocation(SourceLocation StartLoc,
                                               size_t Size,
-                                              const std::string &Substr,
-                                              Rewriter *TheRewriter,
-                                              SourceManager *SrcManager)
+                                              const std::string &Substr)
 {
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   std::string TmpStr(StartBuf, Size);
@@ -153,9 +168,7 @@ SourceLocation RewriteUtils::getParamSubstringLocation(SourceLocation StartLoc,
 
 bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
                                            unsigned int NumParams,
-                                           int ParamPos,
-                                           Rewriter *TheRewriter,
-                                           SourceManager *SrcManager)
+                                           int ParamPos)
 {
   SourceRange ParamLocRange = PV->getSourceRange();
   int RangeSize;
@@ -243,9 +256,7 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
 }
 
 bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
-                                        int ParamPos,
-                                        Rewriter *TheRewriter,
-                                        SourceManager *SrcManager)
+                                        int ParamPos)
 {
   if (ParamPos >= static_cast<int>(CallE->getNumArgs()))
     return true;
@@ -303,8 +314,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
 }
 
-SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD,
-                                                  Rewriter *TheRewriter)
+SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 {
   TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
 
@@ -316,16 +326,14 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD,
 
   SourceRange TypeLocRange = VarTypeLoc.getSourceRange();
   SourceLocation EndLoc = 
-    getEndLocationFromBegin(TypeLocRange, TheRewriter);
+    getEndLocationFromBegin(TypeLocRange);
   return EndLoc;
 }
 
 bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
                                          const VarDecl *VD,
                                          Decl *PrevDecl,
-                                         bool IsFirstDecl,
-                                         Rewriter *TheRewriter,
-                                         SourceManager *SrcManager)
+                                         bool IsFirstDecl)
 {
   SourceRange StmtRange = DS->getSourceRange();
 
@@ -345,10 +353,9 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     // If we rely on the StartLoc of a var name, then we will make bad
     // transformation like:
     //   int * *y;
-    SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD, TheRewriter);
+    SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD);
 
-    SourceLocation NewEndLoc = 
-      getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
+    SourceLocation NewEndLoc = getEndLocationUntil(VarRange, ',');
     
     return 
       !(TheRewriter->RemoveText(SourceRange(NewStartLoc, NewEndLoc)));
@@ -358,16 +365,13 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   SourceLocation VarEndLoc = VarRange.getEnd();
   SourceRange PrevDeclRange = PrevDecl->getSourceRange();
 
-  SourceLocation PrevDeclEndLoc = 
-    getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
+  SourceLocation PrevDeclEndLoc = getEndLocationUntil(PrevDeclRange, ',');
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
 
 bool RewriteUtils::getExprString(const Expr *E, 
-                                 std::string &ES,
-                                 Rewriter *TheRewriter,
-                                 SourceManager *SrcManager)
+                                 std::string &ES)
 {
   SourceRange ExprRange = E->getSourceRange();
    
@@ -390,9 +394,7 @@ bool RewriteUtils::getExprString(const Expr *E,
 }
 
 bool RewriteUtils::getStmtString(const Stmt *S, 
-                                 std::string &Str,
-                                 Rewriter *TheRewriter,
-                                 SourceManager *SrcManager)
+                                 std::string &Str)
 {
   SourceRange StmtRange = S->getSourceRange();
    
@@ -409,9 +411,7 @@ bool RewriteUtils::getStmtString(const Stmt *S,
 }
 
 bool RewriteUtils::replaceExpr(const Expr *E, 
-                               const std::string &ES,
-                               Rewriter *TheRewriter,
-                               SourceManager *SrcManager)
+                               const std::string &ES)
 {
   SourceRange ExprRange = E->getSourceRange();
    
@@ -423,9 +423,7 @@ bool RewriteUtils::replaceExpr(const Expr *E,
 }
 
 bool RewriteUtils::replaceExprNotInclude(const Expr *E, 
-                               const std::string &ES,
-                               Rewriter *TheRewriter,
-                               SourceManager *SrcManager)
+                               const std::string &ES)
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation StartLoc = ExprRange.getBegin();
@@ -468,9 +466,7 @@ std::string RewriteUtils::getStmtIndentString(Stmt *S,
 }
 
 bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
-                                     FunctionDecl *FD,
-                                     Rewriter *TheRewriter,
-                                     SourceManager *SrcManager)
+                                     FunctionDecl *FD)
 {
   Stmt *Body = FD->getBody();
   TransAssert(Body && "NULL body for a function definition!");
@@ -496,9 +492,7 @@ const char *RewriteUtils::getTmpVarNamePrefix(void)
 bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
                                           const std::string &VarName,
                                           Expr *RHS,
-                                          bool NeedParen,
-                                          Rewriter *TheRewriter,
-                                          SourceManager *SrcManager)
+                                          bool NeedParen)
 {
   std::string IndentStr = 
     RewriteUtils::getStmtIndentString(BeforeStmt, SrcManager);
@@ -506,7 +500,7 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
   if (NeedParen) {
     SourceRange StmtRange = BeforeStmt->getSourceRange();
     SourceLocation LocEnd = 
-      RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+      RewriteUtils::getEndLocationFromBegin(StmtRange);
 
     std::string PostStr = "\n" + IndentStr + "}";
     if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
@@ -516,8 +510,7 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
   SourceLocation StmtLocStart = BeforeStmt->getLocStart();
 
   std::string ExprStr;
-  RewriteUtils::getExprString(RHS, ExprStr,
-                              TheRewriter, SrcManager);
+  RewriteUtils::getExprString(RHS, ExprStr);
 
   std::string AssignStmtStr;
   
@@ -552,9 +545,7 @@ void RewriteUtils::indentAfterNewLine(StringRef Str,
 
 bool RewriteUtils::addStringBeforeStmt(Stmt *BeforeStmt,
                                    const std::string &Str,
-                                   bool NeedParen,
-                                   Rewriter *TheRewriter,
-                                   SourceManager *SrcManager)
+                                   bool NeedParen)
 {
   std::string IndentStr = 
     RewriteUtils::getStmtIndentString(BeforeStmt, SrcManager);
@@ -562,7 +553,7 @@ bool RewriteUtils::addStringBeforeStmt(Stmt *BeforeStmt,
   if (NeedParen) {
     SourceRange StmtRange = BeforeStmt->getSourceRange();
     SourceLocation LocEnd = 
-      RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+      RewriteUtils::getEndLocationFromBegin(StmtRange);
 
     std::string PostStr = "\n" + IndentStr + "}";
     if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
@@ -586,9 +577,7 @@ bool RewriteUtils::addStringBeforeStmt(Stmt *BeforeStmt,
 }
 
 bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt, 
-                                      const std::string &Str,
-                                      Rewriter *TheRewriter,
-                                      SourceManager *SrcManager)
+                                      const std::string &Str)
 {
   std::string IndentStr = 
     RewriteUtils::getStmtIndentString(AfterStmt, SrcManager);
@@ -596,27 +585,22 @@ bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt,
   std::string NewStr = "\n" + IndentStr + Str;
   SourceRange StmtRange = AfterStmt->getSourceRange();
   SourceLocation LocEnd = 
-    RewriteUtils::getEndLocationFromBegin(StmtRange, TheRewriter);
+    RewriteUtils::getEndLocationFromBegin(StmtRange);
   
   return !(TheRewriter->InsertText(LocEnd, NewStr));
 }
 
 bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
-                                         const std::string &Str,
-                                         Rewriter *TheRewriter,
-                                         SourceManager *SrcManager)
+                                         const std::string &Str)
 {
   SourceRange VarRange = VD->getSourceRange();
-  SourceLocation LocEnd = 
-    RewriteUtils::getEndLocationAfter(VarRange, ';', TheRewriter, SrcManager);
+  SourceLocation LocEnd = RewriteUtils::getEndLocationAfter(VarRange, ';');
   
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
 bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
-                                      const std::string &NameStr,
-                                      Rewriter *TheRewriter,
-                                      SourceManager *SrcManager)
+                                      const std::string &NameStr)
 {
   SourceLocation NameLocStart = VD->getLocation();
   return !(TheRewriter->ReplaceText(NameLocStart, 
@@ -624,9 +608,7 @@ bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
 }
 
 bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
-                                      const std::string &NameStr,
-                                      Rewriter *TheRewriter,
-                                      SourceManager *SrcManager)
+                                      const std::string &NameStr)
 {
   return !TheRewriter->ReplaceText(FD->getNameInfo().getLoc(),
                                    FD->getNameAsString().length(),
@@ -635,9 +617,7 @@ bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
 
 void RewriteUtils::getStringBetweenLocs(std::string &Str, 
                                         SourceLocation LocStart,
-                                        SourceLocation LocEnd, 
-                                        Rewriter *TheRewriter,
-                                        SourceManager *SrcManager)
+                                        SourceLocation LocEnd)
 {
   const char *StartBuf = SrcManager->getCharacterData(LocStart);
   const char *EndBuf = SrcManager->getCharacterData(LocEnd);
@@ -647,9 +627,7 @@ void RewriteUtils::getStringBetweenLocs(std::string &Str,
 }
 
 bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR, 
-                                   std::string &Str,
-                                   Rewriter *TheRewriter,
-                                   SourceManager *SrcManager)
+                                   std::string &Str)
 {
   if (DGR.isSingleDecl()) {
     Decl *D = DGR.getSingleDecl();
@@ -663,17 +641,15 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     // If we rely on the StartLoc of a var name, then we will make bad
     // transformation like:
     //   int *x, y;
-    SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD, TheRewriter);
+    SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD);
     SourceRange VarRange = VD->getSourceRange();
 
-    SourceLocation LocEnd = 
-      getEndLocationUntil(VarRange, ';', TheRewriter, SrcManager);
+    SourceLocation LocEnd = getEndLocationUntil(VarRange, ';');
 
-    getStringBetweenLocs(Str, TypeLocEnd, LocEnd, TheRewriter, SrcManager);
+    getStringBetweenLocs(Str, TypeLocEnd, LocEnd);
 
     SourceLocation StartLoc = VarRange.getBegin();
-    SourceLocation NewEndLoc = 
-      getLocationAfter(LocEnd, ';', TheRewriter, SrcManager);
+    SourceLocation NewEndLoc = getLocationAfter(LocEnd, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }
 
@@ -693,22 +669,17 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
   TransAssert(FirstVD && "Bad First VarDecl!");
   TransAssert(LastVD && "Bad First VarDecl!");
 
-  SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(FirstVD, TheRewriter);
+  SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(FirstVD);
   SourceRange LastVarRange = LastVD->getSourceRange();
-  SourceLocation LastEndLoc = 
-    getEndLocationUntil(LastVarRange, ';', TheRewriter, SrcManager);
-  getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc, 
-                       TheRewriter, SrcManager);
+  SourceLocation LastEndLoc = getEndLocationUntil(LastVarRange, ';');
+  getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc);
 
   SourceLocation StartLoc = FirstVD->getLocStart();
-  SourceLocation NewLastEndLoc = 
-      getLocationAfter(LastEndLoc, ';', TheRewriter, SrcManager);
+  SourceLocation NewLastEndLoc = getLocationAfter(LastEndLoc, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewLastEndLoc)));
 }
 
-SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR,
-                                          Rewriter* TheRewriter,
-                                          SourceManager *SrcManager)
+SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR)
 {
   Decl *LastD;
 
@@ -724,29 +695,23 @@ SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR,
   VarDecl *VD = dyn_cast<VarDecl>(LastD);
   TransAssert(VD && "Bad VD!");
   SourceRange VarRange = VD->getSourceRange();
-  return getEndLocationFromBegin(VarRange, TheRewriter);
+  return getEndLocationFromBegin(VarRange);
 }
 
-SourceLocation RewriteUtils::getDeclStmtEndLoc(DeclStmt *DS,
-                                          Rewriter* TheRewriter,
-                                          SourceManager *SrcManager)
+SourceLocation RewriteUtils::getDeclStmtEndLoc(DeclStmt *DS)
 {
   DeclGroupRef DGR = DS->getDeclGroup();
-  return getDeclGroupRefEndLoc(DGR, TheRewriter, SrcManager);
+  return getDeclGroupRefEndLoc(DGR);
 }
 
 bool RewriteUtils::getDeclStmtStrAndRemove(DeclStmt *DS, 
-                                   std::string &Str,
-                                   Rewriter *TheRewriter,
-                                   SourceManager *SrcManager)
+                                   std::string &Str)
 {
   DeclGroupRef DGR = DS->getDeclGroup();
-  return getDeclGroupStrAndRemove(DGR, Str, TheRewriter, SrcManager);
+  return getDeclGroupStrAndRemove(DGR, Str);
 }
 
-bool RewriteUtils::removeAStarBefore(const Decl *D,
-                                     Rewriter *TheRewriter,
-                                     SourceManager *SrcManager)
+bool RewriteUtils::removeAStarBefore(const Decl *D)
 {
   SourceLocation LocStart = D->getLocation();
   const char *StartBuf = SrcManager->getCharacterData(LocStart);
@@ -760,9 +725,7 @@ bool RewriteUtils::removeAStarBefore(const Decl *D,
 }
 
 bool RewriteUtils::removeASymbolAfter(const Expr *E,
-                                    char Symbol,
-                                    Rewriter *TheRewriter,
-                                    SourceManager *SrcManager)
+                                    char Symbol)
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation LocStart = ExprRange.getBegin();
@@ -776,47 +739,36 @@ bool RewriteUtils::removeASymbolAfter(const Expr *E,
   return !TheRewriter->RemoveText(StarLoc, 1);
 }
 
-bool RewriteUtils::removeAStarAfter(const Expr *E,
-                                    Rewriter *TheRewriter,
-                                    SourceManager *SrcManager)
+bool RewriteUtils::removeAStarAfter(const Expr *E)
 {
-  return removeASymbolAfter(E, '*', TheRewriter, SrcManager);
+  return removeASymbolAfter(E, '*');
 }
 
-bool RewriteUtils::removeAnAddrOfAfter(const Expr *E,
-                                    Rewriter *TheRewriter,
-                                    SourceManager *SrcManager)
+bool RewriteUtils::removeAnAddrOfAfter(const Expr *E)
 {
-  return removeASymbolAfter(E, '&', TheRewriter, SrcManager);
+  return removeASymbolAfter(E, '&');
 }
 
-bool RewriteUtils::insertAnAddrOfBefore(const DeclRefExpr *DRE,
-                                     Rewriter *TheRewriter,
-                                     SourceManager *SrcManager)
+bool RewriteUtils::insertAnAddrOfBefore(const DeclRefExpr *DRE)
 {
   SourceRange ExprRange = DRE->getSourceRange();
   SourceLocation LocStart = ExprRange.getBegin();
   return !TheRewriter->InsertTextBefore(LocStart, "&");
 }
 
-bool RewriteUtils::insertAStarBefore(const Expr *E,
-                                     Rewriter *TheRewriter,
-                                     SourceManager *SrcManager)
+bool RewriteUtils::insertAStarBefore(const Expr *E)
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation LocStart = ExprRange.getBegin();
   return !TheRewriter->InsertTextBefore(LocStart, "*");
 }
 
-bool RewriteUtils::removeVarInitExpr(const VarDecl *VD, 
-                                     Rewriter *TheRewriter, 
-                                     SourceManager *SrcManager)
+bool RewriteUtils::removeVarInitExpr(const VarDecl *VD)
 {
   TransAssert(VD->hasInit() && "VarDecl doesn't have an Init Expr!");
   SourceLocation NameStartLoc = VD->getLocation();
 
-  SourceLocation InitStartLoc = 
-    getLocationUntil(NameStartLoc, '=', TheRewriter, SrcManager);
+  SourceLocation InitStartLoc = getLocationUntil(NameStartLoc, '=');
 
   const Expr *Init = VD->getInit();
   SourceRange ExprRange = Init->getSourceRange();
@@ -825,9 +777,7 @@ bool RewriteUtils::removeVarInitExpr(const VarDecl *VD,
 }
 
 bool RewriteUtils::removeVarDecl(const VarDecl *VD,
-                                 DeclGroupRef DGR,
-                                 Rewriter *TheRewriter,
-                                 SourceManager *SrcManager)
+                                 DeclGroupRef DGR)
 {
   SourceRange VarRange = VD->getSourceRange();
 
@@ -848,16 +798,16 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
     if (VD == FirstVD) {
       SourceLocation StartLoc = VD->getLocation();
       SourceLocation EndLoc = 
-        getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
+        getEndLocationUntil(VarRange, ',');
 
       return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
     }
   }
   else if (VD == FirstVD) {
-    SourceLocation StartLoc = getVarDeclTypeLocEnd(VD, TheRewriter);
+    SourceLocation StartLoc = getVarDeclTypeLocEnd(VD);
 
     SourceLocation EndLoc = 
-      getEndLocationUntil(VarRange, ',', TheRewriter, SrcManager);
+      getEndLocationUntil(VarRange, ',');
 
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
   }
@@ -880,7 +830,7 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
   SourceRange PrevDeclRange = PrevVD->getSourceRange();
 
   SourceLocation PrevDeclEndLoc = 
-    getEndLocationUntil(PrevDeclRange, ',', TheRewriter, SrcManager);
+    getEndLocationUntil(PrevDeclRange, ',');
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
@@ -893,9 +843,7 @@ void RewriteUtils::getTmpTransName(unsigned Postfix, std::string &Name)
 }
 
 bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
-                                          const std::string &Str,   
-                                          Rewriter *TheRewriter,
-                                          SourceManager *SrcManager)
+                                          const std::string &Str)
 {
   SourceRange FuncRange = FD->getSourceRange();
   SourceLocation StartLoc = FuncRange.getBegin();

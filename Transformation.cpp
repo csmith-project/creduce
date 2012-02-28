@@ -74,6 +74,15 @@ bool TransNameQueryWrap::TraverseDecl(Decl *D)
   return NameQueryVisitor->TraverseDecl(D);
 }
 
+void Transformation::Initialize(ASTContext &context) 
+{
+  Context = &context;
+  SrcManager = &Context->getSourceManager();
+  TheRewriter.setSourceMgr(Context->getSourceManager(), 
+                           Context->getLangOptions());
+  RewriteHelper = RewriteUtils::GetInstance(&TheRewriter);
+}
+
 void Transformation::outputTransformedSource(llvm::raw_ostream &OutStream)
 {
   FileID MainFileID = SrcManager->getMainFileID();
@@ -314,5 +323,10 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
     }
   }
   return BaseE;
+}
+
+Transformation::~Transformation(void)
+{
+  RewriteUtils::Finalize();
 }
 

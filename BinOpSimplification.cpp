@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -228,14 +227,10 @@ bool BSCollectionVisitor::VisitBinaryOperator(BinaryOperator *BinOp)
 
 void BinOpSimplification::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   BinOpCollectionVisitor = new BSCollectionVisitor(this);
   NameQueryWrap = 
-    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
-
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+    new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
 void BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D) 
@@ -283,7 +278,7 @@ bool BinOpSimplification::addNewTmpVariable(void)
   std::stringstream SS;
   unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
 
-  SS << RewriteUtils::getTmpVarNamePrefix() << (NamePostfix + 1);
+  SS << RewriteHelper->getTmpVarNamePrefix() << (NamePostfix + 1);
   VarStr = SS.str();
   setTmpVarName(VarStr);
 
@@ -291,24 +286,20 @@ bool BinOpSimplification::addNewTmpVariable(void)
                          Context->getPrintingPolicy());
 
   VarStr += ";";
-  return RewriteUtils::addLocalVarToFunc(VarStr, TheFuncDecl, 
-                                         &TheRewriter, SrcManager);
+  return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
 }
 
 bool BinOpSimplification::addNewAssignStmt(void)
 {
-  return RewriteUtils::addNewAssignStmtBefore(TheStmt,
+  return RewriteHelper->addNewAssignStmtBefore(TheStmt,
                                               getTmpVarName(),
                                               TheBinOp, 
-                                              NeedParen,
-                                              &TheRewriter,
-                                              SrcManager);
+                                              NeedParen);
 }
 
 bool BinOpSimplification::replaceBinOp(void)
 {
-  return RewriteUtils::replaceExpr(TheBinOp, TmpVarName,
-                                   &TheRewriter, SrcManager);
+  return RewriteHelper->replaceExpr(TheBinOp, TmpVarName);
 }
 
 BinOpSimplification::~BinOpSimplification(void)

@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -222,13 +221,10 @@ bool RNFCollectionVisitor::VisitCallExpr(CallExpr *CallE)
 
 void RemoveNestedFunction::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   NestedInvocationVisitor = new RNFCollectionVisitor(this);
   NameQueryWrap = 
-    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+    new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
 void RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D) 
@@ -277,7 +273,7 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
   std::stringstream SS;
   unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
 
-  SS << RewriteUtils::getTmpVarNamePrefix() << (NamePostfix + 1);
+  SS << RewriteHelper->getTmpVarNamePrefix() << (NamePostfix + 1);
   VarStr = SS.str();
   setTmpVarName(VarStr);
 
@@ -285,25 +281,21 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
                          Context->getPrintingPolicy());
 
   VarStr += ";";
-  return RewriteUtils::addLocalVarToFunc(VarStr, TheFuncDecl, 
-                                         &TheRewriter, SrcManager);
+  return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
 }
 
 bool RemoveNestedFunction::addNewAssignStmt(void)
 {
-  return RewriteUtils::addNewAssignStmtBefore(TheStmt,
+  return RewriteHelper->addNewAssignStmtBefore(TheStmt,
                                               getTmpVarName(),
                                               TheCallExpr, 
-                                              NeedParen,
-                                              &TheRewriter,
-                                              SrcManager);
+                                              NeedParen);
 
 }
 
 bool RemoveNestedFunction::replaceCallExpr(void)
 {
-  return RewriteUtils::replaceExpr(TheCallExpr, TmpVarName,
-                                   &TheRewriter, SrcManager);
+  return RewriteHelper->replaceExpr(TheCallExpr, TmpVarName);
 }
 
 RemoveNestedFunction::~RemoveNestedFunction(void)

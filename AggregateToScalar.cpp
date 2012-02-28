@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -94,11 +93,8 @@ bool ATSCollectionVisitor::VisitDeclStmt(DeclStmt *DS)
 
 void AggregateToScalar::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   AggregateAccessVisitor = new ATSCollectionVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void AggregateToScalar::HandleTopLevelDecl(DeclGroupRef D) 
@@ -156,8 +152,7 @@ bool AggregateToScalar::addTmpVar(const Expr *RefE,
   if (TheVarDecl->isLocalVarDecl()) {
     DeclStmt *TheDeclStmt = VarDeclToDeclStmtMap[TheVarDecl];
     TransAssert(TheDeclStmt && "NULL TheDeclStmt");
-    return RewriteUtils::addStringAfterStmt(TheDeclStmt, VarStr, 
-                                            &TheRewriter, SrcManager);
+    return RewriteHelper->addStringAfterStmt(TheDeclStmt, VarStr);
   }
   else {
     llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI =
@@ -170,8 +165,7 @@ bool AggregateToScalar::addTmpVar(const Expr *RefE,
       LastVD = dyn_cast<VarDecl>(*I);
     }
     TransAssert(LastVD && "Bad LastVD!");
-    return RewriteUtils::addStringAfterVarDecl(LastVD, VarStr, 
-                                               &TheRewriter, SrcManager);
+    return RewriteHelper->addStringAfterVarDecl(LastVD, VarStr);
   }
 }
 
@@ -211,7 +205,7 @@ bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
     return addTmpVar(RefE, VarName, NULL);
 
   std::string InitStr;
-  RewriteUtils::getExprString(InitE, InitStr, &TheRewriter, SrcManager);
+  RewriteHelper->getExprString(InitE, InitStr);
   return addTmpVar(RefE, VarName, &InitStr);
 }
 
@@ -225,8 +219,7 @@ void AggregateToScalar::doRewrite(void)
   createNewVar(*I, VarName);
 
   for (; I != E; ++I) {
-    RewriteUtils::replaceExpr((*I), VarName,
-                              &TheRewriter, SrcManager);
+    RewriteHelper->replaceExpr((*I), VarName);
   }
 }
 

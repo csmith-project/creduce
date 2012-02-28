@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -238,12 +237,8 @@ void AssignExprCollectionVisitor::handleSubExpr(Expr *E)
 
 void LiftAssignmentExpr::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new AssignExprCollectionVisitor(this);
-
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void LiftAssignmentExpr::HandleTopLevelDecl(DeclGroupRef D) 
@@ -287,20 +282,17 @@ void LiftAssignmentExpr::HandleTranslationUnit(ASTContext &Ctx)
 bool LiftAssignmentExpr::addNewAssignStmt(void)
 {
   std::string AssignStr("");
-  RewriteUtils::getExprString(TheAssignExpr, AssignStr,
-                              &TheRewriter, SrcManager);
+  RewriteHelper->getExprString(TheAssignExpr, AssignStr);
   AssignStr += ";";
-  return RewriteUtils::addStringBeforeStmt(TheStmt, AssignStr, NeedParen, 
-                                           &TheRewriter, SrcManager);
+  return RewriteHelper->addStringBeforeStmt(TheStmt, AssignStr, NeedParen);
 }
 
 bool LiftAssignmentExpr::replaceAssignExpr(void)
 {
   const Expr *Lhs = TheAssignExpr->getLHS();
   std::string LhsStr("");
-  RewriteUtils::getExprString(Lhs, LhsStr, &TheRewriter, SrcManager);
-  return RewriteUtils::replaceExpr(TheAssignExpr, LhsStr,
-                                   &TheRewriter, SrcManager);
+  RewriteHelper->getExprString(Lhs, LhsStr);
+  return RewriteHelper->replaceExpr(TheAssignExpr, LhsStr);
 }
 
 LiftAssignmentExpr::~LiftAssignmentExpr(void)

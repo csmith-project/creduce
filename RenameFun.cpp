@@ -13,7 +13,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -95,8 +94,8 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
               "Cannot find FunctionDecl!");
 
-  return RewriteUtils::replaceFunctionDeclName(FD, (*I).second,
-           &ConsumerInstance->TheRewriter, ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->
+           replaceFunctionDeclName(FD, (*I).second);
 }
 
 bool RenameFunVisitor::VisitCallExpr(CallExpr *CE)
@@ -114,12 +113,9 @@ bool RenameFunVisitor::VisitCallExpr(CallExpr *CE)
 
 void RenameFun::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   FunCollectionVisitor = new RNFunCollectionVisitor(this);
   RenameVisitor = new RenameFunVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
   ValidInstanceNum = 1;
 }
 

@@ -47,11 +47,8 @@ private:
 
 void ReturnVoid::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   TransformationASTVisitor = new RVASTVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)

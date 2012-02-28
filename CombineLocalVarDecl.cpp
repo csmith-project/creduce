@@ -13,7 +13,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -113,11 +112,8 @@ bool CombLocalVarCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
 
 void CombineLocalVarDecl::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new CombLocalVarCollectionVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void CombineLocalVarDecl::HandleTopLevelDecl(DeclGroupRef D) 
@@ -153,12 +149,10 @@ void CombineLocalVarDecl::doCombination(void)
   DeclStmt *DS2 = TheDeclStmts.pop_back_val();
   DeclStmt *DS1 = TheDeclStmts.pop_back_val();
 
-  SourceLocation EndLoc = 
-    RewriteUtils::getDeclStmtEndLoc(DS1, &TheRewriter, SrcManager);
+  SourceLocation EndLoc = RewriteHelper->getDeclStmtEndLoc(DS1);
 
   std::string DStr;
-  RewriteUtils::getDeclStmtStrAndRemove(DS2, DStr, 
-                                        &TheRewriter, SrcManager);
+  RewriteHelper->getDeclStmtStrAndRemove(DS2, DStr);
   TheRewriter.InsertText(EndLoc, ", " + DStr, /*InsertAfter=*/false);
 }
 

@@ -13,6 +13,7 @@
 #include <cassert>
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Rewrite/Rewriter.h"
+#include "RewriteUtils.h"
 
 #ifndef ENABLE_TRANS_ASSERT
   #define TransAssert(x) {if (!(x)) exit(0);}
@@ -55,12 +56,13 @@ public:
       Context(NULL),
       SrcManager(NULL),
       TransError(TransSuccess),
-      DescriptionString(Desc)
+      DescriptionString(Desc),
+      RewriteHelper(NULL)
   {
     // Nothing to do
   }
 
-  virtual ~Transformation(void) { }
+  virtual ~Transformation(void);
 
   void outputOriginalSource(llvm::raw_ostream &OutStream);
 
@@ -105,6 +107,8 @@ protected:
   typedef llvm::SmallVector<unsigned int, 10> IndexVector;
 
   unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
+
+  virtual void Initialize(clang::ASTContext &context);
 
   const clang::Type *
     getArrayBaseElemType(const clang::ArrayType *ArrayTy);
@@ -151,6 +155,7 @@ protected:
   
   std::string DescriptionString;
 
+  RewriteUtils *RewriteHelper;
 };
 
 class TransNameQueryVisitor;

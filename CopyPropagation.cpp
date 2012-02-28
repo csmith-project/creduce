@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -230,11 +229,8 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 
 void CopyPropagation::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new CopyPropCollectionVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void CopyPropagation::HandleTopLevelDecl(DeclGroupRef D) 
@@ -372,12 +368,11 @@ void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
 void CopyPropagation::doCopyPropagation(void)
 {
   std::string CopyStr("");
-  RewriteUtils::getExprString(TheCopyExpr, CopyStr, 
-                              &TheRewriter, SrcManager);
+  RewriteHelper->getExprString(TheCopyExpr, CopyStr);
   ExprSet *ESet = DominatedMap[TheCopyExpr];
   TransAssert(ESet && "Empty Expr Set!");
   for (ExprSet::iterator I = ESet->begin(), E = ESet->end(); I != E; ++I) {
-    RewriteUtils::replaceExpr((*I), CopyStr, &TheRewriter, SrcManager);
+    RewriteHelper->replaceExpr((*I), CopyStr);
   }
 }
 

@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -290,18 +289,14 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
     const Expr *DirectRhs = Rhs->IgnoreParenCasts();
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(DirectRhs);
     if (UO && (UO->getOpcode() == UO_AddrOf)) {
-      return RewriteUtils::removeAnAddrOfAfter(Rhs, 
-                    &ConsumerInstance->TheRewriter,
-                    ConsumerInstance->SrcManager);
+      return ConsumerInstance->RewriteHelper->removeAnAddrOfAfter(Rhs);
     }
 
-    return RewriteUtils::insertAStarBefore(Rhs, &ConsumerInstance->TheRewriter,
-                                           ConsumerInstance->SrcManager);
+    return ConsumerInstance->RewriteHelper->insertAStarBefore(Rhs);
   }
   else if (Ty->isStructureType() || Ty->isUnionType() || 
            Ty->isIntegerType()) {
-    return RewriteUtils::removeAStarAfter(Lhs, &ConsumerInstance->TheRewriter,
-                                          ConsumerInstance->SrcManager);
+    return ConsumerInstance->RewriteHelper->removeAStarAfter(Lhs);
   }
   return true;
 }
@@ -322,12 +317,9 @@ bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
 void ReducePointerLevel::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new PointerLevelCollectionVisitor(this);
   RewriteVisitor = new PointerLevelRewriteVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D) 
@@ -525,8 +517,7 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
         InitE = ElemE;
       }
     }
-    RewriteUtils::getExprString(InitE, InitStr,
-                                &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(InitE, InitStr);
 
     return;
   }
@@ -535,8 +526,7 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
     const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
     const Expr *ElemE = getArraySubscriptElem(ASE);
     if (ElemE)
-      RewriteUtils::getExprString(ElemE, InitStr,
-                                  &TheRewriter, SrcManager);
+      RewriteHelper->getExprString(ElemE, InitStr);
     return;
   }
 
@@ -544,8 +534,7 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
     const MemberExpr *ME = dyn_cast<MemberExpr>(E);
     const Expr *ElemE = getMemberExprElem(ME);
     if (ElemE)
-      RewriteUtils::getExprString(ElemE, InitStr,
-                                  &TheRewriter, SrcManager);
+      RewriteHelper->getExprString(ElemE, InitStr);
     return;
   }
 
@@ -581,7 +570,7 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
   
   switch(E->getStmtClass()) {
   case Expr::IntegerLiteralClass:
-    RewriteUtils::getExprString(Init, InitStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(Init, InitStr);
     return;
 
   case Expr::StringLiteralClass:
@@ -626,7 +615,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
   switch(E->getStmtClass()) {
   // catch the case like int *p = 0;
   case Expr::IntegerLiteralClass:
-    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(E, InitStr);
     return;
 
   case Expr::StringLiteralClass:
@@ -637,7 +626,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
     const Expr *SubE = UO->getSubExpr();
     TransAssert(SubE && "Bad Sub Expr!");
-    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(E, InitStr);
 
     size_t Pos;
     UnaryOperator::Opcode Op = UO->getOpcode();
@@ -660,7 +649,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
 
   case Expr::DeclRefExprClass: {
     const DeclRefExpr *DE = dyn_cast<DeclRefExpr>(E);
-    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(E, InitStr);
 
     const Type *VT = DE->getType().getTypePtr();
     const ArrayType *AT = dyn_cast<ArrayType>(VT);
@@ -683,7 +672,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
 
   case Expr::MemberExprClass: // Fall-through
   case Expr::ArraySubscriptExprClass: {
-    RewriteUtils::getExprString(E, InitStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(E, InitStr);
     InitStr = "*(" + InitStr + ")";
     return;
   }
@@ -703,7 +692,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
 
 void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
 {
-  RewriteUtils::removeAStarBefore(VD, &TheRewriter, SrcManager); 
+  RewriteHelper->removeAStarBefore(VD); 
   const Expr *Init = VD->getInit();
   if (!Init)
     return;
@@ -730,9 +719,9 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
   }
 
   if (NewInitStr.empty())
-    RewriteUtils::removeVarInitExpr(VD, &TheRewriter, SrcManager);
+    RewriteHelper->removeVarInitExpr(VD);
   else
-    RewriteUtils::replaceExpr(Init, NewInitStr, &TheRewriter, SrcManager);
+    RewriteHelper->replaceExpr(Init, NewInitStr);
 }
 
 const RecordType *ReducePointerLevel::getRecordType(const Type *T)
@@ -747,17 +736,17 @@ const RecordType *ReducePointerLevel::getRecordType(const Type *T)
 
 void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
 {
-  RewriteUtils::removeAStarBefore(FD, &TheRewriter, SrcManager); 
+  RewriteHelper->removeAStarBefore(FD); 
 }
 
 void ReducePointerLevel::rewriteDerefOp(const UnaryOperator *UO)
 {
-  RewriteUtils::removeAStarAfter(UO, &TheRewriter, SrcManager);
+  RewriteHelper->removeAStarAfter(UO);
 }
 
 void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
 {
-  RewriteUtils::insertAnAddrOfBefore(DRE, &TheRewriter, SrcManager);
+  RewriteHelper->insertAnAddrOfBefore(DRE);
 }
 
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 

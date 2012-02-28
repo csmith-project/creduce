@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -52,11 +51,8 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 void RemoveUnusedFunction::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   AnalysisVisitor = new RUFAnalysisVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void RemoveUnusedFunction::HandleTopLevelDecl(DeclGroupRef D) 

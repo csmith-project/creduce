@@ -11,7 +11,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 
@@ -146,11 +145,9 @@ bool PToGASTVisitor::rewriteParam(const ParmVarDecl *PV,
                                  unsigned int NumParams)
 {
   return 
-    RewriteUtils::removeParamFromFuncDecl(PV, 
+    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
                                           NumParams,
-                                          ConsumerInstance->TheParamPos,
-                                          &(ConsumerInstance->TheRewriter),
-                                          ConsumerInstance->SrcManager);
+                                          ConsumerInstance->TheParamPos);
 }
 
 std::string PToGASTVisitor::getNewName(FunctionDecl *FP,
@@ -176,9 +173,8 @@ bool PToGASTVisitor::makeParamAsGlobalVar(FunctionDecl *FD,
   GlobalVarStr += getNewName(FD, PV);
   GlobalVarStr += ";\n";
 
-  return RewriteUtils::insertStringBeforeFunc(FD, GlobalVarStr,
-                                              &ConsumerInstance->TheRewriter,
-                                              ConsumerInstance->SrcManager);
+  return ConsumerInstance->RewriteHelper->insertStringBeforeFunc(FD, 
+                                                       GlobalVarStr);
 }
 
 bool PToGASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
@@ -211,10 +207,8 @@ bool PToGASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool PToGASTVisitor::rewriteOneCallExpr(CallExpr *CallE)
 {
   return 
-    RewriteUtils::removeArgFromCallExpr(CallE, 
-                                        ConsumerInstance->TheParamPos,
-                                        &(ConsumerInstance->TheRewriter),
-                                        ConsumerInstance->SrcManager);
+    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
+                                        ConsumerInstance->TheParamPos);
 }
 
 void PToGASTVisitor::rewriteAllCallExprs(void)

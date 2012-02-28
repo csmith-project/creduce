@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -76,13 +75,10 @@ bool SimplifyCallExprVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 void SimplifyCallExpr::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new SimplifyCallExprVisitor(this);
   NameQueryWrap = 
-    new TransNameQueryWrap(RewriteUtils::getTmpVarNamePrefix());
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+    new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
 void SimplifyCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
@@ -126,14 +122,13 @@ void SimplifyCallExpr::handleOneArgStr(const Expr *Arg, std::string &Str)
   if (!ArgT->isUnionType() && !ArgT->isStructureType())
     return;
 
-  RewriteUtils::getTmpTransName(NamePostfix, Str);
+  RewriteHelper->getTmpTransName(NamePostfix, Str);
   NamePostfix++;
 
   std::string TmpVarStr = Str;
   Arg->getType().getAsStringInternal(TmpVarStr, Context->getPrintingPolicy());
   TmpVarStr += ";\n";
-  RewriteUtils::insertStringBeforeFunc(CurrentFD, TmpVarStr, 
-                                    &TheRewriter, SrcManager);
+  RewriteHelper->insertStringBeforeFunc(CurrentFD, TmpVarStr);
 }
 
 void SimplifyCallExpr::replaceCallExpr(void)
@@ -141,8 +136,7 @@ void SimplifyCallExpr::replaceCallExpr(void)
   std::string CommaStr("");
   unsigned int NumArg = TheCallExpr->getNumArgs();
   if (NumArg == 0) {
-    RewriteUtils::replaceExpr(TheCallExpr, CommaStr, 
-                              &TheRewriter, SrcManager);
+    RewriteHelper->replaceExpr(TheCallExpr, CommaStr);
     return;
   }
 
@@ -164,22 +158,20 @@ void SimplifyCallExpr::replaceCallExpr(void)
   }
   else if (RVType->isUnionType() || RVType->isStructureType()) {
     std::string RVStr("");
-    RewriteUtils::getTmpTransName(NamePostfix, RVStr);
+    RewriteHelper->getTmpTransName(NamePostfix, RVStr);
     NamePostfix++;
 
     CommaStr += ("," + RVStr);
     RVQualType.getAsStringInternal(RVStr, Context->getPrintingPolicy());
     RVStr += ";\n";
-    RewriteUtils::insertStringBeforeFunc(CurrentFD, RVStr, 
-                                    &TheRewriter, SrcManager);
+    RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
   }
   else {
     CommaStr += ",0";
   }
 
   CommaStr += ")";
-  RewriteUtils::replaceExpr(TheCallExpr, CommaStr, 
-                            &TheRewriter, SrcManager);
+  RewriteHelper->replaceExpr(TheCallExpr, CommaStr);
 }
 
 SimplifyCallExpr::~SimplifyCallExpr(void)

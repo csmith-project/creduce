@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -68,11 +67,8 @@ bool RemoveUnusedVarAnalysisVisitor::VisitDeclStmt(DeclStmt *DS)
 
 void RemoveUnusedVar::Initialize(ASTContext &context)
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   AnalysisVisitor = new RemoveUnusedVarAnalysisVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void RemoveUnusedVar::HandleTopLevelDecl(DeclGroupRef D) 
@@ -114,8 +110,7 @@ void RemoveUnusedVar::removeVarDecl(void)
   TransAssert((DI != VarToDeclGroup.end()) &&
               "Cannot find VarDeclGroup!");
 
-  RewriteUtils::removeVarDecl(TheVarDecl, (*DI).second, 
-                              &TheRewriter, SrcManager);
+  RewriteHelper->removeVarDecl(TheVarDecl, (*DI).second);
 }
 
 RemoveUnusedVar::~RemoveUnusedVar(void)

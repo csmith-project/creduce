@@ -12,7 +12,6 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
-#include "RewriteUtils.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -227,11 +226,8 @@ bool ReplaceCallExprVisitor::isValidExpr(const Expr *E)
 
 void ReplaceCallExpr::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   CollectionVisitor = new ReplaceCallExprVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
@@ -387,7 +383,7 @@ void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE,
     }
 
     const Expr *Arg = TheCallExpr->getArg(Pos)->IgnoreParenImpCasts();
-    RewriteUtils::getExprString(Arg, ParmRefStr, &TheRewriter, SrcManager);
+    RewriteHelper->getExprString(Arg, ParmRefStr);
     ParmRefStr = "(" + ParmRefStr + ")";
 
     const Type *ParmT = PD->getType().getTypePtr();
@@ -491,12 +487,11 @@ void ReplaceCallExpr::replaceCallExpr(void)
   }
 
   std::string RetString;
-  RewriteUtils::getExprString(RetE, RetString, &TheRewriter, SrcManager);
+  RewriteHelper->getExprString(RetE, RetString);
 
   replaceParmRefs(RetString, RetE, ParmRefToStrMap);
   std::string ParenRetString = "(" + RetString + ")";
-  RewriteUtils::replaceExpr(TheCallExpr, ParenRetString, 
-                            &TheRewriter, SrcManager);
+  RewriteHelper->replaceExpr(TheCallExpr, ParenRetString);
 }
 
 ReplaceCallExpr::~ReplaceCallExpr(void)

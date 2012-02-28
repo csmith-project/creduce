@@ -11,7 +11,6 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
-#include "RewriteUtils.h"
 
 using namespace clang;
 using namespace llvm;
@@ -68,12 +67,9 @@ private:
 
 void LocalToGlobal::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   LocalVarCollectionVisitor = new CollectionVisitor(this);
   TransformationASTVisitor = new LToGASTVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void LocalToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -162,10 +158,8 @@ bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FP,
   if (LV->hasInit()) {
     const Expr *InitExpr = LV->getInit();
     std::string InitStr("");
-    RewriteUtils::getExprString(InitExpr, 
-                                InitStr,
-                                &ConsumerInstance->TheRewriter,
-                                ConsumerInstance->SrcManager);
+    ConsumerInstance->RewriteHelper->getExprString(InitExpr, 
+                                                   InitStr);
     GlobalVarStr += " = ";
     GlobalVarStr += InitStr; 
   }
@@ -210,9 +204,8 @@ bool LToGASTVisitor::VisitDeclStmt(DeclStmt *DS)
     return true;
 
   bool IsFirstDecl = (!VarPos);
-  RewriteUtils::removeVarFromDeclStmt(DS, VD, PrevDecl, IsFirstDecl,
-                                          &ConsumerInstance->TheRewriter,
-                                          ConsumerInstance->SrcManager);
+  ConsumerInstance->RewriteHelper->removeVarFromDeclStmt
+    (DS, VD, PrevDecl, IsFirstDecl);
 
   return makeLocalAsGlobalVar(ConsumerInstance->TheFuncDecl, VD);
 }
