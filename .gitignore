@@ -1,0 +1,21 @@
+# Files made by `configure' and friends.
+# Makefile -- not yet Autoconf'ed.
+autom4te.cache
+config.log
+config.status
+libtool
+stamp-h.in
+
+# Files made by compilation.
+.deps/
+.libs/
+*.a
+*.la
+*.lo
+*.o
+*.obj
+
+# Files made by Eclipse CDT.
+.autotools
+.cproject
+.project
