@@ -670,6 +670,8 @@ void SimpleInliner::replaceCallExpr(void)
 
 SimpleInliner::~SimpleInliner(void)
 {
+  if (NameQueryWrap)
+    delete NameQueryWrap;
   if (CollectionVisitor)
     delete CollectionVisitor;
   if (FunctionVisitor)
