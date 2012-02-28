@@ -61,11 +61,8 @@ private:
 
 void ParamToGlobal::Initialize(ASTContext &context) 
 {
-  Context = &context;
-  SrcManager = &Context->getSourceManager();
+  Transformation::Initialize(context);
   TransformationASTVisitor = new PToGASTVisitor(this);
-  TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
 }
 
 void ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
