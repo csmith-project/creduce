@@ -1,4 +1,6 @@
-TODO list:
+--------------------------------------------------------------------
+
+clang_delta TODO list:
 
 remove array dimension from a variable
 
@@ -26,3 +28,5 @@ to
  * remove anything that's not a %d or whatever from the format string
 
  * remove a %d directive and also the corresponding argument from a printf 
+
+--------------------------------------------------------------------
