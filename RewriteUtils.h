@@ -11,6 +11,12 @@
 #include <string>
 #include "clang/Basic/SourceLocation.h"
 
+#ifndef ENABLE_TRANS_ASSERT
+  #define TransAssert(x) {if (!(x)) exit(0);}
+#else
+  #define TransAssert(x) assert(x)
+#endif
+
 namespace clang {
   class ParmVarDecl;
   class VarDecl;

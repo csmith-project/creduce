@@ -15,16 +15,6 @@
 #include "clang/AST/Expr.h"
 #include "clang/AST/TypeLoc.h"
 
-// FIXME: This macro is copied from Transformation.h.
-// I don't want to include Transformation.h 
-// and hence incease dependency. Probably need to 
-// put this macro into a common header file? 
-#ifndef ENABLE_TRANS_ASSERT
-  #define TransAssert(x) {if (!(x)) exit(0);}
-#else
-  #define TransAssert(x) assert(x)
-#endif
-
 using namespace clang;
 using namespace llvm;
 
