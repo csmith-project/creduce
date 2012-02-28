@@ -123,6 +123,9 @@ protected:
   const clang::Expr *getInitExprFromBase(const clang::Expr *BaseE,
                                          IndexVector &Idxs);
 
+  const clang::Expr *getBaseExprAndIdxs(const clang::Expr *E,
+                                        IndexVector &Idxs);
+
   const std::string &Name;
 
   int TransformationCounter;

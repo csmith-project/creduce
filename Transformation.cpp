@@ -131,7 +131,7 @@ Transformation::ignoreSubscriptExprParenCasts(const Expr *E)
 }
 
 const Expr *Transformation::getInitExprByIndex(IndexVector &Idxs,
-                                                    const InitListExpr *ILE)
+                                               const InitListExpr *ILE)
 {
   const InitListExpr *SubILE = ILE;
   const Expr *Exp = NULL;
@@ -167,7 +167,7 @@ const Expr *Transformation::getInitExprByIndex(IndexVector &Idxs,
 const Expr *Transformation::getArrayBaseExprAndIdxs(
         const ArraySubscriptExpr *ASE, IndexVector &Idxs)
 {
-  const Expr *BaseE;
+  const Expr *BaseE = NULL;
   while (ASE) {
     const Expr *IdxE = ASE->getIdx();
     unsigned int Idx = 0;
@@ -186,7 +186,7 @@ const Expr *Transformation::getArrayBaseExprAndIdxs(
 }
 
 const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
-                                                    IndexVector &Idxs)
+                                                IndexVector &Idxs)
 {
   TransAssert(BaseE && "Bad Array Base Expression!");
   const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
@@ -263,5 +263,49 @@ const Type *Transformation::getArrayBaseElemType(const ArrayType *ArrayTy)
   }
   TransAssert(ArrayElemTy && "Bad Array Element Type!");
   return ArrayElemTy;
+}
+
+// This is a more complete implementation to deal with mixed
+// array and structs/unions
+const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
+                                               IndexVector &Idxs)
+{
+  const Expr *BaseE = NULL;
+  while (E) {
+    E = E->IgnoreParenCasts();
+    BaseE = E;
+
+    Expr::StmtClass SC = E->getStmtClass();
+    if (SC == Expr::MemberExprClass) {
+      const MemberExpr *ME = dyn_cast<MemberExpr>(E);
+      ValueDecl *VD = ME->getMemberDecl();
+      FieldDecl *FD = dyn_cast<FieldDecl>(VD);
+      TransAssert(FD && "Bad FD!\n");
+
+      unsigned int Idx = FD->getFieldIndex();
+      Idxs.push_back(Idx);
+      E = ME->getBase();
+    }
+    else if (SC == Expr::ArraySubscriptExprClass) {
+      const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
+      const Expr *IdxE = ASE->getIdx();
+      unsigned int Idx = 0;
+      llvm::APSInt Result;
+
+      // If we cannot have an integeral index, use 0.
+      if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
+        std::string IntStr = Result.toString(10);
+        std::stringstream TmpSS(IntStr);
+        if (!(TmpSS >> Idx))
+          TransAssert(0 && "Non-integer value!");
+      }
+      Idxs.push_back(Idx);
+      E = ASE->getBase();
+    }
+    else {
+      break;
+    }
+  }
+  return BaseE;
 }
 
