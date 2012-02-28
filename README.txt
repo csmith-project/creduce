@@ -2,13 +2,13 @@
 
 First make sure you have installed Clang 3.0, then
 
-llvm_dir=/where/your/clang/installation/path make
+LLVM_PATH=/where/your/clang/installation/path make
 e.g., 
-llvm_dir=/uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0 make
+LLVM_PATH=/uusoc/exports/scratch/chenyang/clang_reducer/llvm-3.0 make
 
 Note that assertions are enabled by default. To disable assertions, build the program with:
 
-llvm_dir=/path/ DISABLE_TRANS_ASSERT=1 make
+LLVM_PATH=/path/ DISABLE_TRANS_ASSERT=1 make
 
 (2) How to run:
 
