@@ -12,26 +12,27 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Replace a struct/union member with scalar variables. \
+"Replace a aggregate member with a corresponding scalar variable. \
 In more detail, the transformation creates \
-scalar variables for a referenced struct/union member, \
-assigns the initial value of the struct/union member to \
-the scalars, and substitutes all accesses to the struct/union \
-member with the accesses to the corresponding scalar variables. \
+a scalar variable for a referenced aggregate member, \
+assigns the initial value of the aggregate member to \
+the scalar, and substitutes all accesses to the aggregate \
+member with the accesses to the corresponding scalar variable. \
 (Note that this transformation is unsound).\n";
 
 static RegisterTransformation<AggregateToScalar>
          Trans("aggregate-to-scalar", DescriptionMsg);
 
 class ATSCollectionVisitor : public RecursiveASTVisitor<ATSCollectionVisitor> {
-public:
-  typedef RecursiveASTVisitor<ATSCollectionVisitor> Inherited;
 
+public:
   explicit ATSCollectionVisitor(AggregateToScalar *Instance)
     : ConsumerInstance(Instance)
   { }
 
   bool VisitMemberExpr(MemberExpr *ME);
+
+  bool VisitArraySubscriptExpr(ArraySubscriptExpr *ASE);
 
   bool VisitDeclStmt(DeclStmt *DS);
 
@@ -51,17 +52,25 @@ bool ATSCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 
   const Type *T = FD->getType().getTypePtr();
   if (!T->isScalarType())
-    return false;
+    return true;
 
   RecordDecl *RD = FD->getParent();
   TransAssert(RD && "NULL RecordDecl!");
   if (!RD->isStruct() && !RD->isUnion())
-    return false;
+    return true;
 
-  FieldDecl *CanonicalDecl = dyn_cast<FieldDecl>(FD->getCanonicalDecl());
-  TransAssert(CanonicalDecl);
-  ConsumerInstance->addVarRefExpr(CanonicalDecl, ME);
-  return false;
+  ConsumerInstance->addOneExpr(ME);
+  return true;
+}
+
+bool ATSCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
+{
+  const Type *T = ASE->getType().getTypePtr();
+  if (!T->isScalarType())
+    return true;
+
+  ConsumerInstance->addOneExpr(ASE);
+  return true;
 }
 
 bool ATSCollectionVisitor::VisitDeclStmt(DeclStmt *DS)
@@ -107,74 +116,22 @@ void AggregateToScalar::HandleTranslationUnit(ASTContext &Ctx)
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
-  TransAssert(TheFieldDecl && "NULL TheFieldDecl!");
+  TransAssert(TheVarDecl && "NULL TheVarDecl!");
+  TransAssert(TheIdx && "NULL TheIdx!");
 
-  handleTheFieldDecl(Ctx);
+  doRewrite();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
 }
 
-Expr *AggregateToScalar::ignoreSubscriptExprImpCasts(Expr *E,
-        FieldIdxVector &FieldIdxs)
-{
-  ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
-  if (!ASE)
-    return E;
-
-  Expr *IE = ASE->getIdx();
-  unsigned int Idx = 0;
-  llvm::APSInt Result;
-  if (IE && IE->EvaluateAsInt(Result, *Context)) {
-    std::string IntStr = Result.toString(10);
-    std::stringstream TmpSS(IntStr);
-    if (!(TmpSS >> Idx))
-      TransAssert(0 && "Non-integer value!");
-  }
-
-  FieldIdxs.push_back(Idx);
-  Expr *NewE = ASE->getBase()->IgnoreImpCasts();
-  return ignoreSubscriptExprImpCasts(NewE, FieldIdxs);
-}
-
-VarDecl *AggregateToScalar::getRefVarDeclAndFieldIdxs(MemberExpr *ME,
-           FieldIdxVector &FieldIdxs)
-{
-  ValueDecl *VD = ME->getMemberDecl();
-  FieldDecl *FD = dyn_cast<FieldDecl>(VD);
-  TransAssert(FD && "Bad FD!\n");
-  unsigned int Idx = FD->getFieldIndex();
-  FieldIdxs.push_back(Idx);
-  
-  Expr *E = ME->getBase()->IgnoreParens();
-
-  Expr *NewE = ignoreSubscriptExprImpCasts(E, FieldIdxs);
-
-  MemberExpr *M = dyn_cast<MemberExpr>(NewE);
-  if (M) {
-    return getRefVarDeclAndFieldIdxs(M, FieldIdxs);
-  }
-
-  DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(NewE);
-  if (DRE) {
-    ValueDecl *ValueD = DRE->getDecl();
-    VarDecl *VarD = dyn_cast<VarDecl>(ValueD);
-    TransAssert(VarD && "Invalid ref var!");
-    return VarD->getCanonicalDecl();
-  }
-
-  TransAssert(0 && "Unreachable code!");
-  return NULL;
-}
-
-bool AggregateToScalar::addTmpVar(VarDecl *VD,
+bool AggregateToScalar::addTmpVar(const Expr *RefE,
                                   const std::string &VarName,
-                                  const std::string *InitStr,
-                                  ASTContext &Ctx)
+                                  const std::string *InitStr)
 {
   std::string VarStr(VarName);
-  QualType QT = TheFieldDecl->getType();
+  QualType QT = RefE->getType();
   QT.getAsStringInternal(VarStr, Context->getPrintingPolicy());
 
   if (InitStr) {
@@ -183,26 +140,20 @@ bool AggregateToScalar::addTmpVar(VarDecl *VD,
   }
   VarStr += ";";
    
-  if (VD->getStorageClass() == SC_Static)
+  if (TheVarDecl->getStorageClass() == SC_Static)
     VarStr = "static " + VarStr; 
 
-  ParmVarDecl *PD = dyn_cast<ParmVarDecl>(VD);
-  if (PD) {
-    DeclContext *Ctx = PD->getDeclContext();
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(Ctx);
-    TransAssert(FD && "Bad function decl context!");
-    return RewriteUtils::addLocalVarToFunc(VarStr, FD,
-                                           &TheRewriter, SrcManager);
-  }
-  else if (VD->isLocalVarDecl()) {
-    DeclStmt *TheDeclStmt = VarDeclToDeclStmtMap[VD];
+  TransAssert(!dyn_cast<ParmVarDecl>(TheVarDecl) && 
+              "We don't handle ParmVarDecl!");
+  if (TheVarDecl->isLocalVarDecl()) {
+    DeclStmt *TheDeclStmt = VarDeclToDeclStmtMap[TheVarDecl];
     TransAssert(TheDeclStmt && "NULL TheDeclStmt");
     return RewriteUtils::addStringAfterStmt(TheDeclStmt, VarStr, 
                                             &TheRewriter, SrcManager);
   }
   else {
-    llvm::DenseMap<VarDecl *, DeclGroupRef>::iterator DI =
-      VarDeclToDeclGroupMap.find(VD);
+    llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI =
+      VarDeclToDeclGroupMap.find(TheVarDecl);
     TransAssert((DI != VarDeclToDeclGroupMap.end()) && 
                  "Cannot find VarDeclGroup!");
     VarDecl *LastVD = NULL;
@@ -216,138 +167,144 @@ bool AggregateToScalar::addTmpVar(VarDecl *VD,
   }
 }
 
-bool AggregateToScalar::replaceMemberExpr(MemberExpr *ME, 
-                                          const std::string &NewName)
-{
-  return RewriteUtils::replaceExpr(ME, NewName,
-                                   &TheRewriter, SrcManager);
-}
-
-void AggregateToScalar::createNewVarName(VarDecl *VD,
-                                         const FieldIdxVector &FieldIdxs,
-                                         std::string &VarName)
+void AggregateToScalar::createNewVarName(std::string &VarName)
 {
   std::stringstream SS;
-  SS << VD->getNameAsString();
-  for (FieldIdxVector::const_reverse_iterator I = FieldIdxs.rbegin(),
-       E = FieldIdxs.rend(); I != E; ++I) {
+  SS << TheVarDecl->getNameAsString();
+  for (IndexVector::const_reverse_iterator I = TheIdx->rbegin(),
+       E = TheIdx->rend(); I != E; ++I) {
     SS << "_" << (*I);
   }
 
   VarName = SS.str();
 }
 
-bool AggregateToScalar::getInitString(const FieldIdxVector &FieldIdxs,
-                                      InitListExpr *ILE,
-                                      std::string &InitStr)
+bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
 {
-  InitStr = "";
-  InitListExpr *SubILE = ILE;
-  Expr *Exp = NULL;
-  unsigned int Count = 0;
-  for (FieldIdxVector::const_reverse_iterator I = FieldIdxs.rbegin(),
-       E = FieldIdxs.rend(); I != E; ++I) {
-    Count++;
-    unsigned int Idx;
-
-    const Type *T = SubILE->getType().getTypePtr();
-    if (T->isUnionType())
-      Idx = 0;
-    else
-      Idx = (*I);
-
-    // Incomplete initialization list
-    if (Idx >= SubILE->getNumInits())
-      return false;
-
-    Exp = SubILE->getInit(Idx);
-    TransAssert(Exp && "NULL Exp!");
-
-    SubILE = dyn_cast<InitListExpr>(Exp);
-    if (!SubILE)
-      break;
-  }
-
-  TransAssert(Exp && "Exp cannot be NULL");
-  TransAssert(Count == FieldIdxs.size());
-  RewriteUtils::getExprString(Exp, InitStr,
-                              &TheRewriter, SrcManager);
-  return true;
-}
-
-bool AggregateToScalar::handleOneMemberExpr(MemberExpr *ME, ASTContext &Ctx)
-{
-  FieldIdxVector FieldIdxs;
-  VarDecl *VD = getRefVarDeclAndFieldIdxs(ME, FieldIdxs);
-  const Type *VarT = VD->getType().getTypePtr(); (void)VarT;
+  const Type *VarT = TheVarDecl->getType().getTypePtr(); (void)VarT;
   TransAssert((VarT->isStructureType() || VarT->isUnionType() 
                || VarT->isArrayType()) && "Non-valid var type!");
 
-  llvm::DenseMap<VarDecl *, std::string>::iterator I = 
-    ProcessedVarDecls.find(VD);
+  createNewVarName(VarName);
 
-  if (I != ProcessedVarDecls.end()) {
-    return replaceMemberExpr(ME, (*I).second);
-  }
-
-  std::string VarName("");
-  createNewVarName(VD, FieldIdxs, VarName);
-  ProcessedVarDecls[VD] = VarName;
-
-  replaceMemberExpr(ME, VarName);
-
-  VarDecl *VDef = VD->getDefinition();
-  if (VDef)
-    VD = VDef;
-
-  Expr *IE = VD->getInit();
+  const Expr *IE = TheVarDecl->getAnyInitializer();
   if (!IE)
-    return addTmpVar(VD, VarName, NULL, Ctx);
+    return addTmpVar(RefE, VarName, NULL);
 
-  InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
+  const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
   if (!ILE) {
     TransAssert(dyn_cast<CXXConstructExpr>(IE));
-    return addTmpVar(VD, VarName, NULL, Ctx);
+    return addTmpVar(RefE, VarName, NULL);
   }
+
+  const Expr *InitE = getInitExprByIndex(*TheIdx, ILE);
+  // We might have incomplete initialization list
+  if (!InitE)
+    return addTmpVar(RefE, VarName, NULL);
 
   std::string InitStr;
-  if (getInitString(FieldIdxs, ILE, InitStr))
-    return addTmpVar(VD, VarName, &InitStr, Ctx);
-  else 
-    return addTmpVar(VD, VarName, NULL, Ctx);
+  RewriteUtils::getExprString(InitE, InitStr, &TheRewriter, SrcManager);
+  return addTmpVar(RefE, VarName, &InitStr);
 }
 
-void AggregateToScalar::handleTheFieldDecl(ASTContext &Ctx)
+void AggregateToScalar::doRewrite(void)
 {
-  VarRefsSet *TheRefsSet = ValidFields[TheFieldDecl];
-  TransAssert(!TheRefsSet->empty() && "VarRefsSet cannot be empty!");
-  
-  for (VarRefsSet::iterator I = TheRefsSet->begin(), E = TheRefsSet->end();
+  ExprSet *TheExprSet = ValidExprs[TheIdx];
+  TransAssert(!TheExprSet->empty() && "TheExprSet cannot be empty!");
+
+  ExprSet::iterator I = TheExprSet->begin(), E = TheExprSet->end();
+  std::string VarName("");
+  createNewVar(*I, VarName);
+
+  for (; I != E; ++I) {
+    RewriteUtils::replaceExpr((*I), VarName,
+                              &TheRewriter, SrcManager);
+  }
+}
+
+void AggregateToScalar::addOneIdx(const Expr *E,
+                                  const VarDecl *VD,
+                                  IdxVectorSet *IdxSet,
+                                  IndexVector *Idx)
+{
+  IdxSet->insert(Idx);
+  ExprSet *ESet = new ExprSet();
+  ValidExprs[Idx] = ESet;
+  ESet->insert(E);
+  ValidInstanceNum++;
+  if (ValidInstanceNum == TransformationCounter) {
+    TheVarDecl = VD;
+    TheIdx = Idx;
+  }
+}
+
+bool AggregateToScalar::isStructuralEqualVectors(IndexVector *IV1, 
+                                                 IndexVector *IV2)
+{
+  unsigned int Sz = IV2->size();
+  if (Sz != IV2->size())
+    return false;
+
+  for (unsigned int I = 0; I < Sz; ++I) {
+    unsigned int Idx1 = (*IV1)[I];
+    unsigned int Idx2 = (*IV2)[I];
+    if (Idx1 != Idx2)
+      return false;
+  }
+  return true;
+}
+
+void AggregateToScalar::addOneExpr(const Expr *Exp)
+{
+  IndexVector *Idx = new IndexVector();
+  const Expr *BaseE = getBaseExprAndIdxs(Exp, *Idx);
+  TransAssert(BaseE && "Invalid Base Expr for ArraySubscriptExpr!");
+
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
+  if (!DRE) {
+    delete Idx;
+    return;
+  }
+
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+  if (!VD) {
+    delete Idx;
+    return;
+  }
+
+  if (dyn_cast<ParmVarDecl>(VD)) {
+    delete Idx;
+    return;
+  }
+
+  const VarDecl *CanonicalDecl = VD->getCanonicalDecl();
+  IdxVectorSet *IdxSet = ValidVars[CanonicalDecl];
+  if (!IdxSet) {
+    IdxSet = new IdxVectorSet();
+    ValidVars[VD] = IdxSet;
+    addOneIdx(Exp, VD, IdxSet, Idx);
+    return;
+  }
+
+  IndexVector *CachedIdx = NULL;
+  for (IdxVectorSet::iterator I = IdxSet->begin(), E = IdxSet->end();
        I != E; ++I) {
-    if (!handleOneMemberExpr(*I, Ctx))
-      return;
-  }
-}
-
-void AggregateToScalar::addVarRefExpr(FieldDecl *FD, MemberExpr *ME)
-{
-  ValidFieldsMap::iterator I = ValidFields.find(FD);
-  VarRefsSet *VarRefs;
-
-  if (I == ValidFields.end()) {
-    ValidInstanceNum++;
-    if (ValidInstanceNum == TransformationCounter) {
-      TheFieldDecl = FD;
+    if (isStructuralEqualVectors(*I, Idx)) {
+      CachedIdx = (*I);
+      break;
     }
-
-    VarRefs = new VarRefsSet();
-    ValidFields[FD] = VarRefs;
-  }
-  else {
-    VarRefs = (*I).second;
   }
 
-  VarRefs->insert(ME);
+  if (!CachedIdx) {
+    addOneIdx(Exp, VD, IdxSet, Idx);
+    return;
+  }
+
+  ExprSet *CachedESet = ValidExprs[CachedIdx];
+  TransAssert(CachedESet && "NULL CachedESet!");
+  CachedESet->insert(Exp);
+  delete Idx;
 }
 
 AggregateToScalar::~AggregateToScalar(void)
@@ -355,8 +312,14 @@ AggregateToScalar::~AggregateToScalar(void)
   if (AggregateAccessVisitor)
     delete AggregateAccessVisitor;
 
-  for (ValidFieldsMap::iterator I = ValidFields.begin(),
-       E = ValidFields.end(); I != E; ++I) {
+  for (VarToIdx::iterator I = ValidVars.begin(),
+       E = ValidVars.end(); I != E; ++I) {
+    delete (*I).second;
+  }
+
+  for (IdxToExpr::iterator I = ValidExprs.begin(),
+       E = ValidExprs.end(); I != E; ++I) {
+    delete (*I).first;
     delete (*I).second;
   }
 }

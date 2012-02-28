@@ -4,19 +4,19 @@
 #include <string>
 #include <set>
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class FunctionDecl;
-  class FieldDecl;
   class MemberExpr;
   class VarDecl;
   class InitListExpr;
   class DeclStmt;
   class Expr;
+  class ArraySubscriptExpr;
 }
 
 class ATSCollectionVisitor;
@@ -29,18 +29,23 @@ public:
   AggregateToScalar(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       AggregateAccessVisitor(NULL),
-      TheFieldDecl(NULL)
+      TheVarDecl(NULL),
+      TheIdx(NULL)
   { }
 
   ~AggregateToScalar(void);
 
 private:
   
-  typedef std::set<clang::MemberExpr *> VarRefsSet;
-  
-  typedef llvm::DenseMap<clang::FieldDecl *, VarRefsSet *> ValidFieldsMap;
+  typedef std::set<const clang::Expr *> ExprSet;
 
-  typedef llvm::SmallVector<unsigned int, 5> FieldIdxVector;
+  typedef llvm::DenseMap<IndexVector *, ExprSet *> 
+    IdxToExpr;
+
+  typedef llvm::SmallPtrSet<IndexVector *, 10> IdxVectorSet;
+
+  typedef llvm::DenseMap<const clang::VarDecl *, IdxVectorSet *>
+    VarToIdx;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -48,42 +53,36 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  void addVarRefExpr(clang::FieldDecl *FD, clang::MemberExpr *ME);
+  bool isStructuralEqualVectors(IndexVector *IV1, IndexVector *IV2);
 
-  bool handleOneMemberExpr(clang::MemberExpr *ME, clang::ASTContext &Ctx);
+  void addOneIdx(const clang::Expr *E, 
+                 const clang::VarDecl *VD,
+                 IdxVectorSet *IdxSet, IndexVector *Idx);
 
-  clang::VarDecl *getRefVarDeclAndFieldIdxs(clang::MemberExpr *ME,
-                    FieldIdxVector &FieldIdxs);
+  void addOneExpr(const clang::Expr *E);
 
-  bool addTmpVar(clang::VarDecl *VD, const std::string &VarName,
-                 const std::string *InitStr, clang::ASTContext &Ctx);
+  bool createNewVar(const clang::Expr *RefE, std::string &VarName);
 
-  void createNewVarName(clang::VarDecl *VD,
-                        const FieldIdxVector &FieldIdxs,
-                        std::string &VarName);
+  bool addTmpVar(const clang::Expr *RefE, const std::string &VarName, 
+                 const std::string *InitStr);
 
-  bool getInitString(const FieldIdxVector &FieldIdxs,
-                     clang::InitListExpr *ILE,
-                     std::string &InitStr);
+  void createNewVarName(std::string &VarName);
 
-  bool replaceMemberExpr(clang::MemberExpr *ME, const std::string &NewName);
+  void doRewrite(void);
 
-  void handleTheFieldDecl(clang::ASTContext &Ctx);
+  llvm::DenseMap<const clang::VarDecl *, clang::DeclStmt *> VarDeclToDeclStmtMap;
 
-  clang::Expr *ignoreSubscriptExprImpCasts(clang::Expr *E,
-                    FieldIdxVector &FieldIdxs);
+  llvm::DenseMap<const clang::VarDecl *, clang::DeclGroupRef> VarDeclToDeclGroupMap;
 
-  llvm::DenseMap<clang::VarDecl *, std::string> ProcessedVarDecls;
+  VarToIdx ValidVars;
 
-  llvm::DenseMap<clang::VarDecl *, clang::DeclStmt *> VarDeclToDeclStmtMap;
-
-  llvm::DenseMap<clang::VarDecl *, clang::DeclGroupRef> VarDeclToDeclGroupMap;
-
-  ValidFieldsMap ValidFields;
+  IdxToExpr ValidExprs;
 
   ATSCollectionVisitor *AggregateAccessVisitor;
 
-  clang::FieldDecl *TheFieldDecl;
+  const clang::VarDecl *TheVarDecl;
+
+  IndexVector *TheIdx;
 
   // Unimplemented
   AggregateToScalar(void);
