@@ -12,11 +12,12 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Replace a aggregate member with a corresponding scalar variable. \
+"Replace accesses to an aggregate member with \
+a corresponding scalar variable. \
 In more detail, the transformation creates \
-a scalar variable for a referenced aggregate member, \
+a scalar variable for an aggregate access, \
 assigns the initial value of the aggregate member to \
-the scalar, and substitutes all accesses to the aggregate \
+the scalar, and substitutes all accesses to the same aggregate \
 member with the accesses to the corresponding scalar variable. \
 (Note that this transformation is unsound).\n";
 
