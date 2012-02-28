@@ -15,14 +15,14 @@ static const char *DescriptionMsg =
 "Simplify a call expression to a comma expression. \
 Replace function arguments with: \n\
   * 0 for integer and pointer arguments \n\
-  * a global temp variable for structs/unions \n\
-and also append a representative return value which is the \n\
+  * a global temp variable for structs/unions \
+and also append a representative return value which is the \
 the last inner expression of the comma expression. \n\
 For example, assume we have a function foo: \n\
   int foo(int x, int *y, struct z) \
-Then this transformation will transform \
-  foo(i, p, s); \
-to \
+Then this transformation will transform \n\
+  foo(i, p, s); \n\
+to \n\
   (0, 0, tmp_var, 0);\n";
 
 static RegisterTransformation<SimplifyCallExpr>
