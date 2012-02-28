@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+// 
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef RENAME_VAR_H
 #define RENAME_VAR_H
 

@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+// 
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef CALL_EXPR_TO_VALUE_H
 #define CALL_EXPR_TO_VALUE_H
 

@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+// 
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef COMBINE_GLOBAL_VAR_DECL_H
 #define COMBINE_GLOBAL_VAR_DECL_H
 

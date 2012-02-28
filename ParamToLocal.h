@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+// 
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef PARAM_TO_LOCAL_H
 #define PARAM_TO_LOCAL_H
 

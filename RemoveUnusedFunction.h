@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+// 
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.TXT for details.
+//
+//===----------------------------------------------------------------------===//
+
 #ifndef REMOVE_UNUSED_FUNCTION_H
 #define REMOVE_UNUSED_FUNCTION_H
 
