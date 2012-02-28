@@ -1,7 +1,10 @@
 //===----------------------------------------------------------------------===//
-// 
+//
+// Copyright (c) 2012 The University of Utah
+// All rights reserved.
+//
 // This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// License.  See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
 
