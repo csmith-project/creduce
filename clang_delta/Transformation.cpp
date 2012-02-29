@@ -328,6 +328,17 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
   return BaseE;
 }
 
+const Type *Transformation::getBasePointerElemType(const Type *Ty)
+{
+  QualType QT = Ty->getPointeeType();;
+  while (!QT.isNull()) {
+    Ty = QT.getTypePtr();
+    QT = Ty->getPointeeType();
+  }
+  TransAssert(Ty && "NULL Type Ptr!");
+  return Ty;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

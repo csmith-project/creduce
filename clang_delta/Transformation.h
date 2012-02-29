@@ -134,6 +134,8 @@ protected:
   const clang::Expr *getBaseExprAndIdxs(const clang::Expr *E,
                                         IndexVector &Idxs);
 
+  const clang::Type *getBasePointerElemType(const clang::Type *Ty);
+
   const std::string &Name;
 
   int TransformationCounter;
