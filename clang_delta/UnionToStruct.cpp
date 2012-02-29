@@ -180,7 +180,6 @@ void UnionToStruct::rewriteRecordDecls(void)
 void UnionToStruct::rewriteOneFieldDecl(const FieldDecl *FD)
 {
   const DeclContext *Ctx = TheRecordDecl->getLexicalParent();
-  const RecordDecl *TmpRD = dyn_cast<RecordDecl>(Ctx);
   // Skip the case where we have:
   // struct {
   //  union U {
@@ -188,7 +187,7 @@ void UnionToStruct::rewriteOneFieldDecl(const FieldDecl *FD)
   //  } f1, f2;
   // };
   // union U is handled by rewriteOneRecordDecl;
-  if (!TmpRD)
+  if (!dyn_cast<RecordDecl>(Ctx))
     RewriteHelper->replaceUnionWithStruct(FD);
 }
 
