@@ -45,6 +45,8 @@ public:
     : ConsumerInstance(Instance)
   { }
 
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
   bool VisitVarDecl(VarDecl *VD);
 
   bool VisitFieldDecl(FieldDecl *FD);
@@ -58,15 +60,24 @@ private:
   UnionToStruct *ConsumerInstance;
 };
 
+bool UnionToStructCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  const Type *T = FD->getResultType().getTypePtr();
+  ConsumerInstance->addOneDeclarator(FD, T);
+  return true;
+}
+
 bool UnionToStructCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
-  ConsumerInstance->addOneDeclarator(VD);
+  const Type *T = VD->getType().getTypePtr();
+  ConsumerInstance->addOneDeclarator(VD, T);
   return true;
 }
 
 bool UnionToStructCollectionVisitor::VisitFieldDecl(FieldDecl *FD)
 {
-  ConsumerInstance->addOneDeclarator(FD);
+  const Type *T = FD->getType().getTypePtr();
+  ConsumerInstance->addOneDeclarator(FD, T);
   return true;
 }
 
@@ -310,6 +321,11 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
   RewriteHelper->replaceExpr(FirstE, NewInitStr);
 }
 
+void UnionToStruct::rewriteOneFunctionDecl(const FunctionDecl *FD)
+{
+  RewriteHelper->replaceUnionWithStruct(FD);
+}
+
 void UnionToStruct::rewriteDeclarators(void)
 {
   for (DeclaratorDeclSet::const_iterator I = TheDeclaratorSet->begin(),
@@ -320,15 +336,20 @@ void UnionToStruct::rewriteDeclarators(void)
       continue;
     }
 
+    const FunctionDecl *FunD = dyn_cast<FunctionDecl>(*I);
+    if (FunD) {
+      rewriteOneFunctionDecl(FunD);
+      continue;
+    }
+
     const VarDecl *VD = dyn_cast<VarDecl>(*I);
     TransAssert(VD && "Invalid Declarator kind!");
     rewriteOneVarDecl(VD);
   }
 }
 
-void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD)
+void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
 {
-  const Type *T = DD->getType().getTypePtr();
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(T);
   if (ArrayTy)
     T = getArrayBaseElemType(ArrayTy);

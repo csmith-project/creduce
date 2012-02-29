@@ -61,7 +61,7 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  void addOneDeclarator(const clang::DeclaratorDecl *VD);
+  void addOneDeclarator(const clang::DeclaratorDecl *VD, const clang::Type *T);
 
   void addOneRecord(const clang::RecordDecl *RD);
 
@@ -78,6 +78,8 @@ private:
   void rewriteOneVarDecl(const clang::VarDecl *VD);
 
   void rewriteOneFieldDecl(const clang::FieldDecl *FD);
+
+  void rewriteOneFunctionDecl(const clang::FunctionDecl *FD);
 
   void getInitStrWithPointerType(const clang::Expr *E, std::string &Str);
 
