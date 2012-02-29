@@ -843,3 +843,21 @@ bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
   return !TheRewriter->InsertTextBefore(StartLoc, Str);
 }
 
+bool RewriteUtils::replaceUnionWithStruct(const NamedDecl *ND)
+{
+  SourceRange NDRange = ND->getSourceRange();
+  int RangeSize = TheRewriter->getRangeSize(NDRange);
+  TransAssert((RangeSize != -1) && "Bad Range!");
+
+  SourceLocation StartLoc = NDRange.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  std::string TmpStr(StartBuf, RangeSize);
+  std::string UStr = "union";
+  size_t Pos = TmpStr.find(UStr);
+  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
+
+  if (Pos != 0)
+    StartLoc = StartLoc.getLocWithOffset(Pos);
+  return !TheRewriter->ReplaceText(StartLoc, UStr.size(), "struct");
+}
+

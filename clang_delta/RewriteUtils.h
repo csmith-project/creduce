@@ -33,6 +33,7 @@ namespace clang {
   class Stmt;
   class DeclGroupRef;
   class DeclRefExpr;
+  class NamedDecl;
 }
 
 class RewriteUtils {
@@ -131,6 +132,9 @@ public:
 
   bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
                               const std::string &Str);
+
+  bool replaceUnionWithStruct(const clang::NamedDecl *ND);
+
 private:
 
   static RewriteUtils *Instance;
