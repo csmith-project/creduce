@@ -9,35 +9,6 @@
 #
 ####################################################################
 
-# sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta
-
-# TODO:
-
-# by default, exit if one of the tools we want isn't available
-# put regex passses in a perl module
-# make passes explicitly load and store the file
-# add sanity check for clang_delta: if it returns success, the
-#   file needs to have changed, and it still needs to compile
-# make pass 0 use a hand-tuned phase ordering, after that it doesn't matter
-#   use cleanup passes often
-#   don't call variable combiner
-# disable sanity check and enable quiet mode for timing runs
-# make this script follow the interface from the paper
-#   fully decouple delta_pos from file position
-# add a pass to turn hex constants into decimal
-# add an option to keep stats about fast vs. slow tests
-# expose quiet on command line
-# add an API for creating temporary files
-# add an option limiting the number of passes
-# see if it's faster to work from back to front
-# watch for unexpected abnormal compiler outputs
-# exploit early-exit from delta test to speed this up
-#   keep per-pass statistic on the probability of requiring the slow test
-#   invert this to decide how many fast tests to run in a row
-#   need to keep checkpoints
-
-######################################################################
-
 use strict;
 use Regexp::Common;
 use re 'eval';
@@ -766,7 +737,7 @@ if (defined($topformflat)) {
 }
 
 sub usage() {
-    print "usage: c_delta.pl test_script.sh file.c [method [method ...]]\n";
+    print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
     print "available methods are:\n";
     foreach my $method (keys %all_methods) {
 	print "  --$method\n";

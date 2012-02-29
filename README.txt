@@ -8,6 +8,8 @@ Description
 --------------------------------------------------------------------
 Prereqs
 
+sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta
+
 --------------------------------------------------------------------
 Installation
 
