@@ -4,7 +4,8 @@ package creduce_utils;
 
 use Exporter::Lite;
 
-@EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP);
+@EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP
+                  );
 
 $SUCCESS = 999;
 $FAILURE = 1010;
@@ -17,13 +18,13 @@ sub read_file ($) {
     while (my $line = <INF>) {
 	$prog .= $line;
     }
+    close INF;
     if (substr($prog, 0, 1) ne " ") {
 	$prog = " $prog";
     }
     if (substr ($prog, -1, 1) ne " ") {
 	$prog = "$prog ";
     }
-    close INF;
     return $prog;
 }
 

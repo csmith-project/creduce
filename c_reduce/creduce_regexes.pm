@@ -7,7 +7,7 @@ use re 'eval';
 use Exporter::Lite;
 
 @EXPORT      = qw($fullvar $binop @delimited_regexes_to_replace
-                  @regexes_to_replace $borderorspc);
+                  @regexes_to_replace $borderorspc $varnumexp);
 
 $varnum = "(\\-?|\\+?)[0-9a-zA-Z\_]+";
 $varnumexp = "($varnum)|($RE{balanced}{-parens=>'()'})";

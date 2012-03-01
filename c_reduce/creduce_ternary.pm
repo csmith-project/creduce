@@ -8,47 +8,50 @@ use Exporter::Lite;
 
 @EXPORT      = qw(ternary1 ternary2);
 
+use strict;
+
 use creduce_regexes;
 use creduce_utils;
 
+my $replace_cont;
+sub replace_aux ($$$) { 
+    my ($index,$original,$replacement) = @_;
+    $replace_cont++;
+    return ($replace_cont == $index) ? $replacement : $original;
+}
+
 sub ternary1 ($$) {
-    (my $oldfile, my $newfile, my $delta_pos) = @_;
+    (my $cfile, my $index) = @_;
 
-    my $prog = read_file ($oldfile);
-    return STOP if ($delta_pos > length($prog));
+    my $string = read_file ($cfile);
+    my $string2 = $string;
 
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc)/$+{del1}$+{b}$+{del2}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
-	my $n2 = "$+{del1}$+{b}$+{del2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	write_file ($newfile, $prog);
-	return SUCCESS;
-    }	    
+    $replace_cont = -1;
+    $string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{b}.$+{del2})/eg;
 
-    return FAILURE;
+    if ($string ne $string2) {
+	write_file ($cfile, $string2);
+	return $SUCCESS;
+    } else {
+	return $STOP;
+    }
 }
 
 sub ternary2 ($$) {
-    (my $oldfile, my $newfile, my $delta_pos) = @_;
+    (my $cfile, my $index) = @_;
 
-    my $prog = read_file ($oldfile);
-    return STOP if ($delta_pos > length($prog));
+    my $string = read_file ($cfile);
+    my $string2 = $string;
 
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc)/$+{del1}$+{c}$+{del2}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
-	my $n2 = "$+{del1}$+{c}$+{del2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	write_file ($newfile, $prog);
-	return SUCCESS;
+    $replace_cont = -1;
+    $string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{c}.$+{del2})/eg;
+
+    if ($string ne $string2) {
+	write_file ($cfile, $string2);
+	return $SUCCESS;
+    } else {
+	return $STOP;
     }
-
-    return FAILURE;
 }
 
 1;

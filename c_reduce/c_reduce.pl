@@ -87,7 +87,6 @@ sub sanity_check () {
     print "successful\n" unless $QUIET;
 }
 
-my $delta_method;
 my %cache = ();
 my $cache_hits = 0;
 
@@ -96,7 +95,7 @@ sub delta_test ($$) {
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
-    print "[$pass_num $delta_method ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
+    print "[$pass_num $method ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
     my $result = $cache{$len}{$prog};
@@ -114,7 +113,7 @@ sub delta_test ($$) {
 	print_pct($len);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
-	$method_worked{$delta_method}++;
+	$method_worked{$method}++;
 	my $size = length ($prog);
 	if ($size < $old_size) {
 	    foreach my $k (keys %cache) {
@@ -134,10 +133,10 @@ sub delta_test ($$) {
     }
 }
 
-sub call_method ($) {
+sub call_method ($$$) {
     no strict "refs";
-    ($delta_method) = @_;    
-    &$delta_method();
+    (my $method,my $fn,my $pos) = @_;    
+    &$method($fn,$pos);
 }
 
 sub round ($) {
@@ -181,7 +180,7 @@ sub delta_pass ($) {
 	} elsif ($delta_method =~ /^lines/) {
 	    $res = lines ($chunk_size);
 	} else {
-	    $res = call_method($delta_method);
+	    $res = call_method($delta_method,$cfile,$delta_pos);
 	} 
 
 	if ($res == $STOP) {
@@ -201,7 +200,8 @@ sub delta_pass ($) {
 	if ($res == $FAILURE) {
 	    $delta_pos++;
 	} else {
-	    delta_test ($delta_pos, $delta_method);
+	    $res = delta_test ($delta_pos, $delta_method);
+	    $delta_pos++ unless $res;
 	}
     }
 }
@@ -265,6 +265,7 @@ if (defined($topformflat)) {
 ###########FIXME
 %all_methods = ();
 $all_methods{"ternary1"} = 1;
+$all_methods{"ternary2"} = 1;
 
 sub usage() {
     print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
@@ -277,14 +278,14 @@ sub usage() {
 }
 
 $test = shift @ARGV;
-usage if (!defined($test));
+usage unless defined($test);
 if (!(-x $test)) {
     print "test script '$test' not found, or not executable\n";
     usage();
 }
 
 $cfile = shift @ARGV;
-usage if (!defined($cfile));
+usage unless defined($cfile);
 if (!(-e $cfile)) {
     print "'$cfile' not found\n";
     usage();
@@ -373,7 +374,7 @@ foreach my $method (sort keys %methods) {
 
 print "\n";
 
-print "reduced test case:\n\n";
-system "cat $cfile";
+#print "reduced test case:\n\n";
+#system "cat $cfile";
 
 ######################################################################
