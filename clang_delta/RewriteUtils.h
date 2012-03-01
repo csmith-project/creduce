@@ -34,6 +34,7 @@ namespace clang {
   class DeclGroupRef;
   class DeclRefExpr;
   class NamedDecl;
+  class IfStmt;
 }
 
 class RewriteUtils {
@@ -134,6 +135,8 @@ public:
                               const std::string &Str);
 
   bool replaceUnionWithStruct(const clang::NamedDecl *ND);
+
+  bool removeIfAndCond(const clang::IfStmt *IS);
 
 private:
 

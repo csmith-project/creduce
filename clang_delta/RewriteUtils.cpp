@@ -861,3 +861,18 @@ bool RewriteUtils::replaceUnionWithStruct(const NamedDecl *ND)
   return !TheRewriter->ReplaceText(StartLoc, UStr.size(), "struct");
 }
 
+bool RewriteUtils::removeIfAndCond(const IfStmt *IS)
+{
+  SourceLocation IfLoc = IS->getIfLoc();
+  const Stmt *ThenStmt = IS->getThen();
+  TransAssert(ThenStmt && "NULL ThenStmt!");
+
+  SourceLocation ThenLoc = ThenStmt->getLocStart();
+  SourceLocation EndLoc =  ThenLoc.getLocWithOffset(-1);
+
+  Rewriter::RewriteOptions Opts;
+  // We don't want to include the previously inserted string
+  Opts.IncludeInsertsAtBeginOfRange = false;
+  return !TheRewriter->RemoveText(SourceRange(IfLoc, EndLoc), Opts);
+}
+
