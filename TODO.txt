@@ -50,8 +50,6 @@ to
   y;
   x = z;
 
-- turn a union into a struct
-
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
