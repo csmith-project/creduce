@@ -247,6 +247,8 @@ if (defined($clang_delta)) {
     $all_methods{"clang-remove-unused-var"} = 10;
     $all_methods{"clang-simplify-callexpr"} = 10;
     $all_methods{"clang-callexpr-to-value"} = 10;
+    $all_methods{"clang-union-to-struct"} = 10;
+    $all_methods{"clang-simplify-if"} = 10;
 } else {
     printf ("clang_delta not found in path, disabling its passes\n");
 }
