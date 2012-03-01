@@ -290,9 +290,23 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
     RewriteHelper->replaceUnionWithStruct(VD);
 
   const Type *VDTy = VD->getType().getTypePtr();
-  if (!VD->hasInit() || !VDTy->isUnionType())
+  if (!VD->hasInit())
     return;
 
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy);
+  if (ArrayTy) {
+    VDTy = getArrayBaseElemType(ArrayTy);
+    // We remove the initializer for an array of unions
+    if (VDTy->isUnionType()) {
+      RewriteHelper->removeVarInitExpr(VD);
+    }
+    return;
+  }
+
+  if (!VDTy->isUnionType()) {
+    return;
+  }
+  
   if (!isValidRecordDecl(TheRecordDecl)) {
     RewriteHelper->removeVarInitExpr(VD);
     return;
