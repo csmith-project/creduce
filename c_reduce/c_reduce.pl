@@ -10,8 +10,6 @@
 ####################################################################
 
 use strict;
-use Regexp::Common;
-use re 'eval';
 use File::Which;
 
 ######################################################################
@@ -20,6 +18,9 @@ use FindBin;
 use lib $FindBin::Bin;
 
 use creduce_regexes;
+use creduce_utils;
+
+# pass modules
 
 #use creduce_indent;
 use creduce_ternary;
@@ -37,31 +38,11 @@ my $QUIET = 0;
 ######################################################################
 
 my $orig_prog_len;
-my $prog;
-my $delta_pos;
 
-sub print_pct () {
-    my $pct = 100 - (length($prog)*100.0/$orig_prog_len);
+sub print_pct ($) {
+    (my $l) = @_;
+    my $pct = 100 - ($l*100.0/$orig_prog_len);
     printf "(%.1f %%)\n", $pct;
-}
-
-sub find_match ($$$) {
-    (my $p2, my $s1, my $s2) = @_;
-    my $count = 1;
-    die if (!(defined($p2) && defined($s1) && defined($s2)));
-    while ($count > 0) {
-	return -1 if ($p2 >= (length ($prog)-1));
-	my $s = substr($prog, $p2, 1);
-	if (!defined($s)) {
-	    my $l = length ($prog);
-	    print "$p2 $l\n";
-	    die;
-	}
-	$count++ if ($s eq $s1);
-	$count-- if ($s eq $s2);
-	$p2++;
-    }
-    return $p2-1;
 }
 
 # these are set at startup time and never change
@@ -69,43 +50,12 @@ my $cfile;
 my $test;
 my $trial_num = 0;   
 
-sub read_file_helper () {
-    open INF, "<$cfile" or die;
-    my $xxprog = "";
-    while (my $line = <INF>) {
-	$xxprog .= $line;
-    }
-    if (substr($xxprog, 0, 1) ne " ") {
-	$xxprog = " $xxprog";
-    }
-    if (substr ($xxprog, -1, 1) ne " ") {
-	$xxprog = "$xxprog ";
-    }
-    close INF;
-    return $xxprog;
-}
-
-sub read_file () {
-    $prog = read_file_helper();
-}
-
 sub count_lines () {
     open INF, "<$cfile" or die;
     my $n=0;
     $n++ while (<INF>);
     close INF;
     return $n;
-}
-
-sub ensure_mem_and_disk_are_synced () {
-    die unless ($prog eq read_file_helper());
-}
-
-sub write_file () {
-    $trial_num++;
-    open OUTF, ">$cfile" or die;
-    print OUTF $prog;
-    close OUTF;
 }
 
 sub runit ($) {
@@ -137,32 +87,15 @@ sub sanity_check () {
     print "successful\n" unless $QUIET;
 }
 
-sub delta_step_fail ($) {
-    (my $method) = @_;
-    print "failure\n" unless $QUIET;
-    system "cp $cfile.bak $cfile";
-    read_file();
-    $bad_cnt++;
-    $method_failed{$method}++;
-}
-    
-my $changed_on_disk = 0;
 my $delta_method;
 my %cache = ();
 my $cache_hits = 0;
 
-sub delta_test () {
-    if ($changed_on_disk) {
-	read_file();
-	$changed_on_disk = 0;
-    } else {
-	write_file();
-    }
-
-    # sanity check that could be deleted
-    ensure_mem_and_disk_are_synced();
-
+sub delta_test ($$) {
+    (my $delta_pos, my $method) = @_;
+    my $prog = read_file($cfile);
     my $len = length ($prog);
+
     print "[$pass_num $delta_method ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
@@ -178,7 +111,7 @@ sub delta_test () {
     
     if ($result) {
 	print "success " unless $QUIET;
-	print_pct();
+	print_pct($len);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
 	$method_worked{$delta_method}++;
@@ -193,325 +126,13 @@ sub delta_test () {
 	$old_size = $size;
 	return 1;
     } else {
-	delta_step_fail($delta_method);
+	print "failure\n" unless $QUIET;
+	system "cp $cfile.bak $cfile";
+	$bad_cnt++;
+	$method_failed{$method}++;
 	return 0;
     }
 }
-
-############################## begin delta passes #############################
-
-my $exit_delta_pass;
-my $delta_worked;
-
-sub lines ($) {
-    (my $chunk_size) = @_;
-
-    my $chunk_start = $delta_pos * $chunk_size;
-
-    open INF, "<$cfile" or die;
-    open OUTF, ">tmpfile" or die;
-
-    my $n=0;
-    my $did_something=0;
-
-    while (my $line = <INF>) {
-	if ($n < $chunk_start ||
-	    $n >= ($chunk_start + $chunk_size)) {
-	    print OUTF $line;
-	} else {
-	    chomp $line;
-	    $did_something = 1;
-	}
-	$n++;
-    }
-    close INF;
-    close OUTF;
-    if ($did_something) {
-	system "mv tmpfile $cfile";
-	$changed_on_disk = 1;
-	$delta_worked |= delta_test ();
-    } else {
-	$exit_delta_pass = 1;
-    }
-}
-
-my @subexprs = (
-    "($fullvar)(\\s*)($binop)(\\s*)($fullvar)",
-    "($fullvar)(\\s*)($binop)",
-    "($binop)(\\s*)($fullvar)",
-    "($fullvar)",
-    ":(\\s*)($fullvar)",
-    "::(\\s*)($fullvar)",
-    "($fullvar)(\\s*):",
-    "($fullvar)(\\s*)::",
-    "($fullvar)(\\s*\\?\\s*)($fullvar)(\\s*\\:\\s*)($fullvar)",
-    );
-
-foreach my $x (@subexprs) {
-    push @delimited_regexes_to_replace, ["$x", "0"];
-    push @delimited_regexes_to_replace, ["$x", "1"];
-    push @delimited_regexes_to_replace, ["$x", ""];
-    push @delimited_regexes_to_replace, ["$x\\s*,", "0,"];
-    push @delimited_regexes_to_replace, ["$x\\s*,", "1,"];
-    push @delimited_regexes_to_replace, ["$x\\s*,", ""];
-    push @delimited_regexes_to_replace, [",\\s*$x", ",0"];
-    push @delimited_regexes_to_replace, [",\\s*$x", ",1"];
-    push @delimited_regexes_to_replace, [",\\s*$x", ""];
-}
-
-my %regex_worked;
-my %regex_failed;
-my %delimited_regex_worked;
-my %delimited_regex_failed;
-for (my $n=0; $n<scalar(@regexes_to_replace); $n++) {
-    $regex_worked{$n} = 0;
-    $regex_failed{$n} = 0;
-}
-for (my $n=0; $n<scalar(@delimited_regexes_to_replace); $n++) {
-    $delimited_regex_worked{$n} = 0;
-    $delimited_regex_failed{$n} = 0;
-}
-
-sub replace_regex (){ 
-    if (1) {
-	my $n=-1;
-	foreach my $l (@regexes_to_replace) {	       
-	    $n++;
-	    my $str = @{$l}[0];
-	    my $repl = @{$l}[1];
-	    my $first = substr($prog, 0, $delta_pos);
-	    my $rest = substr($prog, $delta_pos);
-	    my $rrest = $rest;
-	    if ($rest =~ s/^($str)/$repl/sm) {
-		my $before = $1;
-		my $zz1 = $rest;
-		my $zz2 = $rrest;
-		($zz1 =~ s/\s//g);
-		($zz2 =~ s/\s//g);
-		if ($zz1 ne $zz2) {
-		    print "regex $n replacing '$before' with '$repl' : " unless $QUIET;
-		    $prog = $first.$rest;
-		    if (delta_test ()) {
-			$delta_worked = 1;
-			$regex_worked{$n}++;
-		    } else {
-			$regex_failed{$n}++;
-		    }
-		}
-	    }
-	}
-    }
-    if (1) {
-	my $n=-1;
-	foreach my $l (@delimited_regexes_to_replace) {
-	    $n++;
-	    my $str = @{$l}[0];
-	    my $repl = @{$l}[1];
-	    my $first = substr($prog, 0, $delta_pos);
-	    my $rest = substr($prog, $delta_pos);
-
-	    my $rrest = $rest;
-	    my $front;
-	    my $back;
-	    if (substr($rest,0,1) eq ",") {
-		$front = "(?<delim1>($borderorspc)?)";
-	    } else {
-		$front = "(?<delim1>$borderorspc)";
-	    }
-	    if (substr($rest,-1,1) eq ",") {
-		$back = "(?<delim2>($borderorspc)?)";
-	    } else {
-		$back = "(?<delim2>$borderorspc)";
-	    }
-
-	    # special cases to avoid infinite replacement loops
-	    next if ($repl eq "0" && $rest =~ /^($front)0$back/sm);
-	    next if ($repl eq "1" && $rest =~ /^($front)0$back/sm);
-	    next if ($repl eq "1" && $rest =~ /^($front)1$back/sm);
-	    next if ($repl =~ /0\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
-	    next if ($repl =~ /1\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
-	    next if ($repl =~ /1\s*,/ && $rest =~ /^($front)1\s*,$back/sm);
-	    next if ($repl =~ /,\s*0/ && $rest =~ /^($front),\s*0$back/sm);
-	    next if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*0$back/sm);
-	    next if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*1$back/sm);
-	    
-	    if (
-		$rest =~ s/^$front(?<str>$str)$back/$+{delim1}$repl$+{delim2}/sm
-		) {
-		my $before = $+{str};
-		my $zz1 = $rest;
-		my $zz2 = $rrest;
-		($zz1 =~ s/\s//g);
-		($zz2 =~ s/\s//g);
-		if ($zz1 ne $zz2) {
-		    print "regex $n delimited replacing '$before' with '$repl' : " unless $QUIET;
-		    $prog = $first.$rest;
-		    if (delta_test ()) {
-			$delta_worked = 1;
-			$delimited_regex_worked{$n}++;
-		    } else {
-			$delimited_regex_failed{$n}++;
-		    }
-		} else {
-		    # die;
-		}
-	    }
-	}
-    }
-}
-
-sub blanks () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(\s\t){2,}/ /) {
-	$prog = $first.$rest;
-	$delta_worked |= delta_test ();
-    }
-}
-
-sub clang_delta ($) {
-    (my $how) = @_;
-    my $x = $delta_pos+1;
-    my $cmd = "clang_delta --transformation=$how --counter=$x $cfile > foo";
-    my $res = runit ($cmd);
-    if ($res==0) {
-	my $res2 = runit ("diff $cfile foo");
-	if ($res2 == 0) {
-	    die "oops, command '$cmd' produced identical output";
-	}
-	system "mv foo $cfile";
-	$res2 = ("clang -O0 -c $cfile");
-	if ($res != 0) {
-	    die "oops couldn't compile $cfile now";
-	}
-	$changed_on_disk = 1;
-	$delta_worked |= delta_test ();
-    } else {
-	$exit_delta_pass = 1;
-    }
-}
-
-sub final_indent () {
-    system "indent -nbad -nbap -nbbb $cfile";
-    system "astyle -A2 -xd -s2 $cfile";
-    $changed_on_disk = 1;
-    $delta_worked |= delta_test ();
-    $exit_delta_pass = 1;
-}
-
-sub crc () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ /^(?<all>transparent_crc\s*\((?<list>.*?)\))/) {
-	my @stuff = split /,/, $+{list};
-	my $var = $stuff[0];
-	my $repl = "printf (\"%d\\n\", (int)$var)";
-	print "crc call: < $+{all} > => < $repl > " unless $QUIET;
-	substr ($rest, 0, length ($+{all})) = $repl;
-	$prog = $first.$rest;
-	$delta_worked |= delta_test ();
-    }
-}
-
-sub shorten_ints () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<pref>$borderorspc(\\-|\\+)?(0|(0[xX]))?)(?<del>[0-9a-fA-F])(?<numpart>[0-9a-fA-F]+)(?<suf>[ULul]*$borderorspc)/$+{pref}$+{numpart}$+{suf}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref}$+{del}$+{numpart}$+{suf}";
-	my $n2 = "$+{pref}$+{numpart}$+{suf}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    }      
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    my $orig_rest = $rest;
-    if ($rest =~ s/^(?<pref1>$borderorspc)(?<pref2>(\\-|\\+)?(0|(0[xX]))?)(?<numpart>[0-9a-fA-F]+)(?<suf>[ULul]*$borderorspc)/$+{pref1}$+{numpart}$+{suf}/sm && ($rest ne $orig_rest)) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref1}$+{pref2}$+{numpart}$+{suf}";
-	my $n2 = "$+{pref1}$+{numpart}$+{suf}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    }     
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    $orig_rest = $rest;
-    if ($rest =~ s/^(?<pref>$borderorspc(\\-|\\+)?(0|(0[xX]))?)(?<numpart>[0-9a-fA-F]+)(?<suf1>[ULul]*)(?<suf2>$borderorspc)/$+{pref}$+{numpart}$+{suf2}/sm && ($rest ne $orig_rest)) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref}$+{numpart}$+{suf1}$+{suf2}";
-		my $n2 = "$+{pref}$+{numpart}$+{suf2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    } 
-}
-
-sub angles () {
-    if (substr($prog, $delta_pos, 1) eq "<") {
-	my $p2 = find_match ($delta_pos+1,"<",">");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "<");
-	    die if (substr($prog, $p2, 1) ne ">");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
-sub parens () {
-    if (substr($prog, $delta_pos, 1) eq "(") {
-	my $p2 = find_match ($delta_pos+1,"(",")");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "(");
-	    die if (substr($prog, $p2, 1) ne ")");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
-sub brackets () {
-    if (substr($prog, $delta_pos, 1) eq "{") {
-	my $p2 = find_match ($delta_pos+1,"{","}");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "{");
-	    die if (substr($prog, $p2, 1) ne "}");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
-############################## end delta passes #############################
 
 sub call_method ($) {
     no strict "refs";
@@ -525,8 +146,8 @@ sub round ($) {
 }
 
 sub delta_pass ($) {
-    ($delta_method) = @_;    
-    $delta_pos = 0;
+    (my $delta_method) = @_;    
+    my $delta_pos = 0;
     $good_cnt = 0;
     $bad_cnt = 0;
 
@@ -539,8 +160,7 @@ sub delta_pass ($) {
 	if (defined($1)) {
 	    system "topformflat $1 < $cfile > tmpfile";
 	    system "mv tmpfile $cfile";
-	    $changed_on_disk = 1;
-	    delta_test();
+	    delta_test($delta_pos, "topformflat");
 	}
 	$chunk_size = count_lines();
     }
@@ -551,23 +171,20 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    $exit_delta_pass = 0;
-    
     while (1) {
-	ensure_mem_and_disk_are_synced();
-	return if ($delta_pos >= length ($prog));
-	$delta_worked = 0;
+
+	my $res;
 
 	if ($delta_method =~ /^clang-(.*)$/) {
 	    my $clang_delta_method = $1;
-	    clang_delta ($clang_delta_method);
+	    $res = clang_delta ($clang_delta_method);
 	} elsif ($delta_method =~ /^lines/) {
-	    lines ($chunk_size);
+	    $res = lines ($chunk_size);
 	} else {
-	    call_method($delta_method);
+	    $res = call_method($delta_method);
 	} 
 
-	if ($exit_delta_pass) {
+	if ($res == $STOP) {
 	    
 	    if ($delta_method =~ /^lines/ && $chunk_size > 1) {
 		$chunk_size = round ($chunk_size / 2.0);
@@ -578,8 +195,13 @@ sub delta_pass ($) {
 	    return;
 	}
 
-	if (!$delta_worked) {
+	die unless ($res == $SUCCESS ||
+		    $res == $FAILURE);
+
+	if ($res == $FAILURE) {
 	    $delta_pos++;
+	} else {
+	    delta_test ($delta_pos, $delta_method);
 	}
     }
 }
@@ -640,6 +262,10 @@ if (defined($topformflat)) {
     printf ("topformflat not found in path, disabling its passes\n");
 }
 
+###########FIXME
+%all_methods = ();
+$all_methods{"ternary1"} = 1;
+
 sub usage() {
     print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
     print "available methods are:\n";
@@ -696,8 +322,10 @@ sub bymethod {
 
 # iterate to global fixpoint
 
-read_file ();    
-$orig_prog_len = length ($prog);
+{
+    my $prog = read_file ($cfile);    
+    $orig_prog_len = length ($prog);
+}
 
 my $file_size = -s $cfile;
 my $spinning = 0;
@@ -734,10 +362,6 @@ if (0) {
 print "===================== done ====================\n";
 
 print "\n";
-print "overall reduction: ";
-print_pct();
-
-print "\n";
 print "pass statistics:\n";
 foreach my $method (sort keys %methods) {
     my $w = $method_worked{$method};
@@ -745,24 +369,6 @@ foreach my $method (sort keys %methods) {
     my $f = $method_failed{$method};
     $f=0 unless defined($f);
     print "  method $method worked $w times and failed $f times\n";
-}
-
-print "\n";
-print "regex statistics:\n";
-for (my $n=0; $n<scalar(@regexes_to_replace); $n++) {
-    my $a = $regex_worked{$n};
-    my $b = $regex_failed{$n};
-    next if (($a+$b)==0);
-    print "  $n s:$a f:$b\n";
-}
-
-print "\n";
-print "delimited regex statistics:\n";
-for (my $n=0; $n<scalar(@delimited_regexes_to_replace); $n++) {
-    my $a = $delimited_regex_worked{$n};
-    my $b = $delimited_regex_failed{$n};
-    next if (($a+$b)==0);
-    print "  $n s:$a f:$b\n";
 }
 
 print "\n";

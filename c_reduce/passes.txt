@@ -311,5 +311,51 @@ sub brackets () {
     }
 }
 
-############################## end delta passes #############################
+use Regexp::Common;
+use re 'eval';
+
+sub find_match ($$$) {
+    (my $p2, my $s1, my $s2) = @_;
+    my $count = 1;
+    die if (!(defined($p2) && defined($s1) && defined($s2)));
+    while ($count > 0) {
+	return -1 if ($p2 >= (length ($prog)-1));
+	my $s = substr($prog, $p2, 1);
+	if (!defined($s)) {
+	    my $l = length ($prog);
+	    print "$p2 $l\n";
+	    die;
+	}
+	$count++ if ($s eq $s1);
+	$count-- if ($s eq $s2);
+	$p2++;
+    }
+    return $p2-1;
+}
+
+
+
+
+#### FIXME stats code
+if (0) {
+    
+print "\n";
+print "regex statistics:\n";
+for (my $n=0; $n<scalar(@regexes_to_replace); $n++) {
+    my $a = $regex_worked{$n};
+    my $b = $regex_failed{$n};
+    next if (($a+$b)==0);
+    print "  $n s:$a f:$b\n";
+}
+
+print "\n";
+print "delimited regex statistics:\n";
+for (my $n=0; $n<scalar(@delimited_regexes_to_replace); $n++) {
+    my $a = $delimited_regex_worked{$n};
+    my $b = $delimited_regex_failed{$n};
+    next if (($a+$b)==0);
+    print "  $n s:$a f:$b\n";
+}
+
+}
 

@@ -24,7 +24,7 @@ sub ternary1 ($$) {
 	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
 	my $n2 = "$+{del1}$+{b}$+{del2}";
 	print "replacing $n1 with $n2\n" unless $QUIET;
-	write_file ($prog, $newfile);
+	write_file ($newfile, $prog);
 	return SUCCESS;
     }	    
 
@@ -44,6 +44,7 @@ sub ternary2 ($$) {
 	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
 	my $n2 = "$+{del1}$+{c}$+{del2}";
 	print "replacing $n1 with $n2\n" unless $QUIET;
+	write_file ($newfile, $prog);
 	return SUCCESS;
     }
 
