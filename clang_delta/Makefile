@@ -35,7 +35,7 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     CombineLocalVarDecl.h ReplaceCallExpr.h SimpleInliner.h \
                     RemoveUnusedFunction.h ReducePointerLevel.h LiftAssignmentExpr.h \
                     CopyPropagation.h RemoveUnusedVar.h SimplifyCallExpr.h \
-                    CallExprToValue.h
+                    CallExprToValue.h UnionToStruct.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -43,7 +43,7 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     CombineLocalVarDecl.cpp ReplaceCallExpr.cpp SimpleInliner.cpp \
                     RemoveUnusedFunction.cpp ReducePointerLevel.cpp LiftAssignmentExpr.cpp \
                     CopyPropagation.cpp RemoveUnusedVar.cpp SimplifyCallExpr.cpp \
-                    CallExprToValue.cpp
+                    CallExprToValue.cpp UnionToStruct.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -51,7 +51,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  CombineLocalVarDecl.o ReplaceCallExpr.o SimpleInliner.o \
                  RemoveUnusedFunction.o ReducePointerLevel.o LiftAssignmentExpr.o \
                  CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o \
-                 CallExprToValue.o
+                 CallExprToValue.o UnionToStruct.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -117,6 +117,8 @@ RemoveUnusedVar.o: RemoveUnusedVar.cpp RemoveUnusedVar.h ${SUB_TRANSFORMATION_DE
 SimplifyCallExpr.o: SimplifyCallExpr.cpp SimplifyCallExpr.h ${SUB_TRANSFORMATION_DEPS}
 
 CallExprToValue.o: CallExprToValue.cpp CallExprToValue.h ${SUB_TRANSFORMATION_DEPS}
+
+UnionToStruct.o: UnionToStruct.cpp UnionToStruct.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
