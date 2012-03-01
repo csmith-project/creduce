@@ -16,6 +16,16 @@ use File::Which;
 
 ######################################################################
 
+use FindBin;
+use lib $FindBin::Bin;
+
+use creduce_regexes;
+
+#use creduce_indent;
+use creduce_ternary;
+
+######################################################################
+
 # if set, save all delta variants
 my $DEBUG = 0;
 
@@ -26,8 +36,9 @@ my $QUIET = 0;
 
 ######################################################################
 
-my $prog;
 my $orig_prog_len;
+my $prog;
+my $delta_pos;
 
 sub print_pct () {
     my $pct = 100 - (length($prog)*100.0/$orig_prog_len);
@@ -113,7 +124,6 @@ sub run_test () {
 my $good_cnt;
 my $bad_cnt;
 my $pass_num = 0;
-my $delta_pos;
 my %method_worked = ();
 my %method_failed = ();
 my $old_size = 1000000000;
@@ -210,8 +220,6 @@ sub lines ($) {
 	    print OUTF $line;
 	} else {
 	    chomp $line;
-	    # TMI
-	    # print "omitting: '$line'\n";
 	    $did_something = 1;
 	}
 	$n++;
@@ -226,82 +234,6 @@ sub lines ($) {
 	$exit_delta_pass = 1;
     }
 }
-
-my $varnum = "(\\-?|\\+?)[0-9a-zA-Z\_]+";
-my $varnumexp = "($varnum)|($RE{balanced}{-parens=>'()'})";
-my $field = "\\.($varnum)";
-my $index = "\\\[($varnum)\\\]";
-my $fullvar = "([\\&\\*]*)($varnumexp)(($field)|($index))*";
-my $arith = "\\+|\\-|\\%|\\/|\\*";
-my $comp = "\\<\\=|\\>\\=|\\<|\\>|\\=\\=|\\!\\=|\\=";
-my $logic = "\\&\\&|\\|\\|";
-my $bit = "\\||\\&|\\^|\\<\\<|\\>\\>";
-my $binop = "($arith)|($comp)|($logic)|($bit)|(\\-\\>)";
-my $border = "[\\*\\{\\(\\[\\:\\,\\}\\)\\]\\;\\,]";
-my $borderorspc = "(($border)|(\\s))";
-my $fname = "(?<fname>$varnum)";
-my $call = "$varnum\\s*$RE{balanced}{-parens=>'()'}";
-
-# these match without additional qualification
-my @regexes_to_replace = (
-    ["$RE{balanced}{-parens=>'<>'}", ""],
-    ["$RE{balanced}{-parens=>'()'}", ""],
-    ["$RE{balanced}{-parens=>'{}'}", ""],
-    ["namespace(.*?)$RE{balanced}{-parens=>'{}'}", ""],
-    ["=\\s*$RE{balanced}{-parens=>'{}'}", ""],
-    ["\\:\\s*[0-9]+\\s*;", ";"],
-    ["\\;", ""],
-    ["\#(.*?)\n", ""],
-    ["\\^\\=", "="],
-    ["\\|\\=", "="],
-    ["\\&\\=", "="],
-    ["\"(.*)\"", ""],
-    ["\'(.*)\'", ""],
-    ["\\+\\=", "="],
-    ["\\-\\=", "="],
-    ["\\*\\=", "="],
-    ["\\/\\=", "="],
-    ["\\%\\=", "="],
-    ["\\<\\<\\=", "="],
-    ["\\>\\>\\=", "="],
-    ["\\+", ""],
-    ["\\-", ""],
-    [":", ""],
-    [",", ""],
-    ["::", ""],
-    ["\\!", ""],
-    ["\\~", ""],
-    ["while", "if"],
-    ['"(.*?)"', ""],
-    ['"(.*?)",', ""],
-    ["struct\\s*$RE{balanced}{-parens=>'{}'}", ""],
-    ["union\\s*$RE{balanced}{-parens=>'{}'}", ""],
-    ["enum\\s*$RE{balanced}{-parens=>'{}'}", ""],
-    ["if\\s*$RE{balanced}{-parens=>'()'}", ""],
-    );
-
-# these match when preceded and followed by $borderorspc
-my @delimited_regexes_to_replace = (
-    ["($varnumexp)\\s*:", ""],
-    ["goto\\s+($varnum);", ""],
-    ["char", "int"],
-    ["short", "int"],
-    ["long", "int"],
-    ["signed", "int"],
-    ["unsigned", "int"],
-    ["int(\\s+)argc(\\s*),(\\s*)(.*)(\\s*)\\*argv\\[\\]", "void"],
-    ["int(\\s+)argc(\\s*),(\\s*)(.*)(\\s*)\\*(\\s*)\\*argv", "void"],
-    ["int.*?;", ""],
-    ["for", ""],
-    ["\"(.*)\"", ""],
-    ["\'(.*)\'", ""],
-    ["\"(.*?)\"", ""],
-    ["\'(.*?)\'", ""],
-    ["$call,", "0"],
-    ["$call,", ""],
-    ["$call", "0"],
-    ["$call", ""],
-    );
 
 my @subexprs = (
     "($fullvar)(\\s*)($binop)(\\s*)($fullvar)",
@@ -459,15 +391,6 @@ sub clang_delta ($) {
     }
 }
 
-my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
-
-sub indent () {
-    system "indent $INDENT_OPTS $cfile";
-    $changed_on_disk = 1;
-    $delta_worked |= delta_test ();
-    $exit_delta_pass = 1;
-}
-
 sub final_indent () {
     system "indent -nbad -nbap -nbbb $cfile";
     system "astyle -A2 -xd -s2 $cfile";
@@ -486,27 +409,6 @@ sub crc () {
 	print "crc call: < $+{all} > => < $repl > " unless $QUIET;
 	substr ($rest, 0, length ($+{all})) = $repl;
 	$prog = $first.$rest;
-	$delta_worked |= delta_test ();
-    }
-}
-
-sub ternary () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc)/$+{del1}$+{b}$+{del2}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
-	my $n2 = "$+{del1}$+{b}$+{del2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    }	    
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc)/$+{del1}$+{c}$+{del2}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{del1}$+{a} ? $+{b} : $+{c}$+{del2}";
-	my $n2 = "$+{del1}$+{c}$+{del2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
 	$delta_worked |= delta_test ();
     }
 }
@@ -691,7 +593,8 @@ my %all_methods = (
     "crc" => 1,
     "angles" => 2,
     "brackets" => 2,
-    "ternary" => 2,
+    "ternary1" => 2,
+    "ternary2" => 2,
     "parens" => 3,
     "indent" => 3,
     "replace_regex" => 4,
@@ -710,6 +613,7 @@ if (defined($clang_delta)) {
     $all_methods{"clang-remove-nested-function"} = 10;
     $all_methods{"clang-remove-unused-function"} = -10;
     $all_methods{"clang-rename-fun"} = 10;
+    $all_methods{"clang-union-to-struct"} = 10;
     $all_methods{"clang-rename-param"} = 10;    
     $all_methods{"clang-rename-var"} = 10;
     $all_methods{"clang-replace-callexpr"} = 10;    
@@ -721,7 +625,6 @@ if (defined($clang_delta)) {
     $all_methods{"clang-remove-unused-var"} = 10;
     $all_methods{"clang-simplify-callexpr"} = 10;
     $all_methods{"clang-callexpr-to-value"} = 10;
-    $all_methods{"clang-union-to-struct"} = 10;
 } else {
     printf ("clang_delta not found in path, disabling its passes\n");
 }
@@ -799,7 +702,7 @@ $orig_prog_len = length ($prog);
 my $file_size = -s $cfile;
 my $spinning = 0;
 
-if (1) {
+if (0) {
     delta_pass ("lines0");
     delta_pass ("lines1");
     delta_pass ("lines2");
@@ -822,7 +725,7 @@ while (1) {
     $file_size = $s;
 }
 
-if (1) {
+if (0) {
     delta_pass ("clang-combine-global-var");
     delta_pass ("clang-combine-local-var");
     delta_pass ("final_indent");
