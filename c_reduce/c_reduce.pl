@@ -126,6 +126,13 @@ sub delta_test ($$) {
     }
 }
 
+sub init_method ($) {
+    no strict "refs";
+    (my $method,my $fn,my $pos) = @_;    
+    my $str = $method."::init";
+    &$str($fn,$pos);
+}
+
 sub call_method ($$$) {
     no strict "refs";
     (my $method,my $fn,my $pos) = @_;    
@@ -163,6 +170,8 @@ sub delta_pass ($) {
     if ($SANITY) {
 	sanity_check();
     }
+
+    init_method ($delta_method);
 
     while (1) {
 
