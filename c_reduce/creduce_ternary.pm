@@ -13,13 +13,6 @@ use strict;
 use creduce_regexes;
 use creduce_utils;
 
-my $replace_cont;
-sub replace_aux ($$$) { 
-    my ($index,$original,$replacement) = @_;
-    $replace_cont++;
-    return ($replace_cont == $index) ? $replacement : $original;
-}
-
 sub ternary1 ($$) {
     (my $cfile, my $index) = @_;
 
