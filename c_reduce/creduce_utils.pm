@@ -5,11 +5,19 @@ package creduce_utils;
 use Exporter::Lite;
 
 @EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP
-                  $replace_cont replace_aux);
+                  $replace_cont replace_aux runit);
 
 $SUCCESS = 999;
 $FAILURE = 1010;
 $STOP = 1133;
+
+sub runit ($) {
+    (my $cmd) = @_;
+    if ((system "$cmd") != 0) {
+	return -1;
+    }   
+    return ($? >> 8);
+}
 
 $replace_cont = 0;
 sub replace_aux ($$$) { 

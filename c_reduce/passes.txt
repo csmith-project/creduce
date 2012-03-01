@@ -191,14 +191,6 @@ sub clang_delta ($) {
     }
 }
 
-sub final_indent () {
-    system "indent -nbad -nbap -nbbb $cfile";
-    system "astyle -A2 -xd -s2 $cfile";
-    $changed_on_disk = 1;
-    $delta_worked |= delta_test ();
-    $exit_delta_pass = 1;
-}
-
 sub crc () {
     my $first = substr($prog, 0, $delta_pos);
     my $rest = substr($prog, $delta_pos);

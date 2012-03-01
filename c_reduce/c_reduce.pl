@@ -22,7 +22,8 @@ use creduce_utils;
 
 # pass modules
 
-#use creduce_indent;
+use creduce_indent;
+use creduce_indent_final;
 use creduce_ternary;
 
 ######################################################################
@@ -56,14 +57,6 @@ sub count_lines () {
     $n++ while (<INF>);
     close INF;
     return $n;
-}
-
-sub runit ($) {
-    (my $cmd) = @_;
-    if ((system "$cmd") != 0) {
-	return -1;
-    }   
-    return ($? >> 8);
 }
 
 sub run_test () {
@@ -136,7 +129,8 @@ sub delta_test ($$) {
 sub call_method ($$$) {
     no strict "refs";
     (my $method,my $fn,my $pos) = @_;    
-    &$method($fn,$pos);
+    my $str = $method."::transform";
+    &$str($fn,$pos);
 }
 
 sub round ($) {
@@ -215,8 +209,7 @@ my %all_methods = (
     "crc" => 1,
     "angles" => 2,
     "brackets" => 2,
-    "ternary1" => 2,
-    "ternary2" => 2,
+    "ternary" => 2,
     "parens" => 3,
     "indent" => 3,
     "replace_regex" => 4,
@@ -266,8 +259,8 @@ if (defined($topformflat)) {
 
 ###########FIXME
 %all_methods = ();
-$all_methods{"ternary1"} = 1;
-$all_methods{"ternary2"} = 1;
+$all_methods{"creduce_ternary"} = 1;
+$all_methods{"creduce_indent_final"} = 2;
 
 sub usage() {
     print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
@@ -359,7 +352,7 @@ while (1) {
 if (0) {
     delta_pass ("clang-combine-global-var");
     delta_pass ("clang-combine-local-var");
-    delta_pass ("final_indent");
+    delta_pass ("indent_final");
 }
 
 print "===================== done ====================\n";
