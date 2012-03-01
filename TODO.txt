@@ -33,15 +33,10 @@ remove array dimension from a variable
 
 reduce array length
 
+move function body close to its declaration
+
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
-
-simplify if/for statements 
-from:
-  if (stuff1) { stuff2 }
-to
-  stuff1
-  stuff2 
 
 simplify a comma expression below:
 from
