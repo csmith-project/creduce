@@ -20,11 +20,12 @@ use lib $FindBin::Bin;
 use creduce_regexes;
 use creduce_utils;
 
-# pass modules
+# passes
+# TODO -- load these later, using the strings?
 
-use creduce_indent;
-use creduce_indent_final;
-use creduce_ternary;
+use pass_indent;
+use pass_indent_final;
+use pass_ternary;
 
 ######################################################################
 
@@ -127,16 +128,16 @@ sub delta_test ($$) {
 }
 
 sub init_method ($) {
-    no strict "refs";
     (my $method,my $fn,my $pos) = @_;    
     my $str = $method."::init";
+    no strict "refs";
     &$str($fn,$pos);
 }
 
 sub call_method ($$$) {
-    no strict "refs";
     (my $method,my $fn,my $pos) = @_;    
     my $str = $method."::transform";
+    no strict "refs";
     &$str($fn,$pos);
 }
 
@@ -268,8 +269,9 @@ if (defined($topformflat)) {
 
 ###########FIXME
 %all_methods = ();
-$all_methods{"creduce_ternary"} = 1;
-$all_methods{"creduce_indent_final"} = 2;
+$all_methods{"pass_ternary"} = 1;
+$all_methods{"pass_indent"} = 1;
+$all_methods{"pass_indent_final"} = 2;
 
 sub usage() {
     print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";

@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-package creduce_ternary;
+package pass_ternary;
 
 use Regexp::Common;
 use re 'eval';
