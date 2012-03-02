@@ -9,6 +9,11 @@ my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 
 my $which = 0;
 
+sub check_prereqs () {
+    my $path = File::Which::which ("indent");
+    return defined ($path);
+}
+
 sub init () {
     $which = 0;
 }

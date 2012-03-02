@@ -7,9 +7,9 @@ use Exporter::Lite;
 @EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP
                   $replace_cont replace_aux runit);
 
-$SUCCESS = 999;
-$FAILURE = 1010;
-$STOP = 1133;
+$SUCCESS = 999999;
+$FAILURE = 101010;
+$STOP = 111333;
 
 sub runit ($) {
     (my $cmd) = @_;

@@ -11,39 +11,32 @@
 
 use strict;
 use File::Which;
-
-######################################################################
-
 use FindBin;
 use lib $FindBin::Bin;
 
-use creduce_regexes;
 use creduce_utils;
 
-# passes
-# TODO -- load these later, using the strings?
-
-use pass_indent;
-use pass_indent_final;
-use pass_ternary;
-
 ######################################################################
-
-# if set, save all delta variants
-my $DEBUG = 0;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 1;
 
+# if set, don't print a lot of stuff
+# (there's no "real quiet" option -- just redirect output to /dev/null
+# if you don't want to see it)
 my $QUIET = 0;
 
 ######################################################################
 
-my $orig_prog_len;
+# global invariant: the delta test always succeeds for $cfile.bak
+
+######################################################################
+
+my $orig_file_size;
 
 sub print_pct ($) {
     (my $l) = @_;
-    my $pct = 100 - ($l*100.0/$orig_prog_len);
+    my $pct = 100 - ($l*100.0/$orig_file_size);
     printf "(%.1f %%)\n", $pct;
 }
 
@@ -104,7 +97,7 @@ sub delta_test ($$) {
     
     if ($result) {
 	print "success " unless $QUIET;
-	print_pct($len);
+	print_pct(-s $cfile);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
 	$method_worked{$method}++;
@@ -210,68 +203,7 @@ sub delta_pass ($) {
     }
 }
 
-############################### main #################################
-
-# global invariant: the delta test always succeeds for $cfile.bak
-
-my %all_methods = (
-
-    "crc" => 1,
-    "angles" => 2,
-    "brackets" => 2,
-    "ternary" => 2,
-    "parens" => 3,
-    "indent" => 3,
-    "replace_regex" => 4,
-    "shorten_ints" => 5,
-    "blanks" => 14,
-
-    );
-
-my $clang_delta = File::Which::which ("clang_delta");
-if (defined($clang_delta)) {
-    $all_methods{"clang-aggregate-to-scalar"} = 10;
-    # $all_methods{"clang-binop-simplification"} = 10;
-    $all_methods{"clang-local-to-global"} = 10;
-    $all_methods{"clang-param-to-global"} = 10;
-    $all_methods{"clang-param-to-local"} = 10;
-    $all_methods{"clang-remove-nested-function"} = 10;
-    $all_methods{"clang-remove-unused-function"} = -10;
-    $all_methods{"clang-rename-fun"} = 10;
-    $all_methods{"clang-union-to-struct"} = 10;
-    $all_methods{"clang-rename-param"} = 10;    
-    $all_methods{"clang-rename-var"} = 10;
-    $all_methods{"clang-replace-callexpr"} = 10;    
-    $all_methods{"clang-return-void"} = 10;
-    $all_methods{"clang-simple-inliner"} = 10;
-    $all_methods{"clang-reduce-pointer-level"} = 10;
-    $all_methods{"clang-lift-assignment-expr"} = 10;
-    $all_methods{"clang-copy-propagation"} = 10;
-    $all_methods{"clang-remove-unused-var"} = 10;
-    $all_methods{"clang-simplify-callexpr"} = 10;
-    $all_methods{"clang-callexpr-to-value"} = 10;
-    $all_methods{"clang-union-to-struct"} = 10;
-    $all_methods{"clang-simplify-if"} = 10;
-} else {
-    printf ("clang_delta not found in path, disabling its passes\n");
-}
-
-my $topformflat = File::Which::which ("topformflat");
-if (defined($topformflat)) {
-    $all_methods{"lines0"} = 15;
-    $all_methods{"lines1"} = 14;
-    $all_methods{"lines2"} = 13;
-    $all_methods{"lines10"} = 12;
-} else {
-    $all_methods{"lines"} = 15;
-    printf ("topformflat not found in path, disabling its passes\n");
-}
-
-###########FIXME
-%all_methods = ();
-$all_methods{"pass_ternary"} = 1;
-$all_methods{"pass_indent"} = 1;
-$all_methods{"pass_indent_final"} = 2;
+my %all_methods = ();
 
 sub usage() {
     print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
@@ -281,6 +213,26 @@ sub usage() {
     }
     print "Default strategy is trying all methods.\n";
     die;
+}
+
+sub bymethod {
+    return $all_methods{$a} <=> $all_methods{$b};
+}
+
+############################### main #################################
+
+%all_methods = ();
+$all_methods{"pass_ternary"} = 1;
+$all_methods{"pass_indent"} = 1;
+$all_methods{"pass_indent_final"} = 2;
+
+foreach my $method (keys %all_methods) {
+    eval "require $method";
+    my $str = $method."::check_prereqs";
+    no strict "refs";
+    if (!(&$str())) {
+	die "prereqs not found for pass $method";
+    }
 }
 
 $test = shift @ARGV;
@@ -323,31 +275,10 @@ if (scalar (keys %methods) == 0) {
 system "cp $cfile $cfile.orig";
 system "cp $cfile $cfile.bak";
 
-sub bymethod {
-    return $all_methods{$a} <=> $all_methods{$b};
-}
+my $file_size = -s $cfile;
+$orig_file_size = $file_size;
 
 # iterate to global fixpoint
-
-{
-    my $prog = read_file ($cfile);    
-    $orig_prog_len = length ($prog);
-}
-
-my $file_size = -s $cfile;
-my $spinning = 0;
-
-if (0) {
-    delta_pass ("lines0");
-    delta_pass ("lines1");
-    delta_pass ("lines2");
-    delta_pass ("lines10");
-    delta_pass ("clang-remove-unused-function");
-    delta_pass ("clang-remove-unused-var");
-    delta_pass ("clang-callexpr-to-value");
-    delta_pass ("clang-simplify-callexpr");
-    delta_pass ("clang-remove-unused-function");
-}
 
 while (1) {
     foreach my $method (sort bymethod keys %methods) {
@@ -358,12 +289,6 @@ while (1) {
     print "Termination check: size was $file_size; now $s\n";
     last if ($s >= $file_size);
     $file_size = $s;
-}
-
-if (0) {
-    delta_pass ("clang-combine-global-var");
-    delta_pass ("clang-combine-local-var");
-    delta_pass ("indent_final");
 }
 
 print "===================== done ====================\n";

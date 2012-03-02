@@ -10,6 +10,10 @@ use strict;
 use creduce_regexes;
 use creduce_utils;
 
+sub check_prereqs () {
+    return 1;
+}
+
 sub init () {
 }
 
