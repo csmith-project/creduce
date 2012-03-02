@@ -8,7 +8,7 @@ Description
 --------------------------------------------------------------------
 Prereqs
 
-sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta
+sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta libexporter-lite-perl
 
 --------------------------------------------------------------------
 Building the clang_delta plugin
