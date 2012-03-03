@@ -21,7 +21,7 @@ sub transform ($$) {
     (my $cfile, my $index) = @_;
     return $STOP unless ($index == 0 && $which == 0);
     system "indent -nbad -nbap -nbbb $cfile";
-    system "astyle -A2 -xd -s2 $cfile";
+    system "astyle -A2 -xd -s2 $cfile >/dev/null 2>&1";
     $which++;
     return $SUCCESS;
 }

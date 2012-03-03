@@ -18,20 +18,6 @@ if (0) {
     delta_pass ("indent_final");
 }
 
-my %all_methods = (
-
-    "crc" => 1,
-    "angles" => 2,
-    "brackets" => 2,
-    "ternary" => 2,
-    "parens" => 3,
-    "indent" => 3,
-    "replace_regex" => 4,
-    "shorten_ints" => 5,
-    "blanks" => 14,
-
-    );
-
 my $clang_delta = File::Which::which ("clang_delta");
 if (defined($clang_delta)) {
     $all_methods{"clang-aggregate-to-scalar"} = 10;
@@ -70,14 +56,6 @@ if (defined($topformflat)) {
     $all_methods{"lines"} = 15;
     printf ("topformflat not found in path, disabling its passes\n");
 }
-
-
-
-
-############################## begin delta passes #############################
-
-my $exit_delta_pass;
-my $delta_worked;
 
 sub lines ($) {
     (my $chunk_size) = @_;
@@ -236,15 +214,6 @@ sub replace_regex (){
     }
 }
 
-sub blanks () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(\s\t){2,}/ /) {
-	$prog = $first.$rest;
-	$delta_worked |= delta_test ();
-    }
-}
-
 sub clang_delta ($) {
     (my $how) = @_;
     my $x = $delta_pos+1;
@@ -313,96 +282,8 @@ sub shorten_ints () {
     } 
 }
 
-sub angles () {
-    if (substr($prog, $delta_pos, 1) eq "<") {
-	my $p2 = find_match ($delta_pos+1,"<",">");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "<");
-	    die if (substr($prog, $p2, 1) ne ">");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
-sub parens () {
-    if (substr($prog, $delta_pos, 1) eq "(") {
-	my $p2 = find_match ($delta_pos+1,"(",")");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "(");
-	    die if (substr($prog, $p2, 1) ne ")");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
-sub brackets () {
-    if (substr($prog, $delta_pos, 1) eq "{") {
-	my $p2 = find_match ($delta_pos+1,"{","}");
-	if ($p2 != -1) {
-	    die if (substr($prog, $delta_pos, 1) ne "{");
-	    die if (substr($prog, $p2, 1) ne "}");
-	    
-	    my $del = substr ($prog, $delta_pos, $p2-$delta_pos+1, "");
-	    print "deleting '$del' at $delta_pos--$p2 : " unless $QUIET;
-	    my $res = delta_test ();
-	    $delta_worked |= $res;
-	    
-	    if (!$res) {
-		substr ($prog, $p2, 1) = "";
-		substr ($prog, $delta_pos, 1) = "";
-		print "deleting at $delta_pos--$p2 : " unless $QUIET;
-		$delta_worked |= delta_test ();
-	    }
-	}
-    }
-}
-
 use Regexp::Common;
 use re 'eval';
-
-sub find_match ($$$) {
-    (my $p2, my $s1, my $s2) = @_;
-    my $count = 1;
-    die if (!(defined($p2) && defined($s1) && defined($s2)));
-    while ($count > 0) {
-	return -1 if ($p2 >= (length ($prog)-1));
-	my $s = substr($prog, $p2, 1);
-	if (!defined($s)) {
-	    my $l = length ($prog);
-	    print "$p2 $l\n";
-	    die;
-	}
-	$count++ if ($s eq $s1);
-	$count-- if ($s eq $s2);
-	$p2++;
-    }
-    return $p2-1;
-}
-
-
-
 
 #### FIXME stats code
 if (0) {

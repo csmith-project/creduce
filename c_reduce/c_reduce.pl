@@ -28,10 +28,6 @@ my $QUIET = 0;
 
 ######################################################################
 
-# global invariant: the delta test always succeeds for $cfile.bak
-
-######################################################################
-
 my $orig_file_size;
 
 sub print_pct ($) {
@@ -77,6 +73,7 @@ sub sanity_check () {
 my %cache = ();
 my $cache_hits = 0;
 
+# global invariant: the delta test always succeeds for $cfile.bak
 sub delta_test ($$) {
     (my $delta_pos, my $method) = @_;
     my $prog = read_file($cfile);
@@ -193,6 +190,8 @@ sub delta_pass ($) {
 	    return;
 	}
 
+	# system "diff ${cfile}.bak $cfile";
+
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
 
@@ -205,26 +204,80 @@ sub delta_pass ($) {
     }
 }
 
-my %all_methods = ();
-
 sub usage() {
-    print "usage: c_reduce.pl test_script.sh file.c [method [method ...]]\n";
-    print "available methods are:\n";
-    foreach my $method (keys %all_methods) {
-	print "  --$method\n";
-    }
-    print "Default strategy is trying all methods.\n";
+    print "usage: c_reduce.pl test_script.sh file.c\n";
     die;
 }
 
-sub bymethod {
-    return $all_methods{$a} <=> $all_methods{$b};
+my @all_methods = ();
+
+sub by_first_pass_priority {
+    my $pa;
+    my $pb;
+    foreach my $mref (@all_methods) {
+	my %m = %{$mref};
+	if (${$a}{"name"} eq $m{"name"}) {
+	    $pa = $m{"first_pass_priority"};
+	}
+	if (${$b}{"name"} eq $m{"name"}) {
+	    $pb = $m{"first_pass_priority"};
+	}
+    }
+    die unless defined ($pa);
+    die unless defined ($pb);
+    return $pa <=> $pb;
+}
+
+sub by_priority {
+    my $pa;
+    my $pb;
+    foreach my $mref (@all_methods) {
+	my %m = %{$mref};
+	if (${$a}{"name"} eq $m{"name"}) {
+	    $pa = $m{"priority"};
+	}
+	if (${$b}{"name"} eq $m{"name"}) {
+	    $pb = $m{"priority"};
+	}
+    }
+    die unless defined ($pa);
+    die unless defined ($pb);
+    return $pa <=> $pb;
+}
+
+sub by_last_pass_priority {
+    my $pa;
+    my $pb;
+    foreach my $mref (@all_methods) {
+	my %m = %{$mref};
+	if (${$a}{"name"} eq $m{"name"}) {
+	    $pa = $m{"last_pass_priority"};
+	}
+	if (${$b}{"name"} eq $m{"name"}) {
+	    $pb = $m{"last_pass_priority"};
+	}
+    }
+    die unless defined ($pa);
+    die unless defined ($pb);
+    return $pa <=> $pb;
+}
+
+sub has_priority { 
+    return defined(${$_}{"priority"});
+}
+
+sub has_first_pass_priority { 
+    return defined(${$_}{"first_pass_priority"});
+}
+
+sub has_last_pass_priority { 
+    return defined(${$_}{"last_pass_priority"});
 }
 
 ############################### main #################################
 
 # put this into a config file?
-my @all_methods = (
+@all_methods = (
     { 
 	"name" => "pass_ternary",
 	"arg" => "b",
@@ -235,13 +288,33 @@ my @all_methods = (
 	"arg" => "c",
 	"priority" => "5",
     },
-    {
-	"name" => "pass_indent",
-	"priority" => 1,
+    { 
+	"name" => "pass_balanced",
+	"arg" => "parens",
+	"priority" => "50",
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "brackets",
+	"priority" => "49",
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "angles",
+	"priority" => "51",
     },
     {
-	"name" => "pass_indent_final",
+	"name" => "pass_indent",
 	"priority" => 100,
+    },
+    #{
+    #	"name" => "pass_blank",
+    #	"priority" => 101,
+    #},
+    
+    {
+	"name" => "pass_indent_final",
+	"last_pass_priority" => 100,
     },
     );
 
@@ -282,27 +355,15 @@ system "cp $cfile $cfile.bak";
 my $file_size = -s $cfile;
 $orig_file_size = $file_size;
 
-# iterate to global fixpoint
-
-sub bypriority {
-    my $pa;
-    my $pb;
-    foreach my $mref (@all_methods) {
-	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"}) {
-	    $pa = $m{"priority"};
-	}
-	if (${$b}{"name"} eq $m{"name"}) {
-	    $pb = $m{"priority"};
-	}
-    }
-    die unless defined ($pa);
-    die unless defined ($pb);
-    return $pa <=> $pb;
+# some stuff we run first since it often makes good headway quickly
+foreach my $method (sort by_first_pass_priority grep (has_first_pass_priority, @all_methods)) {
+    delta_pass ($method);
 }
 
+# iterate to global fixpoint
+$file_size = -s $cfile;
 while (1) {
-    foreach my $method (sort bypriority @all_methods) {
+    foreach my $method (sort by_priority grep (has_priority, @all_methods)) {
 	delta_pass ($method);
     }
     $pass_num++;
@@ -310,6 +371,11 @@ while (1) {
     print "Termination check: size was $file_size; now $s\n";
     last if ($s >= $file_size);
     $file_size = $s;
+}
+
+# some stuff we run last since it only makes sense as cleanup
+foreach my $method (sort by_last_pass_priority grep (has_last_pass_priority, @all_methods)) {
+    delta_pass ($method);
 }
 
 print "===================== done ====================\n";
