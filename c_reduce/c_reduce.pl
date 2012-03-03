@@ -221,19 +221,44 @@ sub bymethod {
 
 ############################### main #################################
 
-%all_methods = ();
-$all_methods{"pass_ternary"} = 1;
-$all_methods{"pass_indent"} = 1;
-$all_methods{"pass_indent_final"} = 2;
+# put this into a config file?
+my @all_methods = (
+    { 
+	"name" => "pass_ternary",
+	"arg" => 0,
+	"priority" => "5",
+    },
+    { 
+	"name" => "pass_ternary",
+	"arg" => 1,
+	"priority" => "5",
+    },
+    {
+	"name" => "pass_indent",
+	"priority" => 1,
+    },
+    {
+	"name" => "pass_indent_final",
+	"priority" => 100,
+    },
+    );
 
-foreach my $method (keys %all_methods) {
-    eval "require $method";
-    my $str = $method."::check_prereqs";
+my %prereqs_checked;
+foreach my $mref (@all_methods) {
+    my %method = %{$mref};
+    my $mname = $method{"name"};
+    die unless defined ($mname);
+    next if defined ($prereqs_checked{$mname});
+    $prereqs_checked{$mname} = 1;
+    eval "require $mname";
+    my $str = $mname."::check_prereqs";
     no strict "refs";
     if (!(&$str())) {
-	die "prereqs not found for pass $method";
+	die "prereqs not found for pass $mname";
     }
+    print "successfully checked prereqs for $mname\n" unless $QUIET;
 }
+print "\n" unless $QUIET;
 
 $test = shift @ARGV;
 usage unless defined($test);

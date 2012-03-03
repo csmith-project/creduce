@@ -17,20 +17,19 @@ sub check_prereqs () {
 sub init () {
 }
 
-sub transform ($$) {
-    (my $cfile, my $index) = @_;
+sub transform ($$$) {
+    (my $cfile, my $index, my $which) = @_;
 
     my $string = read_file ($cfile);
     my $string2 = $string;
 
-    my $which = $index % 2;
-    $index /= 2;
-
     $replace_cont = -1;
     if ($which == 0) {
 	$string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{b}.$+{del2})/eg;
-    } else {
+    } elsif ($which == 1) {
 	$string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{c}.$+{del2})/eg;
+    } else {
+	die "ternary pass didn't expect which = $which";
     }
 
     if ($string ne $string2) {
