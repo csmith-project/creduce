@@ -127,11 +127,11 @@ sub init_method ($) {
     &$str($fn,$pos);
 }
 
-sub call_method ($$$) {
-    (my $method,my $fn,my $pos) = @_;    
+sub call_method ($$$$) {
+    my ($method,$fn,$pos,$arg) = @_;    
     my $str = $method."::transform";
     no strict "refs";
-    &$str($fn,$pos);
+    &$str($fn,$pos,$arg);
 }
 
 sub round ($) {
@@ -140,7 +140,8 @@ sub round ($) {
 }
 
 sub delta_pass ($) {
-    (my $delta_method) = @_;    
+    (my $mref) = @_;    
+    my $delta_method = ${$mref}{"name"};
     my $delta_pos = 0;
     $good_cnt = 0;
     $bad_cnt = 0;
@@ -177,7 +178,8 @@ sub delta_pass ($) {
 	} elsif ($delta_method =~ /^lines/) {
 	    $res = lines ($chunk_size);
 	} else {
-	    $res = call_method($delta_method,$cfile,$delta_pos);
+	    my $arg = ${$mref}{"arg"};
+	    $res = call_method($delta_method,$cfile,$delta_pos,$arg);
 	} 
 
 	if ($res == $STOP) {
@@ -225,12 +227,12 @@ sub bymethod {
 my @all_methods = (
     { 
 	"name" => "pass_ternary",
-	"arg" => 0,
+	"arg" => "b",
 	"priority" => "5",
     },
     { 
 	"name" => "pass_ternary",
-	"arg" => 1,
+	"arg" => "c",
 	"priority" => "5",
     },
     {
@@ -274,29 +276,6 @@ if (!(-e $cfile)) {
     usage();
 }
 
-my %methods = ();
-foreach my $arg (@ARGV) {
-    my $found = 0;
-    foreach my $method (keys %all_methods) {
-	if ($arg eq "--$method") {
-	    $methods{$method} = 1;
-	    $found = 1;
-	    last;
-	}
-    }
-    if (!$found) {
-	print "unknown method '$arg'\n";
-	usage();
-    }
-}
-
-if (scalar (keys %methods) == 0) {
-    # default to all methods
-    foreach my $method (keys %all_methods) {
-	$methods{$method} = 1;
-    }
-}
-
 system "cp $cfile $cfile.orig";
 system "cp $cfile $cfile.bak";
 
@@ -305,8 +284,25 @@ $orig_file_size = $file_size;
 
 # iterate to global fixpoint
 
+sub bypriority {
+    my $pa;
+    my $pb;
+    foreach my $mref (@all_methods) {
+	my %m = %{$mref};
+	if (${$a}{"name"} eq $m{"name"}) {
+	    $pa = $m{"priority"};
+	}
+	if (${$b}{"name"} eq $m{"name"}) {
+	    $pb = $m{"priority"};
+	}
+    }
+    die unless defined ($pa);
+    die unless defined ($pb);
+    return $pa <=> $pb;
+}
+
 while (1) {
-    foreach my $method (sort bymethod keys %methods) {
+    foreach my $method (sort bypriority @all_methods) {
 	delta_pass ($method);
     }
     $pass_num++;
@@ -320,7 +316,8 @@ print "===================== done ====================\n";
 
 print "\n";
 print "pass statistics:\n";
-foreach my $method (sort keys %methods) {
+foreach my $mref (sort @all_methods) {
+    my $method = ${$mref}{"name"};
     my $w = $method_worked{$method};
     $w=0 unless defined($w);
     my $f = $method_failed{$method};

@@ -24,12 +24,12 @@ sub transform ($$$) {
     my $string2 = $string;
 
     $replace_cont = -1;
-    if ($which == 0) {
+    if ($which eq "b") {
 	$string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{b}.$+{del2})/eg;
-    } elsif ($which == 1) {
+    } elsif ($which eq "c") {
 	$string2 =~ s/(?<all>(?<del1>$borderorspc)(?<a>$varnumexp)\s*\?\s*(?<b>$varnumexp)\s*:\s*(?<c>$varnumexp)(?<del2>$borderorspc))/replace_aux($index,$+{all},$+{del1}.$+{c}.$+{del2})/eg;
     } else {
-	die "ternary pass didn't expect which = $which";
+	die "ternary pass didn't expect arg == $which";
     }
 
     if ($string ne $string2) {
