@@ -32,14 +32,21 @@ sub transform ($$$) {
 
     $replace_cont = -1;
 
-    if ($arg eq "parens") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'()'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
-    } elsif ($arg eq "brackets") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'{}'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
+    if (0) {
+    } elsif ($arg eq "parens") {
+	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'()'}))/replace_aux($index,$+{all},"")/eg;
+    } elsif ($arg eq "curly") {
+	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'{}'}))/replace_aux($index,$+{all},"")/eg;
     } elsif ($arg eq "angles") {
+	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'<>'}))/replace_aux($index,$+{all},"")/eg;
+    } elsif ($arg eq "parens-only") {
+	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'()'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
+    } elsif ($arg eq "curly-only") {
+	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'{}'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
+    } elsif ($arg eq "angles-only") {
 	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'<>'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
     } else {
-	die "pass_balanced: expected arg to be parents, brackets, or angles";
+	die "pass_balanced: expected arg to be parens, curly, or angles";
     }
 
     if ($prog ne $prog2) {

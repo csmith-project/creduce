@@ -74,12 +74,12 @@ my %cache = ();
 my $cache_hits = 0;
 
 # global invariant: the delta test always succeeds for $cfile.bak
-sub delta_test ($$) {
-    (my $delta_pos, my $method) = @_;
+sub delta_test ($$$) {
+    (my $delta_pos, my $method, my $arg) = @_;
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
-    print "[$pass_num $method ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
+    print "[$pass_num $method :: $arg ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
     my $result = $cache{$len}{$prog};
@@ -121,14 +121,14 @@ sub init_method ($) {
     (my $method,my $fn,my $pos) = @_;    
     my $str = $method."::init";
     no strict "refs";
-    &$str($fn,$pos);
+    &${str}($fn,$pos);
 }
 
 sub call_method ($$$$) {
     my ($method,$fn,$pos,$arg) = @_;    
     my $str = $method."::transform";
     no strict "refs";
-    &$str($fn,$pos,$arg);
+    &${str}($fn,$pos,$arg);
 }
 
 sub round ($) {
@@ -139,12 +139,13 @@ sub round ($) {
 sub delta_pass ($) {
     (my $mref) = @_;    
     my $delta_method = ${$mref}{"name"};
+    my $delta_arg = ${$mref}{"arg"};
     my $delta_pos = 0;
     $good_cnt = 0;
     $bad_cnt = 0;
 
     print "\n" unless $QUIET;
-    print "========== starting pass <$delta_method> ==========\n";
+    print "========== starting pass <$delta_method :: $delta_arg> ==========\n";
 
     my $chunk_size;
     if ($delta_method =~ /^lines([0-9]*)$/) {
@@ -152,7 +153,7 @@ sub delta_pass ($) {
 	if (defined($1)) {
 	    system "topformflat $1 < $cfile > tmpfile";
 	    system "mv tmpfile $cfile";
-	    delta_test($delta_pos, "topformflat");
+	    delta_test($delta_pos, "topformflat", "");
 	}
 	$chunk_size = count_lines();
     }
@@ -175,8 +176,7 @@ sub delta_pass ($) {
 	} elsif ($delta_method =~ /^lines/) {
 	    $res = lines ($chunk_size);
 	} else {
-	    my $arg = ${$mref}{"arg"};
-	    $res = call_method($delta_method,$cfile,$delta_pos,$arg);
+	    $res = call_method($delta_method,$cfile,$delta_pos,$delta_arg);
 	} 
 
 	if ($res == $STOP) {
@@ -190,7 +190,7 @@ sub delta_pass ($) {
 	    return;
 	}
 
-	# system "diff ${cfile}.bak $cfile";
+	system "diff ${cfile}.bak $cfile";
 
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
@@ -198,7 +198,7 @@ sub delta_pass ($) {
 	if ($res == $FAILURE) {
 	    $delta_pos++;
 	} else {
-	    $res = delta_test ($delta_pos, $delta_method);
+	    $res = delta_test ($delta_pos, $delta_method, $delta_arg);
 	    $delta_pos++ unless $res;
 	}
     }
@@ -216,10 +216,12 @@ sub by_first_pass_priority {
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"}) {
+	if (${$a}{"name"} eq $m{"name"} &&
+	    ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"first_pass_priority"};
 	}
-	if (${$b}{"name"} eq $m{"name"}) {
+	if (${$b}{"name"} eq $m{"name"} &&
+	    ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"first_pass_priority"};
 	}
     }
@@ -231,12 +233,17 @@ sub by_first_pass_priority {
 sub by_priority {
     my $pa;
     my $pb;
+
+    # print ${$a}{"name"}." ".${$b}{"name"}."\n";
+
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"}) {
+	if (${$a}{"name"} eq $m{"name"} &&
+	    ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"priority"};
 	}
-	if (${$b}{"name"} eq $m{"name"}) {
+	if (${$b}{"name"} eq $m{"name"} &&
+	    ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"priority"};
 	}
     }
@@ -250,10 +257,12 @@ sub by_last_pass_priority {
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"}) {
+	if (${$a}{"name"} eq $m{"name"} &&
+	    ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"last_pass_priority"};
 	}
-	if (${$b}{"name"} eq $m{"name"}) {
+	if (${$b}{"name"} eq $m{"name"} &&
+	    ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"last_pass_priority"};
 	}
     }
@@ -281,30 +290,46 @@ sub has_last_pass_priority {
     { 
 	"name" => "pass_ternary",
 	"arg" => "b",
-	"priority" => "5",
+	"priority" => 5,
     },
     { 
 	"name" => "pass_ternary",
 	"arg" => "c",
-	"priority" => "5",
+	"priority" => 5,
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "curly",
+	"priority" => 10,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "parens",
-	"priority" => "50",
-    },
-    { 
-	"name" => "pass_balanced",
-	"arg" => "brackets",
-	"priority" => "49",
+	"priority" => 11,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "angles",
-	"priority" => "51",
+	"priority" => 12,
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "curly-only",
+	"priority" => 50,
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "parens-only",
+	"priority" => 51,
+    },
+    { 
+	"name" => "pass_balanced",
+	"arg" => "angles-only",
+	"priority" => 52,
     },
     {
 	"name" => "pass_indent",
+	"arg" => "",
 	"priority" => 100,
     },
     #{
@@ -314,6 +339,7 @@ sub has_last_pass_priority {
     
     {
 	"name" => "pass_indent_final",
+	"arg" => "",
 	"last_pass_priority" => 100,
     },
     );
@@ -328,7 +354,7 @@ foreach my $mref (@all_methods) {
     eval "require $mname";
     my $str = $mname."::check_prereqs";
     no strict "refs";
-    if (!(&$str())) {
+    if (!(&${str}())) {
 	die "prereqs not found for pass $mname";
     }
     print "successfully checked prereqs for $mname\n" unless $QUIET;
@@ -356,11 +382,13 @@ my $file_size = -s $cfile;
 $orig_file_size = $file_size;
 
 # some stuff we run first since it often makes good headway quickly
+print "INITIAL PASS\n";
 foreach my $method (sort by_first_pass_priority grep (has_first_pass_priority, @all_methods)) {
     delta_pass ($method);
 }
 
 # iterate to global fixpoint
+print "MAIN PASSES\n";
 $file_size = -s $cfile;
 while (1) {
     foreach my $method (sort by_priority grep (has_priority, @all_methods)) {
@@ -374,6 +402,7 @@ while (1) {
 }
 
 # some stuff we run last since it only makes sense as cleanup
+print "CLEANUP PASS\n";
 foreach my $method (sort by_last_pass_priority grep (has_last_pass_priority, @all_methods)) {
     delta_pass ($method);
 }

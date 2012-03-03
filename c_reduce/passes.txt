@@ -281,30 +281,3 @@ sub shorten_ints () {
 	$delta_worked |= delta_test ();
     } 
 }
-
-use Regexp::Common;
-use re 'eval';
-
-#### FIXME stats code
-if (0) {
-    
-print "\n";
-print "regex statistics:\n";
-for (my $n=0; $n<scalar(@regexes_to_replace); $n++) {
-    my $a = $regex_worked{$n};
-    my $b = $regex_failed{$n};
-    next if (($a+$b)==0);
-    print "  $n s:$a f:$b\n";
-}
-
-print "\n";
-print "delimited regex statistics:\n";
-for (my $n=0; $n<scalar(@delimited_regexes_to_replace); $n++) {
-    my $a = $delimited_regex_worked{$n};
-    my $b = $delimited_regex_failed{$n};
-    next if (($a+$b)==0);
-    print "  $n s:$a f:$b\n";
-}
-
-}
-
