@@ -297,10 +297,19 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
   if (ArrayTy) {
     VDTy = getArrayBaseElemType(ArrayTy);
     // We remove the initializer for an array of unions
-    if (VDTy->isUnionType()) {
-      RewriteHelper->removeVarInitExpr(VD);
+    if (!VDTy->isUnionType()) {
+      return;
     }
-    return;
+
+    const Expr *IE = VD->getInit();
+    const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
+    // handle a special case where we have code like this:
+    //   union U a[][1] = {};
+    // In this case, it's safe to keep the empty initializer
+    if (!ILE->getNumInits())
+      return;
+
+    RewriteHelper->removeVarInitExpr(VD);
   }
 
   if (!VDTy->isUnionType()) {
