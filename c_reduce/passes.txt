@@ -46,49 +46,6 @@ if (defined($clang_delta)) {
     printf ("clang_delta not found in path, disabling its passes\n");
 }
 
-my $topformflat = File::Which::which ("topformflat");
-if (defined($topformflat)) {
-    $all_methods{"lines0"} = 15;
-    $all_methods{"lines1"} = 14;
-    $all_methods{"lines2"} = 13;
-    $all_methods{"lines10"} = 12;
-} else {
-    $all_methods{"lines"} = 15;
-    printf ("topformflat not found in path, disabling its passes\n");
-}
-
-sub lines ($) {
-    (my $chunk_size) = @_;
-
-    my $chunk_start = $delta_pos * $chunk_size;
-
-    open INF, "<$cfile" or die;
-    open OUTF, ">tmpfile" or die;
-
-    my $n=0;
-    my $did_something=0;
-
-    while (my $line = <INF>) {
-	if ($n < $chunk_start ||
-	    $n >= ($chunk_start + $chunk_size)) {
-	    print OUTF $line;
-	} else {
-	    chomp $line;
-	    $did_something = 1;
-	}
-	$n++;
-    }
-    close INF;
-    close OUTF;
-    if ($did_something) {
-	system "mv tmpfile $cfile";
-	$changed_on_disk = 1;
-	$delta_worked |= delta_test ();
-    } else {
-	$exit_delta_pass = 1;
-    }
-}
-
 my @subexprs = (
     "($fullvar)(\\s*)($binop)(\\s*)($fullvar)",
     "($fullvar)(\\s*)($binop)",

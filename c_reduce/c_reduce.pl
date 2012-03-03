@@ -41,14 +41,6 @@ my $cfile;
 my $test;
 my $trial_num = 0;   
 
-sub count_lines () {
-    open INF, "<$cfile" or die;
-    my $n=0;
-    $n++ while (<INF>);
-    close INF;
-    return $n;
-}
-
 sub run_test () {
     my $res = runit "./$test >/dev/null 2>&1";
     return ($res == 0);
@@ -147,19 +139,6 @@ sub delta_pass ($) {
     print "\n" unless $QUIET;
     print "========== starting pass <$delta_method :: $delta_arg> ==========\n";
 
-    my $chunk_size;
-    if ($delta_method =~ /^lines([0-9]*)$/) {
-	my $topform = $1;
-	if (defined($1)) {
-	    system "topformflat $1 < $cfile > tmpfile";
-	    system "mv tmpfile $cfile";
-	    delta_test($delta_pos, "topformflat", "");
-	}
-	$chunk_size = count_lines();
-    }
-
-  again:
-
     if ($SANITY) {
 	sanity_check();
     }
@@ -169,27 +148,12 @@ sub delta_pass ($) {
     while (1) {
 
 	my $res;
-
-	if ($delta_method =~ /^clang-(.*)$/) {
-	    my $clang_delta_method = $1;
-	    $res = clang_delta ($clang_delta_method);
-	} elsif ($delta_method =~ /^lines/) {
-	    $res = lines ($chunk_size);
-	} else {
-	    $res = call_method($delta_method,$cfile,$delta_pos,$delta_arg);
-	} 
+	$res = call_method($delta_method,$cfile,$delta_pos,$delta_arg);
 
 	if ($res == $STOP) {
-	    
-	    if ($delta_method =~ /^lines/ && $chunk_size > 1) {
-		$chunk_size = round ($chunk_size / 2.0);
-		printf "new chunk size = $chunk_size\n" unless $QUIET;
-		$delta_pos = 0;
-		goto again;
-	    }
 	    return;
 	}
-
+	
 	system "diff ${cfile}.bak $cfile";
 
 	die unless ($res == $SUCCESS ||
@@ -288,59 +252,83 @@ sub has_last_pass_priority {
 # put this into a config file?
 @all_methods = (
     { 
+	"name" => "pass_lines",
+	"arg" => "0",
+	"first_pass_priority" => 10,
+	"priority" => 10,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "1",
+	"first_pass_priority" => 11,
+	"priority" => 11,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "2",
+	"first_pass_priority" => 12,
+	"priority" => 12,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "10",
+	"first_pass_priority" => 13,
+	"priority" => 13,
+    },
+    { 
 	"name" => "pass_ternary",
 	"arg" => "b",
-	"priority" => 5,
+	"priority" => 105,
     },
     { 
 	"name" => "pass_ternary",
 	"arg" => "c",
-	"priority" => 5,
+	"priority" => 105,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "curly",
-	"priority" => 10,
+	"priority" => 110,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "parens",
-	"priority" => 11,
+	"priority" => 111,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "angles",
-	"priority" => 12,
+	"priority" => 112,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "curly-only",
-	"priority" => 50,
+	"priority" => 150,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "parens-only",
-	"priority" => 51,
+	"priority" => 151,
     },
     { 
 	"name" => "pass_balanced",
 	"arg" => "angles-only",
-	"priority" => 52,
+	"priority" => 152,
     },
     {
 	"name" => "pass_indent",
 	"arg" => "",
-	"priority" => 100,
+	"priority" => 1000,
     },
     #{
     #	"name" => "pass_blank",
-    #	"priority" => 101,
+    #	"priority" => 1001,
     #},
     
     {
 	"name" => "pass_indent_final",
 	"arg" => "",
-	"last_pass_priority" => 100,
+	"last_pass_priority" => 1000,
     },
     );
 
