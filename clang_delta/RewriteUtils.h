@@ -145,6 +145,8 @@ public:
   clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
                                            char Symbol);
 
+  bool removeArraySubscriptExpr(const clang::Expr *E);
+
 private:
 
   static RewriteUtils *Instance;

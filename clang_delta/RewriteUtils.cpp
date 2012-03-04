@@ -888,3 +888,20 @@ bool RewriteUtils::removeIfAndCond(const IfStmt *IS)
   return !TheRewriter->RemoveText(SourceRange(IfLoc, EndLoc), Opts);
 }
 
+bool RewriteUtils::removeArraySubscriptExpr(const Expr *E)
+{
+  SourceRange ERange = E->getSourceRange();
+  SourceLocation StartLoc = ERange.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  int Offset = 0;
+  while (*StartBuf != '[') {
+    StartBuf--;
+    Offset--;
+  }
+  StartLoc = StartLoc.getLocWithOffset(Offset);
+
+  SourceLocation EndLoc = ERange.getEnd();
+  EndLoc = getLocationUntil(EndLoc, ']');
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+

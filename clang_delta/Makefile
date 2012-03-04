@@ -35,7 +35,8 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     CombineLocalVarDecl.h ReplaceCallExpr.h SimpleInliner.h \
                     RemoveUnusedFunction.h ReducePointerLevel.h LiftAssignmentExpr.h \
                     CopyPropagation.h RemoveUnusedVar.h SimplifyCallExpr.h \
-                    CallExprToValue.h UnionToStruct.h SimplifyIf.h
+                    CallExprToValue.h UnionToStruct.h SimplifyIf.h \
+                    ReduceArrayDim.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -43,7 +44,8 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     CombineLocalVarDecl.cpp ReplaceCallExpr.cpp SimpleInliner.cpp \
                     RemoveUnusedFunction.cpp ReducePointerLevel.cpp LiftAssignmentExpr.cpp \
                     CopyPropagation.cpp RemoveUnusedVar.cpp SimplifyCallExpr.cpp \
-                    CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp
+                    CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp \
+                    ReduceArrayDim.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -51,7 +53,8 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  CombineLocalVarDecl.o ReplaceCallExpr.o SimpleInliner.o \
                  RemoveUnusedFunction.o ReducePointerLevel.o LiftAssignmentExpr.o \
                  CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o \
-                 CallExprToValue.o UnionToStruct.o SimplifyIf.o
+                 CallExprToValue.o UnionToStruct.o SimplifyIf.o \
+                 ReduceArrayDim.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -121,6 +124,8 @@ CallExprToValue.o: CallExprToValue.cpp CallExprToValue.h ${SUB_TRANSFORMATION_DE
 UnionToStruct.o: UnionToStruct.cpp UnionToStruct.h ${SUB_TRANSFORMATION_DEPS}
 
 SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h ${SUB_TRANSFORMATION_DEPS}
+
+ReduceArrayDim.o: ReduceArrayDim.cpp ReduceArrayDim.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
