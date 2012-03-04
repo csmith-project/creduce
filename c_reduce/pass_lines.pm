@@ -79,6 +79,7 @@ sub transform ($$) {
     if ($did_something) {
 	system "mv $tmpfile $cfile";
     } else {
+	system "rm $tmpfile";
 	return $STOP if ($chunk_size == 1);
 	$chunk_size = round ($chunk_size / 2.0);
 	$diff += $pos;

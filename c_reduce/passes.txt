@@ -1,51 +1,3 @@
-# pre-passes
-if (0) {
-    delta_pass ("lines0");
-    delta_pass ("lines1");
-    delta_pass ("lines2");
-    delta_pass ("lines10");
-    delta_pass ("clang-remove-unused-function");
-    delta_pass ("clang-remove-unused-var");
-    delta_pass ("clang-callexpr-to-value");
-    delta_pass ("clang-simplify-callexpr");
-    delta_pass ("clang-remove-unused-function");
-}
-
-# post-passes
-if (0) {
-    delta_pass ("clang-combine-global-var");
-    delta_pass ("clang-combine-local-var");
-    delta_pass ("indent_final");
-}
-
-my $clang_delta = File::Which::which ("clang_delta");
-if (defined($clang_delta)) {
-    $all_methods{"clang-aggregate-to-scalar"} = 10;
-    # $all_methods{"clang-binop-simplification"} = 10;
-    $all_methods{"clang-local-to-global"} = 10;
-    $all_methods{"clang-param-to-global"} = 10;
-    $all_methods{"clang-param-to-local"} = 10;
-    $all_methods{"clang-remove-nested-function"} = 10;
-    $all_methods{"clang-remove-unused-function"} = -10;
-    $all_methods{"clang-rename-fun"} = 10;
-    $all_methods{"clang-union-to-struct"} = 10;
-    $all_methods{"clang-rename-param"} = 10;    
-    $all_methods{"clang-rename-var"} = 10;
-    $all_methods{"clang-replace-callexpr"} = 10;    
-    $all_methods{"clang-return-void"} = 10;
-    $all_methods{"clang-simple-inliner"} = 10;
-    $all_methods{"clang-reduce-pointer-level"} = 10;
-    $all_methods{"clang-lift-assignment-expr"} = 10;
-    $all_methods{"clang-copy-propagation"} = 10;
-    $all_methods{"clang-remove-unused-var"} = 10;
-    $all_methods{"clang-simplify-callexpr"} = 10;
-    $all_methods{"clang-callexpr-to-value"} = 10;
-    $all_methods{"clang-union-to-struct"} = 10;
-    $all_methods{"clang-simplify-if"} = 10;
-} else {
-    printf ("clang_delta not found in path, disabling its passes\n");
-}
-
 my @subexprs = (
     "($fullvar)(\\s*)($binop)(\\s*)($fullvar)",
     "($fullvar)(\\s*)($binop)",
@@ -168,28 +120,6 @@ sub replace_regex (){
 		}
 	    }
 	}
-    }
-}
-
-sub clang_delta ($) {
-    (my $how) = @_;
-    my $x = $delta_pos+1;
-    my $cmd = "clang_delta --transformation=$how --counter=$x $cfile > foo";
-    my $res = runit ($cmd);
-    if ($res==0) {
-	my $res2 = runit ("diff $cfile foo");
-	if ($res2 == 0) {
-	    die "oops, command '$cmd' produced identical output";
-	}
-	system "mv foo $cfile";
-	$res2 = ("clang -O0 -c $cfile");
-	if ($res != 0) {
-	    die "oops couldn't compile $cfile now";
-	}
-	$changed_on_disk = 1;
-	$delta_worked |= delta_test ();
-    } else {
-	$exit_delta_pass = 1;
     }
 }
 

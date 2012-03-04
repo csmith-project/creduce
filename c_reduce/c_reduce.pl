@@ -259,29 +259,129 @@ sub has_last_pass_priority {
 
 # put this into a config file?
 @all_methods = (
-    { 
-	"name" => "pass_lines",
-	"arg" => "0",
-	"first_pass_priority" => 10,
-	"priority" => 10,
+    {
+	"name" => "pass_clang",
+	"arg" => "aggregate-to-scalar",
+	"priority" => 200,
     },
-    { 
-	"name" => "pass_lines",
-	"arg" => "1",
-	"first_pass_priority" => 11,
-	"priority" => 11,
+    #{
+    #	"name" => "pass_clang",
+    #	"arg" => "binop-simplification",
+    #	"priority" => 201,
+    #}
+    {
+	"name" => "pass_clang",
+	"arg" => "local-to-global",
+	"priority" => 202,
     },
-    { 
-	"name" => "pass_lines",
-	"arg" => "2",
-	"first_pass_priority" => 12,
-	"priority" => 12,
+    {
+	"name" => "pass_clang",
+	"arg" => "param-to-global",
+	"priority" => 203,
     },
-    { 
-	"name" => "pass_lines",
-	"arg" => "10",
-	"first_pass_priority" => 13,
-	"priority" => 13,
+    {
+	"name" => "pass_clang",
+	"arg" => "param-to-local",
+	"priority" => 204,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "remove-nested-function",
+	"priority" => 205,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "remove-unused-function",
+	"priority" => 206,
+	"first_pass_priority" => 100,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "rename-fun",
+	"priority" => 207,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "union-to-struct",
+	"priority" => 208,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "rename-param",
+	"priority" => 209,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "rename-var",
+	"priority" => 210,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "replace-callexpr",
+	"priority" => 211,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "return-void",
+	"priority" => 212,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "simple-inliner",
+	"priority" => 213,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "reduce-pointer-level",
+	"priority" => 214,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "lift-assignment-expr",
+	"priority" => 215,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "copy-propagation",
+	"priority" => 216,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "remove-unused-var",
+	"priority" => 217,
+	"first_pass_priority" => 101,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "simplify-callexpr",
+	"priority" => 218,
+	"first_pass_priority" => 104,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "callexpr-to-value",
+	"priority" => 219,
+	"first_pass_priority" => 102,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "union-to-struct",
+	"priority" => 220,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "simplify-if",
+	"priority" => 221,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "combine-global-var",
+	"priority" => 990,
+    },
+    {
+	"name" => "pass_clang",
+	"arg" => "combine-local-var",
+	"priority" => 991,
     },
     { 
 	"name" => "pass_ternary",
@@ -322,6 +422,30 @@ sub has_last_pass_priority {
 	"name" => "pass_balanced",
 	"arg" => "angles-only",
 	"priority" => 152,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "0",
+	"first_pass_priority" => 10,
+	"priority" => 410,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "1",
+	"first_pass_priority" => 11,
+	"priority" => 411,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "2",
+	"first_pass_priority" => 12,
+	"priority" => 412,
+    },
+    { 
+	"name" => "pass_lines",
+	"arg" => "10",
+	"first_pass_priority" => 13,
+	"priority" => 413,
     },
     {
 	"name" => "pass_indent",
@@ -399,11 +523,12 @@ print "\n";
 print "pass statistics:\n";
 foreach my $mref (sort @all_methods) {
     my $method = ${$mref}{"name"};
+    my $arg = ${$mref}{"arg"};
     my $w = $method_worked{$method};
     $w=0 unless defined($w);
     my $f = $method_failed{$method};
     $f=0 unless defined($f);
-    print "  method $method worked $w times and failed $f times\n";
+    print "  method $method :: $arg worked $w times and failed $f times\n";
 }
 
 print "\n";
