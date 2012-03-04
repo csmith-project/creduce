@@ -10,18 +10,27 @@ my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 my $which = 0;
 
 sub check_prereqs () {
-    my $path = File::Which::which ("indent");
-    return defined ($path);
+    my $path1 = File::Which::which ("indent");
+    my $path2 = File::Which::which ("astyle");
+    return defined ($path1) && defined ($path2);
 }
 
 sub init () {
     $which = 0;
 }
 
-sub transform ($$) {
-    (my $cfile, my $index) = @_;
+sub transform ($$$) {
+    (my $cfile, my $index, $arg) = @_;
     return $STOP unless ($index == 0 && $which == 0);
-    system "indent $INDENT_OPTS $cfile";
+    if (0) {
+    } elsif ($arg eq "regular") {
+	system "indent $INDENT_OPTS $cfile";
+    } elsif ($arg eq "final") {
+	system "indent -nbad -nbap -nbbb $cfile";
+	system "astyle -A2 -xd -s2 $cfile >/dev/null 2>&1";
+    } else {
+	die;
+    }
     $which++;
     return $SUCCESS;
 }
