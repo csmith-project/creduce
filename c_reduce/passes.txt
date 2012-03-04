@@ -123,17 +123,3 @@ sub replace_regex (){
     }
 }
 
-sub crc () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ /^(?<all>transparent_crc\s*\((?<list>.*?)\))/) {
-	my @stuff = split /,/, $+{list};
-	my $var = $stuff[0];
-	my $repl = "printf (\"%d\\n\", (int)$var)";
-	print "crc call: < $+{all} > => < $repl > " unless $QUIET;
-	substr ($rest, 0, length ($+{all})) = $repl;
-	$prog = $first.$rest;
-	$delta_worked |= delta_test ();
-    }
-}
-

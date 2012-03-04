@@ -27,6 +27,54 @@ my $QUIET = 0;
 
 ######################################################################
 
+package pass_crc;
+
+use strict;
+
+use creduce_regexes;
+use creduce_utils;
+
+sub check_prereqs () {
+    return 1;
+}
+
+my $index;
+
+sub init () {
+    $index = 0;
+}
+
+sub advance () {
+    $index++;
+}
+
+sub junk ($) {
+    (my $list) = @_;
+    my @stuff = split /,/, $list;
+    my $var = $stuff[0];
+    return "printf (\"%d\\n\", (int)$var)";
+}
+
+sub transform ($$) {
+    (my $cfile, my $which) = @_;
+
+    my $prog = read_file ($cfile);
+    my $prog2 = $prog;
+
+    $replace_cont = -1;
+    $prog2 =~ s/(?<all>transparent_crc\s*\((?<list>.*?)\))/replace_aux($index,$+{all},junk($+{list}))/egs;
+
+    if ($prog ne $prog2) {
+	write_file ($cfile, $prog2);
+	return $SUCCESS;
+    } else {
+	return $STOP;
+    }
+}
+
+package main;
+
+
 my $orig_file_size;
 
 sub print_pct ($) {
@@ -157,24 +205,19 @@ sub delta_pass ($) {
 
     while (1) {
 
-	my $res;
-	$res = call_method($delta_method,$cfile,$delta_arg);
-
-	if ($res == $STOP) {
-	    return;
-	}
+	my $res = call_method ($delta_method,$cfile,$delta_arg);
+	return if ($res == $STOP);
+	die unless ($res == $SUCCESS ||
+		    $res == $FAILURE);
 	
 	system "diff ${cfile}.bak $cfile";
 
-	die unless ($res == $SUCCESS ||
-		    $res == $FAILURE);
-
 	if ($res == $SUCCESS) {
-	    $res = delta_test ($delta_method, $delta_arg);
-	    call_advance($delta_method) unless $res;
+	    call_advance ($delta_method) unless delta_test ($delta_method, $delta_arg);
 	} else {
-	    call_advance($delta_method);
+	    call_advance ($delta_method);
 	}
+
     }
 }
 
@@ -190,12 +233,10 @@ sub by_first_pass_pri {
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} &&
-	    ${$a}{"arg"} eq $m{"arg"}) {
+	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"first_pass_pri"};
 	}
-	if (${$b}{"name"} eq $m{"name"} &&
-	    ${$b}{"arg"} eq $m{"arg"}) {
+	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"first_pass_pri"};
 	}
     }
@@ -208,16 +249,12 @@ sub by_pri {
     my $pa;
     my $pb;
 
-    # print ${$a}{"name"}." ".${$b}{"name"}."\n";
-
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} &&
-	    ${$a}{"arg"} eq $m{"arg"}) {
+	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"pri"};
 	}
-	if (${$b}{"name"} eq $m{"name"} &&
-	    ${$b}{"arg"} eq $m{"arg"}) {
+	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"pri"};
 	}
     }
@@ -231,12 +268,10 @@ sub by_last_pass_pri {
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} &&
-	    ${$a}{"arg"} eq $m{"arg"}) {
+	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
 	    $pa = $m{"last_pass_pri"};
 	}
-	if (${$b}{"name"} eq $m{"name"} &&
-	    ${$b}{"arg"} eq $m{"arg"}) {
+	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
 	    $pb = $m{"last_pass_pri"};
 	}
     }
@@ -258,6 +293,11 @@ sub has_last_pass_pri {
 }
 
 @all_methods = (
+    { "name" => "pass_lines",    "arg" => "0",                      "pri" =>  10,  "first_pass_pri" => 10, },
+    { "name" => "pass_lines",    "arg" => "1",                      "pri" =>  11,  "first_pass_pri" => 11, },
+    { "name" => "pass_lines",    "arg" => "2",                      "pri" =>  12,  "first_pass_pri" => 12, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" =>  13,  "first_pass_pri" => 13, },
+    { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 50, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
     { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  },
@@ -272,7 +312,6 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "param-to-global",        "pri" => 203,  },
     { "name" => "pass_clang",    "arg" => "param-to-local",         "pri" => 204,  },
     { "name" => "pass_clang",    "arg" => "remove-nested-function", "pri" => 205,  },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 206,  "first_pass_pri" => 100, },
     { "name" => "pass_clang",    "arg" => "rename-fun",             "pri" => 207,  },
     { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 208,  },
     { "name" => "pass_clang",    "arg" => "rename-param",           "pri" => 209,  },
@@ -283,6 +322,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "pri" => 214,  },
     { "name" => "pass_clang",    "arg" => "lift-assignment-expr",   "pri" => 215,  },
     { "name" => "pass_clang",    "arg" => "copy-propagation",       "pri" => 216,  },
+    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 206,  "first_pass_pri" => 100, },
     { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 217,  "first_pass_pri" => 101, },
     { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 218,  "first_pass_pri" => 104, },
     { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 219,  "first_pass_pri" => 102, },
@@ -295,10 +335,6 @@ sub has_last_pass_pri {
     { "name" => "pass_ints",     "arg" => "c",                      "pri" => 402,  },
     { "name" => "pass_ints",     "arg" => "d",                      "pri" => 403,  },
     { "name" => "pass_ints",     "arg" => "e",                      "pri" => 403,  },
-    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" => 10, },
-    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" => 11, },
-    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" => 12, },
-    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" => 13, },
     { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
     { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 1000, },
     );
