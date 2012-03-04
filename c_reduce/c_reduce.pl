@@ -282,6 +282,8 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 221,  },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
+    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 300,  },
+    { "name" => "pass_peep",     "arg" => "b",                      "pri" => 301,  },
     { "name" => "pass_ints",     "arg" => "a",                      "pri" => 400,  },
     { "name" => "pass_ints",     "arg" => "b",                      "pri" => 401,  },
     { "name" => "pass_ints",     "arg" => "c",                      "pri" => 402,  },
