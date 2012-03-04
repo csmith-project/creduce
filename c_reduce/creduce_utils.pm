@@ -5,7 +5,7 @@ package creduce_utils;
 use Exporter::Lite;
 
 @EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP
-                  $replace_cont replace_aux runit);
+                  $replace_cont replace_aux runit $matched);
 
 $SUCCESS = 999999;
 $FAILURE = 101010;
@@ -20,9 +20,11 @@ sub runit ($) {
 }
 
 $replace_cont = 0;
+$matched = 0;
 sub replace_aux ($$$) { 
     my ($index,$original,$replacement) = @_;
     $replace_cont++;
+    $matched = 1;
     return ($replace_cont == $index) ? $replacement : $original;
 }
 

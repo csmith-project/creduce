@@ -137,34 +137,3 @@ sub crc () {
     }
 }
 
-sub shorten_ints () {
-    my $first = substr($prog, 0, $delta_pos);
-    my $rest = substr($prog, $delta_pos);
-    if ($rest =~ s/^(?<pref>$borderorspc(\\-|\\+)?(0|(0[xX]))?)(?<del>[0-9a-fA-F])(?<numpart>[0-9a-fA-F]+)(?<suf>[ULul]*$borderorspc)/$+{pref}$+{numpart}$+{suf}/sm) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref}$+{del}$+{numpart}$+{suf}";
-	my $n2 = "$+{pref}$+{numpart}$+{suf}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    }      
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    my $orig_rest = $rest;
-    if ($rest =~ s/^(?<pref1>$borderorspc)(?<pref2>(\\-|\\+)?(0|(0[xX]))?)(?<numpart>[0-9a-fA-F]+)(?<suf>[ULul]*$borderorspc)/$+{pref1}$+{numpart}$+{suf}/sm && ($rest ne $orig_rest)) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref1}$+{pref2}$+{numpart}$+{suf}";
-	my $n2 = "$+{pref1}$+{numpart}$+{suf}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    }     
-    $first = substr($prog, 0, $delta_pos);
-    $rest = substr($prog, $delta_pos);
-    $orig_rest = $rest;
-    if ($rest =~ s/^(?<pref>$borderorspc(\\-|\\+)?(0|(0[xX]))?)(?<numpart>[0-9a-fA-F]+)(?<suf1>[ULul]*)(?<suf2>$borderorspc)/$+{pref}$+{numpart}$+{suf2}/sm && ($rest ne $orig_rest)) {
-	$prog = $first.$rest;
-	my $n1 = "$+{pref}$+{numpart}$+{suf1}$+{suf2}";
-		my $n2 = "$+{pref}$+{numpart}$+{suf2}";
-	print "replacing $n1 with $n2\n" unless $QUIET;
-	$delta_worked |= delta_test ();
-    } 
-}

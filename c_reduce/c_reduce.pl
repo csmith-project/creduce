@@ -164,7 +164,7 @@ sub delta_pass ($) {
 	    return;
 	}
 	
-	# system "diff ${cfile}.bak $cfile";
+	system "diff ${cfile}.bak $cfile";
 
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
@@ -172,6 +172,8 @@ sub delta_pass ($) {
 	if ($res == $SUCCESS) {
 	    $res = delta_test ($delta_method, $delta_arg);
 	    call_advance($delta_method) unless $res;
+	} else {
+	    call_advance($delta_method);
 	}
     }
 }
@@ -256,6 +258,14 @@ sub has_last_pass_pri {
 }
 
 @all_methods = (
+    { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
+    { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
+    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  },
+    { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 111,  },
+    { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 112,  },
+    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
+    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
     { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 200,  },
    #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
     { "name" => "pass_clang",    "arg" => "local-to-global",        "pri" => 202,  },
@@ -280,14 +290,11 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 221,  },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
-    { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
-    { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
-    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  },
-    { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 111,  },
-    { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 112,  },
-    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
-    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
+    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 400,  },
+    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 401,  },
+    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 402,  },
+    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 403,  },
+    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 403,  },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" => 10, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" => 11, },
     { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" => 12, },
@@ -330,14 +337,14 @@ system "cp $cfile $cfile.bak";
 my $file_size = -s $cfile;
 $orig_file_size = $file_size;
 
-# some stuff we run first since it often makes good headway quickly
-print "INITIAL PASS\n";
+# some passes we run first since they often make good headway quickly
+print "INITIAL PASS\n" unless $QUIET;
 foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_methods)) {
     delta_pass ($method);
 }
 
 # iterate to global fixpoint
-print "MAIN PASSES\n";
+print "MAIN PASSES\n" unless $QUIET;
 $file_size = -s $cfile;
 while (1) {
     foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
@@ -350,8 +357,8 @@ while (1) {
     $file_size = $s;
 }
 
-# some stuff we run last since it only makes sense as cleanup
-print "CLEANUP PASS\n";
+# some passes we run last since they work best as cleanup
+print "CLEANUP PASS\n" unless $QUIET;
 foreach my $method (sort by_last_pass_pri grep (has_last_pass_pri, @all_methods)) {
     delta_pass ($method);
 }
