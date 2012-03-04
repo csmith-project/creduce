@@ -164,7 +164,7 @@ sub delta_pass ($) {
 	    return;
 	}
 	
-	system "diff ${cfile}.bak $cfile";
+	# system "diff ${cfile}.bak $cfile";
 
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
@@ -183,18 +183,18 @@ sub usage() {
 
 my @all_methods = ();
 
-sub by_first_pass_priority {
+sub by_first_pass_pri {
     my $pa;
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
 	if (${$a}{"name"} eq $m{"name"} &&
 	    ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"first_pass_priority"};
+	    $pa = $m{"first_pass_pri"};
 	}
 	if (${$b}{"name"} eq $m{"name"} &&
 	    ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"first_pass_priority"};
+	    $pb = $m{"first_pass_pri"};
 	}
     }
     die unless defined ($pa);
@@ -202,7 +202,7 @@ sub by_first_pass_priority {
     return $pa <=> $pb;
 }
 
-sub by_priority {
+sub by_pri {
     my $pa;
     my $pb;
 
@@ -212,11 +212,11 @@ sub by_priority {
 	my %m = %{$mref};
 	if (${$a}{"name"} eq $m{"name"} &&
 	    ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"priority"};
+	    $pa = $m{"pri"};
 	}
 	if (${$b}{"name"} eq $m{"name"} &&
 	    ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"priority"};
+	    $pb = $m{"pri"};
 	}
     }
     die unless defined ($pa);
@@ -224,18 +224,18 @@ sub by_priority {
     return $pa <=> $pb;
 }
 
-sub by_last_pass_priority {
+sub by_last_pass_pri {
     my $pa;
     my $pb;
     foreach my $mref (@all_methods) {
 	my %m = %{$mref};
 	if (${$a}{"name"} eq $m{"name"} &&
 	    ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"last_pass_priority"};
+	    $pa = $m{"last_pass_pri"};
 	}
 	if (${$b}{"name"} eq $m{"name"} &&
 	    ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"last_pass_priority"};
+	    $pb = $m{"last_pass_pri"};
 	}
     }
     die unless defined ($pa);
@@ -243,61 +243,60 @@ sub by_last_pass_priority {
     return $pa <=> $pb;
 }
 
-sub has_priority { 
-    return defined(${$_}{"priority"});
+sub has_pri { 
+    return defined(${$_}{"pri"});
 }
 
-sub has_first_pass_priority { 
-    return defined(${$_}{"first_pass_priority"});
+sub has_first_pass_pri { 
+    return defined(${$_}{"first_pass_pri"});
 }
 
-sub has_last_pass_priority { 
-    return defined(${$_}{"last_pass_priority"});
+sub has_last_pass_pri { 
+    return defined(${$_}{"last_pass_pri"});
 }
+
+@all_methods = (
+    { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 200,  },
+   #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
+    { "name" => "pass_clang",    "arg" => "local-to-global",        "pri" => 202,  },
+    { "name" => "pass_clang",    "arg" => "param-to-global",        "pri" => 203,  },
+    { "name" => "pass_clang",    "arg" => "param-to-local",         "pri" => 204,  },
+    { "name" => "pass_clang",    "arg" => "remove-nested-function", "pri" => 205,  },
+    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 206,  "first_pass_pri" => 100, },
+    { "name" => "pass_clang",    "arg" => "rename-fun",             "pri" => 207,  },
+    { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 208,  },
+    { "name" => "pass_clang",    "arg" => "rename-param",           "pri" => 209,  },
+    { "name" => "pass_clang",    "arg" => "rename-var",             "pri" => 210,  },
+    { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 211,  },
+    { "name" => "pass_clang",    "arg" => "return-void",            "pri" => 212,  },
+    { "name" => "pass_clang",    "arg" => "simple-inliner",         "pri" => 213,  },
+    { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "pri" => 214,  },
+    { "name" => "pass_clang",    "arg" => "lift-assignment-expr",   "pri" => 215,  },
+    { "name" => "pass_clang",    "arg" => "copy-propagation",       "pri" => 216,  },
+    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 217,  "first_pass_pri" => 101, },
+    { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 218,  "first_pass_pri" => 104, },
+    { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 219,  "first_pass_pri" => 102, },
+    { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 220,  },
+    { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 221,  },
+    { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
+    { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
+    { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
+    { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
+    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  },
+    { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 111,  },
+    { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 112,  },
+    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
+    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
+    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" => 10, },
+    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" => 11, },
+    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" => 12, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" => 13, },
+    { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
+    { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 1000, },
+    );
 
 ############################### main #################################
-
-# put this into a config file?
-@all_methods = (
-    { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "priority" => 200,  },
-   #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "priority" => 201,  },
-    { "name" => "pass_clang",    "arg" => "local-to-global",        "priority" => 202,  },
-    { "name" => "pass_clang",    "arg" => "param-to-global",        "priority" => 203,  },
-    { "name" => "pass_clang",    "arg" => "param-to-local",         "priority" => 204,  },
-    { "name" => "pass_clang",    "arg" => "remove-nested-function", "priority" => 205,  },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "priority" => 206,  "first_pass_priority" => 100, },
-    { "name" => "pass_clang",    "arg" => "rename-fun",             "priority" => 207,  },
-    { "name" => "pass_clang",    "arg" => "union-to-struct",        "priority" => 208,  },
-    { "name" => "pass_clang",    "arg" => "rename-param",           "priority" => 209,  },
-    { "name" => "pass_clang",    "arg" => "rename-var",             "priority" => 210,  },
-    { "name" => "pass_clang",    "arg" => "replace-callexpr",       "priority" => 211,  },
-    { "name" => "pass_clang",    "arg" => "return-void",            "priority" => 212,  },
-    { "name" => "pass_clang",    "arg" => "simple-inliner",         "priority" => 213,  },
-    { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "priority" => 214,  },
-    { "name" => "pass_clang",    "arg" => "lift-assignment-expr",   "priority" => 215,  },
-    { "name" => "pass_clang",    "arg" => "copy-propagation",       "priority" => 216,  },
-    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "priority" => 217,  "first_pass_priority" => 101, },
-    { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "priority" => 218,  "first_pass_priority" => 104, },
-    { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "priority" => 219,  "first_pass_priority" => 102, },
-    { "name" => "pass_clang",    "arg" => "union-to-struct",        "priority" => 220,  },
-    { "name" => "pass_clang",    "arg" => "simplify-if",            "priority" => 221,  },
-    { "name" => "pass_clang",    "arg" => "combine-global-var",     "priority" => 990,  },
-    { "name" => "pass_clang",    "arg" => "combine-local-var",      "priority" => 991,  },
-    { "name" => "pass_ternary",  "arg" => "b",                      "priority" => 105,  },
-    { "name" => "pass_ternary",  "arg" => "c",                      "priority" => 105,  },
-    { "name" => "pass_balanced", "arg" => "curly",                  "priority" => 110,  },
-    { "name" => "pass_balanced", "arg" => "parens",                 "priority" => 111,  },
-    { "name" => "pass_balanced", "arg" => "angles",                 "priority" => 112,  },
-    { "name" => "pass_balanced", "arg" => "curly-only",             "priority" => 150,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "priority" => 151,  },
-    { "name" => "pass_balanced", "arg" => "angles-only",            "priority" => 152,  },
-    { "name" => "pass_lines",    "arg" => "0",                      "priority" => 410,  "first_pass_priority" => 10, },
-    { "name" => "pass_lines",    "arg" => "1",                      "priority" => 411,  "first_pass_priority" => 11, },
-    { "name" => "pass_lines",    "arg" => "2",                      "priority" => 412,  "first_pass_priority" => 12, },
-    { "name" => "pass_lines",    "arg" => "10",                     "priority" => 413,  "first_pass_priority" => 13, },
-    { "name" => "pass_indent",   "arg" => "regular",                "priority" => 1000, },
-    { "name" => "pass_indent",   "arg" => "final",                                      "last_pass_priority" => 1000, },
-    );
 
 my %prereqs_checked;
 foreach my $mref (@all_methods) {
@@ -333,7 +332,7 @@ $orig_file_size = $file_size;
 
 # some stuff we run first since it often makes good headway quickly
 print "INITIAL PASS\n";
-foreach my $method (sort by_first_pass_priority grep (has_first_pass_priority, @all_methods)) {
+foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_methods)) {
     delta_pass ($method);
 }
 
@@ -341,7 +340,7 @@ foreach my $method (sort by_first_pass_priority grep (has_first_pass_priority, @
 print "MAIN PASSES\n";
 $file_size = -s $cfile;
 while (1) {
-    foreach my $method (sort by_priority grep (has_priority, @all_methods)) {
+    foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
 	delta_pass ($method);
     }
     $pass_num++;
@@ -353,7 +352,7 @@ while (1) {
 
 # some stuff we run last since it only makes sense as cleanup
 print "CLEANUP PASS\n";
-foreach my $method (sort by_last_pass_priority grep (has_last_pass_priority, @all_methods)) {
+foreach my $method (sort by_last_pass_pri grep (has_last_pass_pri, @all_methods)) {
     delta_pass ($method);
 }
 
