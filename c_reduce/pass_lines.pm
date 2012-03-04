@@ -83,7 +83,6 @@ sub transform ($$) {
 	return $STOP if ($chunk_size == 1);
 	$chunk_size = round ($chunk_size / 2.0);
 	$diff += $pos;
-	printf "new chunk size = $chunk_size\n";
     }
 
     return $SUCCESS;

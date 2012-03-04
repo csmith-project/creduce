@@ -88,7 +88,7 @@ sub delta_test ($$) {
 	print_pct(-s $cfile);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
-	$method_worked{$method}++;
+	$method_worked{$method}{$arg}++;
 	my $size = length ($prog);
 	if ($size < $old_size) {
 	    foreach my $k (keys %cache) {
@@ -103,7 +103,7 @@ sub delta_test ($$) {
 	print "failure\n" unless $QUIET;
 	system "cp $cfile.bak $cfile";
 	$bad_cnt++;
-	$method_failed{$method}++;
+	$method_failed{$method}{$arg}++;
 	return 0;
     }
 }
@@ -360,9 +360,9 @@ print "pass statistics:\n";
 foreach my $mref (sort @all_methods) {
     my $method = ${$mref}{"name"};
     my $arg = ${$mref}{"arg"};
-    my $w = $method_worked{$method};
+    my $w = $method_worked{$method}{$arg};
     $w=0 unless defined($w);
-    my $f = $method_failed{$method};
+    my $f = $method_failed{$method}{$arg};
     $f=0 unless defined($f);
     print "  method $method :: $arg worked $w times and failed $f times\n";
 }
