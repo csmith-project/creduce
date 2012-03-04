@@ -30,9 +30,7 @@ reduces one dimension in the following way: \n\
   void foo(void) {... a[1][3 * 2 + 3] ... }\n\
 The binary operations will be computed to constant during the \
 transformation if possible. Array fields are not handled right now. \
-Also, this pass only works with ConstantArrayType and IncompleteArrayType. \
-If an IncompleteArrayType is encounted, the reduced dimension will be \
-incomplete, e.g., a[][2] will be reduced to a[].\n";
+Also, this pass only works with ConstantArrayType and IncompleteArrayType.\n";
 
 static RegisterTransformation<ReduceArrayDim>
          Trans("reduce-array-dim", DescriptionMsg);
