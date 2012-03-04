@@ -99,8 +99,12 @@ public:
   const char *getTmpVarNamePrefix(void);
 
   void getStringBetweenLocs(std::string &Str, 
-                                   clang::SourceLocation LocStart,
-                                   clang::SourceLocation LocEnd);
+                            clang::SourceLocation LocStart,
+                            clang::SourceLocation LocEnd);
+
+  void getStringBetweenLocsAfterStart(std::string &Str, 
+                                      clang::SourceLocation LocStart,
+                                      clang::SourceLocation LocEnd);
 
   bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, 
                                        std::string &Str);
@@ -138,6 +142,9 @@ public:
 
   bool removeIfAndCond(const clang::IfStmt *IS);
 
+  clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
+                                           char Symbol);
+
 private:
 
   static RewriteUtils *Instance;
@@ -161,9 +168,6 @@ private:
 
   clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                             char Symbol);
-
-  clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
-                                           char Symbol);
 
   clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
                                            char Symbol);

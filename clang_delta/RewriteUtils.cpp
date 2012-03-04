@@ -450,10 +450,10 @@ std::string RewriteUtils::getStmtIndentString(Stmt *S,
   // Find the whitespace at the start of the line.
   StringRef indentSpace;
 
-  unsigned i = lineOffs;
-  while (isspace(MB[i]))
-    ++i;
-  indentSpace = MB.substr(lineOffs, i-lineOffs);
+  unsigned I = lineOffs;
+  while (isspace(MB[I]))
+    ++I;
+  indentSpace = MB.substr(lineOffs, I-lineOffs);
 
   return indentSpace;
 }
@@ -615,6 +615,18 @@ void RewriteUtils::getStringBetweenLocs(std::string &Str,
   const char *StartBuf = SrcManager->getCharacterData(LocStart);
   const char *EndBuf = SrcManager->getCharacterData(LocEnd);
   TransAssert(StartBuf < EndBuf);
+  size_t Off = EndBuf - StartBuf;
+  Str.assign(StartBuf, Off);
+}
+
+void RewriteUtils::getStringBetweenLocsAfterStart(std::string &Str, 
+                                                  SourceLocation LocStart,
+                                                  SourceLocation LocEnd)
+{
+  const char *StartBuf = SrcManager->getCharacterData(LocStart);
+  const char *EndBuf = SrcManager->getCharacterData(LocEnd);
+  StartBuf++;
+  TransAssert(StartBuf <= EndBuf);
   size_t Off = EndBuf - StartBuf;
   Str.assign(StartBuf, Off);
 }
