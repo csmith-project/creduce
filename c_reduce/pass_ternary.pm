@@ -14,11 +14,18 @@ sub check_prereqs () {
     return 1;
 }
 
+my $index;
+
 sub init () {
+    $index = 0;
 }
 
-sub transform ($$$) {
-    (my $cfile, my $index, my $which) = @_;
+sub advance () {
+    $index++;
+}
+
+sub transform ($$) {
+    (my $cfile, my $which) = @_;
 
     my $prog = read_file ($cfile);
     my $prog2 = $prog;

@@ -22,9 +22,15 @@ sub check_prereqs () {
 }
 
 my $started;
+my $index;
 
 sub init () {
+    $index = 0;
     undef ($started);
+}
+
+sub advance () {
+    $index++;
 }
 
 my $chunk_size;
@@ -35,8 +41,8 @@ sub round ($) {
     return int ($n+0.5);
 }
 
-sub transform ($$$) {
-    (my $cfile, my $index, my $arg) = @_;
+sub transform ($$) {
+    (my $cfile, my $arg) = @_;
 
     if (!(defined ($started))) {
 	$started = 1;
@@ -48,10 +54,10 @@ sub transform ($$$) {
 	return $SUCCESS;
     }
 
-    $index -= $diff;
-    die if ($index < 0);
+    my $pos = $index - $diff;
+    die if ($pos < 0);
     
-    my $chunk_start = $index * $chunk_size;
+    my $chunk_start = $pos * $chunk_size;
     my $n=0;
     my $did_something=0;
     my $tmpfile = POSIX::tmpnam();
@@ -75,7 +81,7 @@ sub transform ($$$) {
     } else {
 	return $STOP if ($chunk_size == 1);
 	$chunk_size = round ($chunk_size / 2.0);
-	$diff += $index;
+	$diff += $pos;
 	printf "new chunk size = $chunk_size\n";
     }
 

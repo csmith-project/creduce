@@ -65,12 +65,12 @@ my %cache = ();
 my $cache_hits = 0;
 
 # global invariant: the delta test always succeeds for $cfile.bak
-sub delta_test ($$$) {
-    (my $delta_pos, my $method, my $arg) = @_;
+sub delta_test ($$) {
+    (my $method, my $arg) = @_;
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
-    print "[$pass_num $method :: $arg (n= $delta_pos) s:$good_cnt f:$bad_cnt] " 
+    print "[$pass_num $method :: $arg s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
     my $result = $cache{$len}{$prog};
@@ -108,25 +108,41 @@ sub delta_test ($$$) {
     }
 }
 
-sub init_method ($) {
-    (my $method,my $fn,my $pos) = @_;    
-    my $str = $method."::init";
+sub call_prereq_check ($) {
+    (my $method) = @_;
+    my $str = $method."::check_prereqs";
     no strict "refs";
-    &${str}($fn,$pos);
+    if (!(&${str}())) {
+	die "prereqs not found for pass $method";
+    }
+    print "successfully checked prereqs for $method\n" unless $QUIET;
 }
 
-sub call_method ($$$$) {
-    my ($method,$fn,$pos,$arg) = @_;    
+sub call_init ($) {
+    (my $method) = @_;    
+    my $str = $method."::init";
+    no strict "refs";
+    &${str}();
+}
+
+sub call_advance ($) {
+    (my $method) = @_;    
+    my $str = $method."::advance";
+    no strict "refs";
+    &${str}();
+}
+
+sub call_method ($$$) {
+    my ($method,$fn,$arg) = @_;    
     my $str = $method."::transform";
     no strict "refs";
-    &${str}($fn,$pos,$arg);
+    &${str}($fn,$arg);
 }
 
 sub delta_pass ($) {
     (my $mref) = @_;    
     my $delta_method = ${$mref}{"name"};
     my $delta_arg = ${$mref}{"arg"};
-    my $delta_pos = 0;
     $good_cnt = 0;
     $bad_cnt = 0;
 
@@ -137,12 +153,12 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    init_method ($delta_method);
+    call_init ($delta_method);
 
     while (1) {
 
 	my $res;
-	$res = call_method($delta_method,$cfile,$delta_pos,$delta_arg);
+	$res = call_method($delta_method,$cfile,$delta_arg);
 
 	if ($res == $STOP) {
 	    return;
@@ -153,11 +169,9 @@ sub delta_pass ($) {
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
 
-	if ($res == $FAILURE) {
-	    $delta_pos++;
-	} else {
-	    $res = delta_test ($delta_pos, $delta_method, $delta_arg);
-	    $delta_pos++ unless $res;
+	if ($res == $SUCCESS) {
+	    $res = delta_test ($delta_method, $delta_arg);
+	    call_advance($delta_method) unless $res;
 	}
     }
 }
@@ -329,12 +343,7 @@ foreach my $mref (@all_methods) {
     next if defined ($prereqs_checked{$mname});
     $prereqs_checked{$mname} = 1;
     eval "require $mname";
-    my $str = $mname."::check_prereqs";
-    no strict "refs";
-    if (!(&${str}())) {
-	die "prereqs not found for pass $mname";
-    }
-    print "successfully checked prereqs for $mname\n" unless $QUIET;
+    call_prereq_check($mname);
 }
 print "\n" unless $QUIET;
 

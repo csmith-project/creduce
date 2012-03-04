@@ -14,7 +14,14 @@ sub check_prereqs () {
     return 1;
 }
 
+my $pos;
+
 sub init () {
+    $pos = 0;
+}
+
+sub advance () {
+    $pos++;
 }
 
 sub remove_outside ($) 
@@ -34,13 +41,11 @@ sub remove_outside ($)
 # trying to get nested matches out of Perl's various utilities for
 # matching balanced delimiters, with no success
 
-sub transform ($$$) {
-    (my $cfile, my $index, my $arg) = @_;
+sub transform ($$) {
+    (my $cfile, my $arg) = @_;
 
     my $prog = read_file ($cfile);
 
-    my $match = 0;
-    my $pos = 0;
     while (1) {
 
 	my $first = substr ($prog, 0, $pos);
@@ -64,12 +69,9 @@ sub transform ($$$) {
 	    die "pass_balanced: expected arg to be parens, curly, or angles";
 	}
 	if ($rest ne $rest2) {
-	    if ($match == $index) {
-		my $prog2 = $first.$rest2;
-		write_file ($cfile, $prog2);
-		return $SUCCESS;
-	    }
-	    $match++;
+	    my $prog2 = $first.$rest2;
+	    write_file ($cfile, $prog2);
+	    return $SUCCESS;
 	}
 	$pos++;
 	if ($pos > length($prog)) {

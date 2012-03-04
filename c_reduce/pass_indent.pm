@@ -8,6 +8,11 @@ use creduce_utils;
 my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 
 my $which = 0;
+my $index;
+
+sub advance () {
+    $index++;
+}
 
 sub check_prereqs () {
     my $path1 = File::Which::which ("indent");
@@ -17,10 +22,11 @@ sub check_prereqs () {
 
 sub init () {
     $which = 0;
+    $index = 0;
 }
 
-sub transform ($$$) {
-    (my $cfile, my $index, my $arg) = @_;
+sub transform ($$) {
+    (my $cfile, my $arg) = @_;
     return $STOP unless ($index == 0 && $which == 0);
     if (0) {
     } elsif ($arg eq "regular") {
