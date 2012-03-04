@@ -20,6 +20,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class VarDecl;
+  class ArraySubscriptExpr;
 }
 
 class ReduceArrayDimCollectionVisitor;
@@ -35,7 +36,8 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
-      TheVarDecl(NULL)
+      TheVarDecl(NULL),
+      ArraySz(0)
   { }
 
   ~ReduceArrayDim(void);
@@ -59,11 +61,19 @@ private:
 
   void rewriteOneVarDecl(const clang::VarDecl *VD);
 
+  void handleOneArraySubscriptExpr(const clang::ArraySubscriptExpr *ASE);
+
+  void rewriteSubscriptExpr(const ExprVector &IdxExprs);
+
   void getBracketLocPairs(const clang::VarDecl *VD,
                           unsigned int Dim,
                           BracketLocPairVector &BPVec);
 
   void freeBracketLocPairs(BracketLocPairVector &BPVec);
+
+  bool isIntegerExpr(const clang::Expr *E);
+
+  int getIndexAsInteger(const clang::Expr *E);
 
   VarDeclSet VisitedVarDecls;
 
@@ -72,6 +82,10 @@ private:
   ReduceArrayDimRewriteVisitor *RewriteVisitor;
 
   const clang::VarDecl *TheVarDecl;
+
+  // for int a[1][2][3][4], ArraySz stores value 3
+  // It's used for computing indices of reduced ArraySubscriptExpr
+  unsigned int ArraySz;
 
   // Unimplemented
   ReduceArrayDim(void);

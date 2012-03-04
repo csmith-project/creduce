@@ -91,7 +91,7 @@ bool ReduceArrayDimRewriteVisitor::VisitVarDecl(VarDecl *VD)
 bool ReduceArrayDimRewriteVisitor::VisitArraySubscriptExpr(
        ArraySubscriptExpr *ASE)
 {
-  // TODO
+  ConsumerInstance->handleOneArraySubscriptExpr(ASE);
   return true;
 }
 
@@ -220,10 +220,12 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
     const ConstantArrayType *SecCstArrayTy = 
       dyn_cast<ConstantArrayType>(SecArrayTy);
     TransAssert(SecCstArrayTy && "Non ConstantArrayType!");
-    unsigned SecSz = getConstArraySize(SecCstArrayTy);
+
+    // Keep this value, which is needed for rewriting ArraySubscriptExpr
+    ArraySz = getConstArraySize(SecCstArrayTy);
 
     std::stringstream TmpSS;
-    TmpSS << (LastSz * SecSz);
+    TmpSS << (LastSz * ArraySz);
 
     SourceLocation StartLoc = (SecBracketPair->first).getLocWithOffset(1);
     SourceLocation EndLoc = (SecBracketPair->second).getLocWithOffset(-1);
@@ -232,6 +234,95 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
 
   freeBracketLocPairs(BPVector);
   return;
+}
+
+bool ReduceArrayDim::isIntegerExpr(const Expr *Exp)
+{
+  const Expr *E = Exp->IgnoreParenCasts();
+
+  switch(E->getStmtClass()) {
+  case Expr::IntegerLiteralClass:
+  case Expr::CharacterLiteralClass: // Fall-through
+    return true;
+
+  default:
+    return false;
+  }
+  TransAssert(0 && "Unreachable code!");
+  return false;
+}
+
+int ReduceArrayDim::getIndexAsInteger(const Expr *E)
+{
+  llvm::APSInt Result;
+  int Idx;
+  if (!E->EvaluateAsInt(Result, *Context))
+    TransAssert(0 && "Failed to Evaluate index!");
+
+  std::string IntStr = Result.toString(10);
+  std::stringstream TmpSS(IntStr);
+  if (!(TmpSS >> Idx))
+    TransAssert(0 && "Non-integer value!");
+
+  return Idx;
+}
+
+void ReduceArrayDim::rewriteSubscriptExpr(const ExprVector &IdxExprs)
+{
+  ExprVector::const_iterator I = IdxExprs.begin();
+  const Expr *LastE = (*I);
+  ++I;
+  const Expr *SecE = (*I);
+  RewriteHelper->removeArraySubscriptExpr(LastE);
+
+  if (isIntegerExpr(LastE) && isIntegerExpr(SecE)) {
+    int LastIdx = getIndexAsInteger(LastE);
+    int SecIdx = getIndexAsInteger(SecE);
+    int NewIdx = (SecIdx * ArraySz + LastIdx);
+    
+    std::stringstream TmpSS;
+    TmpSS << NewIdx;
+    RewriteHelper->replaceExpr(SecE, TmpSS.str());
+  }
+  else {
+    std::string LastStr, SecStr, newStr;
+    RewriteHelper->getExprString(LastE, LastStr);
+    RewriteHelper->getExprString(SecE, SecStr);
+    std::stringstream TmpSS;
+    TmpSS << "(" << SecStr << ")*" << ArraySz << "+" << LastStr;
+    RewriteHelper->replaceExpr(SecE, TmpSS.str());
+  }
+}
+
+void ReduceArrayDim::handleOneArraySubscriptExpr(
+       const ArraySubscriptExpr *ASE)
+{
+  const Type *ASETy = ASE->getType().getTypePtr();
+  if (!ASETy->isScalarType() && !ASETy->isStructureType() && 
+      !ASETy->isUnionType())
+    return;
+
+  ExprVector IdxExprs;
+  const Expr *BaseE = getBaseExprAndIdxExprs(ASE, IdxExprs);
+  TransAssert(BaseE && "Empty Base expression!");
+
+  if (IdxExprs.size() <= 1)
+    return;
+
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
+  if (!DRE)
+    return;
+
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+  if (!VD)
+    return;
+
+  const VarDecl *CanonicalVD = VD->getCanonicalDecl();
+  if (CanonicalVD != TheVarDecl)
+    return;
+
+  rewriteSubscriptExpr(IdxExprs); 
 }
 
 ReduceArrayDim::~ReduceArrayDim(void)
