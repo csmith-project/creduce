@@ -273,6 +273,22 @@ unsigned int Transformation::getArrayDimension(const ArrayType *ArrayTy)
   return Dim;
 }
 
+unsigned int Transformation::getArrayDimensionAndTypes(
+               const ArrayType *ArrayTy,
+               ArraySubTypeVector &TyVec)
+{
+  unsigned int Dim = 1;
+  const Type *ArrayElemTy = ArrayTy->getElementType().getTypePtr();
+  TyVec.push_back(ArrayTy);
+  while (ArrayElemTy->isArrayType()) {
+    const ArrayType *AT = dyn_cast<ArrayType>(ArrayElemTy);
+    TyVec.push_back(AT);
+    ArrayElemTy = AT->getElementType().getTypePtr();
+    Dim++;
+  }
+  return Dim;
+}
+
 const Type *Transformation::getArrayBaseElemType(const ArrayType *ArrayTy)
 {
   const Type *ArrayElemTy = ArrayTy->getElementType().getTypePtr();
@@ -282,6 +298,23 @@ const Type *Transformation::getArrayBaseElemType(const ArrayType *ArrayTy)
   }
   TransAssert(ArrayElemTy && "Bad Array Element Type!");
   return ArrayElemTy;
+}
+
+unsigned int Transformation::getConstArraySize(
+               const ConstantArrayType *CstArrayTy)
+{
+  unsigned int Sz;
+  llvm::APInt Result = CstArrayTy->getSize();
+
+  llvm::SmallString<8> IntStr;
+  Result.toStringUnsigned(IntStr);
+
+  std::stringstream TmpSS(IntStr.str());
+
+  if (!(TmpSS >> Sz)) {
+    TransAssert(0 && "Non-integer value!");
+  }
+  return Sz;
 }
 
 // This is a more complete implementation to deal with mixed

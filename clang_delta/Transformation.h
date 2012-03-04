@@ -29,6 +29,7 @@ namespace clang {
   class ArraySubscriptExpr;
   class MemberExpr;
   class Type;
+  class ConstantArrayType;
 }
 
 typedef enum {
@@ -103,7 +104,12 @@ protected:
 
   typedef llvm::SmallVector<unsigned int, 10> IndexVector;
 
+  typedef llvm::SmallVector<const clang::ArrayType *, 10> ArraySubTypeVector;
+
   unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
+
+  unsigned int getArrayDimensionAndTypes(const clang::ArrayType *ArrayTy,
+                                         ArraySubTypeVector &TyVec);
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -124,6 +130,8 @@ protected:
 
   const clang::Expr *getInitExprByIndex(IndexVector &Idxs,
                                         const clang::InitListExpr *ILE);
+
+  unsigned int getConstArraySize(const clang::ConstantArrayType *CstArrayTy);
 
   const clang::Expr *getMemberExprBaseExprAndIdxs(const clang::MemberExpr *ME,
                                                   IndexVector &Idx);
