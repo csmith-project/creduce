@@ -158,7 +158,7 @@ sub delta_test ($$$) {
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
-    print "[$pass_num $method :: $arg ($delta_pos / $len) s:$good_cnt f:$bad_cnt] " 
+    print "[$pass_num $method :: $arg (n= $delta_pos) s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
     my $result = $cache{$len}{$prog};
@@ -236,7 +236,7 @@ sub delta_pass ($) {
 	    return;
 	}
 	
-	# system "diff ${cfile}.bak $cfile";
+	system "diff ${cfile}.bak $cfile";
 
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);

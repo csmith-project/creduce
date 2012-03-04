@@ -20,40 +20,61 @@ sub init () {
 sub remove_outside ($) 
 {
     (my $str) = @_;
-    $str =~ s/^.(.*).$/$1/;
+
+    # sanity check
+    die unless (substr($str,0,1) =~ /[\{\<\(]/);
+    die unless (substr($str,-1,1) =~ /[\}\>\)]/);
+
+    substr($str,0,1) = "";
+    substr($str,-1,1) = "";
     return $str;
 }
+
+# this function is idiotically stupid and slow but I spent a long time
+# trying to get nested matches out of Perl's various utilities for
+# matching balanced delimiters, with no success
 
 sub transform ($$$) {
     (my $cfile, my $index, my $arg) = @_;
 
     my $prog = read_file ($cfile);
-    my $prog2 = $prog;
 
-    $replace_cont = -1;
+    my $match = 0;
+    my $pos = 0;
+    while (1) {
 
-    if (0) {
-    } elsif ($arg eq "parens") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'()'}))/replace_aux($index,$+{all},"")/eg;
-    } elsif ($arg eq "curly") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'{}'}))/replace_aux($index,$+{all},"")/eg;
-    } elsif ($arg eq "angles") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'<>'}))/replace_aux($index,$+{all},"")/eg;
-    } elsif ($arg eq "parens-only") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'()'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
-    } elsif ($arg eq "curly-only") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'{}'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
-    } elsif ($arg eq "angles-only") {
-	$prog2 =~ s/(?<all>($RE{balanced}{-parens=>'<>'}))/replace_aux($index,$+{all},remove_outside($+{all}))/eg;
-    } else {
-	die "pass_balanced: expected arg to be parens, curly, or angles";
-    }
-
-    if ($prog ne $prog2) {
-	write_file ($cfile, $prog2);
-	return $SUCCESS;
-    } else {
-	return $STOP;
+	my $first = substr ($prog, 0, $pos);
+	my $rest = substr ($prog, $pos);
+	my $rest2 = $rest;
+	
+	if (0) {
+	} elsif ($arg eq "parens") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))//s;
+	} elsif ($arg eq "curly") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'{}'}))//s;
+	} elsif ($arg eq "angles") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))//s;
+	} elsif ($arg eq "parens-only") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))/remove_outside($+{all})/se;
+	} elsif ($arg eq "curly-only") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'{}'}))/remove_outside($+{all})/se;
+	} elsif ($arg eq "angles-only") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))/remove_outside($+{all})/se;
+	} else {
+	    die "pass_balanced: expected arg to be parens, curly, or angles";
+	}
+	if ($rest ne $rest2) {
+	    if ($match == $index) {
+		my $prog2 = $first.$rest2;
+		write_file ($cfile, $prog2);
+		return $SUCCESS;
+	    }
+	    $match++;
+	}
+	$pos++;
+	if ($pos > length($prog)) {
+	    return $STOP;
+	}
     }
 }
 
