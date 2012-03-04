@@ -51,6 +51,9 @@ private:
 
   typedef llvm::SmallPtrSet<const clang::VarDecl *, 20> VarDeclSet;
 
+  typedef llvm::SmallVector<const clang::InitListExpr *, 20> 
+            InitListExprVector;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -74,6 +77,13 @@ private:
   bool isIntegerExpr(const clang::Expr *E);
 
   int getIndexAsInteger(const clang::Expr *E);
+
+  void getInitListExprs(InitListExprVector &InitVec,
+                        const clang::InitListExpr *ILE,
+                        unsigned int Dim);
+
+  void rewriteInitListExpr(const clang::InitListExpr *ILE,
+                           unsigned int Dim);
 
   VarDeclSet VisitedVarDecls;
 

@@ -188,6 +188,50 @@ void ReduceArrayDim::freeBracketLocPairs(BracketLocPairVector &BPVec)
   }
 }
 
+void ReduceArrayDim::getInitListExprs(InitListExprVector &InitVec,
+                                      const InitListExpr *ILE,
+                                      unsigned int Dim)
+{
+  unsigned int NumInits = ILE->getNumInits();
+  for (unsigned int I = 0; I < NumInits; ++I) {
+    const Expr *E = ILE->getInit(I);
+    const InitListExpr *SubILE = dyn_cast<InitListExpr>(E);
+    if (!SubILE)
+      continue;
+
+    if (Dim == 1) {
+      InitVec.push_back(SubILE);
+    }
+    else {
+      getInitListExprs(InitVec, SubILE, Dim-1);
+    }
+  }
+}
+
+void ReduceArrayDim::rewriteInitListExpr(const InitListExpr *ILE, 
+                                         unsigned int Dim)
+{
+  TransAssert((Dim > 1) && "Invalid array dimension!");
+  InitListExprVector InitVec;
+  getInitListExprs(InitVec, ILE, Dim-1);
+
+  for (InitListExprVector::reverse_iterator I = InitVec.rbegin(),
+       E = InitVec.rend(); I != E; ++I) {
+    SourceLocation RBLoc = (*I)->getRBraceLoc();
+    SourceLocation RLLoc = (*I)->getLBraceLoc();
+
+    const char *RBBuf = SrcManager->getCharacterData(RBLoc);
+    const char *RLBuf = SrcManager->getCharacterData(RLLoc);
+
+    // make sure RBBuf and RLBuf are correct. They could be incorrect
+    // for cases like: int a[2][2] = {1}
+    if (((*RBBuf) == '}') && ((*RLBuf) == '{')) {
+      TheRewriter.RemoveText(RBLoc, 1);
+      TheRewriter.RemoveText(RLLoc, 1);
+    }
+  }
+}
+
 void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
 {
   const Type *Ty = VD->getType().getTypePtr();
@@ -196,6 +240,13 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
 
   ArraySubTypeVector TyVec;
   unsigned int Dim = getArrayDimensionAndTypes(ArrayTy, TyVec);
+  if (VD->hasInit()) {
+    const Expr *InitE = VD->getInit();
+    const InitListExpr *ILE = dyn_cast<InitListExpr>(InitE);
+    if (ILE)
+      rewriteInitListExpr(ILE, Dim);
+  }
+
   BracketLocPairVector BPVector;
   getBracketLocPairs(VD, Dim, BPVector);
   TransAssert((BPVector.size() > 1) && "Invalid Bracket Pairs!");
@@ -275,23 +326,36 @@ void ReduceArrayDim::rewriteSubscriptExpr(const ExprVector &IdxExprs)
   const Expr *SecE = (*I);
   RewriteHelper->removeArraySubscriptExpr(LastE);
 
-  if (isIntegerExpr(LastE) && isIntegerExpr(SecE)) {
-    int LastIdx = getIndexAsInteger(LastE);
-    int SecIdx = getIndexAsInteger(SecE);
+  int LastIdx = -1;
+  int SecIdx = -1;
+  if (isIntegerExpr(LastE))
+    LastIdx = getIndexAsInteger(LastE);
+
+  if (isIntegerExpr(SecE))
+    SecIdx = getIndexAsInteger(SecE);
+
+  if ((LastIdx >= 0) && (SecIdx >= 0)) {
     int NewIdx = (SecIdx * ArraySz + LastIdx);
-    
     std::stringstream TmpSS;
     TmpSS << NewIdx;
     RewriteHelper->replaceExpr(SecE, TmpSS.str());
+    return;
+  }
+
+  std::string LastStr, SecStr, newStr;
+  RewriteHelper->getExprString(LastE, LastStr);
+  RewriteHelper->getExprString(SecE, SecStr);
+  std::stringstream TmpSS;
+  if (ArraySz == 1) {
+    TmpSS << SecStr << "+" << LastStr;
+  }
+  else if (SecIdx == 1) {
+    TmpSS << ArraySz << "+" << LastStr;
   }
   else {
-    std::string LastStr, SecStr, newStr;
-    RewriteHelper->getExprString(LastE, LastStr);
-    RewriteHelper->getExprString(SecE, SecStr);
-    std::stringstream TmpSS;
     TmpSS << "(" << SecStr << ")*" << ArraySz << "+" << LastStr;
-    RewriteHelper->replaceExpr(SecE, TmpSS.str());
   }
+  RewriteHelper->replaceExpr(SecE, TmpSS.str());
 }
 
 void ReduceArrayDim::handleOneArraySubscriptExpr(
