@@ -20,7 +20,7 @@ sub init () {
 }
 
 sub transform ($$$) {
-    (my $cfile, my $index, $arg) = @_;
+    (my $cfile, my $index, my $arg) = @_;
     return $STOP unless ($index == 0 && $which == 0);
     if (0) {
     } elsif ($arg eq "regular") {
