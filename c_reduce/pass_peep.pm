@@ -13,13 +13,11 @@ sub check_prereqs () {
 }
 
 my $index;
+my $index2;
 
 sub init () {
     $index = 0;
-}
-
-sub advance () {
-    $index++;
+    $index2 = 0;
 }
 
 my @subexprs = (
@@ -46,6 +44,23 @@ foreach my $x (@subexprs) {
     push @delimited_regexes_to_replace, [",\\s*$x", ""];
 }
 
+sub advance ($) {
+    (my $which) = @_;
+    my $lim;
+    if ($which eq "a") {
+	$lim = scalar (@regexes_to_replace);
+    } elsif ($which eq "b") {
+	$lim = scalar (@delimited_regexes_to_replace);
+    } else {
+	die;
+    }
+    $index2++;
+    if ($index2 >= $lim) {
+	$index2 = 0;
+	$index++;
+    } 
+}
+
 sub transform ($$) {
     (my $cfile, my $which) = @_;
 
@@ -58,80 +73,60 @@ sub transform ($$) {
 	
 	if (0) {
 	} elsif ($which eq "a") {
-	    my $n=-1;
-	    foreach my $l (@regexes_to_replace) {	       
-		$n++;
-		my $str = @{$l}[0];
-		my $repl = @{$l}[1];
-		my $first = substr($prog2, 0, $index);
-		my $rest = substr($prog2, $index);
-		my $rrest = $rest;
-		if ($rest =~ s/^($str)/$repl/sm) {
-		    my $before = $1;
-		    my $zz1 = $rest;
-		    my $zz2 = $rrest;
-		    ($zz1 =~ s/\s//g);
-		    ($zz2 =~ s/\s//g);
-		    if ($zz1 ne $zz2) {			
-			$prog2 = $first.$rest;
-			write_file ($cfile, $prog2);
-			return $SUCCESS;
-		    }
+	    my $l = $regexes_to_replace[$index2];
+	    my $str = @{$l}[0];
+	    my $repl = @{$l}[1];
+	    my $first = substr($prog2, 0, $index);
+	    my $rest = substr($prog2, $index);
+	    if ($rest =~ s/^($str)/$repl/sm) {
+		$prog2 = $first.$rest;
+		if ($prog ne $prog2) {
+		    write_file ($cfile, $prog2);
+		    return $SUCCESS;
 		}
 	    }
 	} elsif ($which eq "b") {
-	    my $n=-1;
-	    foreach my $l (@delimited_regexes_to_replace) {
-		$n++;
-		my $str = @{$l}[0];
-		my $repl = @{$l}[1];
-		my $first = substr($prog2, 0, $index);
-		my $rest = substr($prog2, $index);
-		
-		my $rrest = $rest;
-		my $front;
-		my $back;
-		if (substr($rest,0,1) eq ",") {
-		    $front = "(?<delim1>($borderorspc)?)";
-		} else {
-		    $front = "(?<delim1>$borderorspc)";
-		}
-		if (substr($rest,-1,1) eq ",") {
-		    $back = "(?<delim2>($borderorspc)?)";
-		} else {
-		    $back = "(?<delim2>$borderorspc)";
-		}
-		
-		# special cases to avoid infinite replacement loops
-		next if ($repl eq "0" && $rest =~ /^($front)0$back/sm);
-		next if ($repl eq "1" && $rest =~ /^($front)0$back/sm);
-		next if ($repl eq "1" && $rest =~ /^($front)1$back/sm);
-		next if ($repl =~ /0\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
-		next if ($repl =~ /1\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
-		next if ($repl =~ /1\s*,/ && $rest =~ /^($front)1\s*,$back/sm);
-		next if ($repl =~ /,\s*0/ && $rest =~ /^($front),\s*0$back/sm);
-		next if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*0$back/sm);
-		next if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*1$back/sm);
-		
-		if (
-		    $rest =~ s/^$front(?<str>$str)$back/$+{delim1}$repl$+{delim2}/sm
-		    ) {
-		    my $before = $+{str};
-		    my $zz1 = $rest;
-		    my $zz2 = $rrest;
-		    ($zz1 =~ s/\s//g);
-		    ($zz2 =~ s/\s//g);
-		    if ($zz1 ne $zz2) {
-			$prog2 = $first.$rest;
-			write_file ($cfile, $prog2);
-			return $SUCCESS;
-		    } else {
-			# die;
-		    }
-		}
+	    my $l = $delimited_regexes_to_replace[$index2];
+	    my $str = @{$l}[0];
+	    my $repl = @{$l}[1];
+	    my $first = substr($prog2, 0, $index);
+	    my $rest = substr($prog2, $index);
+	    my $front;
+	    my $back;
+	    if (substr($rest,0,1) eq ",") {
+		$front = "(?<delim1>($borderorspc)?)";
+	    } else {
+		$front = "(?<delim1>$borderorspc)";
 	    }
+	    if (substr($rest,-1,1) eq ",") {
+		$back = "(?<delim2>($borderorspc)?)";
+	    } else {
+		$back = "(?<delim2>$borderorspc)";
+	    }
+	    
+	    # special cases to avoid infinite replacement loops
+	    goto out if ($repl eq "0" && $rest =~ /^($front)0$back/sm);
+	    goto out if ($repl eq "1" && $rest =~ /^($front)0$back/sm);
+	    goto out if ($repl eq "1" && $rest =~ /^($front)1$back/sm);
+	    goto out if ($repl =~ /0\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
+	    goto out if ($repl =~ /1\s*,/ && $rest =~ /^($front)0\s*,$back/sm);
+	    goto out if ($repl =~ /1\s*,/ && $rest =~ /^($front)1\s*,$back/sm);
+	    goto out if ($repl =~ /,\s*0/ && $rest =~ /^($front),\s*0$back/sm);
+	    goto out if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*0$back/sm);
+	    goto out if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*1$back/sm);
+	    
+	    if ($rest =~ s/^$front(?<str>$str)$back/$+{delim1}$repl$+{delim2}/sm) {
+		$prog2 = $first.$rest;
+		if ($prog ne $prog2) {
+		    write_file ($cfile, $prog2);
+		    return $SUCCESS;
+		} 
+	    }
+	} else {
+	    die;
 	}
-	$index++;
+      out:
+	advance($which);
     }
 }
 

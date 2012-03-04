@@ -23,7 +23,7 @@ my $SANITY = 1;
 # if set, don't print a lot of stuff
 # (there's no "real quiet" option -- just redirect output to /dev/null
 # if you don't want to see it)
-my $QUIET = 0;
+my $QUIET = 1;
 
 ######################################################################
 
@@ -125,11 +125,11 @@ sub call_init ($) {
     &${str}();
 }
 
-sub call_advance ($) {
-    (my $method) = @_;    
+sub call_advance ($$) {
+    (my $method,my $arg) = @_;    
     my $str = $method."::advance";
     no strict "refs";
-    &${str}();
+    &${str}($arg);
 }
 
 sub call_method ($$$) {
@@ -162,12 +162,12 @@ sub delta_pass ($) {
 	die unless ($res == $SUCCESS ||
 		    $res == $FAILURE);
 	
-	system "diff ${cfile}.bak $cfile";
+	# system "diff ${cfile}.bak $cfile";
 
 	if ($res == $SUCCESS) {
-	    call_advance ($delta_method) unless delta_test ($delta_method, $delta_arg);
+	    call_advance ($delta_method,$delta_arg) unless delta_test ($delta_method, $delta_arg);
 	} else {
-	    call_advance ($delta_method);
+	    call_advance ($delta_method,$delta_arg);
 	}
 
     }
