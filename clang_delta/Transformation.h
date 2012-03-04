@@ -106,6 +106,8 @@ protected:
 
   typedef llvm::SmallVector<const clang::ArrayType *, 10> ArraySubTypeVector;
 
+  typedef llvm::SmallVector<const clang::Expr *, 10> ExprVector;
+
   unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
 
   unsigned int getArrayDimensionAndTypes(const clang::ArrayType *ArrayTy,
@@ -127,6 +129,9 @@ protected:
   const clang::Expr *
     getArrayBaseExprAndIdxs(const clang::ArraySubscriptExpr *ASE, 
                             IndexVector &Idxs);
+
+  const clang::Expr *getBaseExprAndIdxExprs(
+          const clang::ArraySubscriptExpr *ASE, ExprVector &IdxExprs);
 
   const clang::Expr *getInitExprByIndex(IndexVector &Idxs,
                                         const clang::InitListExpr *ILE);

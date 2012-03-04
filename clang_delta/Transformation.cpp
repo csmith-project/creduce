@@ -361,6 +361,19 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
   return BaseE;
 }
 
+const Expr *Transformation::getBaseExprAndIdxExprs(
+        const ArraySubscriptExpr *ASE, ExprVector &IdxExprs)
+{
+  const Expr *BaseE = NULL;
+  while (ASE) {
+    const Expr *IdxE = ASE->getIdx();
+    IdxExprs.push_back(IdxE);
+    BaseE = ASE->getBase()->IgnoreParenCasts();
+    ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
+  }
+  return BaseE;
+}
+
 const Type *Transformation::getBasePointerElemType(const Type *Ty)
 {
   QualType QT = Ty->getPointeeType();;
