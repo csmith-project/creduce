@@ -96,6 +96,8 @@ private:
 
   void getValidFunctionDecls(void);
 
+  void removeFunctionBody(void);
+
   void sortReturnStmtsByOffs(const char *StartBuf, 
     std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts);
 

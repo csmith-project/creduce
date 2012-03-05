@@ -684,14 +684,23 @@ void SimpleInliner::copyFunctionBody(void)
   RewriteHelper->addStringBeforeStmt(TheStmt, FuncBodyStr, NeedParen);
 }
 
+void SimpleInliner::removeFunctionBody(void)
+{
+  SourceRange FDRange = CurrentFD->getSourceRange();
+  TheRewriter.RemoveText(FDRange);
+}
+
 void SimpleInliner::replaceCallExpr(void)
 {
   // Create a new tmp var for return value
   createReturnVar();
   generateParamStrings();
   copyFunctionBody();
-
   RewriteHelper->replaceExprNotInclude(TheCallExpr, TmpVarName);
+
+  FunctionDecl *CanonicalFD = CurrentFD->getCanonicalDecl();
+  if (FunctionDeclNumCalls[CanonicalFD] == 1)
+    removeFunctionBody();
 }
 
 SimpleInliner::~SimpleInliner(void)
