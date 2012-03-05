@@ -29,8 +29,6 @@ exploit early-exit from delta test to speed this up
 
 clang_delta TODO list:
 
-remove array dimension from a variable
-
 reduce array length
 
 move function body close to its declaration
@@ -44,6 +42,10 @@ from
 to 
   y;
   x = z;
+
+combine struct declaration and corresponding variable declaration
+  also could remove the name of a struct if it's not used anywhere
+  except for declaring the combined var
 
 - (low priority) format string reductions:
 
