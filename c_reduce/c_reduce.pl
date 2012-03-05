@@ -22,7 +22,7 @@ my $SANITY = 1;
 # if set, don't print a lot of stuff
 # (there's no "real quiet" option -- just redirect output to /dev/null
 # if you don't want to see it)
-my $QUIET = 1;
+my $QUIET = 0;
 
 ######################################################################
 
@@ -31,7 +31,7 @@ my $orig_file_size;
 sub print_pct ($) {
     (my $l) = @_;
     my $pct = 100 - ($l*100.0/$orig_file_size);
-    printf "(%.1f %%)\n", $pct;
+    printf "(%.1f %%, $l bytes)\n", $pct;
 }
 
 # these are set at startup time and never change
