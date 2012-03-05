@@ -279,6 +279,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 219,  "first_pass_pri" => 102, },
     { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 220,  },
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 221,  },
+    { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 222,  },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
     { "name" => "pass_peep",     "arg" => "a",                      "pri" => 300,  },
