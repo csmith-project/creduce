@@ -2,10 +2,9 @@
 
 ######################################################################
 #
-# This Delta debugger specifically targets C/C++ code. Its design
-# point is to be slow, thorough, and stupid. We count on the delta
-# test script being able to rapidly discard syntactically invalid
-# delta variants (for example, by compiling them).
+# This is a generic Delta debugger that is parameterized by an
+# interestingness test implemented as a shell script and a collection
+# of transformation operators implemented as Perl modules.
 #
 ####################################################################
 
@@ -118,9 +117,9 @@ sub call_prereq_check ($) {
     print "successfully checked prereqs for $method\n" unless $QUIET;
 }
 
-sub call_init ($) {
+sub call_reset ($) {
     (my $method) = @_;    
-    my $str = $method."::init";
+    my $str = $method."::reset";
     no strict "refs";
     &${str}();
 }
@@ -153,7 +152,7 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    call_init ($delta_method);
+    call_reset ($delta_method);
 
     while (1) {
 
@@ -369,7 +368,7 @@ foreach my $mref (sort @all_methods) {
 
 print "\n";
 
-#print "reduced test case:\n\n";
-#system "cat $cfile";
+print "reduced test case:\n\n";
+system "cat $cfile";
 
 ######################################################################

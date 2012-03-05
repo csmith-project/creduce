@@ -14,7 +14,7 @@ sub check_prereqs () {
 my $index;
 my $fail;
 
-sub init () {
+sub reset () {
     $index = 0;
     $fail = 0;
 }

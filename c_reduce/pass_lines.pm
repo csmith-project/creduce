@@ -24,7 +24,7 @@ sub check_prereqs () {
 my $started;
 my $index;
 
-sub init () {
+sub reset () {
     $index = 0;
     undef ($started);
 }
