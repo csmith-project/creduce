@@ -174,7 +174,6 @@ bool CopyPropCollectionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
   if (BeingWritten || BeingAddrTaken || BeingPartial) {
-    // resetFlags();
     return true;
   }
 
@@ -204,7 +203,6 @@ bool
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
   if (BeingWritten || BeingAddrTaken || BeingPartial) {
-    // resetFlags();
     return true;
   }
 

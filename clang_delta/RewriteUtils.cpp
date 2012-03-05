@@ -787,7 +787,9 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
   SourceRange VarRange = VD->getSourceRange();
 
   if (DGR.isSingleDecl()) {
-    return !(TheRewriter->RemoveText(VarRange));
+    SourceLocation StartLoc = VarRange.getBegin();
+    SourceLocation EndLoc = getEndLocationUntil(VarRange, ';');
+    return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
   }
 
   DeclGroupRef::const_iterator I = DGR.begin();

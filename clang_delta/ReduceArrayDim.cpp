@@ -167,8 +167,6 @@ void ReduceArrayDim::getBracketLocPairs(const VarDecl *VD,
   for (unsigned int I = 0; I < Dim; ++I) {
     BPStartLoc = RewriteHelper->getLocationUntil(StartLoc, '[');
     BPEndLoc = RewriteHelper->getLocationUntil(BPStartLoc, ']');
-    //const char *StartBuf = SrcManager->getCharacterData(BPStartLoc);
-    //const char *EndBuf = SrcManager->getCharacterData(BPEndLoc);
 
     BracketLocPair *LocPair = new BracketLocPair();
     LocPair->first = BPStartLoc;
