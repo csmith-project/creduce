@@ -51,6 +51,7 @@ public:
       TheCaller(NULL),
       CurrentFD(NULL),
       TheStmt(NULL),
+      SingleMaxNumStmts(25),
       MaxNumStmts(10),
       TmpVarName(""),
       NeedParen(false),
@@ -64,6 +65,12 @@ private:
   typedef llvm::SmallVector<clang::ReturnStmt *, 5> ReturnStmtsVector;
 
   typedef llvm::SmallVector<const clang::DeclRefExpr *, 5> ParmRefsVector;
+
+  typedef llvm::DenseMap<clang::FunctionDecl *, unsigned int> 
+            FunctionDeclToNumCallsMap;
+
+  typedef llvm::DenseMap<clang::FunctionDecl *, unsigned int> 
+            FunctionDeclToNumStmtsMap;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -87,6 +94,8 @@ private:
 
   std::string getNewTmpName(void);
 
+  void getValidFunctionDecls(void);
+
   void sortReturnStmtsByOffs(const char *StartBuf, 
     std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts);
 
@@ -94,11 +103,9 @@ private:
       (std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts,
        clang::ReturnStmt *RS, int Off);
 
-  SimpleInlinerCollectionVisitor *CollectionVisitor;
+  FunctionDeclToNumCallsMap FunctionDeclNumCalls;
 
-  SimpleInlinerFunctionVisitor *FunctionVisitor;
-
-  SimpleInlinerStmtVisitor *StmtVisitor;
+  FunctionDeclToNumStmtsMap FunctionDeclNumStmts;
 
   llvm::DenseMap<clang::CallExpr *, clang::FunctionDecl *> CalleeToCallerMap;
 
@@ -106,11 +113,17 @@ private:
 
   llvm::SmallSet<clang::FunctionDecl *, 10> ValidFunctionDecls;
 
+  llvm::SmallVector<std::string, 10> ParmStrings;
+
   ReturnStmtsVector ReturnStmts;
 
   ParmRefsVector ParmRefs;
 
-  llvm::SmallVector<std::string, 10> ParmStrings;
+  SimpleInlinerCollectionVisitor *CollectionVisitor;
+
+  SimpleInlinerFunctionVisitor *FunctionVisitor;
+
+  SimpleInlinerStmtVisitor *StmtVisitor;
 
   TransNameQueryWrap *NameQueryWrap;
 
@@ -122,6 +135,10 @@ private:
 
   clang::Stmt *TheStmt;
 
+  // MaxNumStmts for a function with single call site
+  const unsigned int SingleMaxNumStmts;
+
+  // MaxNumStmts for a function with multiple call sites
   const unsigned int MaxNumStmts;
 
   std::string TmpVarName;

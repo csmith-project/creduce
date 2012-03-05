@@ -156,6 +156,12 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
   ConsumerInstance->AllCallExprs.push_back(CE);
   ConsumerInstance->CalleeToCallerMap[CE] = ConsumerInstance->CurrentFD;
+
+  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+  unsigned int NumCalls = ConsumerInstance->FunctionDeclNumCalls[CanonicalFD];
+  NumCalls++;
+  ConsumerInstance->FunctionDeclNumCalls[CanonicalFD] = NumCalls;
+
   NumStmts++;
   return true;
 }
@@ -403,9 +409,9 @@ void SimpleInliner::HandleTopLevelDecl(DeclGroupRef D)
     CollectionVisitor->setNumStmts(0);
     CollectionVisitor->TraverseDecl(FD);
 
-    if ((CollectionVisitor->getNumStmts() <= MaxNumStmts) &&
-        !FD->isVariadic()) {
-      ValidFunctionDecls.insert(FD->getCanonicalDecl());
+    if (!FD->isVariadic()) {
+      FunctionDeclNumStmts[FD->getCanonicalDecl()] = 
+        CollectionVisitor->getNumStmts();
     }
   }
 }
@@ -486,8 +492,25 @@ bool SimpleInliner::hasValidArgExprs(const CallExpr *CE)
   return true;
 }
 
+void SimpleInliner::getValidFunctionDecls(void)
+{
+  for (FunctionDeclToNumStmtsMap::iterator I = FunctionDeclNumStmts.begin(),
+       E = FunctionDeclNumStmts.end(); I != E; ++I) {
+    FunctionDecl *FD = (*I).first;
+    unsigned int NumStmts = (*I).second;
+    unsigned int NumCalls = FunctionDeclNumCalls[FD];
+
+    if (((NumCalls == 1) && (NumStmts <= SingleMaxNumStmts)) ||
+        ((NumCalls > 1) && (NumStmts <= MaxNumStmts))) {
+      ValidFunctionDecls.insert(FD);
+    }
+  }
+}
+
 void SimpleInliner::doAnalysis(void)
 {
+  getValidFunctionDecls();
+
   for (SmallVector<CallExpr *, 10>::iterator CI = AllCallExprs.begin(),
        CE = AllCallExprs.end(); CI != CE; ++CI) {
 
