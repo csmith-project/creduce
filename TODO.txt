@@ -17,8 +17,6 @@ exploit early-exit from delta test to speed this up
 
 clang_delta TODO list:
 
-reduce array length
-
 move function body close to its declaration
 
 replace for-loops with expressions guessed from initializers
