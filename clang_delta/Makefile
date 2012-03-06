@@ -36,7 +36,7 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     RemoveUnusedFunction.h ReducePointerLevel.h LiftAssignmentExpr.h \
                     CopyPropagation.h RemoveUnusedVar.h SimplifyCallExpr.h \
                     CallExprToValue.h UnionToStruct.h SimplifyIf.h \
-                    ReduceArrayDim.h ReduceArraySize.h
+                    ReduceArrayDim.h ReduceArraySize.h MoveFunctionBody.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -45,7 +45,7 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     RemoveUnusedFunction.cpp ReducePointerLevel.cpp LiftAssignmentExpr.cpp \
                     CopyPropagation.cpp RemoveUnusedVar.cpp SimplifyCallExpr.cpp \
                     CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp \
-                    ReduceArrayDim.cpp ReduceArraySize.cpp
+                    ReduceArrayDim.cpp ReduceArraySize.cpp MoveFunctionBody.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -54,7 +54,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveUnusedFunction.o ReducePointerLevel.o LiftAssignmentExpr.o \
                  CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o \
                  CallExprToValue.o UnionToStruct.o SimplifyIf.o \
-                 ReduceArrayDim.o ReduceArraySize.o
+                 ReduceArrayDim.o ReduceArraySize.o MoveFunctionBody.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -128,6 +128,8 @@ SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h ${SUB_TRANSFORMATION_DEPS}
 ReduceArrayDim.o: ReduceArrayDim.cpp ReduceArrayDim.h ${SUB_TRANSFORMATION_DEPS}
 
 ReduceArraySize.o: ReduceArraySize.cpp ReduceArraySize.h ${SUB_TRANSFORMATION_DEPS}
+
+MoveFunctionBody.o: MoveFunctionBody.cpp MoveFunctionBody.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
