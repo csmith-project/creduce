@@ -587,7 +587,16 @@ bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
                                          const std::string &Str)
 {
   SourceRange VarRange = VD->getSourceRange();
-  SourceLocation LocEnd = RewriteUtils::getEndLocationAfter(VarRange, ';');
+  SourceLocation LocEnd = getEndLocationAfter(VarRange, ';');
+  
+  return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
+}
+
+bool RewriteUtils::addStringAfterFuncDecl(const FunctionDecl *FD,
+                                          const std::string &Str)
+{
+  SourceRange FDRange = FD->getSourceRange();
+  SourceLocation LocEnd = getEndLocationAfter(FDRange, ';');
   
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
@@ -905,5 +914,22 @@ bool RewriteUtils::removeArraySubscriptExpr(const Expr *E)
   SourceLocation EndLoc = ERange.getEnd();
   EndLoc = getLocationUntil(EndLoc, ']');
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+bool RewriteUtils::getFunctionDefStrAndRemove(const FunctionDecl *FD,
+                                              std::string &Str)
+{
+  SourceRange FDRange = FD->getSourceRange();
+
+  int RangeSize = TheRewriter->getRangeSize(FDRange);
+  if (RangeSize == -1)
+    return false;
+
+  SourceLocation StartLoc = FDRange.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
+  Str.assign(StartBuf, RangeSize);
+  TheRewriter->RemoveText(FDRange);
+  return true;
 }
 

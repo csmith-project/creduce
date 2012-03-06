@@ -90,6 +90,9 @@ public:
   bool addStringAfterVarDecl(clang::VarDecl *VD,
                                     const std::string &Str);
 
+  bool addStringAfterFuncDecl(const clang::FunctionDecl *FD,
+                              const std::string &Str);
+
   bool replaceVarDeclName(clang::VarDecl *VD,
                               const std::string &NameStr);
 
@@ -146,6 +149,9 @@ public:
                                            char Symbol);
 
   bool removeArraySubscriptExpr(const clang::Expr *E);
+
+  bool getFunctionDefStrAndRemove(const clang::FunctionDecl *FD,
+                                  std::string &Str);
 
 private:
 
