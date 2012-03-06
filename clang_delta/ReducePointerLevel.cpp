@@ -10,8 +10,6 @@
 
 #include "ReducePointerLevel.h"
 
-#include <sstream>
-
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
