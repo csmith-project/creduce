@@ -244,7 +244,7 @@ sub has_last_pass_pri {
 }
 
 @all_methods = (
-    { "name" => "pass_lines",    "arg" => "0",                      "pri" =>  10,  "first_pass_pri" => 10, },
+    { "name" => "pass_lines",    "arg" => "0",                      "pri" =>  10,  "first_pass_pri" => 10,    "last_pass_pri" => 995, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" =>  11,  "first_pass_pri" => 11, },
     { "name" => "pass_lines",    "arg" => "2",                      "pri" =>  12,  "first_pass_pri" => 12, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" =>  13,  "first_pass_pri" => 13, },
