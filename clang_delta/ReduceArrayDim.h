@@ -76,8 +76,6 @@ private:
 
   bool isIntegerExpr(const clang::Expr *E);
 
-  int getIndexAsInteger(const clang::Expr *E);
-
   void getInitListExprs(InitListExprVector &InitVec,
                         const clang::InitListExpr *ILE,
                         unsigned int Dim);

@@ -149,6 +149,8 @@ protected:
 
   const clang::Type *getBasePointerElemType(const clang::Type *Ty);
 
+  int getIndexAsInteger(const clang::Expr *E);
+
   const std::string &Name;
 
   int TransformationCounter;

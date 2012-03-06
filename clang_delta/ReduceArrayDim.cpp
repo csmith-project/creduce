@@ -299,21 +299,6 @@ bool ReduceArrayDim::isIntegerExpr(const Expr *Exp)
   return false;
 }
 
-int ReduceArrayDim::getIndexAsInteger(const Expr *E)
-{
-  llvm::APSInt Result;
-  int Idx;
-  if (!E->EvaluateAsInt(Result, *Context))
-    TransAssert(0 && "Failed to Evaluate index!");
-
-  std::string IntStr = Result.toString(10);
-  std::stringstream TmpSS(IntStr);
-  if (!(TmpSS >> Idx))
-    TransAssert(0 && "Non-integer value!");
-
-  return Idx;
-}
-
 void ReduceArrayDim::rewriteSubscriptExpr(const ExprVector &IdxExprs)
 {
   ExprVector::const_iterator I = IdxExprs.begin();

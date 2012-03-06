@@ -385,6 +385,21 @@ const Type *Transformation::getBasePointerElemType(const Type *Ty)
   return Ty;
 }
 
+int Transformation::getIndexAsInteger(const Expr *E)
+{
+  llvm::APSInt Result;
+  int Idx;
+  if (!E->EvaluateAsInt(Result, *Context))
+    TransAssert(0 && "Failed to Evaluate index!");
+
+  std::string IntStr = Result.toString(10);
+  std::stringstream TmpSS(IntStr);
+  if (!(TmpSS >> Idx))
+    TransAssert(0 && "Non-integer value!");
+
+  return Idx;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();
