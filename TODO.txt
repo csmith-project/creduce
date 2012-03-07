@@ -27,10 +27,6 @@ to
   y;
   x = z;
 
-combine struct declaration and corresponding variable declaration
-  also could remove the name of a struct if it's not used anywhere
-  except for declaring the combined var
-
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
