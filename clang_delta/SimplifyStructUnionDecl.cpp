@@ -44,6 +44,12 @@ void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR)
     return;
 
   const Type *T = VD->getType().getTypePtr();
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(T);
+  if (ArrayTy)
+    T = getArrayBaseElemType(ArrayTy);
+  if (T->isPointerType())
+    T = getBasePointerElemType(T);
+
   const RecordType *RT;
   if (T->isUnionType())
     RT = T->getAsUnionType();
