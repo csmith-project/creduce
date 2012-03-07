@@ -20,13 +20,6 @@ clang_delta TODO list:
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
-simplify a comma expression below:
-from
-  x = (y, z);
-to 
-  y;
-  x = z;
-
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
