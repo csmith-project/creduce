@@ -13,26 +13,38 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class RecordDecl;
+  class Type;
+  class VarDecl;
 }
 
+class SimplifyStructUnionDeclVisitor;
+
 class SimplifyStructUnionDecl : public Transformation {
+
+friend class SimplifyStructUnionDeclVisitor;
 
 public:
 
   SimplifyStructUnionDecl(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc)
+    : Transformation(TransName, Desc),
+      AnalysisVisitor(NULL),
+      TheRecordDecl(NULL),
+      SafeToRemoveName(true)
   { }
 
   ~SimplifyStructUnionDecl(void);
 
 private:
   
+  typedef llvm::SmallPtrSet<const clang::VarDecl *, 5> VarDeclSet;
+
   typedef llvm::DenseMap<const clang::Decl*, void *> 
             RecordDeclToDeclGroupMap;
 
@@ -46,9 +58,23 @@ private:
 
   void doCombination();
 
+  bool handleOneDeclarator(const clang::Type *Ty);
+
+  const clang::RecordDecl *getBaseRecordDecl(const clang::Type *Ty);
+
+  bool isSafeToRemoveName(void);
+
   RecordDeclToDeclGroupMap RecordDeclToDeclGroup;
 
   llvm::SmallVector<void *, 2> TheDeclGroupRefs;
+
+  VarDeclSet CombinedVars;
+
+  SimplifyStructUnionDeclVisitor *AnalysisVisitor;
+
+  const clang::RecordDecl *TheRecordDecl;
+
+  bool SafeToRemoveName;
 
   // Unimplemented
   SimplifyStructUnionDecl(void);

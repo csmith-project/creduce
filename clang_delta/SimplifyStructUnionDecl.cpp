@@ -26,9 +26,50 @@ declaration. \n";
 static RegisterTransformation<SimplifyStructUnionDecl>
          Trans("simplify-struct-union-decl", DescriptionMsg);
 
+class SimplifyStructUnionDeclVisitor : public 
+  RecursiveASTVisitor<SimplifyStructUnionDeclVisitor> {
+
+public:
+  explicit SimplifyStructUnionDeclVisitor(SimplifyStructUnionDecl *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+  bool VisitVarDecl(VarDecl *VD);
+
+  bool VisitFieldDecl(FieldDecl *FD);
+
+private:
+
+  SimplifyStructUnionDecl *ConsumerInstance;
+};
+
+bool SimplifyStructUnionDeclVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  const Type *T = FD->getResultType().getTypePtr();
+  return ConsumerInstance->handleOneDeclarator(T);
+}
+
+bool SimplifyStructUnionDeclVisitor::VisitVarDecl(VarDecl *VD)
+{
+  if (ConsumerInstance->CombinedVars.count(VD))
+    return true;
+
+  const Type *T = VD->getType().getTypePtr();
+  return ConsumerInstance->handleOneDeclarator(T);
+}
+
+bool SimplifyStructUnionDeclVisitor::VisitFieldDecl(FieldDecl *FD)
+{
+  const Type *T = FD->getType().getTypePtr();
+  return ConsumerInstance->handleOneDeclarator(T);
+}
+
 void SimplifyStructUnionDecl::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
+  AnalysisVisitor = new SimplifyStructUnionDeclVisitor(this);
 }
 
 void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
@@ -44,30 +85,28 @@ void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR)
     return;
 
   const Type *T = VD->getType().getTypePtr();
-  const ArrayType *ArrayTy = dyn_cast<ArrayType>(T);
-  if (ArrayTy)
-    T = getArrayBaseElemType(ArrayTy);
-  if (T->isPointerType())
-    T = getBasePointerElemType(T);
 
-  const RecordType *RT;
-  if (T->isUnionType())
-    RT = T->getAsUnionType();
-  else if (T->isStructureType())
-    RT = T->getAsStructureType();
-  else
+  RD = getBaseRecordDecl(T);
+  if (!RD)
     return;
 
-  RD = RT->getDecl();
   const Decl *CanonicalD = RD->getCanonicalDecl();
   void *DGRPointer = RecordDeclToDeclGroup[CanonicalD];
   if (!DGRPointer)
     return;
 
   ValidInstanceNum++;
-  if (ValidInstanceNum == TransformationCounter) {
-    TheDeclGroupRefs.push_back(DGRPointer);
-    TheDeclGroupRefs.push_back(DGR.getAsOpaquePtr());
+  if (ValidInstanceNum != TransformationCounter)
+    return;
+
+  TheRecordDecl = dyn_cast<RecordDecl>(CanonicalD);
+  TheDeclGroupRefs.push_back(DGRPointer);
+  TheDeclGroupRefs.push_back(DGR.getAsOpaquePtr());
+
+  for (DeclGroupRef::iterator I = DGR.begin(), E = DGR.end(); I != E; ++I) {
+    VarDecl *VD = dyn_cast<VarDecl>(*I);
+    TransAssert(VD && "Bad VarDecl!");
+    CombinedVars.insert(VD);
   }
 }
 
@@ -83,6 +122,10 @@ void SimplifyStructUnionDecl::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+
+  TransAssert(AnalysisVisitor && "NULL AnalysisVisitor!");
+  TransAssert(TheRecordDecl && "NULL RecordDecl!");
+  AnalysisVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   doCombination();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -110,6 +153,25 @@ void SimplifyStructUnionDecl::doCombination(void)
     TheRewriter.InsertText(EndLoc, DStr, /*InsertAfter=*/false);
   else
     TheRewriter.InsertText(EndLoc, ", " + DStr, /*InsertAfter=*/false);
+
+  if (isSafeToRemoveName()) {
+    SourceLocation NameLocStart = TheRecordDecl->getLocation();
+    std::string Name = TheRecordDecl->getNameAsString();
+    TheRewriter.RemoveText(NameLocStart, Name.size());
+  }
+}
+
+bool SimplifyStructUnionDecl::isSafeToRemoveName(void)
+{
+  if (!SafeToRemoveName)
+    return false;
+
+  const RecordDecl *RD = 
+    dyn_cast<RecordDecl>(TheRecordDecl->getFirstDeclaration());
+  RecordDecl::redecl_iterator I = RD->redecls_begin();
+  RecordDecl::redecl_iterator E = RD->redecls_end();
+  ++I;
+  return (I == E);
 }
 
 void SimplifyStructUnionDecl::addOneRecordDecl(const RecordDecl *RD,
@@ -125,8 +187,41 @@ void SimplifyStructUnionDecl::addOneRecordDecl(const RecordDecl *RD,
     RecordDeclToDeclGroup[CanonicalD] = (DGR.getAsOpaquePtr());
 }
 
+const RecordDecl *SimplifyStructUnionDecl::getBaseRecordDecl(const Type *T)
+{
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(T);
+  if (ArrayTy)
+    T = getArrayBaseElemType(ArrayTy);
+  if (T->isPointerType())
+    T = getBasePointerElemType(T);
+
+  const RecordType *RT = NULL;
+  if (T->isUnionType())
+    RT = T->getAsUnionType();
+  else if (T->isStructureType())
+    RT = T->getAsStructureType();
+  else
+    return NULL;
+
+  return RT->getDecl();
+}
+
+bool SimplifyStructUnionDecl::handleOneDeclarator(const Type *Ty)
+{
+  const RecordDecl *RD = getBaseRecordDecl(Ty);
+  if (!RD)
+    return true;
+
+  const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());
+  if (CanonicalRD == TheRecordDecl) {
+    SafeToRemoveName = false;
+  }
+  return SafeToRemoveName;
+}
+
 SimplifyStructUnionDecl::~SimplifyStructUnionDecl(void)
 {
-  // Nothing to do
+  if (AnalysisVisitor)
+    delete AnalysisVisitor;
 }
 
