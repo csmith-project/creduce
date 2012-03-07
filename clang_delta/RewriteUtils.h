@@ -154,6 +154,10 @@ public:
   bool getFunctionDefStrAndRemove(const clang::FunctionDecl *FD,
                                   std::string &Str);
 
+  clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
+                                            char Symbol);
+
+
 private:
 
   static RewriteUtils *Instance;
@@ -174,9 +178,6 @@ private:
   int getOffsetUntil(const char *Buf, char Symbol);
 
   int getSkippingOffset(const char *Buf, char Symbol);
-
-  clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
-                                            char Symbol);
 
   clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
                                            char Symbol);
