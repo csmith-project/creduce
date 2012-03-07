@@ -37,7 +37,7 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     CopyPropagation.h RemoveUnusedVar.h SimplifyCallExpr.h \
                     CallExprToValue.h UnionToStruct.h SimplifyIf.h \
                     ReduceArrayDim.h ReduceArraySize.h MoveFunctionBody.h \
-                    SimplifyStructUnionDecl.h
+                    SimplifyStructUnionDecl.h SimplifyCommaExpr.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -47,7 +47,7 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     CopyPropagation.cpp RemoveUnusedVar.cpp SimplifyCallExpr.cpp \
                     CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp \
                     ReduceArrayDim.cpp ReduceArraySize.cpp MoveFunctionBody.cpp \
-                    SimplifyStructUnionDecl.cpp
+                    SimplifyStructUnionDecl.cpp SimplifyCommaExpr.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -57,7 +57,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o \
                  CallExprToValue.o UnionToStruct.o SimplifyIf.o \
                  ReduceArrayDim.o ReduceArraySize.o MoveFunctionBody.o \
-                 SimplifyStructUnionDecl.o
+                 SimplifyStructUnionDecl.o SimplifyCommaExpr.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -135,6 +135,8 @@ ReduceArraySize.o: ReduceArraySize.cpp ReduceArraySize.h ${SUB_TRANSFORMATION_DE
 MoveFunctionBody.o: MoveFunctionBody.cpp MoveFunctionBody.h ${SUB_TRANSFORMATION_DEPS}
 
 SimplifyStructUnionDecl.o: SimplifyStructUnionDecl.cpp SimplifyStructUnionDecl.h ${SUB_TRANSFORMATION_DEPS}
+
+SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
