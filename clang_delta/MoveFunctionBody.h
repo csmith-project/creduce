@@ -28,7 +28,8 @@ public:
   MoveFunctionBody(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       TheFunctionDecl(NULL),
-      TheFunctionDef(NULL)
+      TheFunctionDef(NULL),
+      PrevFunctionDecl(NULL)
   { }
 
   ~MoveFunctionBody(void);
@@ -55,6 +56,8 @@ private:
   clang::FunctionDecl *TheFunctionDecl;
 
   clang::FunctionDecl *TheFunctionDef;
+
+  clang::FunctionDecl *PrevFunctionDecl;
 
   // Unimplemented
   MoveFunctionBody(void);

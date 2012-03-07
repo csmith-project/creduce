@@ -31,12 +31,10 @@ void MoveFunctionBody::Initialize(ASTContext &context)
 
 void MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D) 
 {
-  FunctionDecl *PrevFD = NULL;
-
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
     if (!FD) {
-      PrevFD = NULL;
+      PrevFunctionDecl = NULL;
       continue;
     }
 
@@ -44,15 +42,15 @@ void MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D)
     if (FD->isThisDeclarationADefinition()) {
       FunctionDecl *FDDecl = AllValidFunctionDecls[CanonicalFD];
       if (!FDDecl) {
-        PrevFD = NULL;
+        PrevFunctionDecl = NULL;
         continue;
       }
 
       // Declaration and Definition are next to each other
-      if (PrevFD) {
-        FunctionDecl *CanonicalPrevFD = PrevFD->getCanonicalDecl();
+      if (PrevFunctionDecl) {
+        FunctionDecl *CanonicalPrevFD = PrevFunctionDecl->getCanonicalDecl();
         if (CanonicalFD == CanonicalPrevFD) {
-          PrevFD = NULL;
+          PrevFunctionDecl = NULL;
           continue;
         }
       }
@@ -60,7 +58,7 @@ void MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D)
       FuncDeclToFuncDef[FDDecl] = FD;
     }
 
-    PrevFD = FD;
+    PrevFunctionDecl = FD;
     // We only need the first FunctionDecl
     if (AllValidFunctionDecls[CanonicalFD])
       continue;
