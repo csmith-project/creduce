@@ -307,6 +307,62 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
 }
 
+void RewriteUtils::skipRangeByType(const std::string &BufStr, 
+                                   const Type *Ty,
+                                   int &Offset)
+{
+  Offset = 0;
+  int BufSz = static_cast<int>(BufStr.size());
+  size_t Pos;
+  while (Offset < BufSz) {
+    if (isspace(BufStr[Offset])) {
+      Offset++;
+      continue;
+    }
+
+    Pos = BufStr.find("char", Offset);
+    if (Pos != std::string::npos) {
+      Offset += 4;
+      continue;
+    }
+
+    Pos = BufStr.find("int", Offset);
+    if (Pos != std::string::npos) {
+      Offset += 3;
+      continue;
+    }
+
+    Pos = BufStr.find("short", Offset);
+    if (Pos != std::string::npos) {
+      Offset += 5;
+      continue;
+    }
+
+    Pos = BufStr.find("long", Offset);
+    if (Pos != std::string::npos) {
+      Offset += 4;
+      continue;
+    }
+
+    return;
+  }
+}
+
+SourceLocation RewriteUtils::skipPossibleTypeRange(const Type *Ty,
+                                                   SourceLocation OrigEndLoc,
+                                                   SourceLocation VarStartLoc)
+{
+  if (!Ty->isIntegerType())
+    return OrigEndLoc;
+
+  int Offset;
+  std::string BufStr;
+  getStringBetweenLocs(BufStr, OrigEndLoc, VarStartLoc);
+  skipRangeByType(BufStr, Ty, Offset);
+
+  return OrigEndLoc.getLocWithOffset(Offset);
+}
+
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 {
   TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
@@ -318,8 +374,22 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
   }
 
   SourceRange TypeLocRange = VarTypeLoc.getSourceRange();
-  SourceLocation EndLoc = 
-    getEndLocationFromBegin(TypeLocRange);
+  SourceLocation StartLoc = TypeLocRange.getBegin();
+  SourceLocation EndLoc = getEndLocationFromBegin(TypeLocRange);
+
+  const Type *Ty = VarTypeLoc.getTypePtr();
+
+  // I am not sure why, but for a declaration like below:
+  //   unsigned int a; (or long long a;)
+  // TypeLoc.getBeginLoc() returns the position of 'u'
+  // TypeLoc.getEndLoc() also returns the position of 'u'
+  // The size of TypeLoc.getSourceRange() is 8, which is the 
+  // length of "unsigned"
+  // Then we are getting trouble, because now EndLoc is right 
+  // after 'd', but we need it points to the location after "int".
+  // skipPossibleTypeRange corrects the above deviation
+  // Or am I doing something horrible here?
+  EndLoc = skipPossibleTypeRange(Ty, EndLoc, VD->getLocation());
   return EndLoc;
 }
 
@@ -706,10 +776,16 @@ SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR)
     LastD = (*E);
   }
 
+#if 0
   VarDecl *VD = dyn_cast<VarDecl>(LastD);
   TransAssert(VD && "Bad VD!");
   SourceRange VarRange = VD->getSourceRange();
   return getEndLocationFromBegin(VarRange);
+#endif
+
+  // The LastD could be a RecordDecl
+  SourceRange Range = LastD->getSourceRange();
+  return getEndLocationFromBegin(Range);
 }
 
 SourceLocation RewriteUtils::getDeclStmtEndLoc(DeclStmt *DS)

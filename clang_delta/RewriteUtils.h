@@ -35,6 +35,7 @@ namespace clang {
   class DeclRefExpr;
   class NamedDecl;
   class IfStmt;
+  class Type;
 }
 
 class RewriteUtils {
@@ -200,6 +201,13 @@ private:
   unsigned getOffsetBetweenLocations(clang::SourceLocation StartLoc,
                                             clang::SourceLocation EndLoc,
                                             clang::SourceManager *SrcManager);
+
+  clang::SourceLocation skipPossibleTypeRange(const clang::Type *Ty,
+                                           clang::SourceLocation OrigEndLoc,
+                                           clang::SourceLocation VarStartLoc);
+
+  void skipRangeByType(const std::string &BufStr, 
+                       const clang::Type *Ty, int &Offset);
 
   // Unimplemented
   RewriteUtils(const RewriteUtils &);
