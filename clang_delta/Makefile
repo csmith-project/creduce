@@ -37,7 +37,8 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     CopyPropagation.h RemoveUnusedVar.h SimplifyCallExpr.h \
                     CallExprToValue.h UnionToStruct.h SimplifyIf.h \
                     ReduceArrayDim.h ReduceArraySize.h MoveFunctionBody.h \
-                    SimplifyStructUnionDecl.h SimplifyCommaExpr.h MoveGlobalVar.h
+                    SimplifyStructUnionDecl.h SimplifyCommaExpr.h MoveGlobalVar.h \
+                    UnifyFunctionDecl.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -47,7 +48,8 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     CopyPropagation.cpp RemoveUnusedVar.cpp SimplifyCallExpr.cpp \
                     CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp \
                     ReduceArrayDim.cpp ReduceArraySize.cpp MoveFunctionBody.cpp \
-                    SimplifyStructUnionDecl.cpp SimplifyCommaExpr.cpp MoveGlobalVar.cpp
+                    SimplifyStructUnionDecl.cpp SimplifyCommaExpr.cpp MoveGlobalVar.cpp \
+                    UnifyFunctionDecl.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -57,7 +59,8 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  CopyPropagation.o RemoveUnusedVar.o SimplifyCallExpr.o \
                  CallExprToValue.o UnionToStruct.o SimplifyIf.o \
                  ReduceArrayDim.o ReduceArraySize.o MoveFunctionBody.o \
-                 SimplifyStructUnionDecl.o SimplifyCommaExpr.o MoveGlobalVar.o
+                 SimplifyStructUnionDecl.o SimplifyCommaExpr.o MoveGlobalVar.o \
+                 UnifyFunctionDecl.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -139,6 +142,8 @@ SimplifyStructUnionDecl.o: SimplifyStructUnionDecl.cpp SimplifyStructUnionDecl.h
 SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h ${SUB_TRANSFORMATION_DEPS}
 
 MoveGlobalVar.o: MoveGlobalVar.cpp MoveGlobalVar.h ${SUB_TRANSFORMATION_DEPS}
+
+UnifyFunctionDecl.o: UnifyFunctionDecl.cpp UnifyFunctionDecl.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
