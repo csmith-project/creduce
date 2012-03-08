@@ -282,6 +282,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 222,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-size",      "pri" => 223,  },
     { "name" => "pass_clang",    "arg" => "move-function-body",     "pri" => 224,  },
+    { "name" => "pass_clang",    "arg" => "simplify-comma-expr",    "pri" => 225,  },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
