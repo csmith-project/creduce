@@ -108,6 +108,14 @@ void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR)
     TransAssert(VD && "Bad VarDecl!");
     CombinedVars.insert(VD);
   }
+
+  DeclGroupRef DefDGR = DeclGroupRef::getFromOpaquePtr(DGRPointer);
+  for (DeclGroupRef::iterator I = DefDGR.begin(), 
+       E = DefDGR.end(); I != E; ++I) {
+    VarDecl *VD = dyn_cast<VarDecl>(*I);
+    if (VD)
+      CombinedVars.insert(VD);
+  }
 }
 
 void SimplifyStructUnionDecl::HandleTranslationUnit(ASTContext &Ctx)
