@@ -22,7 +22,7 @@ my $SANITY = 1;
 # if set, don't print a lot of stuff
 # (there's no "real quiet" option -- just redirect output to /dev/null
 # if you don't want to see it)
-my $QUIET = 0;
+my $QUIET = 1;
 
 ######################################################################
 

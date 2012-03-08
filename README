@@ -1,0 +1,31 @@
+--------------------------------------------------------------------
+C-Reduce 
+--------------------------------------------------------------------
+
+C-Reduce is a generic delta debugger.
+
+It is somewhat similar to this delta tool:
+
+  http://delta.tigris.org/
+
+But it works better for reducing C code.
+
+--------------------------------------------------------------------
+
+Installation:
+
+see the file INSTALL
+
+--------------------------------------------------------------------
+
+Usage:
+
+c_reduce.pl ./test.sh file.c
+
+file.c is a C program that causes a compiler to do something
+bad
+
+test.sh is a shell script that returns 0 
+
+--------------------------------------------------------------------
+
