@@ -113,6 +113,9 @@ public:
   bool getDeclGroupStrAndRemove(clang::DeclGroupRef DGR, 
                                        std::string &Str);
 
+  bool getEntireDeclGroupStrAndRemove(clang::DeclGroupRef DGR,
+                                      std::string &Str);
+
   clang::SourceLocation getDeclGroupRefEndLoc(clang::DeclGroupRef DGR);
 
   bool getDeclStmtStrAndRemove(clang::DeclStmt *DS, 
@@ -153,6 +156,9 @@ public:
 
   bool getFunctionDefStrAndRemove(const clang::FunctionDecl *FD,
                                   std::string &Str);
+
+  bool getFunctionDeclStrAndRemove(const clang::FunctionDecl *FD,
+                                   std::string &Str);
 
   clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                             char Symbol);

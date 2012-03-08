@@ -710,6 +710,33 @@ void RewriteUtils::getStringBetweenLocsAfterStart(std::string &Str,
   Str.assign(StartBuf, Off);
 }
 
+bool RewriteUtils::getEntireDeclGroupStrAndRemove(DeclGroupRef DGR,
+                                                  std::string &Str)
+{
+  Decl *FirstD, *LastD;
+  if (DGR.isSingleDecl()) {
+    FirstD = DGR.getSingleDecl();
+    LastD = FirstD;
+  }
+  else {
+    DeclGroupRef::iterator I = DGR.begin();
+    FirstD = (*I);
+
+    DeclGroupRef::iterator E = DGR.end();
+    --E;
+    LastD = (*E);
+  }
+
+  SourceRange FirstRange = FirstD->getSourceRange();
+  SourceLocation StartLoc = FirstRange.getBegin();
+  SourceRange LastRange = LastD->getSourceRange();
+  SourceLocation EndLoc = getEndLocationUntil(LastRange, ';');
+
+  getStringBetweenLocs(Str, StartLoc, EndLoc);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+// This function skips type specifiers
 bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR, 
                                    std::string &Str)
 {
@@ -1007,5 +1034,19 @@ bool RewriteUtils::getFunctionDefStrAndRemove(const FunctionDecl *FD,
   Str.assign(StartBuf, RangeSize);
   TheRewriter->RemoveText(FDRange);
   return true;
+}
+
+bool RewriteUtils::getFunctionDeclStrAndRemove(const FunctionDecl *FD,
+                                               std::string &Str)
+{
+  TransAssert(!FD->isThisDeclarationADefinition() && 
+              "FD cannot be a definition!");
+
+  SourceRange FDRange = FD->getSourceRange();
+  SourceLocation StartLoc = FDRange.getBegin();
+  SourceLocation EndLoc = getEndLocationUntil(FDRange, ';');
+
+  getStringBetweenLocs(Str, StartLoc, EndLoc);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
