@@ -287,6 +287,20 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
   const Expr *Rhs = BO->getRHS();
   const Type *Ty = Lhs->getType().getTypePtr();
   if (Ty->isPointerType()) {
+    // Prefer removing a '*' on LHS, because it's less-likely to generate 
+    // bad code, e.g.,
+    //   int *a, **c = &a, d, *f = &d;
+    //  **c = f;
+    // if we change the code above to:
+    //  **c = *f;
+    // **c is a derefence to a NULL pointer. 
+    // On the other hand, *c = f is still valid. 
+    const Expr *DirectLhs = Lhs->IgnoreParenCasts();
+    const UnaryOperator *LhsUO = dyn_cast<UnaryOperator>(DirectLhs);
+    if (LhsUO && (LhsUO->getOpcode() == UO_Deref)) {
+      return ConsumerInstance->RewriteHelper->removeAStarAfter(Lhs);
+    }
+
     const Expr *DirectRhs = Rhs->IgnoreParenCasts();
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(DirectRhs);
     if (UO && (UO->getOpcode() == UO_AddrOf)) {
