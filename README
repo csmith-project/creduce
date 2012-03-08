@@ -8,7 +8,12 @@ It is somewhat similar to this delta tool:
 
   http://delta.tigris.org/
 
-But it works better for reducing C code.
+But it does a better job when used to reduce C code.
+
+At its core, C-Reduce is a simple fixpoint computation; all of the
+transformations are done by plugins. In princpiple, C-Reduce can be
+tailored to reduce any failure-inducing input, but so far it has only
+reduced C and C++ programs.
 
 --------------------------------------------------------------------
 
@@ -20,12 +25,36 @@ see the file INSTALL
 
 Usage:
 
-c_reduce.pl ./test.sh file.c
+THIS_PATH/c_reduce/c_reduce.pl ./test.sh file.c
 
 file.c is a C program that causes a compiler to do something
 bad
 
-test.sh is a shell script that returns 0 
+test.sh is a shell script that takes no arguments -- it should be
+hard-coded to refer to the same C file that is passed as an argument
+to C-Reduce.  It should return 0 for an interesting delta variant
+and return any other value for an uninteresting variant.
+
+HINTS:
+
+- it is often useful for the test script to invoke external tools
+  under time and memory limits
+
+- the test script should run cheap parts of its test first
+
+- the test script can filter out some kinds of undesirable variants by
+  inspecting compiler warnings
+
+- see test*.sh in the "scripts" directory for examples
 
 --------------------------------------------------------------------
 
+Feedback:
+
+The authors of C-Reduce would love to hear failure or success stories.
+
+Please use the appropriate Csmith mailing list:
+
+  http://embed.cs.utah.edu/csmith/
+
+--------------------------------------------------------------------

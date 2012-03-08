@@ -1,9 +1,25 @@
 --------------------------------------------------------------------
+C-Reduce 
+--------------------------------------------------------------------
+
+On debian-style Linux systems all non-standard prerequisites can be
+installed like this:
 
 sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta libexporter-lite-perl
 
+On other systems, install:
+
+GNU Indent
+
+astyle: http://astyle.sourceforge.net/
+
+these Perl modules
+  Exporter::Lite
+  File::Which
+  Regexp::Common
+
 --------------------------------------------------------------------
-Building the clang_delta plugin
+Building and installing the clang_delta plugin
 
 1. Install LLVM/Clang 3.0
 
@@ -12,7 +28,7 @@ Building the clang_delta plugin
 cd clang_delta
 export LLVM_PATH=/where/your/clang/installation/path
 make
-
+copy clang_delta into your PATH 
 
 Note that assertions are enabled by default. To disable assertions,
 build the program with:
