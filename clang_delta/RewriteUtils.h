@@ -36,6 +36,7 @@ namespace clang {
   class NamedDecl;
   class IfStmt;
   class Type;
+  class FieldDecl;
 }
 
 class RewriteUtils {
@@ -163,6 +164,7 @@ public:
   clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                             char Symbol);
 
+  bool removeFieldDecl(const clang::FieldDecl *FD);
 
 private:
 
