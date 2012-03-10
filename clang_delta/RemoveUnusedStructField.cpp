@@ -244,7 +244,7 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
   if (!ILE)
     return;
 
-  const RecordType *RT;
+  const RecordType *RT = NULL;
   if (Ty->isUnionType()) {
     RT = Ty->getAsUnionType();
   }

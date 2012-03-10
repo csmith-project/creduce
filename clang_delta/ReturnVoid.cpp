@@ -99,7 +99,7 @@ bool ReturnVoid::isInTheFuncDef(ReturnStmt *RS)
   
   if ((StartPos > FuncDefStartPos) && (StartPos < FuncDefEndPos)) {
     TransAssert((EndPos > FuncDefStartPos) && (EndPos < FuncDefEndPos) && 
-            "Bad return statement range!");
+            "Bad return statement range!"); (void)EndPos;
     return true;
   }
 
