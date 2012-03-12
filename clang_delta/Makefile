@@ -68,7 +68,7 @@ OBJS = ClangDelta.o \
        Transformation.o \
        ${TRANSFORM_OBJS}
 
-SUB_TRANSFORMATION_DEPS = Transformation.cpp Transformation.h RewriteUtils.cpp RewriteUtils.h
+SUB_TRANSFORMATION_DEPS = Transformation.cpp Transformation.h TransformationManager.h TransformationManager.cpp RewriteUtils.cpp RewriteUtils.h
 
 .SUFFIXES : .o .cpp
 .cpp.o :
