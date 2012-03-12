@@ -76,7 +76,8 @@ void UnifyFunctionDecl::doAnalysis(void)
   for (FunctionDeclSet::iterator I = VisitedFunctionDecls.begin(),
        E = VisitedFunctionDecls.end(); I != E; ++I) {
 
-    const FunctionDecl *FDDef, *FDDecl;
+    const FunctionDecl *FDDef = NULL; 
+    const FunctionDecl *FDDecl = NULL;
     const FunctionDecl *CanonicalFD = (*I);
     const FunctionDecl *FirstFD = CanonicalFD->getFirstDeclaration();
 

@@ -422,7 +422,7 @@ const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
   TransAssert(UO && "Bad UnaryOperator!");
   UnaryOperator::Opcode Op = UO->getOpcode();
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!");
+              "Non-Deref-or-AddrOf Opcode!"); (void)Op;
   const Expr *SubE = UO->getSubExpr();
   return getDeclRefExpr(SubE);
 }
@@ -443,7 +443,7 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
   TransAssert(UO && "Bad UnaryOperator!");
   UnaryOperator::Opcode Op = UO->getOpcode();
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!");
+              "Non-Deref-or-AddrOf Opcode!"); (void)Op;
   const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
 }
@@ -462,7 +462,7 @@ void ReducePointerLevel::addOneDecl(const DeclaratorDecl *DD,
 const DeclaratorDecl *
 ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
 {
-  const DeclaratorDecl *DD;
+  const DeclaratorDecl *DD = NULL;
   const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
   const MemberExpr *ME = dyn_cast<MemberExpr>(E);
 
@@ -476,7 +476,7 @@ ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
     FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
     // in C++, getMemberDecl returns a CXXMethodDecl.
-    TransAssert(FD && "Unsupported C++ getMemberDecl!\n");
+    TransAssert(FD && "Unsupported C++ getMemberDecl!\n"); (void)FD;
     DD = dyn_cast<DeclaratorDecl>(OrigDecl);
   }
   else {
@@ -640,7 +640,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
   case Expr::UnaryOperatorClass: {
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
     const Expr *SubE = UO->getSubExpr();
-    TransAssert(SubE && "Bad Sub Expr!");
+    TransAssert(SubE && "Bad Sub Expr!"); (void)SubE;
     RewriteHelper->getExprString(E, InitStr);
 
     size_t Pos;

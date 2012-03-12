@@ -491,7 +491,7 @@ bool RewriteUtils::replaceExprNotInclude(const Expr *E,
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation StartLoc = ExprRange.getBegin();
   int RangeSize = TheRewriter->getRangeSize(ExprRange);
-  TransAssert((RangeSize != -1) && "Bad expr range!");
+  TransAssert((RangeSize != -1) && "Bad expr range!"); (void)RangeSize;
 
   Rewriter::RewriteOptions Opts;
   // We don't want to include the previously inserted string
@@ -766,7 +766,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
 
   DeclGroup DG = DGR.getDeclGroup();
   size_t Sz = DG.size();
-  TransAssert(Sz > 1);
+  TransAssert(Sz > 1); (void)Sz;
 
   DeclGroupRef::iterator I = DGR.begin();
   DeclGroupRef::iterator E = DGR.end();
