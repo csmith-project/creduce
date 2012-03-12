@@ -25,6 +25,9 @@ using namespace clang;
 
 TransformationManager* TransformationManager::Instance;
 
+std::map<std::string, Transformation *> *
+TransformationManager::TransformationsMapPtr;
+
 TransformationManager *TransformationManager::GetInstance(void)
 {
   if (TransformationManager::Instance)
@@ -33,6 +36,8 @@ TransformationManager *TransformationManager::GetInstance(void)
   TransformationManager::Instance = new TransformationManager();
   assert(TransformationManager::Instance);
 
+  TransformationManager::Instance->TransformationsMap = 
+    *TransformationManager::TransformationsMapPtr;
   TransformationManager::Instance->initializeCompilerInstance();
   return TransformationManager::Instance;
 }
@@ -169,11 +174,16 @@ void TransformationManager::registerTransformation(
        const char *TransName, 
        Transformation *TransImpl)
 {
-  assert((TransImpl != NULL) && "NULL Transformation!");
-  assert((TransformationsMap.find(TransName) == TransformationsMap.end()) &&
-         "Duplicated transformation!");
+  if (!TransformationManager::TransformationsMapPtr) {
+    TransformationManager::TransformationsMapPtr = 
+      new std::map<std::string, Transformation *>();
+  }
 
-  TransformationsMap[TransName] = TransImpl;
+  assert((TransImpl != NULL) && "NULL Transformation!");
+  assert((TransformationManager::TransformationsMapPtr->find(TransName) == 
+          TransformationManager::TransformationsMapPtr->end()) &&
+         "Duplicated transformation!");
+  (*TransformationManager::TransformationsMapPtr)[TransName] = TransImpl;
 }
 
 void TransformationManager::printTransformations(void)
@@ -220,6 +230,7 @@ TransformationManager::TransformationManager(void)
 
 TransformationManager::~TransformationManager(void)
 {
-  // Nothing to do
+  if (!TransformationsMapPtr)
+    delete TransformationsMapPtr;
 }
 
