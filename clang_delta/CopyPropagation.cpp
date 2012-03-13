@@ -345,10 +345,38 @@ void CopyPropagation::invalidateExpr(const Expr *E)
   updateExpr(E, NULL);
 }
 
+const VarDecl *CopyPropagation::getCanonicalRefVarDecl(const Expr *E)
+{
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+  if (!DRE)
+    return NULL;
+
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
+  // DRE could refer to FunctionDecl, etc
+  if (!VD)
+    return NULL;
+
+  return VD->getCanonicalDecl();
+}
+
+bool CopyPropagation::isRefToTheSameVar(const Expr *CopyE,
+                                        const Expr *DominatedE)
+{
+  const VarDecl *CopyVD  = getCanonicalRefVarDecl(CopyE);
+  if (!CopyVD)
+    return false;
+  const VarDecl *DominatedVD  = getCanonicalRefVarDecl(DominatedE);
+  if (!DominatedVD)
+    return false;
+
+  return (CopyVD == DominatedVD);
+}
+
 void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
                                           const Expr *DominatedE)
 {
-  if (CopyE == DominatedE)
+  if ((CopyE == DominatedE) || isRefToTheSameVar(CopyE, DominatedE))
     return;
 
   ExprSet *ESet = DominatedMap[CopyE];

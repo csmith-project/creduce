@@ -71,6 +71,11 @@ private:
   void addOneDominatedExpr(const clang::Expr *CopyE, 
                            const clang::Expr *DominatedE);
   
+  const clang::VarDecl *getCanonicalRefVarDecl(const clang::Expr *E);
+
+  bool isRefToTheSameVar(const clang::Expr *CopyE,
+                         const clang::Expr *DominatedE);
+
   void doCopyPropagation(void);
 
   bool isConstantExpr(const clang::Expr *Exp);
