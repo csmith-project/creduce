@@ -174,7 +174,7 @@ void SimplifyIf::Initialize(ASTContext &context)
   CollectionVisitor = new SimplifyIfCollectionVisitor(this);
 }
 
-void SimplifyIf::HandleTopLevelDecl(DeclGroupRef D) 
+bool SimplifyIf::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -182,6 +182,7 @@ void SimplifyIf::HandleTopLevelDecl(DeclGroupRef D)
       CollectionVisitor->TraverseDecl(FD);
     }
   }
+  return true;
 }
  
 void SimplifyIf::HandleTranslationUnit(ASTContext &Ctx)

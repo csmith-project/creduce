@@ -191,7 +191,7 @@ void SimplifyCommaExpr::Initialize(ASTContext &context)
   CollectionVisitor = new SimplifyCommaExprCollectionVisitor(this);
 }
 
-void SimplifyCommaExpr::HandleTopLevelDecl(DeclGroupRef D) 
+bool SimplifyCommaExpr::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -199,6 +199,7 @@ void SimplifyCommaExpr::HandleTopLevelDecl(DeclGroupRef D)
       CollectionVisitor->TraverseDecl(FD);
     }
   }
+  return true;
 }
  
 void SimplifyCommaExpr::HandleTranslationUnit(ASTContext &Ctx)

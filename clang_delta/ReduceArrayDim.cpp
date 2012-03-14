@@ -100,11 +100,12 @@ void ReduceArrayDim::Initialize(ASTContext &context)
   RewriteVisitor = new ReduceArrayDimRewriteVisitor(this);
 }
 
-void ReduceArrayDim::HandleTopLevelDecl(DeclGroupRef D) 
+bool ReduceArrayDim::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     CollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void ReduceArrayDim::HandleTranslationUnit(ASTContext &Ctx)

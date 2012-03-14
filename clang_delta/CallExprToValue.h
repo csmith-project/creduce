@@ -44,7 +44,7 @@ private:
   
   virtual void Initialize(clang::ASTContext &context);
 
-  virtual void HandleTopLevelDecl(clang::DeclGroupRef D);
+  virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 

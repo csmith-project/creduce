@@ -100,7 +100,7 @@ void AggregateToScalar::Initialize(ASTContext &context)
   AggregateAccessVisitor = new ATSCollectionVisitor(this);
 }
 
-void AggregateToScalar::HandleTopLevelDecl(DeclGroupRef D) 
+bool AggregateToScalar::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     VarDecl *VD = dyn_cast<VarDecl>(*I);
@@ -109,6 +109,7 @@ void AggregateToScalar::HandleTopLevelDecl(DeclGroupRef D)
 
     AggregateAccessVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void AggregateToScalar::HandleTranslationUnit(ASTContext &Ctx)

@@ -68,11 +68,12 @@ void ReduceArraySize::Initialize(ASTContext &context)
   CollectionVisitor = new ReduceArraySizeCollectionVisitor(this);
 }
 
-void ReduceArraySize::HandleTopLevelDecl(DeclGroupRef D) 
+bool ReduceArraySize::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     CollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void ReduceArraySize::HandleTranslationUnit(ASTContext &Ctx)

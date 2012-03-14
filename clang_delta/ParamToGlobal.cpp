@@ -68,7 +68,7 @@ void ParamToGlobal::Initialize(ASTContext &context)
   TransformationASTVisitor = new PToGASTVisitor(this);
 }
 
-void ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
+bool ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -76,6 +76,7 @@ void ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D)
       ValidFuncDecls.push_back(FD->getCanonicalDecl());
     }
   }
+  return true;
 }
  
 void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)

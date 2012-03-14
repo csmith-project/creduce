@@ -106,7 +106,7 @@ void UnionToStruct::Initialize(ASTContext &context)
   CollectionVisitor = new UnionToStructCollectionVisitor(this);
 }
 
-void UnionToStruct::HandleTopLevelDecl(DeclGroupRef D) 
+bool UnionToStruct::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     VarDecl *VD = dyn_cast<VarDecl>(*I);
@@ -115,6 +115,7 @@ void UnionToStruct::HandleTopLevelDecl(DeclGroupRef D)
 
     CollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void UnionToStruct::HandleTranslationUnit(ASTContext &Ctx)

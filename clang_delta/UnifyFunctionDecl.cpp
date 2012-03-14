@@ -29,22 +29,23 @@ void UnifyFunctionDecl::Initialize(ASTContext &context)
   Transformation::Initialize(context);
 }
 
-void UnifyFunctionDecl::HandleTopLevelDecl(DeclGroupRef D) 
+bool UnifyFunctionDecl::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
     if (!FD)
-      return;    
+      return true;    
 
     if (!FD->hasBody())
-      return;
+      return true;
 
     const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
     if (VisitedFunctionDecls.count(CanonicalFD))
-      return;
+      return true;
 
     VisitedFunctionDecls.insert(CanonicalFD);
   }
+  return true;
 }
 
 void UnifyFunctionDecl::HandleTranslationUnit(ASTContext &Ctx)

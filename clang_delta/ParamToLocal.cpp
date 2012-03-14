@@ -65,7 +65,7 @@ void ParamToLocal::Initialize(ASTContext &context)
   TransformationASTVisitor = new PToLASTVisitor(this);
 }
 
-void ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
+bool ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -73,6 +73,7 @@ void ParamToLocal::HandleTopLevelDecl(DeclGroupRef D)
       ValidFuncDecls.push_back(FD->getCanonicalDecl());
     }
   }
+  return true;
 }
  
 void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)

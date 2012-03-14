@@ -55,7 +55,7 @@ void TransformationManager::initializeCompilerInstance(void)
   // It results an empty AST for the caller. 
   // ClangInstance->getLangOpts().CPlusPlus = 1;
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
-  TargetOpts.Triple = LLVM_HOSTTRIPLE;
+  TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
     TargetInfo::CreateTargetInfo(ClangInstance->getDiagnostics(),
                                  TargetOpts);

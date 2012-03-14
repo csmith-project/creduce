@@ -72,13 +72,14 @@ void RemoveUnusedVar::Initialize(ASTContext &context)
   AnalysisVisitor = new RemoveUnusedVarAnalysisVisitor(this);
 }
 
-void RemoveUnusedVar::HandleTopLevelDecl(DeclGroupRef D) 
+bool RemoveUnusedVar::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     VarDecl *VD = dyn_cast<VarDecl>(*I);
     if (VD)
       VarToDeclGroup[VD] = D;
   }
+  return true;
 }
  
 void RemoveUnusedVar::HandleTranslationUnit(ASTContext &Ctx)

@@ -230,7 +230,7 @@ void RemoveNestedFunction::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
-void RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D) 
+bool RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -240,6 +240,7 @@ void RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D)
       NestedInvocationVisitor->setCurrentFuncDecl(NULL);
     }
   }
+  return true;
 }
  
 void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)

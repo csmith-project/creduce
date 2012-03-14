@@ -56,9 +56,10 @@ void RemoveUnusedFunction::Initialize(ASTContext &context)
   AnalysisVisitor = new RUFAnalysisVisitor(this);
 }
 
-void RemoveUnusedFunction::HandleTopLevelDecl(DeclGroupRef D) 
+bool RemoveUnusedFunction::HandleTopLevelDecl(DeclGroupRef D) 
 {
   // Nothing to do 
+  return true;
 }
  
 void RemoveUnusedFunction::HandleTranslationUnit(ASTContext &Ctx)

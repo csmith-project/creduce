@@ -20,13 +20,13 @@ CXXFLAGS = -Wall
 
 LLVM_CXXFLAGS = `${llvm_dir}/bin/llvm-config --cxxflags`
 LLVM_LDFLAGS = `${llvm_dir}/bin/llvm-config --ldflags`
-LLVM_LIBS = `${llvm_dir}/bin/llvm-config --libs`
+LLVM_LIBS = `${llvm_dir}/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
 
 INCLUDES = ${LLVM_CXXFLAGS} -I${llvm_dir}/include/clang/
 LDFLAGS = ${LLVM_LDFLAGS}
 LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        -lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-       -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
+       -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
        ${LLVM_LIBS} -ldl
 
 TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h \
@@ -72,7 +72,7 @@ SUB_TRANSFORMATION_DEPS = Transformation.cpp Transformation.h TransformationMana
 
 .SUFFIXES : .o .cpp
 .cpp.o :
-	${CXX} -g ${ENABLE_TRANS_ASSERT} ${CXXFLAGS} ${INCLUDES} -c $<
+	${CXX} -g ${ENABLE_TRANS_ASSERT} ${INCLUDES} ${CXXFLAGS} -c $<
 
 clang_delta: ${OBJS}
 	${CXX} -g -o clang_delta ${OBJS} ${LDFLAGS} ${LIBS}

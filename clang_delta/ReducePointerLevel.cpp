@@ -337,11 +337,12 @@ void ReducePointerLevel::Initialize(ASTContext &context)
   RewriteVisitor = new PointerLevelRewriteVisitor(this);
 }
 
-void ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D) 
+bool ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     CollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
@@ -421,8 +422,9 @@ const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
   const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
   TransAssert(UO && "Bad UnaryOperator!");
   UnaryOperator::Opcode Op = UO->getOpcode();
+  (void)Op;
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!"); (void)Op;
+              "Non-Deref-or-AddrOf Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getDeclRefExpr(SubE);
 }
@@ -442,8 +444,9 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
   const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
   TransAssert(UO && "Bad UnaryOperator!");
   UnaryOperator::Opcode Op = UO->getOpcode();
+  (void)Op;
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!"); (void)Op;
+              "Non-Deref-or-AddrOf Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
 }
@@ -473,10 +476,9 @@ ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
   }
   else if (ME) {
     ValueDecl *OrigDecl = ME->getMemberDecl();
-    FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
     // in C++, getMemberDecl returns a CXXMethodDecl.
-    TransAssert(FD && "Unsupported C++ getMemberDecl!\n"); (void)FD;
+    TransAssert(isa<FieldDecl>(OrigDecl) && "Unsupported C++ getMemberDecl!\n");
     DD = dyn_cast<DeclaratorDecl>(OrigDecl);
   }
   else {
@@ -639,8 +641,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
 
   case Expr::UnaryOperatorClass: {
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
-    const Expr *SubE = UO->getSubExpr();
-    TransAssert(SubE && "Bad Sub Expr!"); (void)SubE;
+    TransAssert(UO->getSubExpr() && "Bad Sub Expr!");
     RewriteHelper->getExprString(E, InitStr);
 
     size_t Pos;

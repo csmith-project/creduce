@@ -233,7 +233,7 @@ void ReplaceCallExpr::Initialize(ASTContext &context)
   CollectionVisitor = new ReplaceCallExprVisitor(this);
 }
 
-void ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
+bool ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -242,6 +242,7 @@ void ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D)
       CollectionVisitor->TraverseDecl(FD);
       CurrentFD = NULL;
   }
+  return true;
 }
  
 void ReplaceCallExpr::HandleTranslationUnit(ASTContext &Ctx)

@@ -72,32 +72,33 @@ void SimplifyStructUnionDecl::Initialize(ASTContext &context)
   AnalysisVisitor = new SimplifyStructUnionDeclVisitor(this);
 }
 
-void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
+bool SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
 {
   DeclGroupRef::iterator DI = DGR.begin();
   const RecordDecl *RD = dyn_cast<RecordDecl>(*DI);
   if (RD) {
-    return addOneRecordDecl(RD, DGR);
+    addOneRecordDecl(RD, DGR);
+    return true;
   }
 
   VarDecl *VD = dyn_cast<VarDecl>(*DI);
   if (!VD)
-    return;
+    return true;
 
   const Type *T = VD->getType().getTypePtr();
 
   RD = getBaseRecordDecl(T);
   if (!RD)
-    return;
+    return true;
 
   const Decl *CanonicalD = RD->getCanonicalDecl();
   void *DGRPointer = RecordDeclToDeclGroup[CanonicalD];
   if (!DGRPointer)
-    return;
+    return true;
 
   ValidInstanceNum++;
   if (ValidInstanceNum != TransformationCounter)
-    return;
+    return true;
 
   TheRecordDecl = dyn_cast<RecordDecl>(CanonicalD);
   TheDeclGroupRefs.push_back(DGRPointer);
@@ -116,6 +117,7 @@ void SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR)
     if (VD)
       CombinedVars.insert(VD);
   }
+  return true;
 }
 
 void SimplifyStructUnionDecl::HandleTranslationUnit(ASTContext &Ctx)

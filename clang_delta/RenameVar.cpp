@@ -116,11 +116,12 @@ void RenameVar::Initialize(ASTContext &context)
   ValidInstanceNum = 1;
 }
 
-void RenameVar::HandleTopLevelDecl(DeclGroupRef D) 
+bool RenameVar::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     VarCollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void RenameVar::HandleTranslationUnit(ASTContext &Ctx)

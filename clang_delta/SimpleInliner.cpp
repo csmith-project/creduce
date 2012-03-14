@@ -398,7 +398,7 @@ void SimpleInliner::Initialize(ASTContext &context)
   StmtVisitor = new SimpleInlinerStmtVisitor(this);
 }
 
-void SimpleInliner::HandleTopLevelDecl(DeclGroupRef D) 
+bool SimpleInliner::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -414,6 +414,7 @@ void SimpleInliner::HandleTopLevelDecl(DeclGroupRef D)
         CollectionVisitor->getNumStmts();
     }
   }
+  return true;
 }
 
 void SimpleInliner::HandleTranslationUnit(ASTContext &Ctx)

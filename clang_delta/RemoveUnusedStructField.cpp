@@ -115,9 +115,10 @@ void RemoveUnusedStructField::Initialize(ASTContext &context)
   RewriteVisitor = new RemoveUnusedStructFieldRewriteVisitor(this);
 }
 
-void RemoveUnusedStructField::HandleTopLevelDecl(DeclGroupRef D) 
+bool RemoveUnusedStructField::HandleTopLevelDecl(DeclGroupRef D) 
 {
   // Nothing to do
+  return true;
 }
  
 void RemoveUnusedStructField::HandleTranslationUnit(ASTContext &Ctx)

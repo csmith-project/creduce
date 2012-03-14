@@ -75,7 +75,7 @@ void LocalToGlobal::Initialize(ASTContext &context)
   TransformationASTVisitor = new LToGASTVisitor(this);
 }
 
-void LocalToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
+bool LocalToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -85,6 +85,7 @@ void LocalToGlobal::HandleTopLevelDecl(DeclGroupRef D)
       LocalVarCollectionVisitor->setCurrentFuncDecl(NULL);
     }
   }
+  return true;
 }
  
 void LocalToGlobal::HandleTranslationUnit(ASTContext &Ctx)

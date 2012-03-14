@@ -122,11 +122,12 @@ void RenameFun::Initialize(ASTContext &context)
   ValidInstanceNum = 1;
 }
 
-void RenameFun::HandleTopLevelDecl(DeclGroupRef D) 
+bool RenameFun::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunCollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
 
 bool RenameFun::isConsecutiveNumbersFromOne(void)

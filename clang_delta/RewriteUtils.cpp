@@ -374,7 +374,6 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
   }
 
   SourceRange TypeLocRange = VarTypeLoc.getSourceRange();
-  SourceLocation StartLoc = TypeLocRange.getBegin();
   SourceLocation EndLoc = getEndLocationFromBegin(TypeLocRange);
 
   const Type *Ty = VarTypeLoc.getTypePtr();
@@ -490,8 +489,8 @@ bool RewriteUtils::replaceExprNotInclude(const Expr *E,
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation StartLoc = ExprRange.getBegin();
-  int RangeSize = TheRewriter->getRangeSize(ExprRange);
-  TransAssert((RangeSize != -1) && "Bad expr range!"); (void)RangeSize;
+  TransAssert((TheRewriter->getRangeSize(ExprRange) != -1) && 
+              "Bad expr range!");
 
   Rewriter::RewriteOptions Opts;
   // We don't want to include the previously inserted string
@@ -764,9 +763,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }
 
-  DeclGroup DG = DGR.getDeclGroup();
-  size_t Sz = DG.size();
-  TransAssert(Sz > 1); (void)Sz;
+  TransAssert(DGR.getDeclGroup().size() > 1);
 
   DeclGroupRef::iterator I = DGR.begin();
   DeclGroupRef::iterator E = DGR.end();

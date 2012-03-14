@@ -96,17 +96,18 @@ bool ReturnVoid::isInTheFuncDef(ReturnStmt *RS)
       SrcManager->getCharacterData(StartLoc);
   const char *EndPos =   
       SrcManager->getCharacterData(EndLoc);
-  
+  (void)EndPos;
+
   if ((StartPos > FuncDefStartPos) && (StartPos < FuncDefEndPos)) {
     TransAssert((EndPos > FuncDefStartPos) && (EndPos < FuncDefEndPos) && 
-            "Bad return statement range!"); (void)EndPos;
+            "Bad return statement range!");
     return true;
   }
 
   return false;
 }
 
-void ReturnVoid::HandleTopLevelDecl(DeclGroupRef D) 
+bool ReturnVoid::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -125,6 +126,7 @@ void ReturnVoid::HandleTopLevelDecl(DeclGroupRef D)
     if ((TheFuncDecl == CanonicalDecl) && FD->isThisDeclarationADefinition())
       keepFuncDefRange(FD);
   }
+  return true;
 }
  
 void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)

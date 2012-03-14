@@ -45,12 +45,12 @@ void CombineGlobalVarDecl::Initialize(ASTContext &context)
   Transformation::Initialize(context);
 }
 
-void CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
+bool CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
 {
   DeclGroupRef::iterator DI = DGR.begin();
   VarDecl *VD = dyn_cast<VarDecl>(*DI);
   if (!VD)
-    return;
+    return true;
 
   const Type *T = VD->getType().getTypePtr();
   const Type *CanonicalT = Context->getCanonicalType(T);
@@ -82,6 +82,7 @@ void CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR)
   // first DeclGroup with others, but we could combine
   // the second one and the third one. 
   DV->push_back(DGR.getAsOpaquePtr());
+  return true;
 }
  
 void CombineGlobalVarDecl::HandleTranslationUnit(ASTContext &Ctx)

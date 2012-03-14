@@ -16,6 +16,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/ADT/SmallString.h"
 
 using namespace clang;
 
@@ -82,7 +83,7 @@ void Transformation::Initialize(ASTContext &context)
   Context = &context;
   SrcManager = &Context->getSourceManager();
   TheRewriter.setSourceMgr(Context->getSourceManager(), 
-                           Context->getLangOptions());
+                           Context->getLangOpts());
   RewriteHelper = RewriteUtils::GetInstance(&TheRewriter);
 }
 

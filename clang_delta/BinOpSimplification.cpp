@@ -236,7 +236,7 @@ void BinOpSimplification::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
-void BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D) 
+bool BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -246,6 +246,7 @@ void BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D)
       BinOpCollectionVisitor->setCurrentFuncDecl(NULL);
     }
   }
+  return true;
 }
  
 void BinOpSimplification::HandleTranslationUnit(ASTContext &Ctx)

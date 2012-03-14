@@ -242,7 +242,7 @@ void LiftAssignmentExpr::Initialize(ASTContext &context)
   CollectionVisitor = new AssignExprCollectionVisitor(this);
 }
 
-void LiftAssignmentExpr::HandleTopLevelDecl(DeclGroupRef D) 
+bool LiftAssignmentExpr::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -252,6 +252,7 @@ void LiftAssignmentExpr::HandleTopLevelDecl(DeclGroupRef D)
       CollectionVisitor->setCurrentFuncDecl(NULL);
     }
   }
+  return true;
 }
  
 void LiftAssignmentExpr::HandleTranslationUnit(ASTContext &Ctx)

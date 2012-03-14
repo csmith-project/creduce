@@ -36,14 +36,14 @@ bool MoveGlobalVar::isSpecialDecl(const std::string &Name)
           (Name == "__builtin_va_list"));
 }
 
-void MoveGlobalVar::HandleTopLevelDecl(DeclGroupRef D) 
+bool MoveGlobalVar::HandleTopLevelDecl(DeclGroupRef D) 
 {
   DeclGroupRef::iterator I = D.begin();
   TransAssert((I != D.end()) && "Bad DeclGroupRef!");
 
   const NamedDecl *ND = dyn_cast<NamedDecl>(*I);
   if (!TheFirstDecl && ND && isSpecialDecl(ND->getNameAsString()))
-    return;
+    return true;
 
   FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
   if (FD) {
@@ -55,6 +55,7 @@ void MoveGlobalVar::HandleTopLevelDecl(DeclGroupRef D)
 
   if (!TheFirstDecl)
     TheFirstDecl = (*I);
+  return true;
 }
 
 void MoveGlobalVar::HandleTranslationUnit(ASTContext &Ctx)

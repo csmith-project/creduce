@@ -119,11 +119,12 @@ void CombineLocalVarDecl::Initialize(ASTContext &context)
   CollectionVisitor = new CombLocalVarCollectionVisitor(this);
 }
 
-void CombineLocalVarDecl::HandleTopLevelDecl(DeclGroupRef D) 
+bool CombineLocalVarDecl::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     CollectionVisitor->TraverseDecl(*I);
   }
+  return true;
 }
  
 void CombineLocalVarDecl::HandleTranslationUnit(ASTContext &Ctx)

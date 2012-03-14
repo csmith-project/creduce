@@ -29,7 +29,7 @@ void MoveFunctionBody::Initialize(ASTContext &context)
   Transformation::Initialize(context);
 }
 
-void MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D) 
+bool MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
@@ -65,6 +65,7 @@ void MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D)
 
     AllValidFunctionDecls[CanonicalFD] = FD;
   }
+  return true;
 }
  
 void MoveFunctionBody::HandleTranslationUnit(ASTContext &Ctx)

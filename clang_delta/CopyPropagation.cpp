@@ -232,10 +232,11 @@ void CopyPropagation::Initialize(ASTContext &context)
   CollectionVisitor = new CopyPropCollectionVisitor(this);
 }
 
-void CopyPropagation::HandleTopLevelDecl(DeclGroupRef D) 
+bool CopyPropagation::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I)
     CollectionVisitor->TraverseDecl(*I);
+  return true;
 }
  
 void CopyPropagation::HandleTranslationUnit(ASTContext &Ctx)
