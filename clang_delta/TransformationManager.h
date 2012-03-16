@@ -23,14 +23,15 @@ namespace clang {
 }
 
 class TransformationManager {
+
 public:
 
   static TransformationManager *GetInstance(void);
 
   static void Finalize(void);
 
-  void registerTransformation(const char *TransName, 
-                              Transformation *TransImpl);
+  static void registerTransformation(const char *TransName, 
+                                     Transformation *TransImpl);
   
   bool doTransformation(std::string &ErrorMsg);
 
@@ -83,6 +84,10 @@ private:
 
   static TransformationManager *Instance;
 
+  static std::map<std::string, Transformation *> *TransformationsMapPtr;
+
+  std::map<std::string, Transformation *> TransformationsMap;
+
   Transformation *CurrentTransformationImpl;
 
   int TransformationCounter;
@@ -95,8 +100,6 @@ private:
 
   bool QueryInstanceOnly;
 
-  std::map<std::string, Transformation *> TransformationsMap;
-
   void initializeCompilerInstance(void);
 
   // Unimplemented
@@ -108,13 +111,13 @@ private:
 
 template<typename TransformationClass>
 class RegisterTransformation {
+
 public:
   RegisterTransformation(const char *TransName, const char *Desc) {
     Transformation *TransImpl = new TransformationClass(TransName, Desc);
     assert(TransImpl && "Fail to create TransformationClass");
-    
-    TransformationManager *M = TransformationManager::GetInstance();
-    M->registerTransformation(TransName, TransImpl);
+ 
+    TransformationManager::registerTransformation(TransName, TransImpl);
   }
 
 private:
