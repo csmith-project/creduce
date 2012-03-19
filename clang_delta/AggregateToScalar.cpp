@@ -187,11 +187,15 @@ void AggregateToScalar::createNewVarName(std::string &VarName)
 
 bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
 {
-  const Type *VarT = TheVarDecl->getType().getTypePtr(); (void)VarT;
+  const Type *VarT = TheVarDecl->getType().getTypePtr();
   TransAssert((VarT->isStructureType() || VarT->isUnionType() 
-               || VarT->isArrayType()) && "Non-valid var type!");
+               || VarT->isArrayType() || VarT->isPointerType())
+              && "Non-valid var type!");
 
   createNewVarName(VarName);
+
+  if (VarT->isPointerType())
+    return addTmpVar(RefE, VarName, NULL);
 
   const Expr *IE = TheVarDecl->getAnyInitializer();
   if (!IE)
