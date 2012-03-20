@@ -19,7 +19,7 @@ LLVMCXXFLAGS = `$(LLVM_PATH)/bin/llvm-config --cxxflags`
 LLVMLDFLAGS = `$(LLVM_PATH)/bin/llvm-config --ldflags`
 LLVMLIBS = `$(LLVM_PATH)/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
 
-clang_delta_CPPFLAGS = $(ENABLE_TRANS_ASSERT) -I${llvm_dir}/include/clang/
+clang_delta_CPPFLAGS = $(ENABLE_TRANS_ASSERT) -I"$(LLVM_PATH)/include/clang/"
 
 clang_delta_CXXFLAGS = $(LLVMCXXFLAGS)
 clang_delta_LDFLAGS = $(LLVMLDFLAGS) \

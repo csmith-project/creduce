@@ -8,6 +8,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "MoveFunctionBody.h"
 
 #include "clang/AST/RecursiveASTVisitor.h"
