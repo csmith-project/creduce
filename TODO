@@ -20,6 +20,24 @@ clang_delta TODO list:
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
+reduce the indirect level of struct member accesses
+  s.f1.f2.f3 => s.f1.f2 or s.f2.f3
+  Note that to do these kinds of simplification, we also need to 
+  change struct declarations appropriately.
+
+change string literals
+
+change operators to other operators, e.g., replace / with +
+
+rename enumerate types
+
+- add supports to C++ specific features
+ * simplify class names
+ 
+ * remove namespace
+
+ * simplify template stuff
+
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
