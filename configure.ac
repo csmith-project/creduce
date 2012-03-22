@@ -36,13 +36,16 @@ AC_PROG_LIBTOOL
 
 dnl AX_LLVM
 
-# If we're using g++, set the default `CXXFLAGS' to something more pedantic.
+# If we are using g++ or clang++, set the default `CXXFLAGS' to something more
+# pedantic.  (Both g++ and clang++ cause `GXX' to be set.)
+#
+# `-Wno-unused-parameter' quiets many warnings about LLVM headers.
 #
 if test "$ac_test_CXXFLAGS" = set; then
   # The user specified `CXXFLAGS', so do nothing.
   CXXFLAGS="$CXXFLAGS"
 elif test "$GXX" = yes; then 
-  CXXFLAGS="-g -O3 -Wall -Wextra -Wno-long-long"
+  CXXFLAGS="-g -O3 -Wall -Wextra -Wno-long-long -Wno-unused-parameter"
 fi
 
 AC_OUTPUT(
