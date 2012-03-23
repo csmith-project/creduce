@@ -1,22 +1,37 @@
 --------------------------------------------------------------------
-C-Reduce 
---------------------------------------------------------------------
 
-On debian-style Linux systems all non-standard prerequisites can be
-installed like this:
+C-Reduce 
+
+--------------------------------------------------------------------
+Prereqs:
+
+On debian-style Linux systems:
+
+All non-standard prerequisites can be installed like this:
 
 sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta libexporter-lite-perl
 
-On other systems, install:
+On other systems, install these packages:
 
 GNU Indent
+  http://www.gnu.org/software/indent/
 
-astyle: http://astyle.sourceforge.net/
+astyle: 
+  http://astyle.sourceforge.net/
 
-these Perl modules
+Berkeley delta:
+  http://delta.tigris.org/
+
+Perl modules
   Exporter::Lite
   File::Which
   Regexp::Common
+
+for example (perhaps as root):
+
+  perl -MCPAN -e shell 'install Exporter::Lite'
+  perl -MCPAN -e shell 'install File::Which'
+  perl -MCPAN -e shell 'install Regexp::Common'
 
 --------------------------------------------------------------------
 Building and installing the clang_delta plugin
