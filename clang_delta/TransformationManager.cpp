@@ -93,6 +93,9 @@ void TransformationManager::Finalize(void)
     if ((*I).second != Instance->CurrentTransformationImpl)
       delete (*I).second;
   }
+  if (Instance->TransformationsMapPtr)
+    delete Instance->TransformationsMapPtr;
+
   delete Instance->ClangInstance;
 
   delete Instance;
@@ -231,7 +234,6 @@ TransformationManager::TransformationManager(void)
 
 TransformationManager::~TransformationManager(void)
 {
-  if (!TransformationsMapPtr)
-    delete TransformationsMapPtr;
+  // Nothing to do
 }
 
