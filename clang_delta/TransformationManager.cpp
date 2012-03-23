@@ -52,12 +52,23 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   assert(ClangInstance);
   
   ClangInstance->createDiagnostics(0, NULL);
-  ClangInstance->getLangOpts().C99 = 1;
 
-  // Disable it for now: it causes some problems when building AST
-  // for a function which has a non-declared callee, e.g., 
-  // It results an empty AST for the caller. 
-  // ClangInstance->getLangOpts().CPlusPlus = 1;
+  InputKind IK = FrontendOptions::getInputKindForExtension(
+        StringRef(SrcFileName).rsplit('.').second);
+  if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
+    ClangInstance->getLangOpts().C99 = 1;
+  }
+  else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
+    // ISSUE: it might cause some problems when building AST
+    // for a function which has a non-declared callee, e.g., 
+    // It results an empty AST for the caller. 
+    ClangInstance->getLangOpts().CPlusPlus = 1;
+  }
+  else {
+    ErrorMsg = "Unsupported file type!";
+    return false;
+  }
+
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
   TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
