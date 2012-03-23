@@ -36,8 +36,11 @@ for example (perhaps as root):
 --------------------------------------------------------------------
 Building and installing the clang_delta plugin
 
-1. Install the latest LLVM/Clang from their svn repos
+1. Download and install the latest LLVM/Clang from their Subversion repository:
+  http://llvm.org/docs/GettingStarted.html#checkout
+
   Note: C-Reduce 1.0 branch works with LLVM/Clang 3.0
+  http://llvm.org/releases/download.html
 
 2. Build the plugin:
 
