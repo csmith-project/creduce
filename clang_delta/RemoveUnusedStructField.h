@@ -35,6 +35,7 @@ public:
   RemoveUnusedStructField(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      RewriteVisitor(NULL),
       TheRecordDecl(NULL),
       TheFieldDecl(NULL),
       NumFields(0),
