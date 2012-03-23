@@ -66,6 +66,8 @@ public:
     return QueryInstanceOnly;
   }
 
+  bool initializeCompilerInstance(std::string &ErrorMsg);
+
   void outputNumTransformationInstances(void);
 
   void printTransformations();
@@ -99,8 +101,6 @@ private:
   clang::CompilerInstance *ClangInstance;
 
   bool QueryInstanceOnly;
-
-  void initializeCompilerInstance(void);
 
   // Unimplemented
   TransformationManager(const TransformationManager &);

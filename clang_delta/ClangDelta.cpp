@@ -156,6 +156,9 @@ int main(int argc, char **argv)
   if (!TransMgr->verify(ErrorMsg))
     Die(ErrorMsg);
 
+  if (!TransMgr->initializeCompilerInstance(ErrorMsg))
+    Die(ErrorMsg);
+
   if (!TransMgr->doTransformation(ErrorMsg)) {
     // fail to do transformation
     Die(ErrorMsg);

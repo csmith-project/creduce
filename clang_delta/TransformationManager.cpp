@@ -38,12 +38,16 @@ TransformationManager *TransformationManager::GetInstance(void)
 
   TransformationManager::Instance->TransformationsMap = 
     *TransformationManager::TransformationsMapPtr;
-  TransformationManager::Instance->initializeCompilerInstance();
   return TransformationManager::Instance;
 }
 
-void TransformationManager::initializeCompilerInstance(void)
+bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
 {
+  if (ClangInstance) {
+    ErrorMsg = "CompilerInstance has been initialized!";
+    return false;
+  }
+
   ClangInstance = new CompilerInstance();
   assert(ClangInstance);
   
@@ -68,6 +72,13 @@ void TransformationManager::initializeCompilerInstance(void)
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
                            &ClangInstance->getPreprocessor());
   ClangInstance->createASTContext();
+
+  if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
+    ErrorMsg = "Cannot open source file!";
+    return false;
+  }
+
+  return true;
 }
 
 void TransformationManager::Finalize(void)
@@ -151,19 +162,9 @@ bool TransformationManager::verify(std::string &ErrorMsg)
     return false;
   }
 
-  if (!ClangInstance) {
-    ErrorMsg = "Empty clang instance!";
-    return false;
-  }
-
   if ((TransformationCounter <= 0) && 
       !CurrentTransformationImpl->skipCounter()) {
     ErrorMsg = "Invalid transformation counter!";
-    return false;
-  }
-
-  if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
-    ErrorMsg = "Cannot open source file!";
     return false;
   }
 
