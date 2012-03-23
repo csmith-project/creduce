@@ -38,6 +38,15 @@ rename enumerate types
 
  * simplify template stuff
 
+ * rename class member functions to m_fn1 ...
+
+ * seems simple-inliner doesn't work with class member functions,
+   need to fix it or add a CXX-specific inlining pass
+
+ * reduce the level of class inheritance
+
+ * make param-to-local/param-to-global work with class member functions
+
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
