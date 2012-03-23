@@ -41,6 +41,24 @@ TransformationManager *TransformationManager::GetInstance(void)
   return TransformationManager::Instance;
 }
 
+bool TransformationManager::isCXXLangOpt(void)
+{
+  TransAssert(TransformationManager::Instance && "Invalid Instance!");
+  TransAssert(TransformationManager::Instance->ClangInstance && 
+              "Invalid ClangInstance!");
+  return (TransformationManager::Instance->ClangInstance->getLangOpts()
+          .CPlusPlus);
+}
+
+bool TransformationManager::isCLangOpt(void)
+{
+  TransAssert(TransformationManager::Instance && "Invalid Instance!");
+  TransAssert(TransformationManager::Instance->ClangInstance && 
+              "Invalid ClangInstance!");
+  return (TransformationManager::Instance->ClangInstance->getLangOpts()
+          .C99);
+}
+
 bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
 {
   if (ClangInstance) {

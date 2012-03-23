@@ -33,6 +33,10 @@ public:
   static void registerTransformation(const char *TransName, 
                                      Transformation *TransImpl);
   
+  static bool isCXXLangOpt(void);
+
+  static bool isCLangOpt(void);
+
   bool doTransformation(std::string &ErrorMsg);
 
   bool verify(std::string &ErrorMsg);
