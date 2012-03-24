@@ -13,18 +13,12 @@ bin_PROGRAMS = clang_delta
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
-ENABLE_TRANS_ASSERT = -DENABLE_TRANS_ASSERT
-# ifeq ($(DISABLE_TRANS_ASSERT), 1)
-#   ENABLE_TRANS_ASSERT = -DDISABLE_TRANS_ASSERT
-# endif
-
 LLVMCXXFLAGS = `$(LLVM_PATH)/bin/llvm-config --cxxflags`
 LLVMLDFLAGS = `$(LLVM_PATH)/bin/llvm-config --ldflags`
 LLVMLIBS = `$(LLVM_PATH)/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
 
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
-	$(ENABLE_TRANS_ASSERT) \
 	-I"$(LLVM_PATH)/include/clang/"
 
 clang_delta_CXXFLAGS = \

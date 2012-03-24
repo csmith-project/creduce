@@ -36,6 +36,15 @@ AC_PROG_LIBTOOL
 
 dnl AX_LLVM
 
+# clang_delta: handle configure-time choice of assertion-checking method.
+#
+AC_ARG_ENABLE([trans-assert],
+  AS_HELP_STRING([--enable-trans-assert],
+    [use assert() in clang_delta transformations]))
+AS_IF([test "x$enable_trans_assert" = "xyes"],
+  AC_DEFINE([ENABLE_TRANS_ASSERT], [1],
+            [Use assert() in clang_delta transformations.]))
+
 # If we are using g++ or clang++, set the default `CXXFLAGS' to something more
 # pedantic.  (Both g++ and clang++ cause `GXX' to be set.)
 #
