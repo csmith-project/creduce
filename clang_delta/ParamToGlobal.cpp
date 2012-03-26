@@ -26,11 +26,12 @@ lifting integaral/enumeration parameters. \n";
 static RegisterTransformation<ParamToGlobal>
          Trans("param-to-global", DescriptionMsg);
 
-class PToGASTVisitor : public RecursiveASTVisitor<PToGASTVisitor> {
-public:
-  typedef RecursiveASTVisitor<PToGASTVisitor> Inherited;
+class ParamToGlobalRewriteVisitor : public 
+  RecursiveASTVisitor<ParamToGlobalRewriteVisitor> {
 
-  explicit PToGASTVisitor(ParamToGlobal *Instance)
+public:
+
+  explicit ParamToGlobalRewriteVisitor(ParamToGlobal *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -62,10 +63,126 @@ private:
                          const ParmVarDecl *PV);
 };
 
+bool ParamToGlobalRewriteVisitor::rewriteParam(const ParmVarDecl *PV, 
+                                               unsigned int NumParams)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
+                                          NumParams,
+                                          ConsumerInstance->TheParamPos);
+}
+
+std::string ParamToGlobalRewriteVisitor::getNewName(FunctionDecl *FP,
+                                                    const ParmVarDecl *PV)
+{
+  std::string NewName;
+  NewName = FP->getNameInfo().getAsString();
+  NewName += "_";
+  NewName += PV->getNameAsString();
+
+  // also backup the new name
+  ConsumerInstance->TheNewDeclName = NewName;
+  return NewName;
+}
+
+bool ParamToGlobalRewriteVisitor::makeParamAsGlobalVar(FunctionDecl *FD,
+                                                       const ParmVarDecl *PV)
+{
+  std::string GlobalVarStr;
+
+  GlobalVarStr = PV->getType().getAsString();
+  GlobalVarStr += " ";
+  GlobalVarStr += getNewName(FD, PV);
+  GlobalVarStr += ";\n";
+
+  return ConsumerInstance->RewriteHelper->insertStringBeforeFunc(FD, 
+                                                       GlobalVarStr);
+}
+
+bool ParamToGlobalRewriteVisitor::rewriteFuncDecl(FunctionDecl *FD) 
+{
+  const ParmVarDecl *PV = 
+    FD->getParamDecl(ConsumerInstance->TheParamPos);  
+
+  TransAssert(PV && "Unmatched ParamPos!");
+  if (!rewriteParam(PV, FD->getNumParams()))
+    return false;
+
+  if (FD->isThisDeclarationADefinition()) {
+    ConsumerInstance->TheParmVarDecl = PV;
+    if (!makeParamAsGlobalVar(FD, PV))
+      return false;
+  }
+  return true;
+}
+
+bool ParamToGlobalRewriteVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+
+  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
+    return rewriteFuncDecl(FD);
+
+  return true;
+}
+
+bool ParamToGlobalRewriteVisitor::rewriteOneCallExpr(CallExpr *CallE)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
+                                        ConsumerInstance->TheParamPos);
+}
+
+void ParamToGlobalRewriteVisitor::rewriteAllCallExprs(void)
+{
+  while (!AllCallExprs.empty()) {
+    CallExpr *CallE = AllCallExprs.pop_back_val();
+    rewriteOneCallExpr(CallE);
+  }
+}
+
+bool ParamToGlobalRewriteVisitor::VisitCallExpr(CallExpr *CallE) 
+{
+  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
+  if (!CalleeDecl)
+    return true;
+
+  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
+    return true;
+
+  // We now have a correct CallExpr
+  // Here we only collect these valid CallExprs, and 
+  // will rewrite them later in a reverse order. 
+  // The reason is that if we have code like below:
+  //    foo(foo(1));
+  // we want to rewrite the nested foo(1) first.
+  // If we rewrite the outside foo first, we will
+  // end up with bad transformation when we try to 
+  // rewrite foo(1), which has been removed. 
+  AllCallExprs.push_back(CallE);
+  return true;
+}
+
+bool ParamToGlobalRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *ParmRefExpr)
+{
+  const ValueDecl *OrigDecl = ParmRefExpr->getDecl();
+
+  if (!ConsumerInstance->TheParmVarDecl)
+    return true;
+
+  if (OrigDecl != ConsumerInstance->TheParmVarDecl)
+    return true;
+
+  SourceRange ExprRange = ParmRefExpr->getSourceRange();
+  return 
+    !(ConsumerInstance->TheRewriter.ReplaceText(ExprRange,
+        ConsumerInstance->TheNewDeclName));
+}
+
 void ParamToGlobal::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
-  TransformationASTVisitor = new PToGASTVisitor(this);
+  RewriteVisitor = new ParamToGlobalRewriteVisitor(this);
 }
 
 bool ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -89,13 +206,13 @@ void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
-  TransAssert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
   TransAssert(TheFuncDecl && "NULL TheFuncDecl!");
   TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
-  TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-  TransformationASTVisitor->rewriteAllCallExprs();
+  RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  RewriteVisitor->rewriteAllCallExprs();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -138,123 +255,7 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToGlobal::~ParamToGlobal(void)
 {
-  if (TransformationASTVisitor)
-    delete TransformationASTVisitor;
-}
-
-bool PToGASTVisitor::rewriteParam(const ParmVarDecl *PV, 
-                                 unsigned int NumParams)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
-                                          NumParams,
-                                          ConsumerInstance->TheParamPos);
-}
-
-std::string PToGASTVisitor::getNewName(FunctionDecl *FP,
-                                       const ParmVarDecl *PV)
-{
-  std::string NewName;
-  NewName = FP->getNameInfo().getAsString();
-  NewName += "_";
-  NewName += PV->getNameAsString();
-
-  // also backup the new name
-  ConsumerInstance->TheNewDeclName = NewName;
-  return NewName;
-}
-
-bool PToGASTVisitor::makeParamAsGlobalVar(FunctionDecl *FD,
-                                          const ParmVarDecl *PV)
-{
-  std::string GlobalVarStr;
-
-  GlobalVarStr = PV->getType().getAsString();
-  GlobalVarStr += " ";
-  GlobalVarStr += getNewName(FD, PV);
-  GlobalVarStr += ";\n";
-
-  return ConsumerInstance->RewriteHelper->insertStringBeforeFunc(FD, 
-                                                       GlobalVarStr);
-}
-
-bool PToGASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
-{
-  const ParmVarDecl *PV = 
-    FD->getParamDecl(ConsumerInstance->TheParamPos);  
-
-  TransAssert(PV && "Unmatched ParamPos!");
-  if (!rewriteParam(PV, FD->getNumParams()))
-    return false;
-
-  if (FD->isThisDeclarationADefinition()) {
-    ConsumerInstance->TheParmVarDecl = PV;
-    if (!makeParamAsGlobalVar(FD, PV))
-      return false;
-  }
-  return true;
-}
-
-bool PToGASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
-{
-  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
-
-  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
-    return rewriteFuncDecl(FD);
-
-  return true;
-}
-
-bool PToGASTVisitor::rewriteOneCallExpr(CallExpr *CallE)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
-                                        ConsumerInstance->TheParamPos);
-}
-
-void PToGASTVisitor::rewriteAllCallExprs(void)
-{
-  while (!AllCallExprs.empty()) {
-    CallExpr *CallE = AllCallExprs.pop_back_val();
-    rewriteOneCallExpr(CallE);
-  }
-}
-
-bool PToGASTVisitor::VisitCallExpr(CallExpr *CallE) 
-{
-  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
-  if (!CalleeDecl)
-    return true;
-
-  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
-    return true;
-
-  // We now have a correct CallExpr
-  // Here we only collect these valid CallExprs, and 
-  // will rewrite them later in a reverse order. 
-  // The reason is that if we have code like below:
-  //    foo(foo(1));
-  // we want to rewrite the nested foo(1) first.
-  // If we rewrite the outside foo first, we will
-  // end up with bad transformation when we try to 
-  // rewrite foo(1), which has been removed. 
-  AllCallExprs.push_back(CallE);
-  return true;
-}
-
-bool PToGASTVisitor::VisitDeclRefExpr(DeclRefExpr *ParmRefExpr)
-{
-  const ValueDecl *OrigDecl = ParmRefExpr->getDecl();
-
-  if (!ConsumerInstance->TheParmVarDecl)
-    return true;
-
-  if (OrigDecl != ConsumerInstance->TheParmVarDecl)
-    return true;
-
-  SourceRange ExprRange = ParmRefExpr->getSourceRange();
-  return 
-    !(ConsumerInstance->TheRewriter.ReplaceText(ExprRange,
-        ConsumerInstance->TheNewDeclName));
+  if (RewriteVisitor)
+    delete RewriteVisitor;
 }
 
