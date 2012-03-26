@@ -27,11 +27,11 @@ the modified function.\n";
 static RegisterTransformation<ParamToLocal> 
          Trans("param-to-local", DescriptionMsg);
 
-class PToLASTVisitor : public RecursiveASTVisitor<PToLASTVisitor> {
-public:
-  typedef RecursiveASTVisitor<PToLASTVisitor> Inherited;
+class ParamToLocalRewriteVisitor : public 
+  RecursiveASTVisitor<ParamToLocalRewriteVisitor> {
 
-  explicit PToLASTVisitor(ParamToLocal *Instance)
+public:
+  explicit ParamToLocalRewriteVisitor(ParamToLocal *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -59,10 +59,102 @@ private:
 
 };
 
+bool ParamToLocalRewriteVisitor::rewriteParam(const ParmVarDecl *PV, 
+                                              unsigned int NumParams)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
+                                          NumParams,
+                                          ConsumerInstance->TheParamPos);
+}
+
+bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
+                                                     const ParmVarDecl *PV)
+{
+  std::string LocalVarStr;
+
+  LocalVarStr += PV->getType().getAsString();
+  LocalVarStr += " ";
+  LocalVarStr += PV->getNameAsString();
+
+  QualType PVType = PV->getOriginalType();
+  const Type *T = PVType.getTypePtr();
+  if (T->isIntegralOrEnumerationType() || T->isPointerType()) {
+    LocalVarStr += " = 0";
+  }
+  LocalVarStr += ";";
+
+  return ConsumerInstance->RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
+}
+
+bool ParamToLocalRewriteVisitor::rewriteFuncDecl(FunctionDecl *FD) 
+{
+  const ParmVarDecl *PV = 
+    FD->getParamDecl(ConsumerInstance->TheParamPos);  
+
+  TransAssert(PV && "Unmatched ParamPos!");
+  if (!rewriteParam(PV, FD->getNumParams()))
+    return false;
+
+  if (FD->isThisDeclarationADefinition()) {
+    if (!makeParamAsLocalVar(FD, PV))
+      return false;
+  }
+  return true;
+}
+
+bool ParamToLocalRewriteVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+
+  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
+    return rewriteFuncDecl(FD);
+
+  return true;
+}
+
+bool ParamToLocalRewriteVisitor::rewriteOneCallExpr(CallExpr *CallE)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
+                                        ConsumerInstance->TheParamPos);
+}
+
+void ParamToLocalRewriteVisitor::rewriteAllCallExprs(void)
+{
+  while (!AllCallExprs.empty()) {
+    CallExpr *CallE = AllCallExprs.pop_back_val();
+    rewriteOneCallExpr(CallE);
+  }
+}
+
+bool ParamToLocalRewriteVisitor::VisitCallExpr(CallExpr *CallE) 
+{
+  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
+  if (!CalleeDecl)
+    return true;
+
+  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
+    return true;
+
+  // We now have a correct CallExpr
+  // Here we only collect these valid CallExprs, and 
+  // will rewrite them later in a reverse order. 
+  // The reason is that if we have code like below:
+  //    foo(foo(1));
+  // we want to rewrite the nested foo(1) first.
+  // If we rewrite the outside foo first, we will
+  // end up with bad transformation when we try to 
+  // rewrite foo(1), which has been removed. 
+  AllCallExprs.push_back(CallE);
+
+  return true;
+}
+
 void ParamToLocal::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
-  TransformationASTVisitor = new PToLASTVisitor(this);
+  RewriteVisitor = new ParamToLocalRewriteVisitor(this);
 }
 
 bool ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
@@ -86,13 +178,13 @@ void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
-  TransAssert(TransformationASTVisitor && "NULL TransformationASTVisitor!");
+  TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
   TransAssert(TheFuncDecl && "NULL TheFuncDecl!");
   TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
-  TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-  TransformationASTVisitor->rewriteAllCallExprs();
+  RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  RewriteVisitor->rewriteAllCallExprs();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -135,99 +227,7 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToLocal::~ParamToLocal(void)
 {
-  if (TransformationASTVisitor)
-    delete TransformationASTVisitor;
-}
-
-bool PToLASTVisitor::rewriteParam(const ParmVarDecl *PV, 
-                                 unsigned int NumParams)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
-                                          NumParams,
-                                          ConsumerInstance->TheParamPos);
-}
-
-bool PToLASTVisitor::makeParamAsLocalVar(FunctionDecl *FD,
-                                        const ParmVarDecl *PV)
-{
-  std::string LocalVarStr;
-
-  LocalVarStr += PV->getType().getAsString();
-  LocalVarStr += " ";
-  LocalVarStr += PV->getNameAsString();
-
-  QualType PVType = PV->getOriginalType();
-  const Type *T = PVType.getTypePtr();
-  if (T->isIntegralOrEnumerationType() || T->isPointerType()) {
-    LocalVarStr += " = 0";
-  }
-  LocalVarStr += ";";
-
-  return ConsumerInstance->RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
-}
-
-bool PToLASTVisitor::rewriteFuncDecl(FunctionDecl *FD) 
-{
-  const ParmVarDecl *PV = 
-    FD->getParamDecl(ConsumerInstance->TheParamPos);  
-
-  TransAssert(PV && "Unmatched ParamPos!");
-  if (!rewriteParam(PV, FD->getNumParams()))
-    return false;
-
-  if (FD->isThisDeclarationADefinition()) {
-    if (!makeParamAsLocalVar(FD, PV))
-      return false;
-  }
-  return true;
-}
-
-bool PToLASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
-{
-  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
-
-  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
-    return rewriteFuncDecl(FD);
-
-  return true;
-}
-
-bool PToLASTVisitor::rewriteOneCallExpr(CallExpr *CallE)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
-                                        ConsumerInstance->TheParamPos);
-}
-
-void PToLASTVisitor::rewriteAllCallExprs(void)
-{
-  while (!AllCallExprs.empty()) {
-    CallExpr *CallE = AllCallExprs.pop_back_val();
-    rewriteOneCallExpr(CallE);
-  }
-}
-
-bool PToLASTVisitor::VisitCallExpr(CallExpr *CallE) 
-{
-  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
-  if (!CalleeDecl)
-    return true;
-
-  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
-    return true;
-
-  // We now have a correct CallExpr
-  // Here we only collect these valid CallExprs, and 
-  // will rewrite them later in a reverse order. 
-  // The reason is that if we have code like below:
-  //    foo(foo(1));
-  // we want to rewrite the nested foo(1) first.
-  // If we rewrite the outside foo first, we will
-  // end up with bad transformation when we try to 
-  // rewrite foo(1), which has been removed. 
-  AllCallExprs.push_back(CallE);
-
-  return true;
+  if (RewriteVisitor)
+    delete RewriteVisitor;
 }
 
