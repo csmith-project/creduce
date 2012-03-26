@@ -204,7 +204,10 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
     SourceLocation NewStartLoc = StartLoc.getLocWithOffset(Offset);
 
     // Note that ')' is included in ParamLocRange for unnamed parameter
-    if (PV->getDeclName())
+    // Also note that C++ supports unnamed parameters with default values,
+    // i.e., foo(int x, int = 0);
+    // PV->hasDefaultArg() is to handle this special case
+    if (PV->getDeclName() || PV->hasDefaultArg())
       return !(TheRewriter->RemoveText(NewStartLoc, 
                                        RangeSize - Offset));
     else
