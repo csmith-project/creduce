@@ -35,6 +35,8 @@ public:
     : ConsumerInstance(Instance)
   { }
 
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
 private:
   ParamToLocal *ConsumerInstance;
 
@@ -72,6 +74,14 @@ private:
 
 };
 
+bool ParamToLocalASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  if (ConsumerInstance->isValidFuncDecl(FD->getCanonicalDecl())) {
+    ConsumerInstance->ValidFuncDecls.push_back(FD->getCanonicalDecl());
+  }
+  return true;
+}
+
 bool ParamToLocalRewriteVisitor::rewriteParam(const ParmVarDecl *PV, 
                                               unsigned int NumParams)
 {
@@ -84,6 +94,11 @@ bool ParamToLocalRewriteVisitor::rewriteParam(const ParmVarDecl *PV,
 bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
                                                      const ParmVarDecl *PV)
 {
+  std::string PName = PV->getNameAsString();
+  // Safe to omit an un-named parameter
+  if (PName.empty())
+    return true;
+
   std::string LocalVarStr;
 
   LocalVarStr += PV->getType().getAsString();
@@ -100,6 +115,17 @@ bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
   return ConsumerInstance->RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
 }
 
+// For CXX, this function could generate bad code, e.g.,
+// class A {
+//   void foo(void) {...}
+//   void foo(int x) {...}
+// };
+//
+// will be transformed to 
+// class A {
+//   void foo(void) {...}
+//   void foo(void) {int x ...}
+// };
 bool ParamToLocalRewriteVisitor::rewriteFuncDecl(FunctionDecl *FD) 
 {
   const ParmVarDecl *PV = 
@@ -174,10 +200,7 @@ void ParamToLocal::Initialize(ASTContext &context)
 bool ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
-      ValidFuncDecls.push_back(FD->getCanonicalDecl());
-    }
+    CollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
