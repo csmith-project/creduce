@@ -27,6 +27,19 @@ the modified function.\n";
 static RegisterTransformation<ParamToLocal> 
          Trans("param-to-local", DescriptionMsg);
 
+class ParamToLocalASTVisitor : public 
+  RecursiveASTVisitor<ParamToLocalASTVisitor> {
+
+public:
+  explicit ParamToLocalASTVisitor(ParamToLocal *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+private:
+  ParamToLocal *ConsumerInstance;
+
+};
+
 class ParamToLocalRewriteVisitor : public 
   RecursiveASTVisitor<ParamToLocalRewriteVisitor> {
 
@@ -154,6 +167,7 @@ bool ParamToLocalRewriteVisitor::VisitCallExpr(CallExpr *CallE)
 void ParamToLocal::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
+  CollectionVisitor = new ParamToLocalASTVisitor(this);
   RewriteVisitor = new ParamToLocalRewriteVisitor(this);
 }
 
@@ -227,6 +241,9 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToLocal::~ParamToLocal(void)
 {
+  if (CollectionVisitor)
+    delete CollectionVisitor;
+
   if (RewriteVisitor)
     delete RewriteVisitor;
 }

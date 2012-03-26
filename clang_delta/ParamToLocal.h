@@ -21,15 +21,18 @@ namespace clang {
   class ASTContext;
 }
 
+class ParamToLocalASTVisitor;
 class ParamToLocalRewriteVisitor;
 
 class ParamToLocal : public Transformation {
+friend class ParamToLocalASTVisitor;
 friend class ParamToLocalRewriteVisitor;
 
 public:
 
   ParamToLocal(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
+      CollectionVisitor(NULL),
       RewriteVisitor(NULL),
       TheFuncDecl(NULL),
       TheParamPos(-1)
@@ -48,6 +51,8 @@ private:
   bool isValidFuncDecl(clang::FunctionDecl *FD);
 
   llvm::SmallVector<clang::FunctionDecl *, 10> ValidFuncDecls;
+
+  ParamToLocalASTVisitor *CollectionVisitor;
 
   ParamToLocalRewriteVisitor *RewriteVisitor;
 
