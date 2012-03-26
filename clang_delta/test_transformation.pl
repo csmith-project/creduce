@@ -14,6 +14,7 @@ my $keep_temp = 0;
 my $invoke_compiler = 0;
 my $verbose = 0;
 my $SRC_FILE = "";
+my $FILE_EXT = "c";
 my @transformations = ();
 my %transformation_results = ();
 my %verified_results = ();
@@ -74,7 +75,7 @@ sub get_instance_num($) {
 sub do_one_transformation($$) {
     my ($trans, $counter) = @_;
 
-    my $output = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.c";
+    my $output = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.$FILE_EXT";
 
     my $clang_delta_cmd = "$CLANG_DELTA --transformation=$trans --counter=$counter --output=$output $SRC_FILE";
     print_msg("$clang_delta_cmd\n");
@@ -94,7 +95,7 @@ sub do_one_transformation($$) {
 sub verify_one_output($$) {
     my ($trans, $counter) = @_;
 
-    my $cfile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.c";
+    my $cfile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.$FILE_EXT";
     my $ofile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.o";
     my $out = "$WORKING_DIR/$trans/$trans" . "_$counter.compiler_out";
     my $compiler_cmd = "$COMPILER -c $cfile -o $ofile > $out 2>&1";
@@ -155,7 +156,7 @@ sub do_one_test($) {
 
     print("Running transformation[$trans] ...\n");
     for(my $i = 1; $i <= $instance_num; $i++) {
-        my $orig_backup = "$WORKING_DIR/$trans/$trans" . "_0.c";
+        my $orig_backup = "$WORKING_DIR/$trans/$trans" . "_0.$FILE_EXT";
   
         print_msg("Copying original file...\n");
         die_on_fail("cp $SRC_FILE $orig_backup");
@@ -386,6 +387,11 @@ sub main() {
     if (@unused == 1) {
         die "Cannot have both -with-csmith and testing file!" if ($with_csmith);
         $SRC_FILE = $unused[0];
+        my @a = split('\.', $SRC_FILE);
+        if (@a > 1) {
+            $FILE_EXT = $a[-1];
+            print "$FILE_EXT\n";
+        }
     }
     elsif ($with_csmith) {
         die "Please set CSMITH_HOME env!" if (!defined($CSMITH_HOME));
