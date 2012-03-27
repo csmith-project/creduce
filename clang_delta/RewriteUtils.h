@@ -37,6 +37,7 @@ namespace clang {
   class IfStmt;
   class Type;
   class FieldDecl;
+  class CXXConstructExpr;
 }
 
 class RewriteUtils {
@@ -51,8 +52,11 @@ public:
                                       unsigned int NumParams,
                                       int ParamPos);
 
-  bool removeArgFromCallExpr(clang::CallExpr *CallE,
-                                    int ParamPos);
+  bool removeArgFromCallExpr(const clang::CallExpr *CallE,
+                             int ParamPos);
+                                    
+  bool removeArgFromCXXConstructExpr(const clang::CXXConstructExpr *CE,
+                                     int ParamPos);
                                     
   bool removeVarFromDeclStmt(clang::DeclStmt *DS,
                                     const clang::VarDecl *VD,

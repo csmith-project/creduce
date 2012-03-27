@@ -17,6 +17,7 @@
 #include "clang/AST/Decl.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/TypeLoc.h"
+#include "clang/AST/ExprCXX.h"
 
 using namespace clang;
 using namespace llvm;
@@ -251,13 +252,79 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   }
 }
 
-bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
+bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
+                                                 int ParamPos)
+{
+  if (ParamPos >= static_cast<int>(CE->getNumArgs()))
+    return true;
+
+  const Expr *Arg = CE->getArg(ParamPos);
+  TransAssert(Arg && "Null arg!");
+
+  SourceRange ArgRange = Arg->getSourceRange();
+  int RangeSize = TheRewriter->getRangeSize(ArgRange);
+
+  if (RangeSize == -1)
+    return false;
+
+  SourceLocation StartLoc = ArgRange.getBegin();
+  unsigned int NumArgs = CE->getNumArgs();
+
+  if ((ParamPos == 0) && 
+      ((NumArgs == 1) || 
+       ((NumArgs > 1) && 
+         dyn_cast<CXXDefaultArgExpr>(CE->getArg(1)->IgnoreParenCasts())))) {
+    // Note that ')' is included in ParamLocRange
+    return !(TheRewriter->RemoveText(ArgRange));
+  }
+
+  int LastArgPos = static_cast<int>(NumArgs - 1);
+  // The param is the last non-default parameter
+  if ((ParamPos == LastArgPos) ||
+      ((ParamPos < LastArgPos) &&
+        dyn_cast<CXXDefaultArgExpr>(
+          CE->getArg(ParamPos+1)->IgnoreParenCasts()))) {
+    int Offset = 0;
+    const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+
+    TransAssert(StartBuf && "Invalid start buffer!");
+    while (*StartBuf != ',') {
+      StartBuf--;
+      Offset--;
+    }
+
+    SourceLocation NewStartLoc = StartLoc.getLocWithOffset(Offset);
+    return !(TheRewriter->RemoveText(NewStartLoc,
+                                     RangeSize - Offset));
+  }
+
+  // We cannot use SrcManager->getCharacterData(StartLoc) to get the buffer,
+  // because it returns the unmodified string. I've tried to use 
+  // getEndlocationUntil(ArgRange, ",", ...) call, but still failed. 
+  // Seems in some cases, it returns bad results for a complex case like:
+  //  foo(...foo(...), ...)
+  // So I ended up with this ugly way - get the end loc from the next arg.
+  const Expr *NextArg = CE->getArg(ParamPos+1);
+  SourceRange NextArgRange = NextArg->getSourceRange();
+  SourceLocation NextStartLoc = NextArgRange.getBegin();
+  const char *NextStartBuf = SrcManager->getCharacterData(NextStartLoc);
+  int Offset = 0;
+  while (*NextStartBuf != ',') {
+      NextStartBuf--;
+      Offset--;
+  }
+
+  SourceLocation NewEndLoc = NextStartLoc.getLocWithOffset(Offset);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
+}
+
+bool RewriteUtils::removeArgFromCallExpr(const CallExpr *CallE,
                                         int ParamPos)
 {
   if (ParamPos >= static_cast<int>(CallE->getNumArgs()))
     return true;
 
-  Expr *Arg = CallE->getArg(ParamPos);
+  const Expr *Arg = CallE->getArg(ParamPos);
   TransAssert(Arg && "Null arg!");
 
   SourceRange ArgRange = Arg->getSourceRange();
@@ -296,7 +363,7 @@ bool RewriteUtils::removeArgFromCallExpr(CallExpr *CallE,
   // Seems in some cases, it returns bad results for a complex case like:
   //  foo(...foo(...), ...)
   // So I ended up with this ugly way - get the end loc from the next arg.
-  Expr *NextArg = CallE->getArg(ParamPos+1);
+  const Expr *NextArg = CallE->getArg(ParamPos+1);
   SourceRange NextArgRange = NextArg->getSourceRange();
   SourceLocation NextStartLoc = NextArgRange.getBegin();
   const char *NextStartBuf = SrcManager->getCharacterData(NextStartLoc);
