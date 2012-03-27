@@ -252,13 +252,47 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   }
 }
 
-bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
-                                                 int ParamPos)
+// Handle CXXConstructExpr and CallExpr.
+// These two do not inherit each other, and we need a couple of 
+// `common` member functions from them. 
+// Is this too ugly? Any better way to do this? 
+const Expr *RewriteUtils::getArgWrapper(const Expr *E,
+                                        int ParamPos)
 {
-  if (ParamPos >= static_cast<int>(CE->getNumArgs()))
+  const CXXConstructExpr *CtorE = dyn_cast<CXXConstructExpr>(E);
+  if (CtorE)
+    return CtorE->getArg(ParamPos);
+
+  const CallExpr *CE = dyn_cast<CallExpr>(E);
+  if (CE)
+    return CE->getArg(ParamPos);
+
+  TransAssert(0 && "Invalid Expr!");
+  return NULL;
+}
+
+unsigned RewriteUtils::getNumArgsWrapper(const Expr *E)
+{
+  const CXXConstructExpr *CtorE = dyn_cast<CXXConstructExpr>(E);
+  if (CtorE)
+    return CtorE->getNumArgs();
+
+  const CallExpr *CE = dyn_cast<CallExpr>(E);
+  if (CE)
+    return CE->getNumArgs();
+
+  TransAssert(0 && "Invalid Expr!");
+  return 0;
+}
+
+bool RewriteUtils::removeArgFromExpr(const Expr *E,
+                                     int ParamPos)
+{
+  
+  if (ParamPos >= static_cast<int>(getNumArgsWrapper(E)))
     return true;
 
-  const Expr *Arg = CE->getArg(ParamPos);
+  const Expr *Arg = getArgWrapper(E, ParamPos);
   TransAssert(Arg && "Null arg!");
   if (dyn_cast<CXXDefaultArgExpr>(Arg->IgnoreParenCasts()))
     return true;
@@ -270,12 +304,12 @@ bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
     return false;
 
   SourceLocation StartLoc = ArgRange.getBegin();
-  unsigned int NumArgs = CE->getNumArgs();
+  unsigned int NumArgs = getNumArgsWrapper(E);
 
-  if ((ParamPos == 0) && 
-      ((NumArgs == 1) || 
-       ((NumArgs > 1) && 
-         dyn_cast<CXXDefaultArgExpr>(CE->getArg(1)->IgnoreParenCasts())))) {
+  if ((ParamPos == 0) && ((NumArgs == 1) ||
+                          ((NumArgs > 1) && 
+                           dyn_cast<CXXDefaultArgExpr>(
+                           getArgWrapper(E, 1)->IgnoreParenCasts())))) {
     // Note that ')' is included in ParamLocRange
     return !(TheRewriter->RemoveText(ArgRange));
   }
@@ -285,7 +319,7 @@ bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
   if ((ParamPos == LastArgPos) ||
       ((ParamPos < LastArgPos) &&
         dyn_cast<CXXDefaultArgExpr>(
-          CE->getArg(ParamPos+1)->IgnoreParenCasts()))) {
+          getArgWrapper(E, ParamPos+1)->IgnoreParenCasts()))) {
     int Offset = 0;
     const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
@@ -306,7 +340,7 @@ bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
   // Seems in some cases, it returns bad results for a complex case like:
   //  foo(...foo(...), ...)
   // So I ended up with this ugly way - get the end loc from the next arg.
-  const Expr *NextArg = CE->getArg(ParamPos+1);
+  const Expr *NextArg = getArgWrapper(E, ParamPos+1);
   SourceRange NextArgRange = NextArg->getSourceRange();
   SourceLocation NextStartLoc = NextArgRange.getBegin();
   const char *NextStartBuf = SrcManager->getCharacterData(NextStartLoc);
@@ -320,63 +354,16 @@ bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
 }
 
-bool RewriteUtils::removeArgFromCallExpr(const CallExpr *CallE,
-                                        int ParamPos)
+bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
+                                                 int ParamPos)
 {
-  if (ParamPos >= static_cast<int>(CallE->getNumArgs()))
-    return true;
+  return removeArgFromExpr(CE, ParamPos);
+}
 
-  const Expr *Arg = CallE->getArg(ParamPos);
-  TransAssert(Arg && "Null arg!");
-
-  SourceRange ArgRange = Arg->getSourceRange();
-  int RangeSize = TheRewriter->getRangeSize(ArgRange);
-
-  if (RangeSize == -1)
-    return false;
-
-  SourceLocation StartLoc = ArgRange.getBegin();
-  unsigned int NumArgs = CallE->getNumArgs();
-
-  if ((ParamPos == 0) && (NumArgs == 1)) {
-    // Note that ')' is included in ParamLocRange
-    return !(TheRewriter->RemoveText(ArgRange));
-  }
-
-  // The param is the last parameter
-  if (ParamPos == static_cast<int>(NumArgs - 1)) {
-    int Offset = 0;
-    const char *StartBuf = SrcManager->getCharacterData(StartLoc);
-
-    TransAssert(StartBuf && "Invalid start buffer!");
-    while (*StartBuf != ',') {
-      StartBuf--;
-      Offset--;
-    }
-
-    SourceLocation NewStartLoc = StartLoc.getLocWithOffset(Offset);
-    return !(TheRewriter->RemoveText(NewStartLoc,
-                                     RangeSize - Offset));
-  }
-
-  // We cannot use SrcManager->getCharacterData(StartLoc) to get the buffer,
-  // because it returns the unmodified string. I've tried to use 
-  // getEndlocationUntil(ArgRange, ",", ...) call, but still failed. 
-  // Seems in some cases, it returns bad results for a complex case like:
-  //  foo(...foo(...), ...)
-  // So I ended up with this ugly way - get the end loc from the next arg.
-  const Expr *NextArg = CallE->getArg(ParamPos+1);
-  SourceRange NextArgRange = NextArg->getSourceRange();
-  SourceLocation NextStartLoc = NextArgRange.getBegin();
-  const char *NextStartBuf = SrcManager->getCharacterData(NextStartLoc);
-  int Offset = 0;
-  while (*NextStartBuf != ',') {
-      NextStartBuf--;
-      Offset--;
-  }
-
-  SourceLocation NewEndLoc = NextStartLoc.getLocWithOffset(Offset);
-  return !TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc));
+bool RewriteUtils::removeArgFromCallExpr(const CallExpr *CallE,
+                                         int ParamPos)
+{
+  return removeArgFromExpr(CallE, ParamPos);
 }
 
 void RewriteUtils::skipRangeByType(const std::string &BufStr, 

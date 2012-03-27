@@ -222,6 +222,12 @@ private:
   void skipRangeByType(const std::string &BufStr, 
                        const clang::Type *Ty, int &Offset);
 
+  bool removeArgFromExpr(const clang::Expr *E, int ParamPos);
+
+  const clang::Expr *getArgWrapper(const clang::Expr *E, int ParamPos);
+
+  unsigned getNumArgsWrapper(const clang::Expr *E);
+
   // Unimplemented
   RewriteUtils(const RewriteUtils &);
 
