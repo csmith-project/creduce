@@ -52,9 +52,11 @@ public:
 
   bool VisitCallExpr(CallExpr *E);
 
+  bool VisitCXXConstructorDecl(CXXConstructorDecl *CD);
+
   bool VisitFunctionDecl(FunctionDecl *FD);
 
-  void rewriteAllCallExprs(void);
+  void rewriteAllExprs(void);
 
 private:
 
@@ -62,12 +64,16 @@ private:
 
   SmallVector<CallExpr *, 10> AllCallExprs;
 
+  SmallVector<const CXXConstructExpr *, 5> AllConstructExprs;
+
   bool rewriteFuncDecl(FunctionDecl *FP);
 
   bool rewriteParam(const ParmVarDecl *PV, 
                     unsigned int NumParams);
 
   bool rewriteOneCallExpr(CallExpr *CallE);
+
+  bool rewriteOneConstructExpr(const CXXConstructExpr *CE);
 
   bool makeParamAsLocalVar(FunctionDecl *FP,
                            const ParmVarDecl *PV);
@@ -159,12 +165,45 @@ bool ParamToLocalRewriteVisitor::rewriteOneCallExpr(CallExpr *CallE)
                                         ConsumerInstance->TheParamPos);
 }
 
-void ParamToLocalRewriteVisitor::rewriteAllCallExprs(void)
+bool ParamToLocalRewriteVisitor::rewriteOneConstructExpr(
+       const CXXConstructExpr *CE)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeArgFromCXXConstructExpr(CE,
+                                        ConsumerInstance->TheParamPos);
+}
+
+void ParamToLocalRewriteVisitor::rewriteAllExprs(void)
 {
   while (!AllCallExprs.empty()) {
     CallExpr *CallE = AllCallExprs.pop_back_val();
     rewriteOneCallExpr(CallE);
   }
+
+  while (!AllConstructExprs.empty()) {
+    const CXXConstructExpr *CE = AllConstructExprs.pop_back_val();
+    rewriteOneConstructExpr(CE);
+  }
+}
+
+bool ParamToLocalRewriteVisitor::VisitCXXConstructorDecl(
+       CXXConstructorDecl *CD)
+{
+  for (CXXConstructorDecl::init_iterator I = CD->init_begin(),
+       E = CD->init_end(); I != E; ++I) {
+    const Expr *InitE = (*I)->getInit();
+    if (!InitE)
+      continue;
+    const CXXConstructExpr *CE = dyn_cast<CXXConstructExpr>(InitE);
+    if (!CE)
+      continue;
+
+    const CXXConstructorDecl *CtorD = CE->getConstructor();
+    if (CtorD->getCanonicalDecl() == ConsumerInstance->TheFuncDecl)
+      AllConstructExprs.push_back(CE);
+  }
+
+  return true;
 }
 
 bool ParamToLocalRewriteVisitor::VisitCallExpr(CallExpr *CallE) 
@@ -221,7 +260,7 @@ void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-  RewriteVisitor->rewriteAllCallExprs();
+  RewriteVisitor->rewriteAllExprs();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
