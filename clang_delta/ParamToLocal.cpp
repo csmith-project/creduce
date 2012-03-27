@@ -97,6 +97,17 @@ bool ParamToLocalRewriteVisitor::rewriteParam(const ParmVarDecl *PV,
                                           ConsumerInstance->TheParamPos);
 }
 
+// ISSUE: we could have another type of bad transformation, e.g.,
+// class A { ... };
+// class B : public A {
+//   B(int x) : A(x) {...}
+// };
+// ==>
+// class A { ... };
+// class B : public A {
+//   B(void) : A(x) {int x ...}
+// };
+// hence x is undeclared for A(x)
 bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
                                                      const ParmVarDecl *PV)
 {
@@ -113,7 +124,14 @@ bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
 
   QualType PVType = PV->getOriginalType();
   const Type *T = PVType.getTypePtr();
-  if (T->isIntegralOrEnumerationType() || T->isPointerType()) {
+  if ( const Expr *DefaultArgE = PV->getDefaultArg() ) {
+    std::string ArgStr;
+    ConsumerInstance->RewriteHelper->getExprString(DefaultArgE, ArgStr);
+    LocalVarStr += " = ";
+    LocalVarStr += ArgStr;
+  }
+  else if (T->isPointerType() || 
+           T->isIntegralType(*(ConsumerInstance->Context))) {
     LocalVarStr += " = 0";
   }
   LocalVarStr += ";";
