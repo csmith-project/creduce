@@ -23,15 +23,18 @@ namespace clang {
   class ParmVarDecl;
 }
 
+class ParamToGlobalASTVisitor;
 class ParamToGlobalRewriteVisitor;
 
 class ParamToGlobal : public Transformation {
+friend class ParamToGlobalASTVisitor;
 friend class ParamToGlobalRewriteVisitor;
 
 public:
 
   ParamToGlobal(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
+      CollectionVisitor(NULL),
       RewriteVisitor(NULL),
       TheFuncDecl(NULL),
       TheParmVarDecl(NULL),
@@ -52,6 +55,8 @@ private:
   bool isValidFuncDecl(clang::FunctionDecl *FD);
 
   llvm::SmallVector<clang::FunctionDecl *, 10> ValidFuncDecls;
+
+  ParamToGlobalASTVisitor *CollectionVisitor;
 
   ParamToGlobalRewriteVisitor *RewriteVisitor;
 

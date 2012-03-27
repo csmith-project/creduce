@@ -26,6 +26,21 @@ lifting integaral/enumeration parameters. \n";
 static RegisterTransformation<ParamToGlobal>
          Trans("param-to-global", DescriptionMsg);
 
+class ParamToGlobalASTVisitor : public 
+  RecursiveASTVisitor<ParamToGlobalASTVisitor> {
+
+public:
+  explicit ParamToGlobalASTVisitor(ParamToGlobal *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  ParamToGlobal *ConsumerInstance;
+
+};
+
 class ParamToGlobalRewriteVisitor : public 
   RecursiveASTVisitor<ParamToGlobalRewriteVisitor> {
 
@@ -39,15 +54,19 @@ public:
 
   bool VisitFunctionDecl(FunctionDecl *FD);
 
+  bool VisitCXXConstructorDecl(CXXConstructorDecl *CD);
+
   bool VisitDeclRefExpr(DeclRefExpr *ParmRefExpr);
 
-  void rewriteAllCallExprs(void);
+  void rewriteAllExprs(void);
 
 private:
 
   ParamToGlobal *ConsumerInstance;
 
   SmallVector<CallExpr *, 10> AllCallExprs;
+
+  SmallVector<const CXXConstructExpr *, 5> AllConstructExprs;
 
   bool rewriteFuncDecl(FunctionDecl *FP);
 
@@ -56,12 +75,22 @@ private:
 
   bool rewriteOneCallExpr(CallExpr *CallE);
 
+  bool rewriteOneConstructExpr(const CXXConstructExpr *CE);
+
   bool makeParamAsGlobalVar(FunctionDecl *FD,
                             const ParmVarDecl *PV);
 
   std::string getNewName(FunctionDecl *FP,
                          const ParmVarDecl *PV);
 };
+
+bool ParamToGlobalASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  if (ConsumerInstance->isValidFuncDecl(FD->getCanonicalDecl())) {
+    ConsumerInstance->ValidFuncDecls.push_back(FD->getCanonicalDecl());
+  }
+  return true;
+}
 
 bool ParamToGlobalRewriteVisitor::rewriteParam(const ParmVarDecl *PV, 
                                                unsigned int NumParams)
@@ -88,6 +117,11 @@ std::string ParamToGlobalRewriteVisitor::getNewName(FunctionDecl *FP,
 bool ParamToGlobalRewriteVisitor::makeParamAsGlobalVar(FunctionDecl *FD,
                                                        const ParmVarDecl *PV)
 {
+  std::string PName = PV->getNameAsString();
+  // Safe to omit an un-named parameter
+  if (PName.empty())
+    return true;
+
   std::string GlobalVarStr;
 
   GlobalVarStr = PV->getType().getAsString();
@@ -116,6 +150,26 @@ bool ParamToGlobalRewriteVisitor::rewriteFuncDecl(FunctionDecl *FD)
   return true;
 }
 
+bool ParamToGlobalRewriteVisitor::VisitCXXConstructorDecl(
+       CXXConstructorDecl *CD)
+{
+  for (CXXConstructorDecl::init_iterator I = CD->init_begin(),
+       E = CD->init_end(); I != E; ++I) {
+    const Expr *InitE = (*I)->getInit();
+    if (!InitE)
+      continue;
+    const CXXConstructExpr *CE = dyn_cast<CXXConstructExpr>(InitE);
+    if (!CE)
+      continue;
+
+    const CXXConstructorDecl *CtorD = CE->getConstructor();
+    if (CtorD->getCanonicalDecl() == ConsumerInstance->TheFuncDecl)
+      AllConstructExprs.push_back(CE);
+  }
+
+  return true;
+}
+
 bool ParamToGlobalRewriteVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
@@ -133,11 +187,24 @@ bool ParamToGlobalRewriteVisitor::rewriteOneCallExpr(CallExpr *CallE)
                                         ConsumerInstance->TheParamPos);
 }
 
-void ParamToGlobalRewriteVisitor::rewriteAllCallExprs(void)
+bool ParamToGlobalRewriteVisitor::rewriteOneConstructExpr(
+       const CXXConstructExpr *CE)
+{
+  return 
+    ConsumerInstance->RewriteHelper->removeArgFromCXXConstructExpr(CE,
+                                        ConsumerInstance->TheParamPos);
+}
+
+void ParamToGlobalRewriteVisitor::rewriteAllExprs(void)
 {
   while (!AllCallExprs.empty()) {
     CallExpr *CallE = AllCallExprs.pop_back_val();
     rewriteOneCallExpr(CallE);
+  }
+
+  while (!AllConstructExprs.empty()) {
+    const CXXConstructExpr *CE = AllConstructExprs.pop_back_val();
+    rewriteOneConstructExpr(CE);
   }
 }
 
@@ -182,16 +249,14 @@ bool ParamToGlobalRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *ParmRefExpr)
 void ParamToGlobal::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
+  CollectionVisitor = new ParamToGlobalASTVisitor(this);
   RewriteVisitor = new ParamToGlobalRewriteVisitor(this);
 }
 
 bool ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && isValidFuncDecl(FD->getCanonicalDecl())) {
-      ValidFuncDecls.push_back(FD->getCanonicalDecl());
-    }
+    CollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -212,7 +277,7 @@ void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert((TheParamPos >= 0) && "Invalid parameter position!");
 
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
-  RewriteVisitor->rewriteAllCallExprs();
+  RewriteVisitor->rewriteAllExprs();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -255,6 +320,9 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToGlobal::~ParamToGlobal(void)
 {
+  if (CollectionVisitor)
+    delete CollectionVisitor;
+
   if (RewriteVisitor)
     delete RewriteVisitor;
 }
