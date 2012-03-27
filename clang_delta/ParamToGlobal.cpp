@@ -20,8 +20,9 @@ using namespace clang;
 static const char *DescriptionMsg =
 "Lift the declaraion of a parameter from a function \
 to the global scope. Also rename the lifted parameter \
-to avoid possible name conflicts. Currently only support \
-lifting integaral/enumeration parameters. \n";
+to avoid possible name conflicts. Note that for C++ code, \
+this pass actually lifts a parameter from a member function \
+to the class scope rather than the global scope.  \n";
 
 static RegisterTransformation<ParamToGlobal>
          Trans("param-to-global", DescriptionMsg);
