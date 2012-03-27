@@ -260,6 +260,8 @@ bool RewriteUtils::removeArgFromCXXConstructExpr(const CXXConstructExpr *CE,
 
   const Expr *Arg = CE->getArg(ParamPos);
   TransAssert(Arg && "Null arg!");
+  if (dyn_cast<CXXDefaultArgExpr>(Arg->IgnoreParenCasts()))
+    return true;
 
   SourceRange ArgRange = Arg->getSourceRange();
   int RangeSize = TheRewriter->getRangeSize(ArgRange);
