@@ -2,16 +2,28 @@
 
 c_reduce TODO list:
 
+make a distribution using Philip Guo's packager
+  need to include Perl?
+
+integrate changes from PLDI work
+
+change SUCCESS to OK
+
 pass explicit state objects to passes
+
 add an option to keep stats about fast vs. slow tests
-expose quiet on command line
-add an option limiting the number of passes
-see if some passes want to work back to front
+
+see if speedup is gotten by running line-delta from back to front
+
 watch for unexpected abnormal compiler outputs
+
 exploit early-exit from delta test to speed this up
   keep per-pass statistic on the probability of requiring the slow test
   invert this to decide how many fast tests to run in a row
-  need to keep checkpoints
+  need to keep checkpoints of reducer state + file
+
+factor timeout out of test script: c_reduce can supply a timeout
+  decrease it as the test starts to run faster
 
 --------------------------------------------------------------------
 
