@@ -20,7 +20,7 @@ CXXFLAGS = -Wall
 
 LLVM_CXXFLAGS = `${llvm_dir}/bin/llvm-config --cxxflags`
 LLVM_LDFLAGS = `${llvm_dir}/bin/llvm-config --ldflags`
-LLVM_LIBS = `${llvm_dir}/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
+LLVM_LIBS = `${llvm_dir}/bin/llvm-config --libs | tr " " "\n" | grep -v 'gtest\|LLVMIntelJITEvents\|LLVMOProfileJIT'`
 
 INCLUDES = ${LLVM_CXXFLAGS} -I${llvm_dir}/include/clang/
 LDFLAGS = ${LLVM_LDFLAGS}
