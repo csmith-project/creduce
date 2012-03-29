@@ -1009,10 +1009,23 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
 
   DeclGroupRef::const_iterator I = DGR.begin();
   const VarDecl *FirstVD = dyn_cast<VarDecl>(*I);
-  // We cannot dyn_cast (*I) to VarDecl, because it could be a struct decl,
+  // dyn_cast (*I) to VarDecl could fail, because it could be a struct decl,
   // e.g., struct S1 { int f1; } s2 = {1}, where FirstDecl is
   // struct S1 {int f1;}. We need to skip it
   if (!FirstVD) {
+    // handle the case where we could have implicit declaration of RecordDecl
+    // e.g., 
+    //   struct S0 *s;
+    //   ...;
+    // in this case, struct S0 is implicitly declared
+    if ( RecordDecl *RD = dyn_cast<RecordDecl>(*I) ) {
+      if (!RD->getDefinition() && DGR.getDeclGroup().size() == 2) {
+        SourceLocation StartLoc = VarRange.getBegin();
+        SourceLocation EndLoc = getEndLocationUntil(VarRange, ';');
+        return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+      }
+    }
+
     ++I;
     TransAssert((I != DGR.end()) && "Bad Decl!");
     FirstVD = dyn_cast<VarDecl>(*I);
