@@ -745,6 +745,15 @@ bool RewriteUtils::replaceFunctionDeclName(FunctionDecl *FD,
                                    NameStr);
 }
 
+bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,
+                                         const std::string &NameStr)
+{
+  SourceLocation LocStart = RD->getLocation();
+  return !TheRewriter->ReplaceText(LocStart,
+                                   RD->getNameAsString().length(),
+                                   NameStr);
+}
+
 void RewriteUtils::getStringBetweenLocs(std::string &Str, 
                                         SourceLocation LocStart,
                                         SourceLocation LocEnd)

@@ -38,6 +38,7 @@ namespace clang {
   class Type;
   class FieldDecl;
   class CXXConstructExpr;
+  class RecordDecl;
 }
 
 class RewriteUtils {
@@ -100,10 +101,13 @@ public:
                               const std::string &Str);
 
   bool replaceVarDeclName(clang::VarDecl *VD,
-                              const std::string &NameStr);
+                          const std::string &NameStr);
 
   bool replaceFunctionDeclName(clang::FunctionDecl *FD,
-                              const std::string &NameStr);
+                          const std::string &NameStr);
+
+  bool replaceRecordDeclName(const clang::RecordDecl *RD,
+                             const std::string &NameStr);
 
   const char *getTmpVarNamePrefix(void);
 
