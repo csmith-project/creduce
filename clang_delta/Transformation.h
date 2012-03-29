@@ -150,6 +150,8 @@ protected:
 
   const clang::Type *getBasePointerElemType(const clang::Type *Ty);
 
+  const clang::Type* getBaseType(const clang::Type *T);
+
   int getIndexAsInteger(const clang::Expr *E);
 
   const std::string &Name;

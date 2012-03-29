@@ -404,6 +404,23 @@ int Transformation::getIndexAsInteger(const Expr *E)
   return Idx;
 }
 
+const Type* Transformation::getBaseType(const Type *T)
+{
+  if (T->isPointerType() || T->isReferenceType())
+    return getBaseType(T->getPointeeType().getTypePtr());
+  else if (T->isRecordType())
+    T = T->getAs<RecordType>();
+  else if (T->isEnumeralType())
+    T = T->getAs<EnumType>();
+  else if (T->getTypeClass() == Type::Typedef)
+    T = T->getAs<TypedefType>();
+  else if (T->isArrayType())
+    return getBaseType(T->castAsArrayTypeUnsafe()->
+        getElementType().getTypePtr());
+
+  return T;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();
