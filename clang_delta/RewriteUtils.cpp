@@ -476,6 +476,20 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     return !(TheRewriter->RemoveText(StmtRange));
   }
 
+  // handle the case where we could have implicit declaration of RecordDecl
+  // e.g., 
+  // foo (void) {
+  //   struct S0 *s;
+  //   ...;
+  // }
+  // in this case, struct S0 is implicitly declared
+  if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
+    DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
+    IsFirstDecl = true;
+    if (!RD->getDefinition() && DGroup.size() == 2)
+      return !(TheRewriter->RemoveText(StmtRange));
+  }
+
   SourceRange VarRange = VD->getSourceRange();
 
   // VD is the first declaration in a declaration group.
