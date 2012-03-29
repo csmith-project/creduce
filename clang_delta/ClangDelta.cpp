@@ -31,6 +31,9 @@ static void PrintHelpMessage(void)
   llvm::outs() << "  --help: ";
   llvm::outs() << "print this message\n";
 
+  llvm::outs() << "  --verbose-transformations: ";
+  llvm::outs() << "print verbose description messages for all transformations\n";
+
   llvm::outs() << "  --transformation=<name>: ";
   llvm::outs() << "specify the transformation\n";
 
@@ -47,8 +50,6 @@ static void PrintHelpMessage(void)
   llvm::outs() << "specify where to output the transformed source code ";
   llvm::outs() << "(default: stdout)\n";
   llvm::outs() << "\n";
-
-  TransMgr->printTransformations();
 }
 
 static void DieOnBadCmdArg(const std::string &ArgStr)
@@ -113,8 +114,12 @@ static void HandleOneNoneValueArg(const std::string &ArgStr)
     PrintHelpMessage();
     exit(0);
   }
-  if (!ArgStr.compare("transformations")) {
+  else if (!ArgStr.compare("transformations")) {
     TransMgr->printTransformationNames();
+    exit(0);
+  }
+  else if (!ArgStr.compare("verbose-transformations")) {
+    TransMgr->printTransformations();
     exit(0);
   }
   else {
