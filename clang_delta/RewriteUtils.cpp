@@ -422,6 +422,19 @@ SourceLocation RewriteUtils::skipPossibleTypeRange(const Type *Ty,
   return OrigEndLoc.getLocWithOffset(Offset);
 }
 
+SourceLocation RewriteUtils::getVarDeclTypeLocBegin(const VarDecl *VD)
+{
+  TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
+
+  TypeLoc NextTL = VarTypeLoc.getNextTypeLoc();
+  while (!NextTL.isNull()) {
+    VarTypeLoc = NextTL;
+    NextTL = NextTL.getNextTypeLoc();
+  }
+
+  return VarTypeLoc.getLocStart();
+}
+
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 {
   TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
@@ -751,6 +764,17 @@ bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,
   SourceLocation LocStart = RD->getLocation();
   return !TheRewriter->ReplaceText(LocStart,
                                    RD->getNameAsString().length(),
+                                   NameStr);
+}
+
+bool RewriteUtils::replaceVarTypeName(const VarDecl *VD,
+                                      const std::string &NameStr)
+{
+  const IdentifierInfo *TypeId = VD->getType().getBaseTypeIdentifier();
+
+  SourceLocation LocStart = getVarDeclTypeLocBegin(VD);
+  return !TheRewriter->ReplaceText(LocStart,
+                                   TypeId->getLength(),
                                    NameStr);
 }
 

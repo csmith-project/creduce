@@ -109,6 +109,9 @@ public:
   bool replaceRecordDeclName(const clang::RecordDecl *RD,
                              const std::string &NameStr);
 
+  bool replaceVarTypeName(const clang::VarDecl *VD,
+                          const std::string &NameStr);
+
   const char *getTmpVarNamePrefix(void);
 
   void getStringBetweenLocs(std::string &Str, 
@@ -206,6 +209,8 @@ private:
                                              clang::SourceManager *SrcManager);
 
   clang::SourceLocation getVarDeclTypeLocEnd(const clang::VarDecl *VD);
+
+  clang::SourceLocation getVarDeclTypeLocBegin(const clang::VarDecl *VD);
 
   clang::SourceLocation 
     getParamSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
