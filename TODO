@@ -5,6 +5,8 @@ c_reduce TODO list:
 make a distribution using Philip Guo's packager
   need to include Perl?
 
+add some regression tests
+
 integrate changes from PLDI work
 
 change SUCCESS to OK
@@ -52,12 +54,12 @@ rename enumerate types
 
  * rename class member functions to m_fn1 ...
 
+ * rename class member variables to m_a, m_b ...
+
  * seems simple-inliner doesn't work with class member functions,
    need to fix it or add a CXX-specific inlining pass
 
  * reduce the level of class inheritance
-
- * make param-to-local/param-to-global work with class member functions
 
 - (low priority) format string reductions:
 
