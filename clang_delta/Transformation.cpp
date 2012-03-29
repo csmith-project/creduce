@@ -121,6 +121,9 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransMaxVarsError) {
     ErrorMsg = "Too many variables!";
   }
+  else if (TransError == TransMaxClassesError) {
+    ErrorMsg = "Too many classes!";
+  }
   else if (TransError == TransNoValidVarsError) {
     ErrorMsg = "No variables need to be renamed!";
   }

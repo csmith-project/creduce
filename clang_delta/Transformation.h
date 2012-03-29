@@ -37,6 +37,7 @@ typedef enum {
   TransInternalError,
   TransMaxInstanceError,
   TransMaxVarsError,
+  TransMaxClassesError,
   TransNoValidVarsError,
   TransNoValidFunsError,
   TransNoValidParamsError
