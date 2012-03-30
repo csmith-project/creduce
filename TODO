@@ -67,4 +67,6 @@ rename enumerate types
 
  * remove a %d directive and also the corresponding argument from a printf 
 
+- (low priority) constant-folding and constant-propagation
+
 --------------------------------------------------------------------
