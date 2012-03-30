@@ -254,7 +254,7 @@ void AggregateToScalar::addOneIdx(const Expr *E,
 bool AggregateToScalar::isStructuralEqualVectors(IndexVector *IV1, 
                                                  IndexVector *IV2)
 {
-  unsigned int Sz = IV2->size();
+  unsigned int Sz = IV1->size();
   if (Sz != IV2->size())
     return false;
 
