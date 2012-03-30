@@ -58,6 +58,20 @@ public:
 
   bool VisitVarDecl(VarDecl *VD);
 
+  bool VisitNestedNameSpecifier(NestedNameSpecifier *NNS);
+
+  bool VisitDeclaratorDecl(DeclaratorDecl *DD);
+
+  bool VisitUsingDecl(UsingDecl *D);
+  
+  bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
+
+  bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D);
+
+  bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D);
+
+  bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
+
 private:
   RenameClass *ConsumerInstance;
 
@@ -84,8 +98,76 @@ bool RenameClassRewriteVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
   return true;
 }
 
+bool RenameClassRewriteVisitor::VisitNestedNameSpecifier(
+       NestedNameSpecifier *NNS)
+{
+  // TODO
+  TransAssert(NNS);
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
+{
+  NestedNameSpecifier *NNS = DD->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
+bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
+{
+  NestedNameSpecifier *NNS = D->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
+bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
+{
+  NestedNameSpecifier *NNS = D->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
+bool RenameClassRewriteVisitor::VisitNamespaceAliasDecl(NamespaceAliasDecl *D)
+{
+  NestedNameSpecifier *NNS = D->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
+bool RenameClassRewriteVisitor::VisitUnresolvedUsingValueDecl(
+       UnresolvedUsingValueDecl *D)
+{
+  NestedNameSpecifier *NNS = D->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
+bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
+       UnresolvedUsingTypenameDecl *D)
+{
+  NestedNameSpecifier *NNS = D->getQualifier();
+  if (!NNS)
+    return true;
+  return VisitNestedNameSpecifier(NNS);
+}
+
 bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
 {
+  if (VD->isStaticDataMember()) {
+    const DeclContext *Ctx = VD->getDeclContext();
+    const DeclContext *LexicalCtx = VD->getLexicalDeclContext();
+    // VD is a static data member declaration in class
+    if (Ctx == LexicalCtx)
+      return true;
+
+    // VD is a static data member definition, i.e., int A::x = 1;
+  }
+
   QualType QT = VD->getType();
   const Type *T = QT.getTypePtr();
   const Type *BaseT = ConsumerInstance->getBaseType(T);
