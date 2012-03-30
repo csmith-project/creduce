@@ -438,6 +438,33 @@ SourceLocation RewriteUtils::getVarDeclTypeLocBegin(const VarDecl *VD)
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 {
   TypeLoc VarTypeLoc = VD->getTypeSourceInfo()->getTypeLoc();
+  const IdentifierInfo *Id = VD->getType().getBaseTypeIdentifier();
+
+  // handle a special case shown as below:
+  // x;
+  // *y[];
+  // (*z)[];
+  // void foo(void) {...}
+  // where x implicitly has type of int, whereas y has type of int *
+  if (!Id) {
+    SourceLocation EndLoc = VD->getLocation();
+    const char *Buf = SrcManager->getCharacterData(EndLoc);
+    int Offset = -1;
+    SourceLocation NewEndLoc = EndLoc.getLocWithOffset(Offset);
+    if (!NewEndLoc.isValid())
+      return EndLoc;
+
+    Buf--;
+    while (isspace(*Buf) || (*Buf == '*') || (*Buf == '(')) {
+      Offset--;
+      NewEndLoc = EndLoc.getLocWithOffset(Offset);
+      if (!NewEndLoc.isValid())
+        return EndLoc.getLocWithOffset(Offset+1);
+
+      Buf--;
+    }
+    return EndLoc.getLocWithOffset(Offset+1);
+  }
 
   TypeLoc NextTL = VarTypeLoc.getNextTypeLoc();
   while (!NextTL.isNull()) {
