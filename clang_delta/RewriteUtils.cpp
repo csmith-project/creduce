@@ -483,11 +483,13 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   //   ...;
   // }
   // in this case, struct S0 is implicitly declared
-  if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
-    DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
-    IsFirstDecl = true;
-    if (!RD->getDefinition() && DGroup.size() == 2)
-      return !(TheRewriter->RemoveText(StmtRange));
+  if (PrevDecl) {
+    if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
+      DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
+      IsFirstDecl = true;
+      if (!RD->getDefinition() && DGroup.size() == 2)
+        return !(TheRewriter->RemoveText(StmtRange));
+    }
   }
 
   SourceRange VarRange = VD->getSourceRange();
