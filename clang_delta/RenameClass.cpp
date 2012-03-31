@@ -295,7 +295,7 @@ bool RenameClass::doAnalysis(void)
 {
   ClassNameSet AllClassNames;
 
-  for (unsigned Level = 0; Level < MaxInheritanceLevel; ++Level) {
+  for (unsigned Level = 0; Level <= MaxInheritanceLevel; ++Level) {
     CXXRecordDeclSet *RDSet = LevelToRecords[Level];
     if (!RDSet)
       continue;
@@ -355,7 +355,26 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
 
       const CXXBaseSpecifier *BS = I;
       const Type *T = BS->getType().getTypePtr();
-      const CXXRecordDecl *Base = T->getAsCXXRecordDecl();
+      const CXXRecordDecl *Base;
+      if ( const TemplateSpecializationType *TST = 
+           dyn_cast<TemplateSpecializationType>(T) ) {
+        TemplateName TplName = TST->getTemplateName();
+        const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+        TransAssert(TplD && "Invalid TemplateDecl!");
+        NamedDecl *ND = TplD->getTemplatedDecl();
+        TransAssert(ND && "Invalid NamedDecl!");
+        Base = dyn_cast<CXXRecordDecl>(ND);
+      }
+      else if ( const DependentTemplateSpecializationType *DTST = 
+                dyn_cast<DependentTemplateSpecializationType>(T) ) {
+        (void)DTST;
+        TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
+                         here!");
+      }
+      else {
+        Base = T->getAsCXXRecordDecl();
+      }
+
       TransAssert(Base && "Bad base class type!");
 
       RecordToInheritanceLevelMap::iterator LI = 
