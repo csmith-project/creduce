@@ -66,8 +66,6 @@ public:
   
   bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
 
-  bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D);
-
   bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D);
 
   bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
@@ -101,7 +99,7 @@ bool RenameClassRewriteVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 bool RenameClassRewriteVisitor::VisitNestedNameSpecifier(
        NestedNameSpecifier *NNS)
 {
-  // TODO
+  
   TransAssert(NNS);
   return true;
 }
@@ -123,14 +121,6 @@ bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 }
 
 bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
-{
-  NestedNameSpecifier *NNS = D->getQualifier();
-  if (!NNS)
-    return true;
-  return VisitNestedNameSpecifier(NNS);
-}
-
-bool RenameClassRewriteVisitor::VisitNamespaceAliasDecl(NamespaceAliasDecl *D)
 {
   NestedNameSpecifier *NNS = D->getQualifier();
   if (!NNS)
