@@ -41,10 +41,11 @@ bin_PROGRAMS = clang_delta$(EXEEXT)
 subdir = clang_delta
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
-	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
-	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
-	$(top_srcdir)/version.m4 $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_llvm.m4 \
+	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
+	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
+	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/version.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -160,6 +161,7 @@ LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LIPO = @LIPO@
+LLVM_BINDIR = @LLVM_BINDIR@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
@@ -245,12 +247,14 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-LLVMCXXFLAGS = `$(LLVM_PATH)/bin/llvm-config --cxxflags`
-LLVMLDFLAGS = `$(LLVM_PATH)/bin/llvm-config --ldflags`
-LLVMLIBS = `$(LLVM_PATH)/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
+LLVMCONFIG := $(LLVM_BINDIR)/llvm-config
+LLVMCXXFLAGS := $(shell "$(LLVMCONFIG)" --cxxflags)
+LLVMLDFLAGS := $(shell "$(LLVMCONFIG)" --ldflags)
+LLVMINCLUDEDIR := $(shell "$(LLVMCONFIG)" --includedir)
+LLVMLIBS := $(shell "$(LLVMCONFIG)" --libs engine)
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
-	-I"$(LLVM_PATH)/include/clang/"
+	-I"$(LLVMINCLUDEDIR)/clang"
 
 clang_delta_CXXFLAGS = \
 	$(LLVMCXXFLAGS)

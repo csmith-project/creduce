@@ -13,13 +13,15 @@ bin_PROGRAMS = clang_delta
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
-LLVMCXXFLAGS = `$(LLVM_PATH)/bin/llvm-config --cxxflags`
-LLVMLDFLAGS = `$(LLVM_PATH)/bin/llvm-config --ldflags`
-LLVMLIBS = `$(LLVM_PATH)/bin/llvm-config --libs | tr " " "\n" | grep -v gtest`
+LLVMCONFIG	:= $(LLVM_BINDIR)/llvm-config
+LLVMCXXFLAGS	:= $(shell "$(LLVMCONFIG)" --cxxflags)
+LLVMLDFLAGS	:= $(shell "$(LLVMCONFIG)" --ldflags)
+LLVMINCLUDEDIR	:= $(shell "$(LLVMCONFIG)" --includedir)
+LLVMLIBS	:= $(shell "$(LLVMCONFIG)" --libs engine)
 
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
-	-I"$(LLVM_PATH)/include/clang/"
+	-I"$(LLVMINCLUDEDIR)/clang"
 
 clang_delta_CXXFLAGS = \
 	$(LLVMCXXFLAGS)

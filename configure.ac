@@ -34,7 +34,7 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
-dnl AX_LLVM
+AX_LLVM([engine])
 
 # clang_delta: handle configure-time choice of assertion-checking method.
 #
