@@ -56,6 +56,8 @@ public:
 
   bool VisitCXXRecordDecl(CXXRecordDecl *CXXRD);
 
+  bool VisitCXXConstructorDecl(CXXConstructorDecl *CtorDecl);
+
   bool VisitVarDecl(VarDecl *VD);
 
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
@@ -92,6 +94,19 @@ bool RenameClassRewriteVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
     ConsumerInstance->RewriteHelper->
       replaceRecordDeclName(CXXRD, ConsumerInstance->BackupName);
   }
+
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitCXXConstructorDecl
+       (CXXConstructorDecl *CtorDecl)
+{
+  const DeclContext *Ctx = CtorDecl->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  if (!CXXRD)
+    return true;
+
+  ConsumerInstance->rewriteFunctionName(CXXRD, CtorDecl);
 
   return true;
 }
@@ -265,6 +280,18 @@ void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void RenameClass::rewriteFunctionName(const CXXRecordDecl *CXXRD, 
+                                      FunctionDecl *FD)
+{
+  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
+  if (CanonicalRD == TheCXXRecordDecl) {
+    RewriteHelper->replaceFunctionDeclName(FD, NewNameStr);
+  }
+  else if (CanonicalRD == ConflictingRD) {
+    RewriteHelper->replaceFunctionDeclName(FD, BackupName);
+  }
 }
 
 void RenameClass::rewriteClassName(const CXXRecordDecl *CXXRD, 
