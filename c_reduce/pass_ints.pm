@@ -46,7 +46,7 @@ sub transform ($$) {
 	$prog2 =~ s/(?<all>(?<pref>$borderorspc)(?<numpart>0[Xx][0-9a-fA-F]+)(?<ll>[ULul]*)(?<suf>$borderorspc))/replace_aux($index,$+{all},$+{pref}.hex($+{numpart}).$+{ll}.$+{suf})/egs;
     } elsif ($which eq "e") {
 	# remove the UuLl suffixes
-	$prog2 =~ s/(?<all>((?<pref>$borderorspc)(?<numpart>(0[Xx])?[0-9a-fA-F]+)[ULul]+(?<suf>$borderorspc)))/replace_aux($index,$+{all},$+{pref}.$+{numpart}.$+{suf})/egs;
+	$prog2 =~ s/(?<all>((?<pref>$borderorspc)(?<numpart>(\\-|\\+)?(0[Xx])?[0-9a-fA-F]+)[ULul]+(?<suf>$borderorspc)))/replace_aux($index,$+{all},$+{pref}.$+{numpart}.$+{suf})/egs;
     } else {
 	die;
     }
