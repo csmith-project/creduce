@@ -47,10 +47,6 @@ public:
 
   ~RenameClass(void);
 
-  virtual bool skipCounter(void) {
-    return true;
-  }
-
 private:
   
   typedef llvm::DenseMap<const clang::CXXRecordDecl *, unsigned> 
