@@ -58,6 +58,8 @@ public:
 
   bool VisitCXXConstructorDecl(CXXConstructorDecl *CtorDecl);
 
+  bool VisitCXXConstructExpr(CXXConstructExpr *CE);
+
   bool VisitVarDecl(VarDecl *VD);
 
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
@@ -103,11 +105,29 @@ bool RenameClassRewriteVisitor::VisitCXXConstructorDecl
 {
   const DeclContext *Ctx = CtorDecl->getDeclContext();
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
-  if (!CXXRD)
-    return true;
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
   ConsumerInstance->rewriteFunctionName(CXXRD, CtorDecl);
 
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitCXXConstructExpr(CXXConstructExpr *CE)
+{
+  const CXXConstructorDecl *CtorDecl = CE->getConstructor();
+  const DeclContext *Ctx = CtorDecl->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+
+  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
+  if (CanonicalRD == ConsumerInstance->TheCXXRecordDecl) {
+    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
+      CtorDecl->getNameAsString().size(), ConsumerInstance->NewNameStr);
+  }
+  else if (CanonicalRD == ConsumerInstance->ConflictingRD) {
+    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
+      CtorDecl->getNameAsString().size(), ConsumerInstance->BackupName);
+  }
   return true;
 }
 

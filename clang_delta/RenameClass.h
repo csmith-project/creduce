@@ -91,6 +91,9 @@ private:
                         clang::NestedNameSpecifier *NNS,
                         clang::NestedNameSpecifierLoc Loc);
 
+  void rewriteFunctionName(const clang::CXXRecordDecl *CXXRD,
+                           clang::FunctionDecl *FD);
+
   RecordToInheritanceLevelMap RecordToLevel;
 
   InheritanceLevelToRecordsMap LevelToRecords;
