@@ -58,6 +58,8 @@ public:
 
   bool VisitCXXConstructorDecl(CXXConstructorDecl *CtorDecl);
 
+  bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
+
   bool VisitCXXConstructExpr(CXXConstructExpr *CE);
 
   bool VisitCXXMemberCallExpr(CXXMemberCallExpr *CE);
@@ -123,6 +125,20 @@ bool RenameClassRewriteVisitor::VisitCXXConstructExpr(CXXConstructExpr *CE)
     ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
       CtorDecl->getNameAsString().size(), Name);
   }
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
+       CXXDestructorDecl *DtorDecl)
+{
+  const DeclContext *Ctx = DtorDecl->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name))
+    ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+
   return true;
 }
 
