@@ -103,7 +103,7 @@ public:
   bool replaceVarDeclName(clang::VarDecl *VD,
                           const std::string &NameStr);
 
-  bool replaceFunctionDeclName(clang::FunctionDecl *FD,
+  bool replaceFunctionDeclName(const clang::FunctionDecl *FD,
                           const std::string &NameStr);
 
   bool replaceRecordDeclName(const clang::RecordDecl *RD,
