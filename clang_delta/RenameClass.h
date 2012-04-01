@@ -15,6 +15,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallSet.h"
+#include "clang/AST/NestedNameSpecifier.h"
 #include "Transformation.h"
 
 namespace clang {
@@ -85,6 +86,10 @@ private:
   bool matchCurrentName(const std::string &Name);
 
   void setBackupName(ClassNameSet &AllClassNames);
+
+  void rewriteClassName(const clang::CXXRecordDecl *RD,
+                        clang::NestedNameSpecifier *NNS,
+                        clang::NestedNameSpecifierLoc Loc);
 
   RecordToInheritanceLevelMap RecordToLevel;
 

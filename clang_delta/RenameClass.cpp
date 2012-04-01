@@ -58,7 +58,7 @@ public:
 
   bool VisitVarDecl(VarDecl *VD);
 
-  bool VisitNestedNameSpecifier(NestedNameSpecifier *NNS);
+  bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
 
   bool VisitDeclaratorDecl(DeclaratorDecl *DD);
 
@@ -96,58 +96,99 @@ bool RenameClassRewriteVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
   return true;
 }
 
-bool RenameClassRewriteVisitor::VisitNestedNameSpecifier(
-       NestedNameSpecifier *NNS)
+bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
+       NestedNameSpecifierLoc QualifierLoc)
 {
-  
-  TransAssert(NNS);
+  SmallVector<NestedNameSpecifierLoc, 8> QualifierLocs;
+  for (; QualifierLoc; QualifierLoc = QualifierLoc.getPrefix())
+    QualifierLocs.push_back(QualifierLoc);
+
+  while (!QualifierLocs.empty()) {
+    NestedNameSpecifierLoc Loc = QualifierLocs.pop_back_val();
+    NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
+    NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
+    switch (Kind) {
+      case NestedNameSpecifier::TypeSpec: {
+        const Type *Ty = NNS->getAsType();
+        const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
+        if (CXXRD) {
+          ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
+        }
+        break;
+      }
+
+      case NestedNameSpecifier::TypeSpecWithTemplate: {
+        const Type *Ty = NNS->getAsType();
+        if ( const TemplateSpecializationType *TST = 
+             dyn_cast<TemplateSpecializationType>(Ty) ) {
+          TemplateName TplName = TST->getTemplateName();
+          const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+          TransAssert(TplD && "Invalid TemplateDecl!");
+          NamedDecl *ND = TplD->getTemplatedDecl();
+          TransAssert(ND && "Invalid NamedDecl!");
+          const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
+          ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
+        }
+        break;
+      }
+
+      case NestedNameSpecifier::NamespaceAlias: // Fall-through
+      case NestedNameSpecifier::Identifier: // Fall-through
+      case NestedNameSpecifier::Global: // Fall-through
+      case NestedNameSpecifier::Namespace:
+        break;
+ 
+      default:
+        TransAssert(0 && "Unreachable code: invalid SpecifierKind!");
+    }
+  }
   return true;
 }
 
 bool RenameClassRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 {
-  NestedNameSpecifier *NNS = DD->getQualifier();
-  if (!NNS)
+  NestedNameSpecifierLoc QualifierLoc = DD->getQualifierLoc();
+  if (!QualifierLoc)
     return true;
-  return VisitNestedNameSpecifier(NNS);
+  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 // e.g., using namespace_XX::identifie_YY
 bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
-  NestedNameSpecifier *NNS = D->getQualifier();
-  if (!NNS)
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (!QualifierLoc)
     return true;
-  return VisitNestedNameSpecifier(NNS);
+  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 // e.g., using namespace std
 bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
 {
-  NestedNameSpecifier *NNS = D->getQualifier();
-  if (!NNS)
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (!QualifierLoc)
     return true;
-  return VisitNestedNameSpecifier(NNS);
+  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 // e.g., class A : public Base<T> { using Base<T>::foo; };
 bool RenameClassRewriteVisitor::VisitUnresolvedUsingValueDecl(
        UnresolvedUsingValueDecl *D)
 {
-  NestedNameSpecifier *NNS = D->getQualifier();
-  if (!NNS)
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (!QualifierLoc)
     return true;
-  return VisitNestedNameSpecifier(NNS);
+  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 // e.g., class A : public Base<T> { using typename Base<T>::foo; };
 bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
        UnresolvedUsingTypenameDecl *D)
 {
-  NestedNameSpecifier *NNS = D->getQualifier();
-  if (!NNS)
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (!QualifierLoc)
     return true;
-  return VisitNestedNameSpecifier(NNS);
+  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
@@ -165,7 +206,6 @@ bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
   TransAssert(RD && "Bad RecordDecl!");
   const CXXRecordDecl *CanonicalRD = RD->getCanonicalDecl();
 
-  SourceLocation LocStart = VD->getLocation();
   if (CanonicalRD == ConsumerInstance->TheCXXRecordDecl) {
     ConsumerInstance->RewriteHelper->
       replaceVarTypeName(VD, ConsumerInstance->NewNameStr);
@@ -174,7 +214,6 @@ bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
     ConsumerInstance->RewriteHelper->
       replaceVarTypeName(VD, ConsumerInstance->BackupName);
   }
-
   return true;
 }
 
@@ -226,6 +265,26 @@ void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void RenameClass::rewriteClassName(const CXXRecordDecl *CXXRD, 
+                                   NestedNameSpecifier *NNS,
+                                   NestedNameSpecifierLoc Loc)
+{
+  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
+  std::string Name;
+  if (CanonicalRD == TheCXXRecordDecl) {
+    Name = NewNameStr + "::";
+  }
+  else if (CanonicalRD == ConflictingRD) {
+    Name = BackupName + "::";
+  }
+  else {
+    return;
+  }
+
+  SourceRange LocRange = Loc.getLocalSourceRange();
+  TheRewriter.ReplaceText(LocRange, Name);
 }
 
 bool RenameClass::matchCurrentName(const std::string &Name)
