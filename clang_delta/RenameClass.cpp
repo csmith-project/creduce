@@ -60,6 +60,8 @@ public:
 
   bool VisitCXXConstructExpr(CXXConstructExpr *CE);
 
+  bool VisitCXXMemberCallExpr(CXXMemberCallExpr *CE);
+
   bool VisitVarDecl(VarDecl *VD);
 
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
@@ -121,6 +123,38 @@ bool RenameClassRewriteVisitor::VisitCXXConstructExpr(CXXConstructExpr *CE)
     ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
       CtorDecl->getNameAsString().size(), Name);
   }
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
+{
+  const CXXMethodDecl *MD = CE->getMethodDecl();
+  const DeclContext *Ctx = MD->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+
+  std::string Name;
+  if (!ConsumerInstance->getNewName(CXXRD, Name))
+    return true;
+
+  const CXXDestructorDecl *DtorDecl = dyn_cast<CXXDestructorDecl>(MD);
+  if (!DtorDecl)
+    return true;
+
+  Name = "~" + Name;
+
+  std::string ExprStr;
+  ConsumerInstance->RewriteHelper->getExprString(CE, ExprStr);
+  std::string OldDtorName = DtorDecl->getNameAsString();
+  size_t Pos = ExprStr.find(OldDtorName);
+  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
+  if (Pos == 0)
+    return true;
+
+  SourceLocation StartLoc = CE->getLocStart();
+  StartLoc = StartLoc.getLocWithOffset(Pos);
+
+  ConsumerInstance->TheRewriter.ReplaceText(StartLoc, OldDtorName.size(), Name);
   return true;
 }
 
