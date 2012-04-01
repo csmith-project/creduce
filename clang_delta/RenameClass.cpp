@@ -112,6 +112,7 @@ bool RenameClassRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
   return VisitNestedNameSpecifier(NNS);
 }
 
+// e.g., using namespace_XX::identifie_YY
 bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
   NestedNameSpecifier *NNS = D->getQualifier();
@@ -120,6 +121,7 @@ bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
   return VisitNestedNameSpecifier(NNS);
 }
 
+// e.g., using namespace std
 bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
 {
   NestedNameSpecifier *NNS = D->getQualifier();
@@ -128,6 +130,7 @@ bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
   return VisitNestedNameSpecifier(NNS);
 }
 
+// e.g., class A : public Base<T> { using Base<T>::foo; };
 bool RenameClassRewriteVisitor::VisitUnresolvedUsingValueDecl(
        UnresolvedUsingValueDecl *D)
 {
@@ -137,6 +140,7 @@ bool RenameClassRewriteVisitor::VisitUnresolvedUsingValueDecl(
   return VisitNestedNameSpecifier(NNS);
 }
 
+// e.g., class A : public Base<T> { using typename Base<T>::foo; };
 bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
        UnresolvedUsingTypenameDecl *D)
 {
@@ -148,16 +152,6 @@ bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
 
 bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
 {
-  if (VD->isStaticDataMember()) {
-    const DeclContext *Ctx = VD->getDeclContext();
-    const DeclContext *LexicalCtx = VD->getLexicalDeclContext();
-    // VD is a static data member declaration in class
-    if (Ctx == LexicalCtx)
-      return true;
-
-    // VD is a static data member definition, i.e., int A::x = 1;
-  }
-
   QualType QT = VD->getType();
   const Type *T = QT.getTypePtr();
   const Type *BaseT = ConsumerInstance->getBaseType(T);
