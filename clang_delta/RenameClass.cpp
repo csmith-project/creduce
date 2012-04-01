@@ -87,14 +87,9 @@ bool RenameClassASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 
 bool RenameClassRewriteVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 {
-  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
-  if (CanonicalRD == ConsumerInstance->TheCXXRecordDecl) {
-    ConsumerInstance->RewriteHelper->
-      replaceRecordDeclName(CXXRD, ConsumerInstance->NewNameStr);
-  }
-  else if (CanonicalRD == ConsumerInstance->ConflictingRD) {
-    ConsumerInstance->RewriteHelper->
-      replaceRecordDeclName(CXXRD, ConsumerInstance->BackupName);
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    ConsumerInstance->RewriteHelper->replaceRecordDeclName(CXXRD, Name);
   }
 
   return true;
@@ -107,7 +102,9 @@ bool RenameClassRewriteVisitor::VisitCXXConstructorDecl
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
-  ConsumerInstance->rewriteFunctionName(CXXRD, CtorDecl);
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name))
+    ConsumerInstance->RewriteHelper->replaceFunctionDeclName(CtorDecl, Name);
 
   return true;
 }
@@ -119,14 +116,10 @@ bool RenameClassRewriteVisitor::VisitCXXConstructExpr(CXXConstructExpr *CE)
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
-  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
-  if (CanonicalRD == ConsumerInstance->TheCXXRecordDecl) {
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
     ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
-      CtorDecl->getNameAsString().size(), ConsumerInstance->NewNameStr);
-  }
-  else if (CanonicalRD == ConsumerInstance->ConflictingRD) {
-    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
-      CtorDecl->getNameAsString().size(), ConsumerInstance->BackupName);
+      CtorDecl->getNameAsString().size(), Name);
   }
   return true;
 }
@@ -239,15 +232,10 @@ bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
   TransAssert(RT && "Bad RecordType!");
   const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(RT->getDecl());
   TransAssert(RD && "Bad RecordDecl!");
-  const CXXRecordDecl *CanonicalRD = RD->getCanonicalDecl();
-
-  if (CanonicalRD == ConsumerInstance->TheCXXRecordDecl) {
-    ConsumerInstance->RewriteHelper->
-      replaceVarTypeName(VD, ConsumerInstance->NewNameStr);
-  }
-  else if (CanonicalRD == ConsumerInstance->ConflictingRD) {
-    ConsumerInstance->RewriteHelper->
-      replaceVarTypeName(VD, ConsumerInstance->BackupName);
+  
+  std::string Name;
+  if (ConsumerInstance->getNewName(RD, Name)) {
+    ConsumerInstance->RewriteHelper->replaceVarTypeName(VD, Name);
   }
   return true;
 }
@@ -302,34 +290,35 @@ void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-void RenameClass::rewriteFunctionName(const CXXRecordDecl *CXXRD, 
-                                      FunctionDecl *FD)
+bool RenameClass::getNewName(const CXXRecordDecl *CXXRD,
+                             std::string &NewName)
 {
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
+  bool RV;
   if (CanonicalRD == TheCXXRecordDecl) {
-    RewriteHelper->replaceFunctionDeclName(FD, NewNameStr);
+    NewName = NewNameStr;
+    RV = true;
   }
   else if (CanonicalRD == ConflictingRD) {
-    RewriteHelper->replaceFunctionDeclName(FD, BackupName);
+    NewName = BackupName;
+    RV = true;
   }
+  else {
+    NewName = "";
+    RV = false;
+  }
+  return RV;
 }
 
 void RenameClass::rewriteClassName(const CXXRecordDecl *CXXRD, 
                                    NestedNameSpecifier *NNS,
                                    NestedNameSpecifierLoc Loc)
 {
-  const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
   std::string Name;
-  if (CanonicalRD == TheCXXRecordDecl) {
-    Name = NewNameStr + "::";
-  }
-  else if (CanonicalRD == ConflictingRD) {
-    Name = BackupName + "::";
-  }
-  else {
+  if (!getNewName(CXXRD, Name))
     return;
-  }
 
+  Name += "::";
   SourceRange LocRange = Loc.getLocalSourceRange();
   TheRewriter.ReplaceText(LocRange, Name);
 }

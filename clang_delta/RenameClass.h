@@ -87,12 +87,11 @@ private:
 
   void setBackupName(ClassNameSet &AllClassNames);
 
+  bool getNewName(const clang::CXXRecordDecl *CXXRD, std::string &NewName);
+
   void rewriteClassName(const clang::CXXRecordDecl *RD,
                         clang::NestedNameSpecifier *NNS,
                         clang::NestedNameSpecifierLoc Loc);
-
-  void rewriteFunctionName(const clang::CXXRecordDecl *CXXRD,
-                           clang::FunctionDecl *FD);
 
   RecordToInheritanceLevelMap RecordToLevel;
 
