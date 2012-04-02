@@ -15,6 +15,8 @@
 #include "clang/Basic/SourceManager.h"
 #include "clang/Rewrite/Rewriter.h"
 #include "clang/AST/Decl.h"
+#include "clang/AST/DeclCXX.h"
+#include "clang/AST/DeclTemplate.h"
 #include "clang/AST/Expr.h"
 #include "clang/AST/TypeLoc.h"
 #include "clang/AST/ExprCXX.h"
@@ -796,8 +798,36 @@ bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
 bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
                                       const std::string &NameStr)
 {
-  return !TheRewriter->ReplaceText(FD->getNameInfo().getLoc(),
-                                   FD->getNameAsString().length(),
+  // We cannot naively use FD->getNameAsString() here. 
+  // For example, for a template class
+  // template<typename T>
+  // class SomeClass {
+  // public:
+  //   SomeClass() {}
+  // };
+  // applying getNameAsString() on SomeClass() gives us SomeClass<T>.
+
+  DeclarationNameInfo NameInfo = FD->getNameInfo();
+  DeclarationName DeclName = NameInfo.getName();
+  DeclarationName::NameKind K = DeclName.getNameKind();
+
+  std::string FDName = FD->getNameAsString();
+  unsigned FDNameLen = FD->getNameAsString().length();
+  if ((K == DeclarationName::CXXConstructorName) ||
+      (K == DeclarationName::CXXDestructorName)) {
+    const Type *Ty = DeclName.getCXXNameType().getTypePtr();
+    if (Ty->getTypeClass() == Type::InjectedClassName) {
+      const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
+      std::string RDName = CXXRD->getNameAsString();
+      FDNameLen = FDName.find(RDName);
+      TransAssert((FDNameLen != std::string::npos) && 
+                  "Cannot find RecordDecl Name!");
+      FDNameLen += RDName.length();
+    }
+  }
+
+  return !TheRewriter->ReplaceText(NameInfo.getLoc(),
+                                   FDNameLen,
                                    NameStr);
 }
 
