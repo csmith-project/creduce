@@ -64,6 +64,9 @@ public:
 
   bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
 
+  bool VisitTemplateSpecializationTypeLoc(
+         TemplateSpecializationTypeLoc TSPLoc);
+
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
 
   bool VisitUsingDecl(UsingDecl *D);
@@ -171,7 +174,35 @@ bool RenameClassRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   if (ConsumerInstance->getNewName(RD, Name)) {
     const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
     SourceLocation LocStart = RTLoc.getLocStart();
-    ConsumerInstance->TheRewriter.ReplaceText(LocStart, TypeId->getLength(), Name);
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, TypeId->getLength(), Name);
+  }
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitTemplateSpecializationTypeLoc(
+       TemplateSpecializationTypeLoc TSPLoc)
+{
+  const Type *Ty = TSPLoc.getTypePtr();
+  const TemplateSpecializationType *TST = 
+    dyn_cast<TemplateSpecializationType>(Ty);
+  TransAssert(TST && "Bad TemplateSpecializationType!");
+
+  TemplateName TplName = TST->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
+  if (!CXXRD)
+    return true;
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TSPLoc.getTemplateNameLoc();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
   }
   return true;
 }
@@ -207,7 +238,8 @@ bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
           NamedDecl *ND = TplD->getTemplatedDecl();
           TransAssert(ND && "Invalid NamedDecl!");
           const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
-          ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
+          if (CXXRD)
+            ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
         }
         break;
       }
