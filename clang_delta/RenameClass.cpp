@@ -60,15 +60,11 @@ public:
 
   bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
 
-  bool VisitCXXConstructExpr(CXXConstructExpr *CE);
-
   bool VisitCXXMemberCallExpr(CXXMemberCallExpr *CE);
 
-  bool VisitVarDecl(VarDecl *VD);
+  bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
 
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
-
-  bool VisitDeclaratorDecl(DeclaratorDecl *DD);
 
   bool VisitUsingDecl(UsingDecl *D);
   
@@ -113,21 +109,6 @@ bool RenameClassRewriteVisitor::VisitCXXConstructorDecl
   return true;
 }
 
-bool RenameClassRewriteVisitor::VisitCXXConstructExpr(CXXConstructExpr *CE)
-{
-  const CXXConstructorDecl *CtorDecl = CE->getConstructor();
-  const DeclContext *Ctx = CtorDecl->getDeclContext();
-  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
-  TransAssert(CXXRD && "Invalid CXXRecordDecl");
-
-  std::string Name;
-  if (ConsumerInstance->getNewName(CXXRD, Name)) {
-    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
-      CtorDecl->getNameAsString().size(), Name);
-  }
-  return true;
-}
-
 bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
        CXXDestructorDecl *DtorDecl)
 {
@@ -136,8 +117,10 @@ bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
   std::string Name;
-  if (ConsumerInstance->getNewName(CXXRD, Name))
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    Name = "~" + Name;
     ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+  }
 
   return true;
 }
@@ -171,6 +154,25 @@ bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
   StartLoc = StartLoc.getLocWithOffset(Pos);
 
   ConsumerInstance->TheRewriter.ReplaceText(StartLoc, OldDtorName.size(), Name);
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
+{
+  const Type *Ty = RTLoc.getTypePtr();
+  if (Ty->isUnionType())
+    return true;
+
+  const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(RTLoc.getDecl());
+  if (!RD)
+    return true;
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(RD, Name)) {
+    const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
+    SourceLocation LocStart = RTLoc.getLocStart();
+    ConsumerInstance->TheRewriter.ReplaceText(LocStart, TypeId->getLength(), Name);
+  }
   return true;
 }
 
@@ -223,14 +225,6 @@ bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
   return true;
 }
 
-bool RenameClassRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
-{
-  NestedNameSpecifierLoc QualifierLoc = DD->getQualifierLoc();
-  if (!QualifierLoc)
-    return true;
-  return VisitNestedNameSpecifierLoc(QualifierLoc);
-}
-
 // e.g., using namespace_XX::identifie_YY
 bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
@@ -267,27 +261,6 @@ bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
   if (!QualifierLoc)
     return true;
   return VisitNestedNameSpecifierLoc(QualifierLoc);
-}
-
-bool RenameClassRewriteVisitor::VisitVarDecl(VarDecl *VD)
-{
-  QualType QT = VD->getType();
-  const Type *T = QT.getTypePtr();
-  const Type *BaseT = ConsumerInstance->getBaseType(T);
-
-  if (!BaseT->isRecordType() || BaseT->isUnionType())
-    return true;
-
-  const RecordType *RT = dyn_cast<RecordType>(BaseT);
-  TransAssert(RT && "Bad RecordType!");
-  const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(RT->getDecl());
-  TransAssert(RD && "Bad RecordDecl!");
-  
-  std::string Name;
-  if (ConsumerInstance->getNewName(RD, Name)) {
-    ConsumerInstance->RewriteHelper->replaceVarTypeName(VD, Name);
-  }
-  return true;
 }
 
 void RenameClass::Initialize(ASTContext &context) 
