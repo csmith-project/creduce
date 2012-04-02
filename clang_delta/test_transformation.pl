@@ -22,7 +22,7 @@ my %verified_results = ();
 my $CLANG_DELTA = "./clang_delta";
 my $WORKING_DIR = "./working_dir";
 
-my $COMPILER = "gcc";
+my $COMPILER = "clang";
 my $CSMITH_BIN = "";
 
 my $CSMITH_HOME = $ENV{"CSMITH_HOME"};
