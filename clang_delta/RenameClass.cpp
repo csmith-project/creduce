@@ -583,6 +583,13 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
 
       TransAssert(Base && "Bad base class type!");
 
+      if (const ClassTemplateSpecializationDecl *CTSDecl =
+          dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
+        Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
+        TransAssert(Base && 
+                    "Bad base decl from ClassTemplateSpecializationDecl!");
+      }
+
       RecordToInheritanceLevelMap::iterator LI = 
         RecordToLevel.find(Base->getCanonicalDecl());
       TransAssert((LI != RecordToLevel.end()) && "Unknown base class!");
