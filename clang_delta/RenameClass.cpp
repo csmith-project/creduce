@@ -122,7 +122,7 @@ bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
-  // Avoid duplicated Visit Dtor. 
+  // Avoid duplicated VisitDtor. 
   // For example, in the code below:
   // template<typename T>
   // class SomeClass {
@@ -195,6 +195,21 @@ bool RenameClassRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   if (ConsumerInstance->getNewName(RD, Name)) {
     const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
     SourceLocation LocStart = RTLoc.getLocStart();
+
+    // Loc could be invalid, for example:
+    // class AAA { };
+    // class BBB:AAA {
+    // public:
+    //   BBB () { }
+    // };
+    // In Clang's internal representation, BBB's Ctor is BBB() : AAA() {}
+    // The implicit AAA() will be visited here 
+    // This is the only case where RTLoc is invalid, so the question is -
+    // Is the guard below too strong? It is possible it could mask other 
+    // potential bugs?
+    if (LocStart.isInvalid())
+      return true;
+
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, TypeId->getLength(), Name);
   }
