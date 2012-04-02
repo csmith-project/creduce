@@ -119,6 +119,24 @@ bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
+  // Avoid duplicated Visit Dtor. 
+  // For example, in the code below:
+  // template<typename T>
+  // class SomeClass {
+  // public:
+  //   ~SomeClass<T>() {}
+  // };
+  // ~SomeClass<T>'s TypeLoc is represented as TemplateSpecializationTypeLoc
+  // In this case, ~SomeClass will be renamed from 
+  // VisitTemplateSpecializationTypeLoc.
+  DeclarationNameInfo NameInfo = DtorDecl->getNameInfo();
+  if ( TypeSourceInfo *TSInfo = NameInfo.getNamedTypeInfo()) {
+    TypeLoc DtorLoc = TSInfo->getTypeLoc();
+    if (!DtorLoc.isNull() && 
+        (DtorLoc.getTypeLocClass() == TypeLoc::TemplateSpecialization))
+      return true;
+  }
+
   std::string Name;
   if (ConsumerInstance->getNewName(CXXRD, Name)) {
     Name = "~" + Name;
