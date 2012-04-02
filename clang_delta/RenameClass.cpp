@@ -67,6 +67,9 @@ public:
   bool VisitTemplateSpecializationTypeLoc(
          TemplateSpecializationTypeLoc TSPLoc);
 
+  bool VisitDependentTemplateSpecializationTypeLoc(
+         DependentTemplateSpecializationTypeLoc DTSLoc);
+
   bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
 
   bool VisitUsingDecl(UsingDecl *D);
@@ -195,6 +198,28 @@ bool RenameClassRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, TypeId->getLength(), Name);
   }
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitDependentTemplateSpecializationTypeLoc(
+       DependentTemplateSpecializationTypeLoc DTSLoc)
+{
+  const Type *Ty = DTSLoc.getTypePtr();
+  const DependentTemplateSpecializationType *DTST = 
+    dyn_cast<DependentTemplateSpecializationType>(Ty);
+  TransAssert(DTST && "Bad DependentTemplateSpecializationType!");
+
+  const IdentifierInfo *IdInfo = DTST->getIdentifier();
+  std::string IdName = IdInfo->getName();
+  std::string Name;
+  if (ConsumerInstance->getNewNameByName(IdName, Name)) {
+    SourceLocation LocStart = DTSLoc.getTemplateNameLoc();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, IdName.size(), Name);
+  }
+
+  if ( NestedNameSpecifierLoc QualifierLoc = DTSLoc.getQualifierLoc() )
+    return VisitNestedNameSpecifierLoc(QualifierLoc);
   return true;
 }
 
@@ -373,6 +398,25 @@ bool RenameClass::getNewName(const CXXRecordDecl *CXXRD,
     RV = true;
   }
   else if (CanonicalRD == ConflictingRD) {
+    NewName = BackupName;
+    RV = true;
+  }
+  else {
+    NewName = "";
+    RV = false;
+  }
+  return RV;
+}
+
+bool RenameClass::getNewNameByName(const std::string &Name,
+                             std::string &NewName)
+{
+  bool RV;
+  if (TheCXXRecordDecl && (Name == TheCXXRecordDecl->getNameAsString())) {
+    NewName = NewNameStr;
+    RV = true;
+  }
+  else if (ConflictingRD && (Name == ConflictingRD->getNameAsString())) {
     NewName = BackupName;
     RV = true;
   }

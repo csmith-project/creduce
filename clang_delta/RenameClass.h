@@ -89,6 +89,8 @@ private:
 
   bool getNewName(const clang::CXXRecordDecl *CXXRD, std::string &NewName);
 
+  bool getNewNameByName(const std::string &Name, std::string &NewName);
+
   void rewriteClassName(const clang::CXXRecordDecl *RD,
                         clang::NestedNameSpecifier *NNS,
                         clang::NestedNameSpecifierLoc Loc);
