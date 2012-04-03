@@ -597,7 +597,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
       Base = getBaseDeclFromTemplateSpecializationType(TSTy);
     }
     else {
-      Base = Ty->getAsCXXRecordDecl();
+      Base = ETy->getAsCXXRecordDecl();
     }
     TransAssert(Base && "Bad base class type from ElaboratedType!");
     break;
@@ -614,6 +614,23 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     // until BBB is instantiated
     // Due to this reason, simply return NULL from here.
     return NULL;
+  }
+
+  case Type::Typedef: {
+    const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
+    const TypedefNameDecl *TdefD = TdefTy->getDecl();
+    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(UnderlyingTy) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
+      return NULL;
+    }
+    else {
+      Base = UnderlyingTy->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from Typedef!");
   }
 
   default:
