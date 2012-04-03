@@ -569,19 +569,28 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromTemplateSpecializationType(
 const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
 {
   const CXXRecordDecl *Base = NULL;
+  Type::TypeClass TyClass = Ty->getTypeClass();
 
-  if ( const TemplateSpecializationType *TSTy = 
-       dyn_cast<TemplateSpecializationType>(Ty) ) {
+  switch (TyClass) {
+  case Type::TemplateSpecialization: {
+    const TemplateSpecializationType *TSTy = 
+      dyn_cast<TemplateSpecializationType>(Ty);
     Base = getBaseDeclFromTemplateSpecializationType(TSTy);
     TransAssert(Base && "Bad base class type!");
+    break;
   }
-  else if ( const DependentTemplateSpecializationType *DTST = 
-            dyn_cast<DependentTemplateSpecializationType>(Ty) ) {
+
+  case Type::DependentTemplateSpecialization: {
+    const DependentTemplateSpecializationType *DTST = 
+           dyn_cast<DependentTemplateSpecializationType>(Ty);
     (void)DTST;
     TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
                      here!");
+    break;
   }
-  else if ( const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty) ) {
+
+  case Type::Elaborated: {
+    const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty);
     const Type *NamedT = ETy->getNamedType().getTypePtr();
     if ( const TemplateSpecializationType *TSTy = 
          dyn_cast<TemplateSpecializationType>(NamedT) ) {
@@ -591,8 +600,10 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
       Base = Ty->getAsCXXRecordDecl();
     }
     TransAssert(Base && "Bad base class type from ElaboratedType!");
+    break;
   }
-  else if (dyn_cast<DependentNameType>(Ty)) {
+
+  case Type::DependentName: {
     // It's not always the case that we could resolve a dependent name type.
     // For example, 
     //   template<typename T1, typename T2>
@@ -604,7 +615,8 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     // Due to this reason, simply return NULL from here.
     return NULL;
   }
-  else {
+
+  default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");
 
