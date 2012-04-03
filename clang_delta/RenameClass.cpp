@@ -554,9 +554,10 @@ bool RenameClass::isValidName(const std::string &Name)
   return (((C >= 'A') || (C <= 'Z')) && !isReservedName(C));
 }
 
+// Could return NULL if Ty is a DependentNameType
 const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
 {
-  const CXXRecordDecl *Base;
+  const CXXRecordDecl *Base = NULL;
 
   if ( const TemplateSpecializationType *TST = 
        dyn_cast<TemplateSpecializationType>(Ty) ) {
@@ -566,6 +567,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     NamedDecl *ND = TplD->getTemplatedDecl();
     TransAssert(ND && "Invalid NamedDecl!");
     Base = dyn_cast<CXXRecordDecl>(ND);
+    TransAssert(Base && "Bad base class type!");
   }
   else if ( const DependentTemplateSpecializationType *DTST = 
             dyn_cast<DependentTemplateSpecializationType>(Ty) ) {
@@ -573,18 +575,36 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
                      here!");
   }
+  else if (dyn_cast<DependentNameType>(Ty)) {
+    // It's not always the case that we could resolve a dependent name type.
+    // For example, 
+    //   template<typename T1, typename T2>
+    //   struct AAA { typedef T2 new_type; };
+    //   template<typename T3>
+    //   struct BBB : public AAA<int, T3>::new_type { };
+    // In the above code, we can't figure out what new_type refers to 
+    // until BBB is instantiated
+    // Due to this reason, simply return NULL from here.
+    return NULL;
+  }
   else {
     Base = Ty->getAsCXXRecordDecl();
+    TransAssert(Base && "Bad base class type!");
+
+    // getAsCXXRecordDecl could return a ClassTemplateSpecializationDecl.
+    // For example:
+    //   template <class T> class AAA { };
+    //   typedef AAA<int> BBB;
+    //   class CCC : BBB { };
+    // In the above code, BBB is of type ClassTemplateSpecializationDecl
+    if (const ClassTemplateSpecializationDecl *CTSDecl =
+        dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
+      Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
+      TransAssert(Base && 
+                  "Bad base decl from ClassTemplateSpecializationDecl!");
+    }
   }
 
-  TransAssert(Base && "Bad base class type!");
-
-  if (const ClassTemplateSpecializationDecl *CTSDecl =
-      dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
-    Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
-    TransAssert(Base && 
-                "Bad base decl from ClassTemplateSpecializationDecl!");
-  }
   return Base;
 }
 
@@ -611,11 +631,20 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
       const CXXBaseSpecifier *BS = I;
       const Type *Ty = BS->getType().getTypePtr();
       const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+      unsigned BaseLevel;
 
-      RecordToInheritanceLevelMap::iterator LI = 
-        RecordToLevel.find(Base->getCanonicalDecl());
-      TransAssert((LI != RecordToLevel.end()) && "Unknown base class!");
-      unsigned BaseLevel = (*LI).second;
+      if (Base) {
+        RecordToInheritanceLevelMap::iterator LI = 
+          RecordToLevel.find(Base->getCanonicalDecl());
+        TransAssert((LI != RecordToLevel.end()) && "Unknown base class!");
+        BaseLevel = (*LI).second;
+      }
+      else {
+        // If cannot find CXXRD's base class, then we assume its base class
+        // has the level of 0
+        BaseLevel = 0;
+      }
+
       if (BaseLevel > Level)
         Level = BaseLevel;
     }
