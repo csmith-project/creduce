@@ -23,6 +23,7 @@ namespace clang {
   class ASTContext;
   class CXXRecordDecl;
   class Type;
+  class TemplateSpecializationType;
 }
 
 class RenameClassASTVisitor;
@@ -97,6 +98,9 @@ private:
   void rewriteClassName(const clang::CXXRecordDecl *RD,
                         clang::NestedNameSpecifier *NNS,
                         clang::NestedNameSpecifierLoc Loc);
+
+  const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
+        const clang::TemplateSpecializationType *TSTy);
 
   RecordToInheritanceLevelMap RecordToLevel;
 

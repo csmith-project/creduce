@@ -554,19 +554,25 @@ bool RenameClass::isValidName(const std::string &Name)
   return (((C >= 'A') || (C <= 'Z')) && !isReservedName(C));
 }
 
+const CXXRecordDecl *RenameClass::getBaseDeclFromTemplateSpecializationType(
+        const TemplateSpecializationType *TSTy)
+{
+  TemplateName TplName = TSTy->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+  return dyn_cast<CXXRecordDecl>(ND);
+}
+
 // Could return NULL if Ty is a DependentNameType
 const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
 {
   const CXXRecordDecl *Base = NULL;
 
-  if ( const TemplateSpecializationType *TST = 
+  if ( const TemplateSpecializationType *TSTy = 
        dyn_cast<TemplateSpecializationType>(Ty) ) {
-    TemplateName TplName = TST->getTemplateName();
-    const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-    TransAssert(TplD && "Invalid TemplateDecl!");
-    NamedDecl *ND = TplD->getTemplatedDecl();
-    TransAssert(ND && "Invalid NamedDecl!");
-    Base = dyn_cast<CXXRecordDecl>(ND);
+    Base = getBaseDeclFromTemplateSpecializationType(TSTy);
     TransAssert(Base && "Bad base class type!");
   }
   else if ( const DependentTemplateSpecializationType *DTST = 
@@ -574,6 +580,17 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     (void)DTST;
     TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
                      here!");
+  }
+  else if ( const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty) ) {
+    const Type *NamedT = ETy->getNamedType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(NamedT) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else {
+      Base = Ty->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from ElaboratedType!");
   }
   else if (dyn_cast<DependentNameType>(Ty)) {
     // It's not always the case that we could resolve a dependent name type.
