@@ -554,6 +554,40 @@ bool RenameClass::isValidName(const std::string &Name)
   return (((C >= 'A') || (C <= 'Z')) && !isReservedName(C));
 }
 
+const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
+{
+  const CXXRecordDecl *Base;
+
+  if ( const TemplateSpecializationType *TST = 
+       dyn_cast<TemplateSpecializationType>(Ty) ) {
+    TemplateName TplName = TST->getTemplateName();
+    const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+    TransAssert(TplD && "Invalid TemplateDecl!");
+    NamedDecl *ND = TplD->getTemplatedDecl();
+    TransAssert(ND && "Invalid NamedDecl!");
+    Base = dyn_cast<CXXRecordDecl>(ND);
+  }
+  else if ( const DependentTemplateSpecializationType *DTST = 
+            dyn_cast<DependentTemplateSpecializationType>(Ty) ) {
+    (void)DTST;
+    TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
+                     here!");
+  }
+  else {
+    Base = Ty->getAsCXXRecordDecl();
+  }
+
+  TransAssert(Base && "Bad base class type!");
+
+  if (const ClassTemplateSpecializationDecl *CTSDecl =
+      dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
+    Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
+    TransAssert(Base && 
+                "Bad base decl from ClassTemplateSpecializationDecl!");
+  }
+  return Base;
+}
+
 void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
 {
   if (isSpecialRecordDecl(CXXRD))
@@ -575,35 +609,8 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
          CanonicalRD->bases_begin(), E = CanonicalRD->bases_end(); I != E; ++I) {
 
       const CXXBaseSpecifier *BS = I;
-      const Type *T = BS->getType().getTypePtr();
-      const CXXRecordDecl *Base;
-      if ( const TemplateSpecializationType *TST = 
-           dyn_cast<TemplateSpecializationType>(T) ) {
-        TemplateName TplName = TST->getTemplateName();
-        const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-        TransAssert(TplD && "Invalid TemplateDecl!");
-        NamedDecl *ND = TplD->getTemplatedDecl();
-        TransAssert(ND && "Invalid NamedDecl!");
-        Base = dyn_cast<CXXRecordDecl>(ND);
-      }
-      else if ( const DependentTemplateSpecializationType *DTST = 
-                dyn_cast<DependentTemplateSpecializationType>(T) ) {
-        (void)DTST;
-        TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
-                         here!");
-      }
-      else {
-        Base = T->getAsCXXRecordDecl();
-      }
-
-      TransAssert(Base && "Bad base class type!");
-
-      if (const ClassTemplateSpecializationDecl *CTSDecl =
-          dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
-        Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
-        TransAssert(Base && 
-                    "Bad base decl from ClassTemplateSpecializationDecl!");
-      }
+      const Type *Ty = BS->getType().getTypePtr();
+      const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
 
       RecordToInheritanceLevelMap::iterator LI = 
         RecordToLevel.find(Base->getCanonicalDecl());
@@ -644,6 +651,5 @@ RenameClass::~RenameClass(void)
     delete CollectionVisitor;
   if (RewriteVisitor)
     delete RewriteVisitor;
-
 }
 

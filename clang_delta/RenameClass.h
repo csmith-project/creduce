@@ -22,6 +22,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class CXXRecordDecl;
+  class Type;
 }
 
 class RenameClassASTVisitor;
@@ -90,6 +91,8 @@ private:
   bool getNewName(const clang::CXXRecordDecl *CXXRD, std::string &NewName);
 
   bool getNewNameByName(const std::string &Name, std::string &NewName);
+
+  const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
 
   void rewriteClassName(const clang::CXXRecordDecl *RD,
                         clang::NestedNameSpecifier *NNS,
