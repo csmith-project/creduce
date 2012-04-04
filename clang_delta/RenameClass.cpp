@@ -166,7 +166,6 @@ bool RenameClassRewriteVisitor::VisitInjectedClassNameTypeLoc(
       LocStart, CXXRD->getNameAsString().size(), Name);
   }
   return true;
-  return true;
 }
 
 bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
