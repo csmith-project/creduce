@@ -151,15 +151,17 @@ bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
 
 bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
 {
-  const CXXMethodDecl *MD = CE->getMethodDecl();
-  const DeclContext *Ctx = MD->getDeclContext();
-  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
-  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+  const CXXRecordDecl *CXXRD = CE->getRecordDecl();
+  // getRecordDEcl could return NULL if getImplicitObjectArgument() 
+  // returns NULL
+  if (!CXXRD)
+    return true;
 
   std::string Name;
   if (!ConsumerInstance->getNewName(CXXRD, Name))
     return true;
 
+  const CXXMethodDecl *MD = CE->getMethodDecl();
   const CXXDestructorDecl *DtorDecl = dyn_cast<CXXDestructorDecl>(MD);
   if (!DtorDecl)
     return true;
