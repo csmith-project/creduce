@@ -250,7 +250,18 @@ bool RenameClassRewriteVisitor::VisitTemplateSpecializationTypeLoc(
   const TemplateDecl *TplD = TplName.getAsTemplateDecl();
   TransAssert(TplD && "Invalid TemplateDecl!");
   NamedDecl *ND = TplD->getTemplatedDecl();
-  TransAssert(ND && "Invalid NamedDecl!");
+  // in some cases, ND could be NULL, e.g., the 
+  // template template parameter code below:
+  // template<template<class> class BBB>
+  // struct AAA {
+  //   template <class T>
+  //   struct CCC {
+  //     static BBB<T> a;
+  //   };
+  // };
+  // where we don't know BBB
+  if (!ND)
+    return true;
 
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
   if (!CXXRD)
