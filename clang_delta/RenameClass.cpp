@@ -62,6 +62,8 @@ public:
 
   bool VisitCXXMemberCallExpr(CXXMemberCallExpr *CE);
 
+  bool VisitInjectedClassNameTypeLoc(InjectedClassNameTypeLoc TyLoc);
+
   bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
 
   bool VisitTemplateSpecializationTypeLoc(
@@ -146,6 +148,24 @@ bool RenameClassRewriteVisitor::VisitCXXDestructorDecl(
     ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
   }
 
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitInjectedClassNameTypeLoc(
+       InjectedClassNameTypeLoc TyLoc)
+{
+  const CXXRecordDecl *CXXRD = TyLoc.getDecl();
+  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TyLoc.getLocStart();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+  return true;
   return true;
 }
 
