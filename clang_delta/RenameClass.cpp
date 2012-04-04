@@ -565,7 +565,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromTemplateSpecializationType(
   return dyn_cast<CXXRecordDecl>(ND);
 }
 
-// Could return NULL if Ty is a DependentNameType
+// This function could return NULL
 const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
 {
   const CXXRecordDecl *Base = NULL;
@@ -633,6 +633,14 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
     TransAssert(Base && "Bad base class type from Typedef!");
   }
 
+  case Type::TemplateTypeParm: {
+    // Yet another case we might not know the base class, e.g.,
+    // template<typename T1> 
+    // class AAA {
+    //   struct BBB : T1 {};
+    // };
+    return NULL;
+  }
   default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");
