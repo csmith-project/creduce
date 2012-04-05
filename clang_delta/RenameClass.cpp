@@ -82,6 +82,9 @@ public:
 
   bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
 
+  bool VisitClassTemplatePartialSpecializationDecl(
+         ClassTemplatePartialSpecializationDecl *D);
+
 private:
   RenameClass *ConsumerInstance;
 
@@ -90,6 +93,38 @@ private:
 bool RenameClassASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 {
   ConsumerInstance->analyzeOneRecordDecl(CXXRD);
+  return true;
+}
+
+bool RenameClassRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
+       ClassTemplatePartialSpecializationDecl *D)
+{
+  const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
+  TransAssert(Ty && "Bad TypePtr!");
+  const TemplateSpecializationType *TST = 
+    dyn_cast<TemplateSpecializationType>(Ty);
+  TransAssert(TST && "Bad TemplateSpecializationType!");
+
+  TemplateName TplName = TST->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    const TypeSourceInfo *TyInfo = D->getTypeAsWritten();
+    if (!TyInfo)
+      return true;
+    TypeLoc TyLoc = TyInfo->getTypeLoc();
+    SourceLocation LocStart = TyLoc.getLocStart();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
   return true;
 }
 
@@ -697,6 +732,10 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
 void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
 {
   if (isSpecialRecordDecl(CXXRD))
+    return;
+
+  // Avoid duplication
+  if (dyn_cast<ClassTemplatePartialSpecializationDecl>(CXXRD))
     return;
 
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
