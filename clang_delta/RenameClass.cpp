@@ -738,6 +738,9 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
   if (dyn_cast<ClassTemplatePartialSpecializationDecl>(CXXRD))
     return;
 
+  if (CXXRD->getNameAsString().empty())
+    return;
+
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
   if (RecordToLevel.find(CanonicalRD) != RecordToLevel.end())
     return;
