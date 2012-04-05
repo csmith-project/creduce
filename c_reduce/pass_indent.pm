@@ -20,7 +20,7 @@ sub check_prereqs () {
     return defined ($path1) && defined ($path2);
 }
 
-sub reset () {
+sub reset ($$) {
     $which = 0;
     $index = 0;
 }

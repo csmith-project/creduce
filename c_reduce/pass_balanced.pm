@@ -16,7 +16,7 @@ sub check_prereqs () {
 
 my $pos;
 
-sub reset () {
+sub reset ($$) {
     $pos = 0;
 }
 

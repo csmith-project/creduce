@@ -15,7 +15,7 @@ sub check_prereqs () {
 my $index;
 my $index2;
 
-sub reset () {
+sub reset ($$) {
     $index = 0;
     $index2 = 0;
 }

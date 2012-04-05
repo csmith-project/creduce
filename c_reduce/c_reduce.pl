@@ -117,11 +117,11 @@ sub call_prereq_check ($) {
     print "successfully checked prereqs for $method\n" unless $QUIET;
 }
 
-sub call_reset ($) {
-    (my $method) = @_;    
+sub call_reset ($$$) {
+    (my $method,my $fn,my $arg) = @_;    
     my $str = $method."::reset";
     no strict "refs";
-    &${str}();
+    &${str}($fn,$arg);
 }
 
 sub call_advance ($$) {
@@ -152,7 +152,7 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    call_reset ($delta_method);
+    call_reset ($delta_method,$cfile,$delta_arg);
 
     while (1) {
 
