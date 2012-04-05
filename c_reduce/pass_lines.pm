@@ -29,7 +29,7 @@ sub reset ($$) {
     my $tmpfile = POSIX::tmpnam();
     system "topformflat $arg < $cfile > $tmpfile";
     system "mv $tmpfile $cfile";	
-    $index = count_lines($cfile)+1;
+    $index = count_lines($cfile);
     $chunk_size = $index;
 }
 
@@ -61,7 +61,7 @@ sub transform ($$) {
     }
     close INF;
     close OUTF;
-
+    
     # print "chunk= $chunk_size, index= $index, did_something= $did_something\n";
 
     if ($did_something) {
@@ -70,7 +70,7 @@ sub transform ($$) {
 	system "rm $tmpfile";
 	return $STOP if ($chunk_size == 1);
 	$chunk_size = round ($chunk_size / 2.0);
-	$index = count_lines($cfile)+1;
+	$index = count_lines($cfile);
     }
 
     return $SUCCESS;

@@ -146,7 +146,7 @@ sub delta_pass ($) {
     $bad_cnt = 0;
 
     print "\n" unless $QUIET;
-    print "========== <$delta_method :: $delta_arg> ==========\n";
+    print "===< $delta_method :: $delta_arg >===\n";
 
     if ($SANITY) {
 	sanity_check();
