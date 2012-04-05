@@ -24,6 +24,8 @@ my $SANITY = 1;
 # if you don't want to see it)
 my $QUIET = 1;
 
+my $SPINNER = 1;
+
 ######################################################################
 
 my $orig_file_size;
@@ -63,6 +65,17 @@ sub sanity_check () {
 my %cache = ();
 my $cache_hits = 0;
 
+my $cur_key = 0;
+sub spinner() {
+    my @chars = ("-", "\\", "|", "/");
+    my $backsp = "\b";
+    if ($cur_key == @chars) {
+	$cur_key = 0;
+    }
+    print $backsp . $chars[$cur_key];
+    $cur_key++;
+}
+
 # global invariant: the delta test always succeeds for $cfile.bak
 sub delta_test ($$) {
     (my $method, my $arg) = @_;
@@ -72,17 +85,21 @@ sub delta_test ($$) {
     print "[$pass_num $method :: $arg s:$good_cnt f:$bad_cnt] " 
 	unless $QUIET;
 
+    if ($SPINNER) {
+	spinner();
+    }
+
     my $result = $cache{$len}{$prog};
 
     if (defined($result)) {
 	$cache_hits++;
-	print "(hit) " unless $QUIET;
     } else {    
 	$result = run_test ();
 	$cache{$len}{$prog} = $result;
     }
     
     if ($result) {
+	print "\b" if $SPINNER;
 	print "success " unless $QUIET;
 	print_pct(-s $cfile);
 	system "cp $cfile $cfile.bak";
@@ -99,6 +116,7 @@ sub delta_test ($$) {
 	$old_size = $size;
 	return 1;
     } else {
+	print "\b" if $SPINNER;
 	print "failure\n" unless $QUIET;
 	system "cp $cfile.bak $cfile";
 	$bad_cnt++;
