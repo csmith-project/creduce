@@ -285,6 +285,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 208,  },
     { "name" => "pass_clang",    "arg" => "rename-param",                          "last_pass_pri" => 209,  },
     { "name" => "pass_clang",    "arg" => "rename-var",                            "last_pass_pri" => 210,  },
+    { "name" => "pass_clang",    "arg" => "rename-class",                          "last_pass_pri" => 211,  },
     { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 211,  },
     { "name" => "pass_clang",    "arg" => "return-void",            "pri" => 212,  },
     { "name" => "pass_clang",    "arg" => "simple-inliner",         "pri" => 213,  },
