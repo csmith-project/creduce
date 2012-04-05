@@ -2,6 +2,9 @@
 
 rm -f out*.txt
 
+ulimit -t 1
+ulimit -v 2000000
+
 if 
   gcc -c -Wall -Wextra -O2 small.c  >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
@@ -11,6 +14,8 @@ if
   ! grep 'ordered comparison of pointer with integer' outa.txt &&\
   ! grep 'declaration does not declare anything' outa.txt &&\
   ! grep 'expects type' outa.txt &&\
+  ! grep 'assumed to have one element' outa.txt &&\
+  ! grep 'division by zero' outa.txt &&\
   ! grep 'pointer from integer' outa.txt &&\
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
