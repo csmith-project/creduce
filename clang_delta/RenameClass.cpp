@@ -597,8 +597,9 @@ bool RenameClass::doAnalysis(void)
       if (!matchCurrentName(RDName)) {
         incValidInstance(CXXRD);
       }
-
-      incCurrentName();
+      else {
+        incCurrentName();
+      }
     }
   }
 
