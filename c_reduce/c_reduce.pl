@@ -17,14 +17,28 @@ use creduce_utils;
 ######################################################################
 
 # if set, ensure the delta test succeeds before starting each pass
-my $SANITY = 1;
+my $SANITY = 0;
 
 # if set, don't print a lot of stuff
-# (there's no "real quiet" option -- just redirect output to /dev/null
-# if you don't want to see it)
+# (there's no "extra quiet" option -- just redirect output to
+# /dev/null if you're not interested)
 my $QUIET = 1;
 
+# if set, show a nice ascii spinner that tells us how quickly failing
+# delta tests are happening
 my $SPINNER = 1;
+
+# if set, show what each transformation did
+my $DIFFS = 0;
+
+# may detect non-deterministic test and bugs in cache logic
+my $PARANOID = 0;
+
+# save all variants
+my $SAVE_COPIES = 0;
+
+# if set, cache results (recommended)
+my $CACHE = 1;
 
 ######################################################################
 
@@ -64,6 +78,7 @@ sub sanity_check () {
 
 my %cache = ();
 my $cache_hits = 0;
+my $test_cnt = 0;
 
 my $cur_key = 0;
 sub spinner() {
@@ -77,6 +92,7 @@ sub spinner() {
 }
 
 # global invariant: the delta test always succeeds for $cfile.bak
+
 sub delta_test ($$) {
     (my $method, my $arg) = @_;
     my $prog = read_file($cfile);
@@ -89,24 +105,37 @@ sub delta_test ($$) {
 	spinner();
     }
 
-    my $result = $cache{$len}{$prog};
+    my $result;
+    if ($CACHE) {
+	$result = $cache{$len}{$prog};
+    }
 
     if (defined($result)) {
 	$cache_hits++;
     } else {    
 	$result = run_test ();
-	$cache{$len}{$prog} = $result;
+	if ($CACHE) {
+	    $cache{$len}{$prog} = $result;
+	}
     }
+
+    $test_cnt++;
+    my $ret;
     
     if ($result) {
 	print "\b" if $SPINNER;
+	if ($SAVE_COPIES) {
+	    my $FN = "$cfile-paranoid-${test_cnt}-good";
+	    print "saving paranoid file $FN\n";
+	    system "cp $cfile $FN";	 
+	}
 	print "success " unless $QUIET;
 	print_pct(-s $cfile);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
 	$method_worked{$method}{$arg}++;
 	my $size = length ($prog);
-	if ($size < $old_size) {
+	if ($CACHE && ($size < $old_size)) {
 	    foreach my $k (keys %cache) {
 		if ($k > ($size + 5000)) {
 		    $cache{$k} = ();
@@ -114,15 +143,27 @@ sub delta_test ($$) {
 	    }
 	}
 	$old_size = $size;
-	return 1;
+	$ret = 1;
     } else {
 	print "\b" if $SPINNER;
+	if ($SAVE_COPIES) {
+	    my $FN = "$cfile-paranoid-${test_cnt}-bad";
+	    print "saving paranoid file $FN\n";
+	    system "cp $cfile $FN";	 
+	}
 	print "failure\n" unless $QUIET;
 	system "cp $cfile.bak $cfile";
 	$bad_cnt++;
 	$method_failed{$method}{$arg}++;
-	return 0;
+	$ret = 0;
     }
+
+    if ($PARANOID) {
+	my $result = run_test ();
+	die "paranoid failure" unless ($result);
+    }
+
+    return $ret;
 }
 
 sub call_prereq_check ($) {
@@ -176,17 +217,9 @@ sub delta_pass ($) {
 
 	my $res = call_method ($delta_method,$cfile,$delta_arg);
 	return if ($res == $STOP);
-	die unless ($res == $SUCCESS ||
-		    $res == $FAILURE);
-	
-	# system "diff ${cfile}.bak $cfile";
-
-	if ($res == $SUCCESS) {
-	    call_advance ($delta_method,$delta_arg) unless delta_test ($delta_method, $delta_arg);
-	} else {
-	    call_advance ($delta_method,$delta_arg);
-	}
-
+	die unless ($res == $SUCCESS);
+	system "diff ${cfile}.bak $cfile" if $DIFFS;
+	call_advance ($delta_method,$delta_arg) unless delta_test ($delta_method, $delta_arg);
     }
 }
 

@@ -4,11 +4,10 @@ package creduce_utils;
 
 use Exporter::Lite;
 
-@EXPORT      = qw(read_file write_file $SUCCESS $FAILURE $STOP
+@EXPORT      = qw(read_file write_file $SUCCESS $STOP
                   $replace_cont replace_aux runit $matched);
 
 $SUCCESS = 999999;
-$FAILURE = 101010;
 $STOP = 111333;
 
 sub runit ($) {
