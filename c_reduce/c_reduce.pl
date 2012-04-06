@@ -93,8 +93,8 @@ sub spinner() {
 
 # global invariant: the delta test always succeeds for $cfile.bak
 
-sub delta_test ($$) {
-    (my $method, my $arg) = @_;
+sub delta_test ($$$) {
+    (my $method, my $arg, my $state) = @_;
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
@@ -176,25 +176,25 @@ sub call_prereq_check ($) {
     print "successfully checked prereqs for $method\n" unless $QUIET;
 }
 
-sub call_reset ($$$) {
+sub call_new ($$$) {
     (my $method,my $fn,my $arg) = @_;    
-    my $str = $method."::reset";
+    my $str = $method."::new";
     no strict "refs";
-    &${str}($fn,$arg);
+    return &${str}($fn,$arg);
 }
 
-sub call_advance ($$) {
-    (my $method,my $arg) = @_;    
+sub call_advance ($$$$) {
+    (my $method,my $fn,my $arg,my $state) = @_;    
     my $str = $method."::advance";
     no strict "refs";
-    &${str}($arg);
+    return &${str}($fn,$arg,$state);
 }
 
-sub call_method ($$$) {
-    my ($method,$fn,$arg) = @_;    
+sub call_method ($$$$) {
+    (my $method,my $fn,my $arg,my $state) = @_;    
     my $str = $method."::transform";
     no strict "refs";
-    &${str}($fn,$arg);
+    return &${str}($fn,$arg,$state);
 }
 
 sub delta_pass ($) {
@@ -211,15 +211,16 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    call_reset ($delta_method,$cfile,$delta_arg);
+    my $state = call_new ($delta_method,$cfile,$delta_arg);
 
     while (1) {
 
-	my $res = call_method ($delta_method,$cfile,$delta_arg);
+	(my $res, $state) = call_method ($delta_method,$cfile,$delta_arg,$state);
 	return if ($res == $STOP);
 	die unless ($res == $OK);
 	system "diff ${cfile}.bak $cfile" if $DIFFS;
-	call_advance ($delta_method,$delta_arg) unless delta_test ($delta_method, $delta_arg);
+	$state = call_advance ($delta_method,$cfile,$delta_arg,$state) 
+	    unless delta_test ($delta_method, $delta_arg, $state);
     }
 }
 

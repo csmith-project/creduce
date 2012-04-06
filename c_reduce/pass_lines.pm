@@ -21,20 +21,22 @@ sub check_prereqs () {
     return defined ($path);
 }
 
-my $index;
-my $chunk_size;
-
-sub reset ($$) {
+sub new ($$) {
     (my $cfile, my $arg) = @_;
     my $tmpfile = POSIX::tmpnam();
     system "topformflat $arg < $cfile > $tmpfile";
     system "mv $tmpfile $cfile";	
-    $index = count_lines($cfile);
-    $chunk_size = $index;
+    my %sh;
+    $sh{"index"} = count_lines($cfile);
+    $sh{"chunk"} = $sh{"index"};
+    return \%sh;
 }
 
-sub advance () {
-    $index -= $chunk_size;
+sub advance ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my %sh = %{$state};
+    $sh{"index"} -= $sh{"chunk"};
+    return \%sh;
 }
 
 sub round ($) {
@@ -42,8 +44,9 @@ sub round ($) {
     return int ($n+0.5);
 }
 
-sub transform ($$) {
-    (my $cfile, my $arg) = @_;
+sub transform ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my %sh = %{$state};
 
     my $n=0;
     my $did_something=0;
@@ -51,8 +54,8 @@ sub transform ($$) {
     open INF, "<$cfile" or die;
     open OUTF, ">$tmpfile" or die;
     while (my $line = <INF>) {
-	if ($n < ($index - $chunk_size) ||
-	    $n >= $index) {
+	if ($n < ($sh{"index"} - $sh{"chunk"}) ||
+	    $n >= $sh{"index"}) {
 	    print OUTF $line;
 	} else {
 	    $did_something++;
@@ -62,18 +65,18 @@ sub transform ($$) {
     close INF;
     close OUTF;
     
-    # print "chunk= $chunk_size, index= $index, did_something= $did_something\n";
+    # print "chunk= $sh{"chunk"}, index= $sh{"index"}, did_something= $did_something\n";
 
     if ($did_something) {
 	system "mv $tmpfile $cfile";
     } else {
 	system "rm $tmpfile";
-	return $STOP if ($chunk_size == 1);
-	$chunk_size = round ($chunk_size / 2.0);
-	$index = count_lines($cfile);
+	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
+	$sh{"chunk"} = round ($sh{"chunk"} / 2.0);
+	$sh{"index"} = count_lines($cfile);
     }
 
-    return $OK;
+    return ($OK, \%sh);
 }
 
 1;

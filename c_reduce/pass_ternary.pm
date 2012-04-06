@@ -14,18 +14,21 @@ sub check_prereqs () {
     return 1;
 }
 
-my $index;
-
-sub reset ($$) {
-    $index = 0;
+sub new ($$) {
+    my $index = 0;
+    return \$index;
 }
 
-sub advance () {
+sub advance ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my $index = ${$state};
     $index++;
+    return \$index;
 }
 
-sub transform ($$) {
-    (my $cfile, my $which) = @_;
+sub transform ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my $index = ${$state};
 
     my $prog = read_file ($cfile);
     my $prog2 = $prog;
@@ -41,9 +44,9 @@ sub transform ($$) {
 
     if ($prog ne $prog2) {
 	write_file ($cfile, $prog2);
-	return $OK;
+	return ($OK, \$state);
     } else {
-	return $STOP;
+	return ($STOP, \$state);
     }
 }
 

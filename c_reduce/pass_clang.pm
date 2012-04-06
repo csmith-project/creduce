@@ -14,28 +14,30 @@ sub check_prereqs () {
     return defined ($path);
 }
 
-my $index;
-
-sub reset ($$) {
-    $index = 1;
+sub new ($$) {
+    my $index = 1;
+    return \$index;
 }
 
-sub advance () {
+sub advance ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my $index = ${$state};
     $index++;
+    return \$index;
 }
 
-sub transform ($$) {
-    (my $cfile, my $which) = @_;
-
+sub transform ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my $index = ${$state};
     my $tmpfile = POSIX::tmpnam();
     my $cmd = "clang_delta --transformation=$which --counter=$index $cfile > $tmpfile";
     my $res = runit ($cmd);
     if ($res==0) {
 	system "mv $tmpfile $cfile";
-	return $OK;
+	return ($OK, \$index);
     } else {
 	system "rm $tmpfile";
-	return $STOP;
+	return ($STOP, \$index);
     }    
 }
 

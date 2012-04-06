@@ -14,14 +14,16 @@ sub check_prereqs () {
     return 1;
 }
 
-my $pos;
-
-sub reset ($$) {
-    $pos = 0;
+sub new ($$) {
+    my $pos = 0;
+    return \$pos;
 }
 
-sub advance () {
+sub advance ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my $pos = ${$state};
     $pos++;
+    return \$pos;
 }
 
 sub remove_outside ($) 
@@ -41,9 +43,10 @@ sub remove_outside ($)
 # trying to get nested matches out of Perl's various utilities for
 # matching balanced delimiters, with no success
 
-sub transform ($$) {
-    (my $cfile, my $arg) = @_;
+sub transform ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
 
+    my $pos = ${$state};
     my $prog = read_file ($cfile);
 
     while (1) {
@@ -71,11 +74,11 @@ sub transform ($$) {
 	if ($rest ne $rest2) {
 	    my $prog2 = $first.$rest2;
 	    write_file ($cfile, $prog2);
-	    return $OK;
+	    return ($OK, \$pos);
 	}
 	$pos++;
 	if ($pos > length($prog)) {
-	    return $STOP;
+	    return ($STOP, \$pos);
 	}
     }
 }
