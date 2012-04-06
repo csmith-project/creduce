@@ -28,6 +28,9 @@ if
   ! grep 'invalid in C99' out.txt &&\
   ! grep 'specifies type' out.txt &&\
   ! grep 'should return a value' out.txt &&\
+  ! grep 'too few argument' out.txt &&\
+  ! grep 'too many argument' out.txt &&\
+  ! grep "return type of 'main" out.txt &&\
   ! grep 'uninitialized' out.txt &&\
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
