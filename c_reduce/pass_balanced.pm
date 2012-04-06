@@ -71,7 +71,7 @@ sub transform ($$) {
 	if ($rest ne $rest2) {
 	    my $prog2 = $first.$rest2;
 	    write_file ($cfile, $prog2);
-	    return $SUCCESS;
+	    return $OK;
 	}
 	$pos++;
 	if ($pos > length($prog)) {

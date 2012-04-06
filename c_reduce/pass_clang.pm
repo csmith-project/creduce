@@ -32,7 +32,7 @@ sub transform ($$) {
     my $res = runit ($cmd);
     if ($res==0) {
 	system "mv $tmpfile $cfile";
-	return $SUCCESS;
+	return $OK;
     } else {
 	system "rm $tmpfile";
 	return $STOP;

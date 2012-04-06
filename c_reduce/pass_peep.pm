@@ -82,7 +82,7 @@ sub transform ($$) {
 		$prog2 = $first.$rest;
 		if ($prog ne $prog2) {
 		    write_file ($cfile, $prog2);
-		    return $SUCCESS;
+		    return $OK;
 		}
 	    }
 	} elsif ($which eq "b") {
@@ -119,7 +119,7 @@ sub transform ($$) {
 		$prog2 = $first.$rest;
 		if ($prog ne $prog2) {
 		    write_file ($cfile, $prog2);
-		    return $SUCCESS;
+		    return $OK;
 		} 
 	    }
 	} else {

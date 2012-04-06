@@ -40,7 +40,7 @@ sub transform ($$) {
 
     if ($prog ne $prog2) {
 	write_file ($cfile, $prog2);
-	return $SUCCESS;
+	return $OK;
     } else {
 	return $STOP;
     }

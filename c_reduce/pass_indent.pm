@@ -32,13 +32,13 @@ sub transform ($$) {
     } elsif ($arg eq "regular") {
 	system "indent $INDENT_OPTS $cfile";
     } elsif ($arg eq "final") {
-	system "indent -nbad -nbap -nbbb $cfile";
-	system "astyle -A2 -xd -s2 $cfile >/dev/null 2>&1";
+	system "indent $cfile";
+	system "astyle $cfile >/dev/null 2>&1";
     } else {
 	die;
     }
     $which++;
-    return $SUCCESS;
+    return $OK;
 }
 
 1;

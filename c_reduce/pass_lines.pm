@@ -73,7 +73,7 @@ sub transform ($$) {
 	$index = count_lines($cfile);
     }
 
-    return $SUCCESS;
+    return $OK;
 }
 
 1;

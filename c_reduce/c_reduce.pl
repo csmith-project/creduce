@@ -217,7 +217,7 @@ sub delta_pass ($) {
 
 	my $res = call_method ($delta_method,$cfile,$delta_arg);
 	return if ($res == $STOP);
-	die unless ($res == $SUCCESS);
+	die unless ($res == $OK);
 	system "diff ${cfile}.bak $cfile" if $DIFFS;
 	call_advance ($delta_method,$delta_arg) unless delta_test ($delta_method, $delta_arg);
     }
