@@ -20,6 +20,9 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class NamespaceDecl;
+  class NamedDecl;
+  class DeclContext;
+  class UsingDirectiveDecl;
 }
 
 class RemoveNamespaceASTVisitor;
@@ -35,7 +38,10 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
-      TheNamespaceDecl(NULL)
+      TheNamespaceDecl(NULL),
+      NamePrefix("__trans_"),
+      AnonNamePrefix("anon_"),
+      AnonNamespaceCounter(0)
   { }
 
   ~RemoveNamespace(void);
@@ -44,7 +50,7 @@ private:
   
   typedef llvm::SmallPtrSet<const clang::NamespaceDecl *, 15> NamespaceDeclSet;
 
-  typedef llvm::DenseMap<const clang::NamedDecl *, std::string *>
+  typedef llvm::DenseMap<const clang::NamedDecl *, std::string>
             NamedDeclToNameMap;
 
   virtual void Initialize(clang::ASTContext &context);
@@ -59,11 +65,25 @@ private:
 
   void removeNamespace(const clang::NamespaceDecl *ND);
 
+  void handleOneNamedDecl(const clang::NamedDecl *ND, 
+                          const clang::DeclContext *ParentCtx,
+                          const std::string &NamespaceName);
+
+  bool hasNameConflict(const clang::NamedDecl *ND,
+                       const clang::DeclContext *ParentCtx);
+
+  void handleOneUsedNamedDecl(const clang::NamedDecl *UD,
+                              const clang::DeclContext *ParentCtx);
+
+  void handleOneUsingDirectiveDecl(const clang::UsingDirectiveDecl *UD,
+                                   const clang::DeclContext *ParentCtx);
+
   NamespaceDeclSet VisitedND;
 
-  // a mapping from NamedDecls in TheNamespaceDecl to their new names
-  // after TheNamespaceDecl is removed. This map only stores those
-  // NamedDecls which need to be renamed.
+  // a mapping from NamedDecls in TheNamespaceDecl and other namespaces
+  // used in TheNamespaceDecl to their new names after TheNamespaceDecl 
+  // is removed. This map only stores those NamedDecls which need to be 
+  // renamed.
   NamedDeclToNameMap NamedDeclToNewName;
 
   RemoveNamespaceASTVisitor *CollectionVisitor;
@@ -71,6 +91,13 @@ private:
   RemoveNamespaceRewriteVisitor *RewriteVisitor;
 
   const clang::NamespaceDecl *TheNamespaceDecl;
+
+  const std::string NamePrefix;
+
+  // Prefix for anonymous namespaces
+  const std::string AnonNamePrefix;
+
+  unsigned AnonNamespaceCounter;
 
   // Unimplemented
   RemoveNamespace(void);

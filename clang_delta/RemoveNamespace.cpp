@@ -10,6 +10,7 @@
 
 #include "RemoveNamespace.h"
 
+#include <sstream>
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
@@ -114,9 +115,115 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+bool RemoveNamespace::hasNameConflict(const NamedDecl *ND, 
+                                      const DeclContext *ParentCtx)
+{
+  DeclarationName Name = ND->getDeclName();
+  DeclContextLookupConstResult Result = ParentCtx->lookup(Name);
+  return (Result.first != Result.second);
+}
+
+void RemoveNamespace::handleOneUsedNamedDecl(const NamedDecl *ND,
+                                             const DeclContext *ParentCtx)
+{
+  if (!hasNameConflict(ND, ParentCtx))
+    return;
+  
+  const DeclContext *NDCtx = 
+    ND->getDeclContext()->getEnclosingNamespaceContext();
+  TransAssert(NDCtx && "Bad DeclContext!");
+  const NamespaceDecl *NDNamespace = dyn_cast<NamespaceDecl>(NDCtx);
+  TransAssert(NDNamespace && "Bad Namespace!");
+  const IdentifierInfo *IdInfo = ND->getIdentifier();
+  
+  std::string NewName = NDNamespace->getNameAsString();
+  NewName += "::";
+  NewName += IdInfo->getName();
+  NamedDeclToNewName[ND] = NewName;
+}
+
+void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
+                                                  const DeclContext *ParentCtx)
+{
+  const NamespaceDecl *ND = UD->getNominatedNamespace();
+  TransAssert(!ND->isAnonymousNamespace() && 
+              "Cannot have anonymous namespaces!");
+  std::string NamespaceName = ND->getNameAsString();
+
+  for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
+       I != E; ++I) {
+    const NamedDecl *NamedD = dyn_cast<NamedDecl>(*I);
+    if (!NamedD)
+      continue;
+
+    if (!isa<TemplateDecl>(NamedD) && !isa<TypeDecl>(NamedD) && 
+        !isa<ValueDecl>(NamedD))
+      continue;
+
+    if (!hasNameConflict(NamedD, ParentCtx))
+      continue;
+
+    const IdentifierInfo *IdInfo = NamedD->getIdentifier();
+    std::string NewName = ND->getNameAsString();
+    NewName += "::";
+    NewName += IdInfo->getName();
+    NamedDeclToNewName[NamedD] = NewName;
+  }
+}
+
+void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
+                                         const DeclContext *ParentCtx,
+                                         const std::string &NamespaceName)
+{
+  Decl::Kind K = ND->getKind();
+  switch (K) {
+  case Decl::UsingShadow: {
+    const UsingShadowDecl *D = dyn_cast<UsingShadowDecl>(ND);
+    const NamedDecl *ND = D->getTargetDecl();
+    handleOneUsedNamedDecl(ND, ParentCtx);
+    break;
+  }
+
+  case Decl::UsingDirective: {
+    const UsingDirectiveDecl *D = dyn_cast<UsingDirectiveDecl>(ND);
+    handleOneUsingDirectiveDecl(D, ParentCtx);
+    break;
+  }
+
+  default:
+    if (isa<NamespaceAliasDecl>(ND) || isa<TemplateDecl>(ND) ||
+        isa<TypeDecl>(ND) || isa<ValueDecl>(ND)) {
+      if (!hasNameConflict(ND, ParentCtx))
+        break;
+
+      std::string NewName = NamePrefix + NamespaceName;
+      NamedDeclToNewName[ND] = NewName;
+    }
+  }
+}
+
 void RemoveNamespace::addNamedDeclsFromNamespace(const NamespaceDecl *ND)
 {
-  // TODO
+  // We don't care about name-lookup for friend's functions, so just
+  // retrive ParentContext rather than LookupParent
+  const DeclContext *ParentCtx = ND->getParent();
+  std::string NamespaceName;
+
+  if (ND->isAnonymousNamespace()) {
+    std::stringstream TmpSS;
+    TmpSS << AnonNamePrefix << AnonNamespaceCounter;
+    NamespaceName = TmpSS.str();
+    AnonNamespaceCounter++;
+  }
+  else {
+    NamespaceName = ND->getNameAsString();
+  }
+
+  for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
+       I != E; ++I) {
+    if ( const NamedDecl *D = dyn_cast<NamedDecl>(*I) )
+      handleOneNamedDecl(D, ParentCtx, NamespaceName);
+  }
 }
 
 bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
