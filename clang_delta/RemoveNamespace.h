@@ -11,8 +11,10 @@
 #ifndef REMOVE_NAMESPACE_H
 #define REMOVE_NAMESPACE_H
 
+#include <string>
 #include "Transformation.h"
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/DenseMap.h"
 
 namespace clang {
   class DeclGroupRef;
@@ -42,15 +44,27 @@ private:
   
   typedef llvm::SmallPtrSet<const clang::NamespaceDecl *, 15> NamespaceDeclSet;
 
+  typedef llvm::DenseMap<const clang::NamedDecl *, std::string *>
+            NamedDeclToNameMap;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  bool isVisitedCanonicalNamespaceDecl(const clang::NamespaceDecl *ND);
+  void addNamedDeclsFromNamespace(const clang::NamespaceDecl *ND);
+
+  bool handleOneNamespaceDecl(const clang::NamespaceDecl *ND);
+
+  void removeNamespace(const clang::NamespaceDecl *ND);
 
   NamespaceDeclSet VisitedND;
+
+  // a mapping from NamedDecls in TheNamespaceDecl to their new names
+  // after TheNamespaceDecl is removed. This map only stores those
+  // NamedDecls which need to be renamed.
+  NamedDeclToNameMap NamedDeclToNewName;
 
   RemoveNamespaceASTVisitor *CollectionVisitor;
 

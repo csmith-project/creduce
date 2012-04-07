@@ -19,7 +19,8 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg =
-"Remove namespaces. \n";
+"Remove namespaces. This pass tries to remove namespace without \
+introducing name conflicts. \n";
 
 static RegisterTransformation<RemoveNamespace>
          Trans("remove-namespace", DescriptionMsg);
@@ -56,22 +57,17 @@ private:
 
 bool RemoveNamespaceASTVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 {
-  const NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
-  if (ConsumerInstance->isVisitedCanonicalNamespaceDecl(CanonicalND))
-    return true;
-
-  ConsumerInstance->ValidInstanceNum++;
-  if (ConsumerInstance->ValidInstanceNum != 
-      ConsumerInstance->TransformationCounter)
-    return true;
-
-  ConsumerInstance->TheNamespaceDecl = CanonicalND;
+  ConsumerInstance->handleOneNamespaceDecl(ND);
   return true;
 }
 
 bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 {
-  // TODO
+  const NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
+  if (CanonicalND != ConsumerInstance->TheNamespaceDecl)
+    return true;
+
+  ConsumerInstance->removeNamespace(ND);
   return true;
 }
 
@@ -118,13 +114,50 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-bool RemoveNamespace::isVisitedCanonicalNamespaceDecl(const NamespaceDecl *ND)
+void RemoveNamespace::addNamedDeclsFromNamespace(const NamespaceDecl *ND)
 {
-  if (VisitedND.count(ND))
-    return true;
+  // TODO
+}
 
-  VisitedND.insert(ND);
-  return false;
+bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
+{
+  const NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
+  if (VisitedND.count(CanonicalND)) {
+    if (TheNamespaceDecl == CanonicalND) {
+      addNamedDeclsFromNamespace(ND);
+    }
+    return true;
+  }
+
+  VisitedND.insert(CanonicalND);
+  ValidInstanceNum++;
+  if (ValidInstanceNum == TransformationCounter) {
+    TheNamespaceDecl = CanonicalND;
+    addNamedDeclsFromNamespace(ND);
+  }
+  return true;
+}
+
+void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
+{
+  // Remove the right brace first
+  SourceLocation StartLoc = ND->getRBraceLoc();
+  TheRewriter.RemoveText(StartLoc, 1);
+
+  // Then remove name and the left brace
+  StartLoc = ND->getLocStart();
+  TransAssert(StartLoc.isValid() && "Invalid Namespace LocStart!");
+
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  SourceRange NDRange = ND->getSourceRange();
+  int RangeSize = TheRewriter.getRangeSize(NDRange);
+  TransAssert((RangeSize != -1) && "Bad Namespace Range!");
+
+  std::string NDStr(StartBuf, RangeSize);
+  size_t Pos = NDStr.find('{');
+  TransAssert((Pos != std::string::npos) && "Cannot find LBrace!");
+  SourceLocation EndLoc = StartLoc.getLocWithOffset(Pos);
+  TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
 RemoveNamespace::~RemoveNamespace(void)
