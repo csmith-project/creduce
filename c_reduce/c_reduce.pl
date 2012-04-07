@@ -26,7 +26,7 @@ my $QUIET = 1;
 
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening
-my $SPINNER = 1;
+my $SPINNER = 0;
 
 # if set, show what each transformation did
 my $DIFFS = 0;
