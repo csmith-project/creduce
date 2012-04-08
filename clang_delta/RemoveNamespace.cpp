@@ -53,6 +53,8 @@ public:
 
   bool VisitUsingDecl(UsingDecl *D);
 
+  bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -74,10 +76,24 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
   return true;
 }
 
+bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
+       UsingDirectiveDecl *D)
+{
+  if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
+    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+
+  const NamespaceDecl *CanonicalND = 
+    D->getNominatedNamespace()->getCanonicalDecl();
+  
+  if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+  return true;
+}
+
 bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
   if (ConsumerInstance->UselessUsingDecls.count(D))
-    ConsumerInstance->removeUsingDecl(D);
+    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
 
   // check if this UsingDecl refers to the namespaced being removed
   const NestedNameSpecifier *NNS = D->getQualifier();
@@ -88,7 +104,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     const NamespaceDecl *CanonicalND = 
       NNS->getAsNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->removeUsingDecl(D);
+      ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
     break;
   }
 
@@ -97,7 +113,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     const NamespaceDecl *CanonicalND = 
       NAD->getNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->removeUsingDecl(D);
+      ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
     break;
   }
 
@@ -311,8 +327,11 @@ bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
   return true;
 }
 
-void RemoveNamespace::removeUsingDecl(const UsingDecl *D)
+void RemoveNamespace::removeUsingOrUsingDirectiveDecl(const Decl *D)
 {
+  TransAssert((isa<UsingDecl>(D) || isa<UsingDirectiveDecl>(D)) &&
+              "Bad Decl Kind!");
+
   SourceRange Range = D->getSourceRange();
   TransAssert((TheRewriter.getRangeSize(Range) != -1) && 
               "Bad UsingDecl SourceRange!");
