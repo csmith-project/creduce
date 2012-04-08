@@ -123,6 +123,20 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
   return (Result.first != Result.second);
 }
 
+// A using declaration in the removed namespace could cause
+// name conflict, e.g.,
+// namespace NS1 {
+//   void foo(void) {}
+// }
+// namespace NS2 {
+//   using NS1::foo;
+//   void bar() { ... foo(); ... }
+// }
+// void foo() {...}
+// void func() {... foo(); ...}
+// if we remove NS2, then foo() in func() will become ambiguous.
+// In this case, we need to replace the first invocation of foo()
+// with NS1::foo()
 void RemoveNamespace::handleOneUsedNamedDecl(const NamedDecl *ND,
                                              const DeclContext *ParentCtx)
 {
@@ -142,6 +156,9 @@ void RemoveNamespace::handleOneUsedNamedDecl(const NamedDecl *ND,
   NamedDeclToNewName[ND] = NewName;
 }
 
+// For the similar reason as dealing with using declarations,
+// we need to resolve the possible name conflicts introduced by
+// using directives
 void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
                                                   const DeclContext *ParentCtx)
 {
