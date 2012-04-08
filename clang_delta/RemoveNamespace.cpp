@@ -81,21 +81,19 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 
   // check if this UsingDecl refers to the namespaced being removed
   const NestedNameSpecifier *NNS = D->getQualifier();
-  const NestedNameSpecifier *Prefix = NNS->getPrefix();
-  TransAssert(Prefix && "Bad Prefix from a NestedNameSpecifier!");
-  NestedNameSpecifier::SpecifierKind Kind = Prefix->getKind();
+  NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
   
   switch (Kind) {
   case NestedNameSpecifier::Namespace: {
     const NamespaceDecl *CanonicalND = 
-      Prefix->getAsNamespace()->getCanonicalDecl();
+      NNS->getAsNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
       ConsumerInstance->removeUsingDecl(D);
     break;
   }
 
   case NestedNameSpecifier::NamespaceAlias: {
-    const NamespaceAliasDecl *NAD = Prefix->getAsNamespaceAlias();
+    const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
     const NamespaceDecl *CanonicalND = 
       NAD->getNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
@@ -108,7 +106,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     break;
 
   default:
-    TransAssert(0 && "Bad NestedNameSpecifier Prefix!");
+    TransAssert(0 && "Bad NestedNameSpecifier!");
   }
   return true;
 }
