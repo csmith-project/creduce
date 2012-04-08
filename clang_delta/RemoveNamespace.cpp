@@ -51,6 +51,8 @@ public:
 
   bool VisitNamespaceDecl(NamespaceDecl *ND);
 
+  bool VisitUsingDecl(UsingDecl *D);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -69,6 +71,45 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
     return true;
 
   ConsumerInstance->removeNamespace(ND);
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
+{
+  if (ConsumerInstance->UselessUsingDecls.count(D))
+    ConsumerInstance->removeUsingDecl(D);
+
+  // check if this UsingDecl refers to the namespaced being removed
+  const NestedNameSpecifier *NNS = D->getQualifier();
+  const NestedNameSpecifier *Prefix = NNS->getPrefix();
+  TransAssert(Prefix && "Bad Prefix from a NestedNameSpecifier!");
+  NestedNameSpecifier::SpecifierKind Kind = Prefix->getKind();
+  
+  switch (Kind) {
+  case NestedNameSpecifier::Namespace: {
+    const NamespaceDecl *CanonicalND = 
+      Prefix->getAsNamespace()->getCanonicalDecl();
+    if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+      ConsumerInstance->removeUsingDecl(D);
+    break;
+  }
+
+  case NestedNameSpecifier::NamespaceAlias: {
+    const NamespaceAliasDecl *NAD = Prefix->getAsNamespaceAlias();
+    const NamespaceDecl *CanonicalND = 
+      NAD->getNamespace()->getCanonicalDecl();
+    if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+      ConsumerInstance->removeUsingDecl(D);
+    break;
+  }
+
+  case NestedNameSpecifier::Global: 
+    // Nothing to do 
+    break;
+
+  default:
+    TransAssert(0 && "Bad NestedNameSpecifier Prefix!");
+  }
   return true;
 }
 
@@ -270,6 +311,11 @@ bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
     addNamedDeclsFromNamespace(ND);
   }
   return true;
+}
+
+void RemoveNamespace::removeUsingDecl(const UsingDecl *D)
+{
+  // TODO
 }
 
 void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)

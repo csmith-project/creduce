@@ -72,6 +72,8 @@ private:
 
   void removeNamespace(const clang::NamespaceDecl *ND);
 
+  void removeUsingDecl(const clang::UsingDecl *D);
+
   void handleOneNamedDecl(const clang::NamedDecl *ND, 
                           const clang::DeclContext *ParentCtx,
                           const std::string &NamespaceName);
