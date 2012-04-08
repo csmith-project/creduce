@@ -315,7 +315,12 @@ bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
 
 void RemoveNamespace::removeUsingDecl(const UsingDecl *D)
 {
-  // TODO
+  SourceRange Range = D->getSourceRange();
+  TransAssert((TheRewriter.getRangeSize(Range) != -1) && 
+              "Bad UsingDecl SourceRange!");
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation EndLoc = RewriteHelper->getEndLocationUntil(Range, ';');
+  TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
 void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
