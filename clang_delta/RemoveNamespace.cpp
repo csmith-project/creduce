@@ -137,9 +137,10 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
 // if we remove NS2, then foo() in func() will become ambiguous.
 // In this case, we need to replace the first invocation of foo()
 // with NS1::foo()
-void RemoveNamespace::handleOneUsedNamedDecl(const NamedDecl *ND,
-                                             const DeclContext *ParentCtx)
+void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
+                                               const DeclContext *ParentCtx)
 {
+  const NamedDecl *ND = UD->getTargetDecl();
   if (!hasNameConflict(ND, ParentCtx))
     return;
   
@@ -154,6 +155,10 @@ void RemoveNamespace::handleOneUsedNamedDecl(const NamedDecl *ND,
   NewName += "::";
   NewName += IdInfo->getName();
   NamedDeclToNewName[ND] = NewName;
+  
+  // the tied UsingDecl becomes useless, and hence it's removable
+  const UsingDecl *D = UD->getUsingDecl();
+  UselessUsingDecls.insert(D);
 }
 
 // For the similar reason as dealing with using declarations,
@@ -167,6 +172,7 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
               "Cannot have anonymous namespaces!");
   std::string NamespaceName = ND->getNameAsString();
 
+  bool Removable = true;
   for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
        I != E; ++I) {
     const NamedDecl *NamedD = dyn_cast<NamedDecl>(*I);
@@ -177,8 +183,10 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
         !isa<ValueDecl>(NamedD))
       continue;
 
-    if (!hasNameConflict(NamedD, ParentCtx))
+    if (!hasNameConflict(NamedD, ParentCtx)) {
+      Removable = false;
       continue;
+    }
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
     std::string NewName = ND->getNameAsString();
@@ -186,6 +194,9 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     NewName += IdInfo->getName();
     NamedDeclToNewName[NamedD] = NewName;
   }
+
+  if (Removable)
+    UselessUsingDirectiveDecls.insert(UD);
 }
 
 void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
@@ -196,8 +207,7 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
   switch (K) {
   case Decl::UsingShadow: {
     const UsingShadowDecl *D = dyn_cast<UsingShadowDecl>(ND);
-    const NamedDecl *ND = D->getTargetDecl();
-    handleOneUsedNamedDecl(ND, ParentCtx);
+    handleOneUsingShadowDecl(D, ParentCtx);
     break;
   }
 

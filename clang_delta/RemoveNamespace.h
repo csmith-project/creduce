@@ -23,6 +23,8 @@ namespace clang {
   class NamedDecl;
   class DeclContext;
   class UsingDirectiveDecl;
+  class UsingShadowDecl;
+  class UsingDecl;
 }
 
 class RemoveNamespaceASTVisitor;
@@ -50,6 +52,11 @@ private:
   
   typedef llvm::SmallPtrSet<const clang::NamespaceDecl *, 15> NamespaceDeclSet;
 
+  typedef llvm::SmallPtrSet<const clang::UsingDecl *, 10> UsingDeclSet;
+
+  typedef llvm::SmallPtrSet<const clang::UsingDirectiveDecl *, 10> 
+            UsingDirectiveDeclSet;
+
   typedef llvm::DenseMap<const clang::NamedDecl *, std::string>
             NamedDeclToNameMap;
 
@@ -72,13 +79,17 @@ private:
   bool hasNameConflict(const clang::NamedDecl *ND,
                        const clang::DeclContext *ParentCtx);
 
-  void handleOneUsedNamedDecl(const clang::NamedDecl *UD,
-                              const clang::DeclContext *ParentCtx);
+  void handleOneUsingShadowDecl(const clang::UsingShadowDecl *UD,
+                                const clang::DeclContext *ParentCtx);
 
   void handleOneUsingDirectiveDecl(const clang::UsingDirectiveDecl *UD,
                                    const clang::DeclContext *ParentCtx);
 
   NamespaceDeclSet VisitedND;
+
+  UsingDeclSet UselessUsingDecls;
+
+  UsingDirectiveDeclSet UselessUsingDirectiveDecls;
 
   // a mapping from NamedDecls in TheNamespaceDecl and other namespaces
   // used in TheNamespaceDecl to their new names after TheNamespaceDecl 
