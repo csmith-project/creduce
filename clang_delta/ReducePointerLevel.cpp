@@ -114,7 +114,7 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 
   // Only consider FieldDecl and VarDecl
   Decl::Kind K = DD->getKind();
-  if (!(K == Decl::Field) && !(K == Decl::Var))
+  if ((K != Decl::Field) && (K != Decl::Var))
     return true;
 
   const Type *Ty = DD->getType().getTypePtr();
@@ -150,10 +150,6 @@ bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
       !dyn_cast<ArraySubscriptExpr>(SubE))
     return true;
 
-/*
-  const DeclaratorDecl *DD = 
-    ConsumerInstance->getCanonicalDeclaratorDecl(SubE);
-*/
   const DeclaratorDecl *DD = 
     ConsumerInstance->getRefDecl(SubE);
   TransAssert(DD && "NULL DD!");
