@@ -230,8 +230,6 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
 
   getQualifierAsString(QualifierLoc, NewName);
-  NewName += NDNamespace->getNameAsString();
-  NewName += "::"; 
   NewName += IdInfo->getName();
   NamedDeclToNewName[ND] = NewName;
   
