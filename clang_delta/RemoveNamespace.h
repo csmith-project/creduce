@@ -94,6 +94,8 @@ private:
   void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
                             std::string &Str);
 
+  bool getNewName(const clang::NamedDecl *ND, std::string &Name);
+
   NamespaceDeclSet VisitedND;
 
   UsingDeclSet UselessUsingDecls;

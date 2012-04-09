@@ -168,12 +168,10 @@ bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
 
 bool RemoveNamespaceRewriteNamespaceVisitor::VisitNamedDecl(NamedDecl *D)
 {
-  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
-    ConsumerInstance->NamedDeclToNewName.find(D);
-  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
+  std::string Name;
+  if (!ConsumerInstance->getNewName(D, Name))
     return true;
 
-  std::string Name = (*Pos).second;
   // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
   // we need a special case for FunctionDecl
   if ( FunctionDecl *FD = dyn_cast<FunctionDecl>(D) ) {
@@ -192,13 +190,9 @@ bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXConstructorDecl
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
-  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
-    ConsumerInstance->NamedDeclToNewName.find(CXXRD->getCanonicalDecl());
-  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
-    return true;
-
-  std::string Name = (*Pos).second;
-  ConsumerInstance->RewriteHelper->replaceFunctionDeclName(CtorDecl, Name);
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name))
+    ConsumerInstance->RewriteHelper->replaceFunctionDeclName(CtorDecl, Name);
 
   return true;
 }
@@ -210,9 +204,8 @@ bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXDestructorDecl(
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
-  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
-    ConsumerInstance->NamedDeclToNewName.find(CXXRD->getCanonicalDecl());
-  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
+  std::string Name;
+  if (!ConsumerInstance->getNewName(CXXRD, Name))
     return true;
 
   // Avoid duplicated VisitDtor. 
@@ -233,7 +226,6 @@ bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXDestructorDecl(
       return true;
   }
 
-  std::string Name;
   Name = "~" + Name;
   ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
 
@@ -482,6 +474,17 @@ void RemoveNamespace::getQualifierAsString(NestedNameSpecifierLoc Loc,
   unsigned Len = Loc.getDataLength();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   Str.assign(StartBuf, Len);
+}
+
+bool RemoveNamespace::getNewName(const NamedDecl *ND, std::string &Name)
+{
+  NamedDeclToNameMap::const_iterator Pos = 
+    NamedDeclToNewName.find(ND);
+  if (Pos == NamedDeclToNewName.end())
+    return false;
+
+  Name = (*Pos).second;
+  return true;
 }
 
 RemoveNamespace::~RemoveNamespace(void)
