@@ -75,6 +75,10 @@ public:
 
   bool VisitNamedDecl(NamedDecl *D);
 
+  bool VisitCXXConstructorDecl(CXXConstructorDecl *CtorDecl);
+
+  bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -178,6 +182,61 @@ bool RemoveNamespaceRewriteNamespaceVisitor::VisitNamedDecl(NamedDecl *D)
   else {
     ConsumerInstance->RewriteHelper->replaceNamedDeclName(D, Name);
   }
+  return true;
+}
+
+bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXConstructorDecl
+       (CXXConstructorDecl *CtorDecl)
+{
+  const DeclContext *Ctx = CtorDecl->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+
+  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
+    ConsumerInstance->NamedDeclToNewName.find(CXXRD->getCanonicalDecl());
+  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
+    return true;
+
+  std::string Name = (*Pos).second;
+  ConsumerInstance->RewriteHelper->replaceFunctionDeclName(CtorDecl, Name);
+
+  return true;
+}
+
+bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXDestructorDecl(
+       CXXDestructorDecl *DtorDecl)
+{
+  const DeclContext *Ctx = DtorDecl->getDeclContext();
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl");
+
+  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
+    ConsumerInstance->NamedDeclToNewName.find(CXXRD->getCanonicalDecl());
+  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
+    return true;
+
+  // Avoid duplicated VisitDtor. 
+  // For example, in the code below:
+  // template<typename T>
+  // class SomeClass {
+  // public:
+  //   ~SomeClass<T>() {}
+  // };
+  // ~SomeClass<T>'s TypeLoc is represented as TemplateSpecializationTypeLoc
+  // In this case, ~SomeClass will be renamed from 
+  // VisitTemplateSpecializationTypeLoc.
+  DeclarationNameInfo NameInfo = DtorDecl->getNameInfo();
+  if ( TypeSourceInfo *TSInfo = NameInfo.getNamedTypeInfo()) {
+    TypeLoc DtorLoc = TSInfo->getTypeLoc();
+    if (!DtorLoc.isNull() && 
+        (DtorLoc.getTypeLocClass() == TypeLoc::TemplateSpecialization))
+      return true;
+  }
+
+  std::string Name;
+  Name = "~" + Name;
+  ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+
   return true;
 }
 
