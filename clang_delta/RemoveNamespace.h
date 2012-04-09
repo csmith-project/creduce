@@ -15,6 +15,7 @@
 #include "Transformation.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/DenseMap.h"
+#include "clang/AST/NestedNameSpecifier.h"
 
 namespace clang {
   class DeclGroupRef;
@@ -86,6 +87,9 @@ private:
 
   void handleOneUsingDirectiveDecl(const clang::UsingDirectiveDecl *UD,
                                    const clang::DeclContext *ParentCtx);
+
+  void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
+                            std::string &Str);
 
   NamespaceDeclSet VisitedND;
 
