@@ -263,7 +263,10 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     }
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
-    std::string NewName = ND->getNameAsString();
+    std::string NewName;
+    NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc();
+
+    getQualifierAsString(QualifierLoc, NewName);
     NewName += "::";
     NewName += IdInfo->getName();
     NamedDeclToNewName[NamedD] = NewName;
@@ -369,6 +372,16 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
   TransAssert((Pos != std::string::npos) && "Cannot find LBrace!");
   SourceLocation EndLoc = StartLoc.getLocWithOffset(Pos);
   TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+void RemoveNamespace::getQualifierAsString(NestedNameSpecifierLoc Loc,
+                                           std::string &Str)
+{
+  SourceLocation StartLoc = Loc.getBeginLoc();
+  TransAssert(StartLoc.isValid() && "Bad StartLoc for NestedNameSpecifier!");
+  unsigned Len = Loc.getDataLength();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  Str.assign(StartBuf, Len);
 }
 
 RemoveNamespace::~RemoveNamespace(void)
