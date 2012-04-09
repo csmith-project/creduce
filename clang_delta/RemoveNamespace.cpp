@@ -64,6 +64,22 @@ private:
 
 };
 
+// A visitor for rewriting decls in the namespace being removed
+class RemoveNamespaceRewriteNamespaceVisitor : public 
+  RecursiveASTVisitor<RemoveNamespaceRewriteNamespaceVisitor> {
+
+public:
+  explicit RemoveNamespaceRewriteNamespaceVisitor(RemoveNamespace *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitNamedDecl(NamedDecl *D);
+
+private:
+  RemoveNamespace *ConsumerInstance;
+
+};
+
 bool RemoveNamespaceASTVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 {
   ConsumerInstance->handleOneNamespaceDecl(ND);
@@ -146,11 +162,18 @@ bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
   return true;
 }
 
+bool RemoveNamespaceRewriteNamespaceVisitor::VisitNamedDecl(NamedDecl *D)
+{
+  // TODO
+  return true;
+}
+
 void RemoveNamespace::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
   CollectionVisitor = new RemoveNamespaceASTVisitor(this);
   RewriteVisitor = new RemoveNamespaceRewriteVisitor(this);
+  NamespaceRewriteVisitor = new RemoveNamespaceRewriteNamespaceVisitor(this);
 }
 
 bool RemoveNamespace::HandleTopLevelDecl(DeclGroupRef D) 
@@ -179,8 +202,11 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
+  TransAssert(NamespaceRewriteVisitor && "NULL NamespaceRewriteVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
+  TransAssert(TheNamespaceDecl && "NULL TheNamespaceDecl!");
+  NamespaceRewriteVisitor->TraverseDecl(TheNamespaceDecl);
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
@@ -335,9 +361,9 @@ void RemoveNamespace::addNamedDeclsFromNamespace(const NamespaceDecl *ND)
   }
 }
 
-bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
+bool RemoveNamespace::handleOneNamespaceDecl(NamespaceDecl *ND)
 {
-  const NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
+  NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
   if (VisitedND.count(CanonicalND)) {
     if (TheNamespaceDecl == CanonicalND) {
       addNamedDeclsFromNamespace(ND);
@@ -392,5 +418,7 @@ RemoveNamespace::~RemoveNamespace(void)
     delete CollectionVisitor;
   if (RewriteVisitor)
     delete RewriteVisitor;
+  if (NamespaceRewriteVisitor)
+    delete NamespaceRewriteVisitor;
 }
 
