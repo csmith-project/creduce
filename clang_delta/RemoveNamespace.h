@@ -97,11 +97,14 @@ private:
 
   UsingDirectiveDeclSet UselessUsingDirectiveDecls;
 
-  // a mapping from NamedDecls in TheNamespaceDecl and other namespaces
-  // used in TheNamespaceDecl to their new names after TheNamespaceDecl 
-  // is removed. This map only stores those NamedDecls which need to be 
-  // renamed.
+  // a mapping from NamedDecls in TheNamespaceDecl used in TheNamespaceDecl
+  // to their new names after TheNamespaceDecl is removed. This map only 
+  // stores those NamedDecls which need to be renamed.
   NamedDeclToNameMap NamedDeclToNewName;
+
+  // a mapping from NamedDecl in other namespaces used in TheNamespaceDecl
+  // to their new names after TheNamespaceDecl is removed.
+  NamedDeclToNameMap UsingNamedDeclToNewName;
 
   RemoveNamespaceASTVisitor *CollectionVisitor;
 

@@ -143,7 +143,6 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
 
 bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
 {
-  // TODO
   return true;
 }
 
@@ -231,7 +230,7 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
 
   getQualifierAsString(QualifierLoc, NewName);
   NewName += IdInfo->getName();
-  NamedDeclToNewName[ND] = NewName;
+  UsingNamedDeclToNewName[ND] = NewName;
   
   // the tied UsingDecl becomes useless, and hence it's removable
   UselessUsingDecls.insert(D);
@@ -272,7 +271,7 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     NewName += NamedD->getNameAsString();
     NewName += "::";
     NewName += IdInfo->getName();
-    NamedDeclToNewName[NamedD] = NewName;
+    UsingNamedDeclToNewName[NamedD] = NewName;
   }
 
   if (Removable)
