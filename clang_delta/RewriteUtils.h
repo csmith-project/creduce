@@ -179,6 +179,9 @@ public:
 
   bool removeDecl(const clang::Decl *D);
 
+  bool replaceNamedDeclName(const clang::NamedDecl *ND,
+                            const std::string &NameStr);
+
 private:
 
   static RewriteUtils *Instance;

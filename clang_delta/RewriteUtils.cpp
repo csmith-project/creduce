@@ -787,6 +787,19 @@ bool RewriteUtils::addStringAfterFuncDecl(const FunctionDecl *FD,
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
+// This function is an experimental one. It doesn't work
+// if ND is a class of FunctionDecl, but I am not sure
+// how it works for other types of NamedDecls
+bool RewriteUtils::replaceNamedDeclName(const NamedDecl *ND,
+                                        const std::string &NameStr)
+{
+  TransAssert(!isa<FunctionDecl>(ND) && 
+    "Please use replaceFunctionDeclName for renaming a FunctionDecl!");
+  SourceLocation NameLocStart = ND->getLocation();
+  return !(TheRewriter->ReplaceText(NameLocStart, 
+             ND->getNameAsString().size(), NameStr));
+}
+
 bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
                                       const std::string &NameStr)
 {
