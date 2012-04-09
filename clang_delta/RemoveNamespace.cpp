@@ -65,6 +65,18 @@ private:
 };
 
 // A visitor for rewriting decls in the namespace being removed
+// ISSUE: quite a lot of functionality could be provided by the
+//        RenameClassRewriteVisitor from RenameClass.cpp. 
+//        I have certain hesitation of factoring out 
+//        RenameClassRewriteVisitor for common uses. 
+//        A couple of reasons:
+//        * RenameClassRewriteVisitor is only suitable for renaming
+//          classes, but here we will be facing more types, e.g., enum.
+//        * RenameClassRewriteVisitor handles one class, but here
+//          we need to rename multiple conflicting classes;
+//        * I don't want to make two transformations interference with
+//          each other
+//        Therefore, we will have some code duplication.
 class RemoveNamespaceRewriteNamespaceVisitor : public 
   RecursiveASTVisitor<RemoveNamespaceRewriteNamespaceVisitor> {
 
