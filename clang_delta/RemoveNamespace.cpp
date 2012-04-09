@@ -136,13 +136,7 @@ void RemoveNamespace::Initialize(ASTContext &context)
 
 bool RemoveNamespace::HandleTopLevelDecl(DeclGroupRef D) 
 {
-  if (TransformationManager::isCLangOpt()) {
-    return true;
-  }
-
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
+  // Nothing to do
   return true;
 }
  
@@ -150,6 +144,11 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (TransformationManager::isCLangOpt()) {
     ValidInstanceNum = 0;
+  }
+  else {
+    // Invoke CollectionVisitor here because we need full DeclContext
+    // to resolve name conflicts. Full ASTs has been built at this point.
+    CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   }
 
   if (QueryInstanceOnly)
