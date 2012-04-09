@@ -177,6 +177,8 @@ public:
 
   bool removeFieldDecl(const clang::FieldDecl *FD);
 
+  bool removeDecl(const clang::Decl *D);
+
 private:
 
   static RewriteUtils *Instance;

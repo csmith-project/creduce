@@ -1225,9 +1225,21 @@ bool RewriteUtils::getFunctionDeclStrAndRemove(const FunctionDecl *FD,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
+// FIXME: probably we don't need this function, because we could use 
+//        removeDecl insteadly
 bool RewriteUtils::removeFieldDecl(const FieldDecl *FD)
 {
   SourceRange Range = FD->getSourceRange();
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation EndLoc = getEndLocationUntil(Range, ';');
+  return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+}
+
+bool RewriteUtils::removeDecl(const Decl *D)
+{
+  SourceRange Range = D->getSourceRange();
+  TransAssert((TheRewriter->getRangeSize(Range) != -1) && 
+              "Bad UsingDecl SourceRange!");
   SourceLocation StartLoc = Range.getBegin();
   SourceLocation EndLoc = getEndLocationUntil(Range, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
