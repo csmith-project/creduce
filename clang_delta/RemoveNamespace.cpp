@@ -51,6 +51,8 @@ public:
 
   bool VisitNamespaceDecl(NamespaceDecl *ND);
 
+  bool VisitNamespaceAliasDecl(NamespaceAliasDecl *D);
+
   bool VisitUsingDecl(UsingDecl *D);
 
   bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
@@ -80,20 +82,20 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
        UsingDirectiveDecl *D)
 {
   if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
-    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+    ConsumerInstance->RewriteHelper->removeDecl(D);
 
   const NamespaceDecl *CanonicalND = 
     D->getNominatedNamespace()->getCanonicalDecl();
   
   if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+    ConsumerInstance->RewriteHelper->removeDecl(D);
   return true;
 }
 
 bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
   if (ConsumerInstance->UselessUsingDecls.count(D))
-    ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+    ConsumerInstance->RewriteHelper->removeDecl(D);
 
   // check if this UsingDecl refers to the namespaced being removed
   const NestedNameSpecifier *NNS = D->getQualifier();
@@ -104,7 +106,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     const NamespaceDecl *CanonicalND = 
       NNS->getAsNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+      ConsumerInstance->RewriteHelper->removeDecl(D);
     break;
   }
 
@@ -113,7 +115,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     const NamespaceDecl *CanonicalND = 
       NAD->getNamespace()->getCanonicalDecl();
     if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->removeUsingOrUsingDirectiveDecl(D);
+      ConsumerInstance->RewriteHelper->removeDecl(D);
     break;
   }
 
@@ -124,6 +126,16 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
   default:
     TransAssert(0 && "Bad NestedNameSpecifier!");
   }
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
+       NamespaceAliasDecl *D)
+{
+  const NamespaceDecl *CanonicalND = 
+    D->getNamespace()->getCanonicalDecl();
+  if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+    ConsumerInstance->RewriteHelper->removeDecl(D);
   return true;
 }
 
@@ -324,19 +336,6 @@ bool RemoveNamespace::handleOneNamespaceDecl(const NamespaceDecl *ND)
     addNamedDeclsFromNamespace(ND);
   }
   return true;
-}
-
-void RemoveNamespace::removeUsingOrUsingDirectiveDecl(const Decl *D)
-{
-  TransAssert((isa<UsingDecl>(D) || isa<UsingDirectiveDecl>(D)) &&
-              "Bad Decl Kind!");
-
-  SourceRange Range = D->getSourceRange();
-  TransAssert((TheRewriter.getRangeSize(Range) != -1) && 
-              "Bad UsingDecl SourceRange!");
-  SourceLocation StartLoc = Range.getBegin();
-  SourceLocation EndLoc = RewriteHelper->getEndLocationUntil(Range, ';');
-  TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
 void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
