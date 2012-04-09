@@ -57,6 +57,8 @@ public:
 
   bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
 
+  bool VisitFunctionDecl(FunctionDecl *D);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -136,6 +138,12 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
     D->getNamespace()->getCanonicalDecl();
   if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
     ConsumerInstance->RewriteHelper->removeDecl(D);
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
+{
+  // TODO
   return true;
 }
 
@@ -290,6 +298,9 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
         break;
 
       std::string NewName = NamePrefix + NamespaceName;
+      const IdentifierInfo *IdInfo = ND->getIdentifier();
+      NewName += "_";
+      NewName += IdInfo->getName();
       NamedDeclToNewName[ND] = NewName;
     }
   }
