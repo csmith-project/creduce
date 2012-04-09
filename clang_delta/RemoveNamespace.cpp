@@ -164,7 +164,20 @@ bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
 
 bool RemoveNamespaceRewriteNamespaceVisitor::VisitNamedDecl(NamedDecl *D)
 {
-  // TODO
+  RemoveNamespace::NamedDeclToNameMap::iterator Pos = 
+    ConsumerInstance->NamedDeclToNewName.find(D);
+  if (Pos == ConsumerInstance->NamedDeclToNewName.end())
+    return true;
+
+  std::string Name = (*Pos).second;
+  // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
+  // we need a special case for FunctionDecl
+  if ( FunctionDecl *FD = dyn_cast<FunctionDecl>(D) ) {
+    ConsumerInstance->RewriteHelper->replaceFunctionDeclName(FD, Name);
+  }
+  else {
+    ConsumerInstance->RewriteHelper->replaceNamedDeclName(D, Name);
+  }
   return true;
 }
 
