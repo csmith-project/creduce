@@ -787,6 +787,19 @@ bool RewriteUtils::addStringAfterFuncDecl(const FunctionDecl *FD,
   return !(TheRewriter->InsertText(LocEnd, "\n" + Str));
 }
 
+// This function is an experimental one. It doesn't work
+// if ND is a class of FunctionDecl, but I am not sure
+// how it works for other types of NamedDecls
+bool RewriteUtils::replaceNamedDeclName(const NamedDecl *ND,
+                                        const std::string &NameStr)
+{
+  TransAssert(!isa<FunctionDecl>(ND) && 
+    "Please use replaceFunctionDeclName for renaming a FunctionDecl!");
+  SourceLocation NameLocStart = ND->getLocation();
+  return !(TheRewriter->ReplaceText(NameLocStart, 
+             ND->getNameAsString().size(), NameStr));
+}
+
 bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
                                       const std::string &NameStr)
 {
@@ -1225,11 +1238,47 @@ bool RewriteUtils::getFunctionDeclStrAndRemove(const FunctionDecl *FD,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
+// FIXME: probably we don't need this function, because we could use 
+//        removeDecl insteadly
 bool RewriteUtils::removeFieldDecl(const FieldDecl *FD)
 {
   SourceRange Range = FD->getSourceRange();
   SourceLocation StartLoc = Range.getBegin();
   SourceLocation EndLoc = getEndLocationUntil(Range, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+}
+
+bool RewriteUtils::removeDecl(const Decl *D)
+{
+  SourceRange Range = D->getSourceRange();
+  TransAssert((TheRewriter->getRangeSize(Range) != -1) && 
+              "Bad UsingDecl SourceRange!");
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation EndLoc = getEndLocationUntil(Range, ';');
+  return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
+}
+
+bool RewriteUtils::replaceCXXDtorCallExpr(const CXXMemberCallExpr *CE,
+                                          std::string &Name)
+{
+  const CXXMethodDecl *MD = CE->getMethodDecl();
+  const CXXDestructorDecl *DtorDecl = dyn_cast<CXXDestructorDecl>(MD);
+  if (!DtorDecl)
+    return true;
+
+  Name = "~" + Name;
+
+  std::string ExprStr;
+  getExprString(CE, ExprStr);
+  std::string OldDtorName = DtorDecl->getNameAsString();
+  size_t Pos = ExprStr.find(OldDtorName);
+  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
+  if (Pos == 0)
+    return true;
+
+  SourceLocation StartLoc = CE->getLocStart();
+  StartLoc = StartLoc.getLocWithOffset(Pos);
+
+  return !(TheRewriter->ReplaceText(StartLoc, OldDtorName.size(), Name));
 }
 

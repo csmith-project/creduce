@@ -39,6 +39,7 @@ namespace clang {
   class FieldDecl;
   class CXXConstructExpr;
   class RecordDecl;
+  class CXXMemberCallExpr;
 }
 
 class RewriteUtils {
@@ -176,6 +177,14 @@ public:
                                             char Symbol);
 
   bool removeFieldDecl(const clang::FieldDecl *FD);
+
+  bool removeDecl(const clang::Decl *D);
+
+  bool replaceNamedDeclName(const clang::NamedDecl *ND,
+                            const std::string &NameStr);
+
+  bool replaceCXXDtorCallExpr(const clang::CXXMemberCallExpr *CE,
+                              std::string &Name);
 
 private:
 
