@@ -30,12 +30,10 @@ namespace clang {
 
 class RemoveNamespaceASTVisitor;
 class RemoveNamespaceRewriteVisitor;
-class RemoveNamespaceRewriteNamespaceVisitor;
 
 class RemoveNamespace : public Transformation {
 friend class RemoveNamespaceASTVisitor;
 friend class RemoveNamespaceRewriteVisitor;
-friend class RemoveNamespaceRewriteNamespaceVisitor;
 
 public:
 
@@ -43,7 +41,6 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
-      NamespaceRewriteVisitor(NULL),
       TheNamespaceDecl(NULL),
       NamePrefix("__trans_"),
       AnonNamePrefix("anon_"),
@@ -94,6 +91,8 @@ private:
   void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
                             std::string &Str);
 
+  void rewriteNamedDecls(void);
+
   bool getNewName(const clang::NamedDecl *ND, std::string &Name);
 
   NamespaceDeclSet VisitedND;
@@ -114,8 +113,6 @@ private:
   RemoveNamespaceASTVisitor *CollectionVisitor;
 
   RemoveNamespaceRewriteVisitor *RewriteVisitor;
-
-  RemoveNamespaceRewriteNamespaceVisitor *NamespaceRewriteVisitor;
 
   clang::NamespaceDecl *TheNamespaceDecl;
 

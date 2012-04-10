@@ -41,6 +41,19 @@ private:
 
 };
 
+// A visitor for rewriting decls in the namespace being removed
+// ISSUE: quite a lot of functionality could be provided by the
+//        RenameClassRewriteVisitor from RenameClass.cpp. 
+//        I have certain hesitation of factoring out 
+//        RenameClassRewriteVisitor for common uses. 
+//        A couple of reasons:
+//        * RenameClassRewriteVisitor is only suitable for renaming
+//          classes, but here we will be facing more types, e.g., enum.
+//        * RenameClassRewriteVisitor handles one class, but here
+//          we need to rename multiple conflicting classes;
+//        * I don't want to make two transformations interference with
+//          each other
+//        Therefore, we will have some code duplication.
 class RemoveNamespaceRewriteVisitor : public 
   RecursiveASTVisitor<RemoveNamespaceRewriteVisitor> {
 
@@ -56,36 +69,6 @@ public:
   bool VisitUsingDecl(UsingDecl *D);
 
   bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
-
-  bool VisitFunctionDecl(FunctionDecl *D);
-
-private:
-  RemoveNamespace *ConsumerInstance;
-
-};
-
-// A visitor for rewriting decls in the namespace being removed
-// ISSUE: quite a lot of functionality could be provided by the
-//        RenameClassRewriteVisitor from RenameClass.cpp. 
-//        I have certain hesitation of factoring out 
-//        RenameClassRewriteVisitor for common uses. 
-//        A couple of reasons:
-//        * RenameClassRewriteVisitor is only suitable for renaming
-//          classes, but here we will be facing more types, e.g., enum.
-//        * RenameClassRewriteVisitor handles one class, but here
-//          we need to rename multiple conflicting classes;
-//        * I don't want to make two transformations interference with
-//          each other
-//        Therefore, we will have some code duplication.
-class RemoveNamespaceRewriteNamespaceVisitor : public 
-  RecursiveASTVisitor<RemoveNamespaceRewriteNamespaceVisitor> {
-
-public:
-  explicit RemoveNamespaceRewriteNamespaceVisitor(RemoveNamespace *Instance)
-    : ConsumerInstance(Instance)
-  { }
-
-  bool VisitNamedDecl(NamedDecl *D);
 
   bool VisitCXXConstructorDecl(CXXConstructorDecl *CtorDecl);
 
@@ -173,29 +156,7 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
   return true;
 }
 
-bool RemoveNamespaceRewriteVisitor::VisitFunctionDecl(FunctionDecl *D)
-{
-  return true;
-}
-
-bool RemoveNamespaceRewriteNamespaceVisitor::VisitNamedDecl(NamedDecl *D)
-{
-  std::string Name;
-  if (!ConsumerInstance->getNewName(D, Name))
-    return true;
-
-  // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
-  // we need a special case for FunctionDecl
-  if ( FunctionDecl *FD = dyn_cast<FunctionDecl>(D) ) {
-    ConsumerInstance->RewriteHelper->replaceFunctionDeclName(FD, Name);
-  }
-  else {
-    ConsumerInstance->RewriteHelper->replaceNamedDeclName(D, Name);
-  }
-  return true;
-}
-
-bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXConstructorDecl
+bool RemoveNamespaceRewriteVisitor::VisitCXXConstructorDecl
        (CXXConstructorDecl *CtorDecl)
 {
   const DeclContext *Ctx = CtorDecl->getDeclContext();
@@ -209,7 +170,7 @@ bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXConstructorDecl
   return true;
 }
 
-bool RemoveNamespaceRewriteNamespaceVisitor::VisitCXXDestructorDecl(
+bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
        CXXDestructorDecl *DtorDecl)
 {
   const DeclContext *Ctx = DtorDecl->getDeclContext();
@@ -249,7 +210,6 @@ void RemoveNamespace::Initialize(ASTContext &context)
   Transformation::Initialize(context);
   CollectionVisitor = new RemoveNamespaceASTVisitor(this);
   RewriteVisitor = new RemoveNamespaceRewriteVisitor(this);
-  NamespaceRewriteVisitor = new RemoveNamespaceRewriteNamespaceVisitor(this);
 }
 
 bool RemoveNamespace::HandleTopLevelDecl(DeclGroupRef D) 
@@ -278,16 +238,33 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
-  TransAssert(NamespaceRewriteVisitor && "NULL NamespaceRewriteVisitor!");
+  TransAssert(TheNamespaceDecl && "NULL TheNamespaceDecl!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
-  TransAssert(TheNamespaceDecl && "NULL TheNamespaceDecl!");
-  NamespaceRewriteVisitor->TraverseDecl(TheNamespaceDecl);
+  rewriteNamedDecls();
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void RemoveNamespace::rewriteNamedDecls(void)
+{
+  for (NamedDeclToNameMap::const_iterator I = NamedDeclToNewName.begin(),
+       E = NamedDeclToNewName.end(); I != E; ++I) {
+    const NamedDecl *D = (*I).first;
+    std::string Name = (*I).second;
+
+    // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
+    // we need a special case for FunctionDecl
+    if ( const FunctionDecl *FD = dyn_cast<FunctionDecl>(D) ) {
+      RewriteHelper->replaceFunctionDeclName(FD, Name);
+    }
+    else {
+      RewriteHelper->replaceNamedDeclName(D, Name);
+    }
+  }
 }
 
 bool RemoveNamespace::hasNameConflict(const NamedDecl *ND, 
@@ -505,7 +482,5 @@ RemoveNamespace::~RemoveNamespace(void)
     delete CollectionVisitor;
   if (RewriteVisitor)
     delete RewriteVisitor;
-  if (NamespaceRewriteVisitor)
-    delete NamespaceRewriteVisitor;
 }
 
