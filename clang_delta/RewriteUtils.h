@@ -39,6 +39,7 @@ namespace clang {
   class FieldDecl;
   class CXXConstructExpr;
   class RecordDecl;
+  class CXXMemberCallExpr;
 }
 
 class RewriteUtils {
@@ -181,6 +182,9 @@ public:
 
   bool replaceNamedDeclName(const clang::NamedDecl *ND,
                             const std::string &NameStr);
+
+  bool replaceCXXDtorCallExpr(const clang::CXXMemberCallExpr *CE,
+                              std::string &Name);
 
 private:
 

@@ -1258,3 +1258,27 @@ bool RewriteUtils::removeDecl(const Decl *D)
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
 }
 
+bool RewriteUtils::replaceCXXDtorCallExpr(const CXXMemberCallExpr *CE,
+                                          std::string &Name)
+{
+  const CXXMethodDecl *MD = CE->getMethodDecl();
+  const CXXDestructorDecl *DtorDecl = dyn_cast<CXXDestructorDecl>(MD);
+  if (!DtorDecl)
+    return true;
+
+  Name = "~" + Name;
+
+  std::string ExprStr;
+  getExprString(CE, ExprStr);
+  std::string OldDtorName = DtorDecl->getNameAsString();
+  size_t Pos = ExprStr.find(OldDtorName);
+  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
+  if (Pos == 0)
+    return true;
+
+  SourceLocation StartLoc = CE->getLocStart();
+  StartLoc = StartLoc.getLocWithOffset(Pos);
+
+  return !(TheRewriter->ReplaceText(StartLoc, OldDtorName.size(), Name));
+}
+
