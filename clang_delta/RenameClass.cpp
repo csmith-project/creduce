@@ -212,28 +212,9 @@ bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
     return true;
 
   std::string Name;
-  if (!ConsumerInstance->getNewName(CXXRD, Name))
-    return true;
-
-  const CXXMethodDecl *MD = CE->getMethodDecl();
-  const CXXDestructorDecl *DtorDecl = dyn_cast<CXXDestructorDecl>(MD);
-  if (!DtorDecl)
-    return true;
-
-  Name = "~" + Name;
-
-  std::string ExprStr;
-  ConsumerInstance->RewriteHelper->getExprString(CE, ExprStr);
-  std::string OldDtorName = DtorDecl->getNameAsString();
-  size_t Pos = ExprStr.find(OldDtorName);
-  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
-  if (Pos == 0)
-    return true;
-
-  SourceLocation StartLoc = CE->getLocStart();
-  StartLoc = StartLoc.getLocWithOffset(Pos);
-
-  ConsumerInstance->TheRewriter.ReplaceText(StartLoc, OldDtorName.size(), Name);
+  if (!ConsumerInstance->getNewName(CXXRD, Name)) {
+    ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CE, Name);
+  }
   return true;
 }
 
