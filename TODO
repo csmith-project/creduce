@@ -2,6 +2,8 @@
 
 c_reduce TODO list:
 
+test for 0-byte program?
+
 make a distribution using Philip Guo's packager
   need to include Perl?
 
