@@ -74,6 +74,8 @@ public:
 
   bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
 
+  bool VisitCallExpr(CallExpr *CE);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -202,6 +204,29 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
   Name = "~" + Name;
   ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
 
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitCallExpr(CallExpr *CE)
+{
+  std::string Name;
+  if ( CXXMemberCallExpr *CXXCE = dyn_cast<CXXMemberCallExpr>(CE)) {
+    const CXXRecordDecl *CXXRD = CXXCE->getRecordDecl();
+    // getRecordDEcl could return NULL if getImplicitObjectArgument() 
+    // returns NULL
+    if (!CXXRD)
+      return true;
+
+    if (ConsumerInstance->getNewName(CXXRD, Name))
+      ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CXXCE, Name);
+    return true;
+  }
+
+  const FunctionDecl *FD = CE->getDirectCallee();
+  if (ConsumerInstance->getNewName(FD, Name)) {
+    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
+      FD->getNameAsString().size(), Name);
+  }
   return true;
 }
 
