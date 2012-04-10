@@ -42,8 +42,8 @@ public:
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
       TheNamespaceDecl(NULL),
-      NamePrefix("__trans_"),
-      AnonNamePrefix("anon_"),
+      NamePrefix("Trans_NS_"),
+      AnonNamePrefix("Trans_Anon_NS"),
       AnonNamespaceCounter(0)
   { }
 
