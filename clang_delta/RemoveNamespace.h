@@ -93,6 +93,14 @@ private:
 
   void rewriteNamedDecls(void);
 
+  bool getNewNameFromNameMap(const clang::NamedDecl *ND,
+                             const NamedDeclToNameMap &NameMap,
+                             std::string &Name);
+
+  bool getNewNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
+
+  bool getNewUsingNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
+
   bool getNewName(const clang::NamedDecl *ND, std::string &Name);
 
   NamespaceDeclSet VisitedND;

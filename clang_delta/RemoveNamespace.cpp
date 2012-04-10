@@ -465,15 +465,37 @@ void RemoveNamespace::getQualifierAsString(NestedNameSpecifierLoc Loc,
   Str.assign(StartBuf, Len);
 }
 
-bool RemoveNamespace::getNewName(const NamedDecl *ND, std::string &Name)
+bool RemoveNamespace::getNewNameFromNameMap(const NamedDecl *ND, 
+                                            const NamedDeclToNameMap &NameMap,
+                                            std::string &Name)
 {
   NamedDeclToNameMap::const_iterator Pos = 
-    NamedDeclToNewName.find(ND);
-  if (Pos == NamedDeclToNewName.end())
+    NameMap.find(ND);
+  if (Pos == NameMap.end())
     return false;
 
   Name = (*Pos).second;
   return true;
+}
+
+bool RemoveNamespace::getNewNamedDeclName(const NamedDecl *ND,
+                                          std::string &Name)
+{
+  return getNewNameFromNameMap(ND, NamedDeclToNewName, Name);
+}
+
+bool RemoveNamespace::getNewUsingNamedDeclName(const NamedDecl *ND,
+                                               std::string &Name)
+{
+  return getNewNameFromNameMap(ND, UsingNamedDeclToNewName, Name);
+}
+
+bool RemoveNamespace::getNewName(const NamedDecl *ND, std::string &Name)
+{
+  if (getNewNamedDeclName(ND, Name))
+    return true;
+
+  return getNewUsingNamedDeclName(ND, Name);
 }
 
 RemoveNamespace::~RemoveNamespace(void)
