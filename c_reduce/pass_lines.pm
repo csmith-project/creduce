@@ -7,6 +7,8 @@ use File::Which;
 use strict;
 use creduce_utils;
 
+my $BACKWARD = 0;
+
 sub count_lines ($) {
     (my $cfile) = @_;
     open INF, "<$cfile" or die;
@@ -27,15 +29,24 @@ sub new ($$) {
     system "topformflat $arg < $cfile > $tmpfile";
     system "mv $tmpfile $cfile";	
     my %sh;
-    $sh{"index"} = count_lines($cfile);
-    $sh{"chunk"} = $sh{"index"};
+    if ($BACKWARD) {
+	$sh{"chunk"} = count_lines($cfile);
+	$sh{"index"} = $sh{"chunk"};
+    } else {
+	$sh{"chunk"} = count_lines($cfile);
+	$sh{"index"} = 0;
+    }
     return \%sh;
 }
 
 sub advance ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my %sh = %{$state};
-    $sh{"index"} -= $sh{"chunk"};
+    if ($BACKWARD) {
+	$sh{"index"} -= $sh{"chunk"};
+    } else {
+	$sh{"index"} += $sh{"chunk"};
+    }
     return \%sh;
 }
 
@@ -54,8 +65,14 @@ sub transform ($$$) {
     open INF, "<$cfile" or die;
     open OUTF, ">$tmpfile" or die;
     while (my $line = <INF>) {
-	if ($n < ($sh{"index"} - $sh{"chunk"}) ||
-	    $n >= $sh{"index"}) {
+	if (($BACKWARD && (
+		 $n < ($sh{"index"} - $sh{"chunk"}) ||
+		 $n >= $sh{"index"}
+	     )) ||
+	    (!$BACKWARD && (
+		 $n >= ($sh{"index"} + $sh{"chunk"}) ||
+		 $n < $sh{"index"}
+	     ))) {
 	    print OUTF $line;
 	} else {
 	    $did_something++;
@@ -65,7 +82,7 @@ sub transform ($$$) {
     close INF;
     close OUTF;
     
-    # print "chunk= $sh{"chunk"}, index= $sh{"index"}, did_something= $did_something\n";
+    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
 
     if ($did_something) {
 	system "mv $tmpfile $cfile";
@@ -73,7 +90,11 @@ sub transform ($$$) {
 	system "rm $tmpfile";
 	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
 	$sh{"chunk"} = round ($sh{"chunk"} / 2.0);
-	$sh{"index"} = count_lines($cfile);
+	if ($BACKWARD) {
+	    $sh{"index"} = count_lines($cfile);
+	} else {
+	    $sh{"index"} = 0;
+	}
     }
 
     return ($OK, \%sh);

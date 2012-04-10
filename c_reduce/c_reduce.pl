@@ -26,7 +26,7 @@ my $QUIET = 1;
 
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening
-my $SPINNER = 0;
+my $SPINNER = 1;
 
 # if set, show what each transformation did
 my $DIFFS = 0;
@@ -296,11 +296,9 @@ sub has_last_pass_pri {
 }
 
 @all_methods = (
-    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" => 10,    "last_pass_pri" => 995, },
-    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" => 11, },
-    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" => 12, },
-    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" => 13, },
-    { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 50, },
+    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" => 100,   "last_pass_pri" => 995, },
+    { "name" => "pass_lines",    "arg" => "8",                      "pri" => 412,  "first_pass_pri" => 101, },
+    { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 40, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
     { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  },
@@ -320,16 +318,16 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "rename-param",                          "last_pass_pri" => 209,  },
     { "name" => "pass_clang",    "arg" => "rename-var",                            "last_pass_pri" => 210,  },
     { "name" => "pass_clang",    "arg" => "rename-class",                          "last_pass_pri" => 211,  },
-    { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 211,  },
+    { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 211,  "first_pass_pri" => 50,  },
     { "name" => "pass_clang",    "arg" => "return-void",            "pri" => 212,  },
     { "name" => "pass_clang",    "arg" => "simple-inliner",         "pri" => 213,  },
     { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "pri" => 214,  },
     { "name" => "pass_clang",    "arg" => "lift-assignment-expr",   "pri" => 215,  },
     { "name" => "pass_clang",    "arg" => "copy-propagation",       "pri" => 216,  },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 206,  "first_pass_pri" => 100, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 217,  "first_pass_pri" => 101, },
-    { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 218,  "first_pass_pri" => 104, },
-    { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 219,  "first_pass_pri" => 102, },
+    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 206,  "first_pass_pri" => 52, },
+    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 217,  "first_pass_pri" => 53, },
+    { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 218,  "first_pass_pri" => 51, },
+    { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 219,  "first_pass_pri" => 49, },
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 220,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 221,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-size",      "pri" => 222,  },
