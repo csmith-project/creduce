@@ -13,6 +13,7 @@
 
 #include <string>
 #include "clang/Basic/SourceLocation.h"
+#include "clang/AST/NestedNameSpecifier.h"
 
 #ifndef ENABLE_TRANS_ASSERT
   #define TransAssert(x) {if (!(x)) exit(0);}
@@ -185,6 +186,8 @@ public:
 
   bool replaceCXXDtorCallExpr(const clang::CXXMemberCallExpr *CE,
                               std::string &Name);
+
+  bool removeSpecifier(clang::NestedNameSpecifierLoc Loc);
 
 private:
 

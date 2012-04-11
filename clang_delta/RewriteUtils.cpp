@@ -1282,3 +1282,11 @@ bool RewriteUtils::replaceCXXDtorCallExpr(const CXXMemberCallExpr *CE,
   return !(TheRewriter->ReplaceText(StartLoc, OldDtorName.size(), Name));
 }
 
+bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
+{
+  SourceRange LocRange = Loc.getLocalSourceRange();
+  TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
+              "Bad NestedNameSpecifierLoc Range!");
+  return !(TheRewriter->RemoveText(LocRange));
+}
+
