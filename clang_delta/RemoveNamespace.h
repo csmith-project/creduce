@@ -103,6 +103,13 @@ private:
 
   bool getNewName(const clang::NamedDecl *ND, std::string &Name);
 
+  bool isGlobalNamespace(clang::NestedNameSpecifierLoc Loc);
+
+  bool removeNestedNameSpecifier(clang::NestedNameSpecifierLoc QualifierLoc);
+
+  void removeLastNamespaceFromUsingDecl(const clang::UsingDirectiveDecl *D,
+                                        const clang::NamespaceDecl *ND);
+
   NamespaceDeclSet VisitedND;
 
   UsingDeclSet UselessUsingDecls;

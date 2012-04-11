@@ -100,14 +100,28 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
        UsingDirectiveDecl *D)
 {
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (QualifierLoc && 
+      ConsumerInstance->removeNestedNameSpecifier(QualifierLoc))
+    return true;
+
   if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
     ConsumerInstance->RewriteHelper->removeDecl(D);
 
   const NamespaceDecl *CanonicalND = 
     D->getNominatedNamespace()->getCanonicalDecl();
   
-  if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-    ConsumerInstance->RewriteHelper->removeDecl(D);
+  if (CanonicalND == ConsumerInstance->TheNamespaceDecl) {
+    // remove the entire Decl if it's in the following form:
+    // * using namespace TheNameSpace; or
+    // * using namespace ::TheNameSpace;
+
+    if (!QualifierLoc || ConsumerInstance->isGlobalNamespace(QualifierLoc))
+      ConsumerInstance->RewriteHelper->removeDecl(D);
+    else
+      ConsumerInstance->removeLastNamespaceFromUsingDecl(D, CanonicalND);
+  }
+  
   return true;
 }
 
@@ -521,6 +535,83 @@ bool RemoveNamespace::getNewName(const NamedDecl *ND, std::string &Name)
     return true;
 
   return getNewUsingNamedDeclName(ND, Name);
+}
+
+bool RemoveNamespace::isGlobalNamespace(NestedNameSpecifierLoc Loc)
+{
+  NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
+  return (NNS->getKind() == NestedNameSpecifier::Global);
+}
+
+bool RemoveNamespace::removeNestedNameSpecifier(
+       NestedNameSpecifierLoc QualifierLoc)
+{
+  SmallVector<NestedNameSpecifierLoc, 8> QualifierLocs;
+  for (; QualifierLoc; QualifierLoc = QualifierLoc.getPrefix())
+    QualifierLocs.push_back(QualifierLoc);
+
+  while (!QualifierLocs.empty()) {
+    NestedNameSpecifierLoc Loc = QualifierLocs.pop_back_val();
+    NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
+    NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
+    switch (Kind) {
+      case NestedNameSpecifier::Namespace: {
+        const NamespaceDecl *ND = NNS->getAsNamespace()->getCanonicalDecl();
+        if (ND == TheNamespaceDecl) {
+          RewriteHelper->removeSpecifier(Loc);
+          return true;
+        }
+        break;
+      }
+      case NestedNameSpecifier::NamespaceAlias: {
+        const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
+        const NamespaceDecl *ND = 
+          NAD->getNamespace()->getCanonicalDecl();
+        if (ND == TheNamespaceDecl) {
+          RewriteHelper->removeSpecifier(Loc);
+          return true;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return false;
+}
+
+void RemoveNamespace::removeLastNamespaceFromUsingDecl(
+       const UsingDirectiveDecl *D, const NamespaceDecl *ND)
+{
+  SourceLocation IdLocStart = D->getIdentLocation();
+  SourceRange DeclSourceRange = D->getSourceRange();
+  SourceLocation DeclLocStart = DeclSourceRange.getBegin();
+
+  const char *IdStartBuf = SrcManager->getCharacterData(IdLocStart);
+  const char *DeclStartBuf = SrcManager->getCharacterData(DeclLocStart);
+
+  unsigned Count = 0;
+  int Offset = 0;
+  while (IdStartBuf != DeclStartBuf) {
+    if (*IdStartBuf != ':') {
+      IdStartBuf--;
+      Offset--;
+      continue;
+    }
+
+    Count++;
+    if (Count == 2) {
+      break;
+    }
+    Offset--;
+    IdStartBuf--;
+  }
+  TransAssert((Count == 2) && "Bad NestedNamespaceSpecifier!");
+  TransAssert((Offset < 0) && "Bad Offset Value!");
+  IdLocStart = IdLocStart.getLocWithOffset(Offset);
+
+  TheRewriter.RemoveText(IdLocStart, 
+                         ND->getNameAsString().length() - Offset);
 }
 
 RemoveNamespace::~RemoveNamespace(void)
