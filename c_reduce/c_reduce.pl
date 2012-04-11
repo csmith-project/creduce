@@ -19,10 +19,7 @@ use creduce_utils;
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
 
-# if set, don't print a lot of stuff
-# (there's no "extra quiet" option -- just redirect output to
-# /dev/null if you're not interested)
-my $QUIET = 1;
+my $VERBOSE = 0;
 
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening
@@ -31,7 +28,8 @@ my $SPINNER = 1;
 # if set, show what each transformation did
 my $DIFFS = 0;
 
-# may detect non-deterministic test and bugs in cache logic
+# slow -- but may detect non-deterministic test and bugs in cache
+# logic
 my $PARANOID = 0;
 
 # save all variants
@@ -68,12 +66,12 @@ my %method_failed = ();
 my $old_size = 1000000000;
 
 sub sanity_check () {
-    print "sanity check... " unless $QUIET;
+    print "sanity check... " if $VERBOSE;
     my $res = run_test ();
     if (!$res) {
 	die "test (and sanity check) fails";
     }
-    print "successful\n" unless $QUIET;
+    print "successful\n" if $VERBOSE;
 }
 
 my %cache = ();
@@ -99,7 +97,7 @@ sub delta_test ($$$) {
     my $len = length ($prog);
 
     print "[$pass_num $method :: $arg s:$good_cnt f:$bad_cnt] " 
-	unless $QUIET;
+	if $VERBOSE;
 
     if ($SPINNER) {
 	spinner();
@@ -119,6 +117,13 @@ sub delta_test ($$$) {
 	}
     }
 
+    if ($PARANOID) {
+	for (my $i=0; $i<5; $i++) {
+	    my $result2 = run_test ();
+	    die "paranoid failure" unless ($result == $result2);
+	}
+    }
+
     $test_cnt++;
     my $ret;
     
@@ -126,10 +131,10 @@ sub delta_test ($$$) {
 	print "\b" if $SPINNER;
 	if ($SAVE_COPIES) {
 	    my $FN = "$cfile-paranoid-${test_cnt}-good";
-	    print "saving paranoid file $FN\n";
+	    print "saving paranoid file $FN\n" if $VERBOSE;
 	    system "cp $cfile $FN";	 
 	}
-	print "success " unless $QUIET;
+	print "success " if $VERBOSE;
 	print_pct(-s $cfile);
 	system "cp $cfile $cfile.bak";
 	$good_cnt++;
@@ -148,19 +153,14 @@ sub delta_test ($$$) {
 	print "\b" if $SPINNER;
 	if ($SAVE_COPIES) {
 	    my $FN = "$cfile-paranoid-${test_cnt}-bad";
-	    print "saving paranoid file $FN\n";
+	    print "saving paranoid file $FN\n" if $VERBOSE;
 	    system "cp $cfile $FN";	 
 	}
-	print "failure\n" unless $QUIET;
+	print "failure\n" if $VERBOSE;
 	system "cp $cfile.bak $cfile";
 	$bad_cnt++;
 	$method_failed{$method}{$arg}++;
 	$ret = 0;
-    }
-
-    if ($PARANOID) {
-	my $result = run_test ();
-	die "paranoid failure" unless ($result);
     }
 
     return $ret;
@@ -173,7 +173,7 @@ sub call_prereq_check ($) {
     if (!(&${str}())) {
 	die "prereqs not found for pass $method";
     }
-    print "successfully checked prereqs for $method\n" unless $QUIET;
+    print "successfully checked prereqs for $method\n" if $VERBOSE;
 }
 
 sub call_new ($$$) {
@@ -204,7 +204,7 @@ sub delta_pass ($) {
     $good_cnt = 0;
     $bad_cnt = 0;
 
-    print "\n" unless $QUIET;
+    print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
     if ($SANITY) {
@@ -362,7 +362,7 @@ foreach my $mref (@all_methods) {
     eval "require $mname";
     call_prereq_check($mname);
 }
-print "\n" unless $QUIET;
+print "\n" if $VERBOSE;
 
 $test = shift @ARGV;
 usage unless defined($test);
@@ -384,14 +384,18 @@ system "cp $cfile $cfile.bak";
 my $file_size = -s $cfile;
 $orig_file_size = $file_size;
 
+# unconditionally do this just once since otherwise output is
+# confusing when the initial test fails
+sanity_check();
+
 # some passes we run first since they often make good headway quickly
-print "INITIAL PASS\n" unless $QUIET;
+print "INITIAL PASS\n" if $VERBOSE;
 foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_methods)) {
     delta_pass ($method);
 }
 
 # iterate to global fixpoint
-print "MAIN PASSES\n" unless $QUIET;
+print "MAIN PASSES\n" if $VERBOSE;
 $file_size = -s $cfile;
 while (1) {
     foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
@@ -405,7 +409,7 @@ while (1) {
 }
 
 # some passes we run last since they work best as cleanup
-print "CLEANUP PASS\n" unless $QUIET;
+print "CLEANUP PASS\n" if $VERBOSE;
 foreach my $method (sort by_last_pass_pri grep (has_last_pass_pri, @all_methods)) {
     delta_pass ($method);
 }

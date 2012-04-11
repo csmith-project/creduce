@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 
+# this pass is really dumb, but it does a lot of work and is hard to
+# replace...
+
 package pass_peep;
 
 use strict;

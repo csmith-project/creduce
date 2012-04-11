@@ -1,29 +1,16 @@
 --------------------------------------------------------------------
 
-c_reduce TODO list:
+C-Reduce TODO list:
 
-test for 0-byte program?
+make a distribution using CDE
+  http://www.stanford.edu/~pgbovine/cde.html
 
-make a distribution using Philip Guo's packager
-  need to include Perl?
+add regression tests
 
-add some regression tests
+watch for unexpected abnormal compiler outputs?
+  not really clear how to do this in a generic way
 
-integrate changes from PLDI work
-
-change SUCCESS to OK
-
-pass explicit state objects to passes
-
-add an option to keep stats about fast vs. slow tests
-
-expose quiet on command line
-
-add an option limiting the number of passes
-
-see if some passes want to work back to front
-
-watch for unexpected abnormal compiler outputs
+optionally, keep stats about fast vs. slow tests
 
 exploit early-exit from delta test to speed this up
   keep per-pass statistic on the probability of requiring the slow test
@@ -36,8 +23,6 @@ factor timeout out of test script: c_reduce can supply a timeout
 add optional check for non-deterministic tests
 
 put saved files in a subdir
-
-watch for incorrect transformations
 
 --------------------------------------------------------------------
 
