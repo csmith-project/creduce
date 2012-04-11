@@ -100,13 +100,13 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
        UsingDirectiveDecl *D)
 {
+  if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
+    ConsumerInstance->RewriteHelper->removeDecl(D);
+
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
   if (QualifierLoc && 
       ConsumerInstance->removeNestedNameSpecifier(QualifierLoc))
     return true;
-
-  if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
-    ConsumerInstance->RewriteHelper->removeDecl(D);
 
   const NamespaceDecl *CanonicalND = 
     D->getNominatedNamespace()->getCanonicalDecl();
@@ -131,9 +131,11 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     ConsumerInstance->RewriteHelper->removeDecl(D);
 
   // check if this UsingDecl refers to the namespaced being removed
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
   const NestedNameSpecifier *NNS = D->getQualifier();
+  TransAssert(NNS && "Bad NameSpecifier!");
   NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
-  
+
   switch (Kind) {
   case NestedNameSpecifier::Namespace: {
     const NamespaceDecl *CanonicalND = 
