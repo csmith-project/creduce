@@ -7,7 +7,7 @@ Prereqs:
 
 On Ubuntu, all non-standard prerequisites can be installed like this:
 
-sudo apt-get install libfile-which-perl libregexp-common-perl \
+  sudo apt-get install libfile-which-perl libregexp-common-perl \
   indent astyle delta libexporter-lite-perl
 
 On other systems, install these packages either manually or using the
@@ -47,15 +47,15 @@ C-Reduce tagged "creduce-1.0.0".]
 
 2. Build the plugin:
 
-cd clang_delta
-export LLVM_PATH=PATH_TO_CLANG_INSTALLATION
-make
-cp clang_delta SOME_DIRECTORY_IN_PATH
+  cd clang_delta
+  export LLVM_PATH=PATH_TO_CLANG_INSTALLATION
+  make
+  cp clang_delta SOME_DIRECTORY_IN_PATH
 
 Note that assertions are enabled by default. To disable assertions,
 build the program with:
 
-LLVM_PATH=/path/ DISABLE_TRANS_ASSERT=1 make
+  DISABLE_TRANS_ASSERT=1 make
 
 --------------------------------------------------------------------
 
