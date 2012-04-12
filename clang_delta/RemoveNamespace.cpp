@@ -85,6 +85,8 @@ public:
 
   bool VisitTemplateArgumentLoc(const TemplateArgumentLoc &TAL);
 
+  bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -304,6 +306,20 @@ bool RemoveNamespaceRewriteVisitor::VisitTemplateArgumentLoc(
     ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
   return true;
 }
+
+bool RemoveNamespaceRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
+{
+  const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(RTLoc.getDecl());
+  if (!RD)
+    return true;
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(RD, Name)) {
+    ConsumerInstance->RewriteHelper->replaceRecordType(RTLoc, Name);
+  }
+  return true;
+}
+
 
 void RemoveNamespace::Initialize(ASTContext &context) 
 {
