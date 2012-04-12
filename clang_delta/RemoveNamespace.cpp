@@ -483,6 +483,9 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     if ( NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc() ) {
       RewriteHelper->getQualifierAsString(QualifierLoc, NewName);
     }
+    else {
+      NewName = NamespaceName;
+    }
     NewName += "::";
     NewName += IdInfo->getName();
     UsingNamedDeclToNewName[NamedD] = NewName;
