@@ -333,10 +333,14 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
   
   std::string NewName;
   const UsingDecl *D = UD->getUsingDecl();
-  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc() ) {
+    getQualifierAsString(QualifierLoc, NewName);
+  }
+  else {
+    NewName = NDNamespace->getNameAsString();
+    NewName += IdInfo->getName();
+  }
 
-  getQualifierAsString(QualifierLoc, NewName);
-  NewName += IdInfo->getName();
   UsingNamedDeclToNewName[ND] = NewName;
   
   // the tied UsingDecl becomes useless, and hence it's removable
@@ -372,10 +376,10 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
     std::string NewName;
-    NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc();
-
-    getQualifierAsString(QualifierLoc, NewName);
-    NewName += NamedD->getNameAsString();
+    if ( NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc() ) {
+      getQualifierAsString(QualifierLoc, NewName);
+    }
+    NewName += ND->getNameAsString();
     NewName += "::";
     NewName += IdInfo->getName();
     UsingNamedDeclToNewName[NamedD] = NewName;
