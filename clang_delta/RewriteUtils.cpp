@@ -1290,3 +1290,15 @@ bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
   return !(TheRewriter->RemoveText(LocRange));
 }
 
+// ISSUE: be careful of using this function.
+//        It returns the ending ";\n" for a UsingDecl's NestedNameSpecifier.
+void RewriteUtils::getQualifierAsString(NestedNameSpecifierLoc Loc,
+                                        std::string &Str)
+{
+  SourceLocation StartLoc = Loc.getBeginLoc();
+  TransAssert(StartLoc.isValid() && "Bad StartLoc for NestedNameSpecifier!");
+  unsigned Len = Loc.getDataLength();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  Str.assign(StartBuf, Len);
+}
+

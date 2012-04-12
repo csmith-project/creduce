@@ -189,6 +189,9 @@ public:
 
   bool removeSpecifier(clang::NestedNameSpecifierLoc Loc);
 
+  void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
+                            std::string &Str);
+
 private:
 
   static RewriteUtils *Instance;
