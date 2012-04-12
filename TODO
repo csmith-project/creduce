@@ -5,6 +5,8 @@ C-Reduce TODO list:
 make a distribution using CDE
   http://www.stanford.edu/~pgbovine/cde.html
 
+make it again possible to run just selected passes
+
 add regression tests
 
 watch for unexpected abnormal compiler outputs?
