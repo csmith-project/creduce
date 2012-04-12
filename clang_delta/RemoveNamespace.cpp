@@ -88,6 +88,8 @@ public:
 
   bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
 
+  bool VisitElaboratedTypeLoc(ElaboratedTypeLoc ETLoc);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -326,6 +328,17 @@ bool RemoveNamespaceRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   return true;
 }
 
+bool RemoveNamespaceRewriteVisitor::VisitElaboratedTypeLoc(
+       ElaboratedTypeLoc ETLoc)
+{
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
+  if (NestedNameSpecifierLoc QualifierLoc = ETLoc.getQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+
+  return true;
+}
 
 void RemoveNamespace::Initialize(ASTContext &context) 
 {
