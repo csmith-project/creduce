@@ -54,7 +54,8 @@ private:
 //        * some processing logic is different here
 //        * I don't want to make two transformations interference with
 //          each other
-//        Therefore, we will have some code duplication.
+//        Therefore, we will have some code duplications (but not much
+//        since I put quite a few common utility functions into RewriteUtils)
 class RemoveNamespaceRewriteVisitor : public 
   RecursiveASTVisitor<RemoveNamespaceRewriteVisitor> {
 
@@ -204,6 +205,11 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXConstructorDecl
   return true;
 }
 
+// I didn't factor out the common part of this function
+// into RewriteUtils, because the common part has implicit
+// dependency on VisitTemplateSpecializationTypeLoc. If in another
+// transformation we use this utility without implementing
+// VisitTemplateSpecializationTypeLoc, we will be in trouble.
 bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
        CXXDestructorDecl *DtorDecl)
 {
