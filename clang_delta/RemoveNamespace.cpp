@@ -51,6 +51,7 @@ private:
 //          classes, but here we will be facing more types, e.g., enum.
 //        * RenameClassRewriteVisitor handles one class, but here
 //          we need to rename multiple conflicting classes;
+//        * some processing logic is different here
 //        * I don't want to make two transformations interference with
 //          each other
 //        Therefore, we will have some code duplication.
@@ -75,6 +76,14 @@ public:
   bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
 
   bool VisitCallExpr(CallExpr *CE);
+
+  bool VisitDeclaratorDecl(DeclaratorDecl *D);
+
+  bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D);
+
+  bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
+
+  bool VisitTemplateArgumentLoc(const TemplateArgumentLoc &TAL);
 
 private:
   RemoveNamespace *ConsumerInstance;
@@ -168,8 +177,14 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
 
   const NamespaceDecl *CanonicalND = 
     D->getNamespace()->getCanonicalDecl();
-  if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+  if (CanonicalND == ConsumerInstance->TheNamespaceDecl) {
     ConsumerInstance->RewriteHelper->removeDecl(D);
+    return true;
+  }
+
+  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+
   return true;
 }
 
@@ -244,6 +259,49 @@ bool RemoveNamespaceRewriteVisitor::VisitCallExpr(CallExpr *CE)
     ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
       FD->getNameAsString().size(), Name);
   }
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *D)
+{
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
+  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitUnresolvedUsingValueDecl(
+       UnresolvedUsingValueDecl *D)
+{
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
+  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
+       UnresolvedUsingTypenameDecl *D)
+{
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
+  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitTemplateArgumentLoc(
+       const TemplateArgumentLoc &TAL)
+{
+  if (NestedNameSpecifierLoc QualifierLoc = TAL.getTemplateQualifierLoc())
+    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
   return true;
 }
 
