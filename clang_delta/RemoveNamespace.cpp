@@ -89,6 +89,9 @@ bool RemoveNamespaceASTVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 
 bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   const NamespaceDecl *CanonicalND = ND->getCanonicalDecl();
   if (CanonicalND != ConsumerInstance->TheNamespaceDecl)
     return true;
@@ -100,6 +103,9 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
        UsingDirectiveDecl *D)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   if (ConsumerInstance->UselessUsingDirectiveDecls.count(D)) {
     ConsumerInstance->RewriteHelper->removeDecl(D);
     return true;
@@ -129,6 +135,9 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
 
 bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   if (ConsumerInstance->UselessUsingDecls.count(D)) {
     ConsumerInstance->RewriteHelper->removeDecl(D);
     return true;
@@ -154,6 +163,9 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
        NamespaceAliasDecl *D)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   const NamespaceDecl *CanonicalND = 
     D->getNamespace()->getCanonicalDecl();
   if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
@@ -169,7 +181,7 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXConstructorDecl
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
   std::string Name;
-  if (ConsumerInstance->getNewName(CXXRD, Name))
+  if (ConsumerInstance->getNewNamedDeclName(CXXRD, Name))
     ConsumerInstance->RewriteHelper->replaceFunctionDeclName(CtorDecl, Name);
 
   return true;
@@ -183,7 +195,7 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
 
   std::string Name;
-  if (!ConsumerInstance->getNewName(CXXRD, Name))
+  if (!ConsumerInstance->getNewNamedDeclName(CXXRD, Name))
     return true;
 
   // Avoid duplicated VisitDtor. 
@@ -220,7 +232,9 @@ bool RemoveNamespaceRewriteVisitor::VisitCallExpr(CallExpr *CE)
     if (!CXXRD)
       return true;
 
-    if (ConsumerInstance->getNewName(CXXRD, Name))
+    // Dtors from UsingNamedDecl can't have conflicts, so it's safe
+    // to get new names from NamedDecl set
+    if (ConsumerInstance->getNewNamedDeclName(CXXRD, Name))
       ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CXXCE, Name);
     return true;
   }
@@ -268,6 +282,12 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
   TransAssert(TheNamespaceDecl && "NULL TheNamespaceDecl!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
+
+  // First rename UsingNamedDecls, i.e., conflicting names
+  // from other namespaces
+  isForUsingNamedDecls = true;
+  RewriteVisitor->TraverseDecl(TheNamespaceDecl);
+  isForUsingNamedDecls = false;
 
   rewriteNamedDecls();
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
@@ -324,23 +344,14 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
   if (!hasNameConflict(ND, ParentCtx))
     return;
   
-  const DeclContext *NDCtx = 
-    ND->getDeclContext()->getEnclosingNamespaceContext();
-  TransAssert(NDCtx && "Bad DeclContext!");
-  const NamespaceDecl *NDNamespace = dyn_cast<NamespaceDecl>(NDCtx);
-  TransAssert(NDNamespace && "Bad Namespace!");
-  const IdentifierInfo *IdInfo = ND->getIdentifier();
-  
   std::string NewName;
   const UsingDecl *D = UD->getUsingDecl();
-  if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc() ) {
-    getQualifierAsString(QualifierLoc, NewName);
-  }
-  else {
-    NewName = NDNamespace->getNameAsString();
-    NewName += IdInfo->getName();
-  }
+  NestedNameSpecifierLoc PrefixLoc = D->getQualifierLoc().getPrefix();
+  RewriteHelper->getQualifierAsString(PrefixLoc, NewName);
 
+  NewName += "::";
+  const IdentifierInfo *IdInfo = ND->getIdentifier();
+  NewName += IdInfo->getName();
   UsingNamedDeclToNewName[ND] = NewName;
   
   // the tied UsingDecl becomes useless, and hence it's removable
@@ -377,9 +388,8 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
     std::string NewName;
     if ( NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc() ) {
-      getQualifierAsString(QualifierLoc, NewName);
+      RewriteHelper->getQualifierAsString(QualifierLoc, NewName);
     }
-    NewName += ND->getNameAsString();
     NewName += "::";
     NewName += IdInfo->getName();
     UsingNamedDeclToNewName[NamedD] = NewName;
@@ -487,16 +497,6 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
   TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
-void RemoveNamespace::getQualifierAsString(NestedNameSpecifierLoc Loc,
-                                           std::string &Str)
-{
-  SourceLocation StartLoc = Loc.getBeginLoc();
-  TransAssert(StartLoc.isValid() && "Bad StartLoc for NestedNameSpecifier!");
-  unsigned Len = Loc.getDataLength();
-  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
-  Str.assign(StartBuf, Len);
-}
-
 bool RemoveNamespace::getNewNameFromNameMap(const NamedDecl *ND, 
                                             const NamedDeclToNameMap &NameMap,
                                             std::string &Name)
@@ -522,12 +522,13 @@ bool RemoveNamespace::getNewUsingNamedDeclName(const NamedDecl *ND,
   return getNewNameFromNameMap(ND, UsingNamedDeclToNewName, Name);
 }
 
-bool RemoveNamespace::getNewName(const NamedDecl *ND, std::string &Name)
+bool RemoveNamespace::getNewName(const NamedDecl *ND, 
+                                 std::string &Name)
 {
-  if (getNewNamedDeclName(ND, Name))
-    return true;
-
-  return getNewUsingNamedDeclName(ND, Name);
+  if (isForUsingNamedDecls)
+    return getNewUsingNamedDeclName(ND, Name);
+  else
+    return getNewNamedDeclName(ND, Name);
 }
 
 bool RemoveNamespace::isGlobalNamespace(NestedNameSpecifierLoc Loc)

@@ -44,7 +44,8 @@ public:
       TheNamespaceDecl(NULL),
       NamePrefix("Trans_NS_"),
       AnonNamePrefix("Trans_Anon_NS"),
-      AnonNamespaceCounter(0)
+      AnonNamespaceCounter(0),
+      isForUsingNamedDecls(false)
   { }
 
   ~RemoveNamespace(void);
@@ -87,9 +88,6 @@ private:
 
   void handleOneUsingDirectiveDecl(const clang::UsingDirectiveDecl *UD,
                                    const clang::DeclContext *ParentCtx);
-
-  void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
-                            std::string &Str);
 
   void rewriteNamedDecls(void);
 
@@ -139,6 +137,14 @@ private:
   const std::string AnonNamePrefix;
 
   unsigned AnonNamespaceCounter;
+
+  // a flag to indicate if we are working on renaming UsingNamedDecl
+  // The purpose of this flag is to avoid double visit. 
+  // The RemoveNamespaceRewriteVisitor are used twice:
+  // * one for TheNamespaceDecl. In this case, we only rename UsingNamedDecls
+  //   without doing any other work
+  // * another is for NamedDecls belonging to TheNamespaceDecl
+  bool isForUsingNamedDecls;
 
   // Unimplemented
   RemoveNamespace(void);
