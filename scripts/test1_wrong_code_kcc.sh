@@ -4,12 +4,13 @@ rm -f out*.txt
 
 if 
   clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
+  ! grep 'conversions than data arguments' out.txt &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
   ! grep 'eliding middle term' out.txt &&\
   ! grep 'end of non-void function' out.txt &&\
-  ! grep 'specifies type' out.txt &&\
   ! grep 'invalid in C99' out.txt &&\
+  ! grep 'specifies type' out.txt &&\
   ! grep 'should return a value' out.txt &&\
   ! grep 'uninitialized' out.txt &&\
   ! grep 'incompatible pointer to' out.txt &&\
