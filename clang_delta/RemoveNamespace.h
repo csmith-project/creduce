@@ -105,6 +105,8 @@ private:
 
   bool isGlobalNamespace(clang::NestedNameSpecifierLoc Loc);
 
+  bool isTheNamespaceSpecifier(const clang::NestedNameSpecifier *NNS);
+
   bool removeNestedNameSpecifier(clang::NestedNameSpecifierLoc QualifierLoc);
 
   void removeLastNamespaceFromUsingDecl(const clang::UsingDirectiveDecl *D,

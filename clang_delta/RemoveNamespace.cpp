@@ -100,8 +100,10 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
        UsingDirectiveDecl *D)
 {
-  if (ConsumerInstance->UselessUsingDirectiveDecls.count(D))
+  if (ConsumerInstance->UselessUsingDirectiveDecls.count(D)) {
     ConsumerInstance->RewriteHelper->removeDecl(D);
+    return true;
+  }
 
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
   if (QualifierLoc && 
@@ -127,40 +129,25 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
 
 bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
 {
-  if (ConsumerInstance->UselessUsingDecls.count(D))
+  if (ConsumerInstance->UselessUsingDecls.count(D)) {
     ConsumerInstance->RewriteHelper->removeDecl(D);
+    return true;
+  }
 
   // check if this UsingDecl refers to the namespaced being removed
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  TransAssert(QualifierLoc && "Bad QualifierLoc!");
+  NestedNameSpecifierLoc PrefixLoc = QualifierLoc.getPrefix();
+
   const NestedNameSpecifier *NNS = D->getQualifier();
   TransAssert(NNS && "Bad NameSpecifier!");
-  NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
-
-  switch (Kind) {
-  case NestedNameSpecifier::Namespace: {
-    const NamespaceDecl *CanonicalND = 
-      NNS->getAsNamespace()->getCanonicalDecl();
-    if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->RewriteHelper->removeDecl(D);
-    break;
+  if (ConsumerInstance->isTheNamespaceSpecifier(NNS) && 
+      (!PrefixLoc || ConsumerInstance->isGlobalNamespace(PrefixLoc))) {
+    ConsumerInstance->RewriteHelper->removeDecl(D);
+    return true;
   }
 
-  case NestedNameSpecifier::NamespaceAlias: {
-    const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
-    const NamespaceDecl *CanonicalND = 
-      NAD->getNamespace()->getCanonicalDecl();
-    if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
-      ConsumerInstance->RewriteHelper->removeDecl(D);
-    break;
-  }
-
-  case NestedNameSpecifier::Global: 
-    // Nothing to do 
-    break;
-
-  default:
-    TransAssert(0 && "Bad NestedNameSpecifier!");
-  }
+  ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
   return true;
 }
 
@@ -543,6 +530,30 @@ bool RemoveNamespace::isGlobalNamespace(NestedNameSpecifierLoc Loc)
 {
   NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
   return (NNS->getKind() == NestedNameSpecifier::Global);
+}
+
+bool RemoveNamespace::isTheNamespaceSpecifier(const NestedNameSpecifier *NNS)
+{
+  NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
+  switch (Kind) {
+  case NestedNameSpecifier::Namespace: {
+    const NamespaceDecl *CanonicalND = 
+      NNS->getAsNamespace()->getCanonicalDecl();
+    return (CanonicalND == TheNamespaceDecl);
+  }
+
+  case NestedNameSpecifier::NamespaceAlias: {
+    const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
+    const NamespaceDecl *CanonicalND = 
+      NAD->getNamespace()->getCanonicalDecl();
+    return (CanonicalND == TheNamespaceDecl);
+  }
+
+  default:
+    return false;
+  }
+  TransAssert(0 && "Unreachable code!");
+  return false;
 }
 
 bool RemoveNamespace::removeNestedNameSpecifier(
