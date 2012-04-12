@@ -1302,3 +1302,26 @@ void RewriteUtils::getQualifierAsString(NestedNameSpecifierLoc Loc,
   Str.assign(StartBuf, Len);
 }
 
+bool RewriteUtils::replaceRecordType(RecordTypeLoc &RTLoc,
+                                     const std::string &Name)
+{
+  const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
+  SourceLocation LocStart = RTLoc.getLocStart();
+
+  // Loc could be invalid, for example:
+  // class AAA { };
+  // class BBB:AAA {
+  // public:
+  //   BBB () { }
+  // };
+  // In Clang's internal representation, BBB's Ctor is BBB() : AAA() {}
+  // The implicit AAA() will be visited here 
+  // This is the only case where RTLoc is invalid, so the question is -
+  // Is the guard below too strong? It is possible it could mask other 
+  // potential bugs?
+  if (LocStart.isInvalid())
+    return true;
+
+  return !(TheRewriter->ReplaceText(LocStart, TypeId->getLength(), Name));
+}
+

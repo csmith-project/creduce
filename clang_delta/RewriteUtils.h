@@ -41,6 +41,7 @@ namespace clang {
   class CXXConstructExpr;
   class RecordDecl;
   class CXXMemberCallExpr;
+  class RecordTypeLoc;
 }
 
 class RewriteUtils {
@@ -191,6 +192,8 @@ public:
 
   void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
                             std::string &Str);
+
+  bool replaceRecordType(clang::RecordTypeLoc &RTLoc, const std::string &Name);
 
 private:
 
