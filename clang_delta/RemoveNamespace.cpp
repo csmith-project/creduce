@@ -196,6 +196,9 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
 bool RemoveNamespaceRewriteVisitor::VisitCXXConstructorDecl
        (CXXConstructorDecl *CtorDecl)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   const DeclContext *Ctx = CtorDecl->getDeclContext();
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
@@ -215,6 +218,9 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXConstructorDecl
 bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
        CXXDestructorDecl *DtorDecl)
 {
+  if (ConsumerInstance->isForUsingNamedDecls)
+    return true;
+
   const DeclContext *Ctx = DtorDecl->getDeclContext();
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(Ctx);
   TransAssert(CXXRD && "Invalid CXXRecordDecl");
@@ -254,7 +260,7 @@ bool RemoveNamespaceRewriteVisitor::VisitCallExpr(CallExpr *CE)
     const CXXRecordDecl *CXXRD = CXXCE->getRecordDecl();
     // getRecordDEcl could return NULL if getImplicitObjectArgument() 
     // returns NULL
-    if (!CXXRD)
+    if (!CXXRD || ConsumerInstance->isForUsingNamedDecls)
       return true;
 
     // Dtors from UsingNamedDecl can't have conflicts, so it's safe
