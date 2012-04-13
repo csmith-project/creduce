@@ -462,7 +462,6 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
               "Cannot have anonymous namespaces!");
   std::string NamespaceName = ND->getNameAsString();
 
-  bool Removable = true;
   for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
        I != E; ++I) {
     const NamedDecl *NamedD = dyn_cast<NamedDecl>(*I);
@@ -472,11 +471,6 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     if (!isa<TemplateDecl>(NamedD) && !isa<TypeDecl>(NamedD) && 
         !isa<ValueDecl>(NamedD))
       continue;
-
-    if (!hasNameConflict(NamedD, ParentCtx)) {
-      Removable = false;
-      continue;
-    }
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
     std::string NewName;
@@ -491,8 +485,25 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     UsingNamedDeclToNewName[NamedD] = NewName;
   }
 
-  if (Removable)
-    UselessUsingDirectiveDecls.insert(UD);
+  // We always remove this using directive, and in ThenNamespaceDecl 
+  // append the corresponding namespace specifier to all names from the 
+  // used namespace. The reason is that the conlicted name in the outter 
+  // namespace could appear after TheNamespaceDecl, e.g.,
+  //   namespace NS1 {
+  //     void foo() {}
+  //     void fiz() {}
+  //   }
+  //   namespace NS2 {
+  //     using namespace NS1;
+  //     int bar() { foo(); }
+  //   }
+  //   void fiz() {}
+  //   void f() { fiz(); }
+  // If we keep "using namespace NS1" after removing NS2, then we will
+  // end up with an ambiguous name fiz
+  // Consequently, we will add a few unecessary namespace qualifiers to
+  // those without conflicting names. It's a trade-off.
+  UselessUsingDirectiveDecls.insert(UD);
 }
 
 void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
