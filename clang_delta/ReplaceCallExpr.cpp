@@ -390,10 +390,10 @@ bool ReplaceCallExpr::hasBadEffect(const ParameterPosVector &PosVector,
   unsigned int RVNumExprs = ECVisitor.getNumExprs();
   TransAssert(RVNumExprs && "Bad NumExprs!");
 
-  // really conservatively set 3 as a threshold value
+  // really conservatively set 5 as a threshold value
   unsigned int ArgNum = CE->getNumArgs();
   if (!ArgNum)
-    return (RVNumExprs > 3);
+    return (RVNumExprs > 5);
 
   llvm::SmallVector<unsigned int, 10> ArgNumExprs;
   unsigned int Num;
@@ -415,7 +415,7 @@ bool ReplaceCallExpr::hasBadEffect(const ParameterPosVector &PosVector,
     RVNumExprs += (Num - 1);
   }
 
-  return (RVNumExprs > CallExprsNum);
+  return (RVNumExprs > (CallExprsNum + 5));
 }
 
 void ReplaceCallExpr::doAnalysis(void)
