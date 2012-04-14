@@ -52,6 +52,8 @@ private:
 
   typedef llvm::SmallVector<const clang::DeclRefExpr *, 5> ParmRefsVector;
 
+  typedef llvm::SmallVector<unsigned int, 10> ParameterPosVector;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -80,7 +82,14 @@ private:
 
   void doAnalysis(void);
 
-  bool hasUnmatchedParmArg(clang::ReturnStmt *RS, clang::CallExpr *CE);
+  void getParmPosVector(ParameterPosVector &PosVector,
+                        clang::ReturnStmt *RS, clang::CallExpr *CE);
+
+  bool hasBadEffect(const ParameterPosVector &PosVector,
+                    clang::ReturnStmt *RS, clang::CallExpr *CE);
+
+  bool hasUnmatchedParmArg(const ParameterPosVector &PosVector, 
+                           clang::CallExpr *CE);
 
   ReplaceCallExprVisitor *CollectionVisitor;
 
