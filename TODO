@@ -9,9 +9,6 @@ make it again possible to run just selected passes
 
 add regression tests
 
-watch for unexpected abnormal compiler outputs?
-  not really clear how to do this in a generic way
-
 optionally, keep stats about fast vs. slow tests
 
 exploit early-exit from delta test to speed this up
@@ -22,9 +19,7 @@ exploit early-exit from delta test to speed this up
 factor timeout out of test script: c_reduce can supply a timeout
   decrease it as the test starts to run faster
 
-add optional check for non-deterministic tests
-
-put saved files in a subdir
+support testcase obfuscation better
 
 --------------------------------------------------------------------
 
@@ -66,6 +61,8 @@ rename enumerate types
 
  * remove a %d directive and also the corresponding argument from a printf 
 
-- (low priority) constant-folding and constant-propagation
+- constant folding
+
+- (low priority) constant-propagation
 
 --------------------------------------------------------------------
