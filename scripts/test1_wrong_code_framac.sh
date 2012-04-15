@@ -33,15 +33,15 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  cp small.c small-framac.c &&\
-  perl -pi.bak -e 's/int main \(int argc, char\* argv\[\]\)/int argc; char **argv; int main (void)/' small-framac.c &&\
-  RunSafely.sh 125 1 /dev/null out_framac.txt frama-c -cpp-command \"gcc -C -Dvolatile= -E -I.\" -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions small-framac.c &&\
-  ! egrep -i '(user error|assert)' out_framac.txt >/dev/null 2>&1
   XXOPT1 small.c -o small1 > cc_out1.txt 2>&1 &&\
   RunSafely.sh 3 1 /dev/null out1.txt ./small1 >/dev/null 2>&1 &&\
   XXOPT2 small.c -o small2 > cc_out2.txt 2>&1 &&\
   RunSafely.sh 3 1 /dev/null out2.txt ./small2 >/dev/null 2>&1 &&\
-  ! diff out1.txt out2.txt 
+  ! diff out1.txt out2.txt &&\
+  cp small.c small-framac.c &&\
+  perl -pi.bak -e 's/int main \(int argc, char\* argv\[\]\)/int argc; char **argv; int main (void)/' small-framac.c &&\
+  RunSafely.sh 125 1 /dev/null out_framac.txt frama-c -cpp-command \"gcc -C -Dvolatile= -E -I.\" -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions small-framac.c &&\
+  ! egrep -i '(user error|assert)' out_framac.txt >/dev/null 2>&1
 then
   exit 0
 else
