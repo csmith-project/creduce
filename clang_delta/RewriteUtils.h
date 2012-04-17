@@ -190,7 +190,13 @@ public:
 
   bool removeSpecifier(clang::NestedNameSpecifierLoc Loc);
 
+  bool replaceSpecifier(clang::NestedNameSpecifierLoc Loc, 
+                        const std::string &Name);
+
   void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
+                            std::string &Str);
+
+  void getSpecifierAsString(clang::NestedNameSpecifierLoc Loc,
                             std::string &Str);
 
   bool replaceRecordType(clang::RecordTypeLoc &RTLoc, const std::string &Name);

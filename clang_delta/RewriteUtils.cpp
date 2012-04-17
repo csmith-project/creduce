@@ -795,6 +795,8 @@ bool RewriteUtils::replaceNamedDeclName(const NamedDecl *ND,
 {
   TransAssert(!isa<FunctionDecl>(ND) && 
     "Please use replaceFunctionDeclName for renaming a FunctionDecl!");
+  TransAssert(!isa<UsingDirectiveDecl>(ND) && 
+    "Cannot use this function for renaming UsingDirectiveDecl");
   SourceLocation NameLocStart = ND->getLocation();
   return !(TheRewriter->ReplaceText(NameLocStart, 
              ND->getNameAsString().size(), NameStr));
@@ -1290,6 +1292,15 @@ bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
   return !(TheRewriter->RemoveText(LocRange));
 }
 
+bool RewriteUtils::replaceSpecifier(NestedNameSpecifierLoc Loc,
+                                    const std::string &Name)
+{
+  SourceRange LocRange = Loc.getLocalSourceRange();
+  TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
+              "Bad NestedNameSpecifierLoc Range!");
+  return !(TheRewriter->ReplaceText(LocRange, Name + "::"));
+}
+
 // ISSUE: be careful of using this function.
 //        It returns the ending ";\n" for a UsingDecl's NestedNameSpecifier.
 void RewriteUtils::getQualifierAsString(NestedNameSpecifierLoc Loc,
@@ -1300,6 +1311,22 @@ void RewriteUtils::getQualifierAsString(NestedNameSpecifierLoc Loc,
   unsigned Len = Loc.getDataLength();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   Str.assign(StartBuf, Len);
+}
+
+void RewriteUtils::getSpecifierAsString(NestedNameSpecifierLoc Loc,
+                                        std::string &Str)
+{
+  SourceLocation StartLoc = Loc.getBeginLoc();
+  TransAssert(StartLoc.isValid() && "Bad StartLoc for NestedNameSpecifier!");
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  const char *OrigBuf = StartBuf;
+  unsigned int Len = 0;
+  while (!isspace(*StartBuf) && (*StartBuf != ':')) {
+    StartBuf++;
+    Len++;
+  }
+  
+  Str.assign(OrigBuf, Len);
 }
 
 bool RewriteUtils::replaceRecordType(RecordTypeLoc &RTLoc,
