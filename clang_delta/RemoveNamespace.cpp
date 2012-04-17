@@ -76,7 +76,9 @@ public:
 
   bool VisitCXXDestructorDecl(CXXDestructorDecl *DtorDecl);
 
-  bool VisitCallExpr(CallExpr *CE);
+  bool VisitCXXMemberCallExpr(CXXMemberCallExpr *CE);
+
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
   bool VisitDeclaratorDecl(DeclaratorDecl *D);
 
@@ -127,7 +129,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
 
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
   if (QualifierLoc && 
-      ConsumerInstance->removeNestedNameSpecifier(QualifierLoc))
+      ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc))
     return true;
 
   const NamespaceDecl *CanonicalND = 
@@ -144,6 +146,25 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDirectiveDecl(
       ConsumerInstance->removeLastNamespaceFromUsingDecl(D, CanonicalND);
   }
   
+  // handle cases like the following:
+  // namespace NS1 { }
+  // namespace NS2 {
+  //   namespace NS1 {
+  //     void foo() {}
+  //   }
+  //   namespace NS3 {
+  //     using namespace NS1;
+  //     void bar() {foo();}
+  //   }
+  // }
+  // if we remove NS1, we need to update "using namespace NS1" because "NS1"
+  // conflicts with the global namespace NS1. Note that it could only happen
+  // if NS1 is the first name in a NestedNameSpecifier
+  std::string Name;
+  if (ConsumerInstance->getNewNamedDeclName(CanonicalND, Name)) {
+    ConsumerInstance->replaceFirstNamespaceFromUsingDecl(D, Name);
+  }
+
   return true;
 }
 
@@ -170,7 +191,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUsingDecl(UsingDecl *D)
     return true;
   }
 
-  ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+  ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
   return true;
 }
 
@@ -188,7 +209,7 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
   }
 
   if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
   return true;
 }
@@ -253,28 +274,39 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
   return true;
 }
 
-bool RemoveNamespaceRewriteVisitor::VisitCallExpr(CallExpr *CE)
+bool RemoveNamespaceRewriteVisitor::VisitCXXMemberCallExpr(
+       CXXMemberCallExpr *CXXCE)
 {
-  std::string Name;
-  if ( CXXMemberCallExpr *CXXCE = dyn_cast<CXXMemberCallExpr>(CE)) {
-    const CXXRecordDecl *CXXRD = CXXCE->getRecordDecl();
-    // getRecordDEcl could return NULL if getImplicitObjectArgument() 
-    // returns NULL
-    if (!CXXRD || ConsumerInstance->isForUsingNamedDecls)
-      return true;
-
-    // Dtors from UsingNamedDecl can't have conflicts, so it's safe
-    // to get new names from NamedDecl set
-    if (ConsumerInstance->getNewNamedDeclName(CXXRD, Name))
-      ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CXXCE, Name);
+  const CXXRecordDecl *CXXRD = CXXCE->getRecordDecl();
+  // getRecordDEcl could return NULL if getImplicitObjectArgument() 
+  // returns NULL
+  if (!CXXRD || ConsumerInstance->isForUsingNamedDecls)
     return true;
+
+  std::string Name;
+  // Dtors from UsingNamedDecl can't have conflicts, so it's safe
+  // to get new names from NamedDecl set
+  if (ConsumerInstance->getNewNamedDeclName(CXXRD, Name))
+    ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CXXCE, Name);
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
+{
+  NestedNameSpecifierLoc QualifierLoc = DRE->getQualifierLoc();
+  if (QualifierLoc && 
+      (ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc)))
+    return true;
+
+  const ValueDecl *OrigDecl = DRE->getDecl();
+  if (isa<FunctionDecl>(OrigDecl) || isa<VarDecl>(OrigDecl)) {
+    std::string Name;
+    if (ConsumerInstance->getNewName(OrigDecl, Name)) {
+      ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(),
+        OrigDecl->getNameAsString().size(), Name);
+    }
   }
 
-  const FunctionDecl *FD = CE->getDirectCallee();
-  if (ConsumerInstance->getNewName(FD, Name)) {
-    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
-      FD->getNameAsString().size(), Name);
-  }
   return true;
 }
 
@@ -284,7 +316,7 @@ bool RemoveNamespaceRewriteVisitor::VisitDeclaratorDecl(DeclaratorDecl *D)
     return true;
 
   if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
   return true;
 }
@@ -296,7 +328,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUnresolvedUsingValueDecl(
     return true;
 
   if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
   return true;
 }
@@ -308,7 +340,7 @@ bool RemoveNamespaceRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
     return true;
 
   if (NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
   return true;
 }
@@ -317,7 +349,7 @@ bool RemoveNamespaceRewriteVisitor::VisitTemplateArgumentLoc(
        const TemplateArgumentLoc &TAL)
 {
   if (NestedNameSpecifierLoc QualifierLoc = TAL.getTemplateQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
   return true;
 }
 
@@ -341,7 +373,7 @@ bool RemoveNamespaceRewriteVisitor::VisitElaboratedTypeLoc(
     return true;
 
   if (NestedNameSpecifierLoc QualifierLoc = ETLoc.getQualifierLoc())
-    ConsumerInstance->removeNestedNameSpecifier(QualifierLoc);
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
   return true;
 }
@@ -383,7 +415,9 @@ void RemoveNamespace::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   // First rename UsingNamedDecls, i.e., conflicting names
-  // from other namespaces
+  // from other namespaces. 
+  // FIXME: isForUsingNamedDecls flag is quite ugly,
+  //        need a way to remove it
   isForUsingNamedDecls = true;
   RewriteVisitor->TraverseDecl(TheNamespaceDecl);
   isForUsingNamedDecls = false;
@@ -475,7 +509,7 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
       continue;
 
     if (!isa<TemplateDecl>(NamedD) && !isa<TypeDecl>(NamedD) && 
-        !isa<ValueDecl>(NamedD))
+        !isa<ValueDecl>(NamedD) && !isa<NamespaceDecl>(NamedD))
       continue;
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
@@ -532,7 +566,7 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
 
   default:
     if (isa<NamespaceAliasDecl>(ND) || isa<TemplateDecl>(ND) ||
-        isa<TypeDecl>(ND) || isa<ValueDecl>(ND)) {
+        isa<TypeDecl>(ND) || isa<ValueDecl>(ND) || isa<NamespaceDecl>(ND)) {
       if (!hasNameConflict(ND, ParentCtx))
         break;
 
@@ -674,7 +708,23 @@ bool RemoveNamespace::isTheNamespaceSpecifier(const NestedNameSpecifier *NNS)
   return false;
 }
 
-bool RemoveNamespace::removeNestedNameSpecifier(
+// It handles two cases:
+//   * remove the specifier if it refers to TheNamespaceDecl
+//   * replace the specifier with a new name if the corresponding namespace
+//     has a name conflicts, e.g.,
+//   namespace NS1 { }
+//   namespace NS2 {
+//     namespace NS1 {
+//       void foo() {}
+//     }
+//     namespace NS3 {
+//       using NS1::foo;
+//       void bar() { foo(); }
+//     }
+//   }
+//   If we remove NS2, then the inner namespace NS1 conflicts with
+//   the global NS1, but "using NS1::foo" refers to the conflicting NS1.
+bool RemoveNamespace::replaceNestedNameSpecifier(
        NestedNameSpecifierLoc QualifierLoc)
 {
   SmallVector<NestedNameSpecifierLoc, 8> QualifierLocs;
@@ -685,30 +735,89 @@ bool RemoveNamespace::removeNestedNameSpecifier(
     NestedNameSpecifierLoc Loc = QualifierLocs.pop_back_val();
     NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
     NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
+    const NamespaceDecl *ND = NULL;
     switch (Kind) {
       case NestedNameSpecifier::Namespace: {
-        const NamespaceDecl *ND = NNS->getAsNamespace()->getCanonicalDecl();
-        if (ND == TheNamespaceDecl) {
-          RewriteHelper->removeSpecifier(Loc);
-          return true;
-        }
+        ND = NNS->getAsNamespace()->getCanonicalDecl();
         break;
       }
       case NestedNameSpecifier::NamespaceAlias: {
         const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
-        const NamespaceDecl *ND = 
-          NAD->getNamespace()->getCanonicalDecl();
-        if (ND == TheNamespaceDecl) {
-          RewriteHelper->removeSpecifier(Loc);
-          return true;
-        }
+        ND = NAD->getNamespace()->getCanonicalDecl();
         break;
       }
       default:
         break;
     }
+
+    if (!ND)
+      continue;
+
+    if (ND == TheNamespaceDecl) {
+      RewriteHelper->removeSpecifier(Loc);
+      return true;
+    }
+
+    std::string SpecifierName;
+    RewriteHelper->getSpecifierAsString(Loc, SpecifierName);
+    std::string NDName = ND->getNameAsString();
+    std::string Name = "";
+    getNewName(ND, Name);
+
+    // Skip it if this specifier is the same as ND's name. 
+    // Note that the above case could only happen for UsingNamedDecls
+    if (isForUsingNamedDecls && (SpecifierName == NDName)) {
+      // It could happen for example:
+      // namespace NS1 { }
+      // namespace NS2 {
+      //   using namespace NS1;
+      //   void bar() { NS1::foo(); }
+      // }
+      // If we remove NS2, then the guard below avoids renaming 
+      // NS1::foo to NS1::foo::foo. 
+      if (Name.empty())
+        return true;
+
+      // another case to handle:
+      // namespace NS1 {
+      //   namespace NS2 {
+      //     void foo() {}
+      //   }
+      // }
+      // namespace NS3 {
+      //   using namespace NS1;
+      //   void bar() { NS2::foo(); }
+      // } 
+      // If we remove NS3, we do need to rename NS2::foo as NS1::NS2::foo
+      if (!isSuffix(Name, SpecifierName))
+        return true;
+    }
+    
+    if (!Name.empty()) {
+      RewriteHelper->replaceSpecifier(Loc, Name);
+      return true;
+    }
   }
   return false;
+}
+
+bool RemoveNamespace::isSuffix(std::string &Name, std::string &SpecifierName)
+{
+  size_t NameLen = Name.length();
+  std::string Suffix = "::" + SpecifierName;
+  size_t SuffixLen = Suffix.length();
+  if (NameLen <= SuffixLen)
+    return false;
+
+  return !Suffix.compare(0, SuffixLen, Name, NameLen - SuffixLen, SuffixLen);
+}
+
+void RemoveNamespace::replaceFirstNamespaceFromUsingDecl(
+       const UsingDirectiveDecl *D, const std::string &Name)
+{
+  const NamespaceDecl *ND = D->getNominatedNamespace();
+  SourceLocation IdLocStart = D->getIdentLocation();
+  TheRewriter.ReplaceText(IdLocStart, ND->getNameAsString().length(), Name);
 }
 
 void RemoveNamespace::removeLastNamespaceFromUsingDecl(

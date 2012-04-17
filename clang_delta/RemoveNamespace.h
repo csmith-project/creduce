@@ -105,10 +105,15 @@ private:
 
   bool isTheNamespaceSpecifier(const clang::NestedNameSpecifier *NNS);
 
-  bool removeNestedNameSpecifier(clang::NestedNameSpecifierLoc QualifierLoc);
+  bool replaceNestedNameSpecifier(clang::NestedNameSpecifierLoc QualifierLoc);
 
   void removeLastNamespaceFromUsingDecl(const clang::UsingDirectiveDecl *D,
                                         const clang::NamespaceDecl *ND);
+
+  void replaceFirstNamespaceFromUsingDecl(const clang::UsingDirectiveDecl *D,
+                                          const std::string &Name);
+
+  bool isSuffix(std::string &Name, std::string &SpecifierName);
 
   NamespaceDeclSet VisitedND;
 
