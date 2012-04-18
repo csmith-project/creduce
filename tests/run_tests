@@ -53,7 +53,7 @@ foreach my $tref (@tests) {
 		defined ($expected));
 
     my $test_dir = getcwd();
-    my $temp_dir = tempdir( "${name}_XXXXX", 
+    my $temp_dir = tempdir( "tmp_${name}_XXXXX", 
 		       DIR => $test_dir,
 		       CLEANUP => $CLEANUP );
 

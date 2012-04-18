@@ -6,7 +6,7 @@ ulimit -t 15
 ulimit -v 6000000
 
 if 
-  clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
+  clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
   ! grep 'conversions than data arguments' out.txt &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\

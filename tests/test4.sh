@@ -6,7 +6,7 @@ ulimit -t 1
 ulimit -v 2000000
 
 if 
-  clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
+  clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
   ! grep 'eliding middle term' out.txt &&\
@@ -36,7 +36,7 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  grep 'truncated' outa.txt
+  grep '\+\+' small.c
 then
   exit 0
 else
