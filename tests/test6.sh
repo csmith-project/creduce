@@ -3,7 +3,7 @@
 rm -f out*.txt
 
 ulimit -t 10
-ulimit -v 2000000
+ulimit -v 6000000
 
 if 
   clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\

@@ -1029,11 +1029,10 @@ static const short func_2(unsigned p_3, unsigned long long p_4, int p_5, int p_6
 
 
 
-int main (int argc, char* argv[])
+int main (void)
 {
     int i;
     int print_hash_value = 0;
-    if (argc == 2 && strcmp(argv[1], "1") == 0) print_hash_value = 1;
     platform_main_begin();
     crc32_gentab();
     func_1();

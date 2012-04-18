@@ -38,7 +38,7 @@ if
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
   ./smallz >out1.txt 2>&1 &&\
-  grep 'checksum = b' out1.txt &&\
+  grep 'checksum = e' out1.txt &&\
   frama-c -cpp-command "gcc -C -Dvolatile= -E -I." -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions small.c > out_framac.txt 2>&1 &&\
   ! egrep -i '(user error|assert)' out_framac.txt >/dev/null 2>&1
 then
