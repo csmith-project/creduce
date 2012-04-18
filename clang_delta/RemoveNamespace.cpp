@@ -617,6 +617,13 @@ void RemoveNamespace::rewriteNamedDecls(void)
   }
 }
 
+bool RemoveNamespace::isValidNamedDeclKind(const NamedDecl *ND)
+{
+  return (isa<TemplateDecl>(ND) || isa<TypeDecl>(ND) ||
+          isa<ValueDecl>(ND) || isa<NamespaceDecl>(ND) ||
+          isa<NamespaceAliasDecl>(ND));
+}
+
 bool RemoveNamespace::hasNameConflict(const NamedDecl *ND, 
                                       const DeclContext *ParentCtx)
 {
@@ -677,8 +684,7 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     if (!NamedD)
       continue;
 
-    if (!isa<TemplateDecl>(NamedD) && !isa<TypeDecl>(NamedD) && 
-        !isa<ValueDecl>(NamedD) && !isa<NamespaceDecl>(NamedD))
+    if (!isValidNamedDeclKind(NamedD))
       continue;
 
     const IdentifierInfo *IdInfo = NamedD->getIdentifier();
@@ -728,31 +734,31 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
   case Decl::UsingShadow: {
     const UsingShadowDecl *D = dyn_cast<UsingShadowDecl>(ND);
     handleOneUsingShadowDecl(D, ParentCtx);
-    break;
+    return;
   }
 
   case Decl::UsingDirective: {
     const UsingDirectiveDecl *D = dyn_cast<UsingDirectiveDecl>(ND);
     handleOneUsingDirectiveDecl(D, ParentCtx);
-    break;
+    return;
   }
 
   default:
-    if (isa<NamespaceAliasDecl>(ND) || isa<TemplateDecl>(ND) ||
-        isa<TypeDecl>(ND) || isa<ValueDecl>(ND) || isa<NamespaceDecl>(ND)) {
-      if (!hasNameConflict(ND, ParentCtx))
-        break;
+    if (!isValidNamedDeclKind(ND))
+      return;
 
-      std::string NewName = NamePrefix + NamespaceName;
-      const IdentifierInfo *IdInfo = ND->getIdentifier();
-      NewName += "_";
-      NewName += IdInfo->getName();
+    if (!hasNameConflict(ND, ParentCtx))
+      return;
 
-      if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
-        ND = TD->getTemplatedDecl();
-      }
-      NamedDeclToNewName[ND] = NewName;
+    std::string NewName = NamePrefix + NamespaceName;
+    const IdentifierInfo *IdInfo = ND->getIdentifier();
+    NewName += "_";
+    NewName += IdInfo->getName();
+
+    if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
+      ND = TD->getTemplatedDecl();
     }
+    NamedDeclToNewName[ND] = NewName;
   }
 }
 

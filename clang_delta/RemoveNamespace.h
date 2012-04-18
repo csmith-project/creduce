@@ -83,6 +83,8 @@ private:
   bool hasNameConflict(const clang::NamedDecl *ND,
                        const clang::DeclContext *ParentCtx);
 
+  bool isValidNamedDeclKind(const clang::NamedDecl *ND);
+
   void handleOneUsingShadowDecl(const clang::UsingShadowDecl *UD,
                                 const clang::DeclContext *ParentCtx);
 
