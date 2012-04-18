@@ -46,6 +46,9 @@ c_reduce.pl: Makefile
 
 c_reduce.pl: $(srcdir)/c_reduce.pl.in
 
+CLEANFILES = \
+	c_reduce.pl
+
 ###############################################################################
 
 ## End of file.
