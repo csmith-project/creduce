@@ -38,7 +38,7 @@ foreach my $tref (@tests) {
     chdir $temp_dir or die;
 
     system "cp ../$unreduced small.c";
-    system "c_reduce ../${test_script} small.c";
+    system "creduce ../${test_script} small.c";
     
     chdir $test_dir or die;
 }

@@ -225,7 +225,7 @@ sub delta_pass ($) {
 }
 
 sub usage() {
-    print "usage: c_reduce.pl test_script.sh file.c\n";
+    print "usage: creduce test_script.sh file.c\n";
     die;
 }
 
