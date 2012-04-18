@@ -193,6 +193,7 @@ mandir = @mandir@
 mkdir_p = @mkdir_p@
 oldincludedir = @oldincludedir@
 pdfdir = @pdfdir@
+perllibdir = @perllibdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
@@ -229,7 +230,7 @@ dist_bin_SCRIPTS = \
 # `configure.ac' file to do the substitution.  See the Autoconf manual section
 # about "Installation Directory Variables" for details.
 edit = sed \
-	-e 's|@pkgdatadir[@]|$(pkgdatadir)|g' \
+	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
 
 all: all-am

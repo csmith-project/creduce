@@ -10,7 +10,7 @@
 
 use strict;
 use FindBin;
-use lib $FindBin::Bin, '@pkgdatadir@';
+use lib $FindBin::Bin, '@perllibdir@';
 
 use creduce_utils;
 

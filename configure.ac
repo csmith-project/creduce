@@ -29,6 +29,9 @@ AM_MAINTAINER_MODE
 #
 AC_DEFUN([AC_DATAROOTDIR_CHECKED])
 
+# Where Perl modules are installed.
+AC_SUBST([perllibdir],['${pkgdatadir}/perl'])
+
 dnl AC_PROG_CC # Automake 1.11 want us to use AM_PROG_CC_C_O instead...
 AM_PROG_CC_C_O
 AC_PROG_CXX

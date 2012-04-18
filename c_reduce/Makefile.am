@@ -29,7 +29,7 @@ dist_bin_SCRIPTS = \
 # about "Installation Directory Variables" for details.
 
 edit = sed \
-	-e 's|@pkgdatadir[@]|$(pkgdatadir)|g' \
+	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
 
 c_reduce.pl: Makefile
