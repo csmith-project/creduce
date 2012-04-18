@@ -19,7 +19,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -Wall -Wextra -O2 small.c -o smallz >outa.txt 2>&1 &&\
+  gcc -Wall -Wextra -O1 small.c -o smallz >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\

@@ -4,7 +4,7 @@ use strict;
 use File::Temp qw/ tempfile tempdir /;
 use Cwd;
 
-# delete tmp dirs?
+# delete tmp dirs on exit?
 my $CLEANUP = 0;
 
 my @tests = (
@@ -12,7 +12,32 @@ my @tests = (
       "unreduced" => "file1.c",
       "test_script" => "test1.sh",
       "expected" => "test1_expected.c",
-    }
+    },
+    { "name" => "test2",
+      "unreduced" => "file1.c",
+      "test_script" => "test2.sh",
+      "expected" => "test2_expected.c",
+    },
+    { "name" => "test3",
+      "unreduced" => "file1.c",
+      "test_script" => "test3.sh",
+      "expected" => "test3_expected.c",
+    },
+    { "name" => "test4",
+      "unreduced" => "file2.c",
+      "test_script" => "test4.sh",
+      "expected" => "test4_expected.c",
+    },
+    { "name" => "test5",
+      "unreduced" => "file2.c",
+      "test_script" => "test5.sh",
+      "expected" => "test5_expected.c",
+    },
+    { "name" => "test6",
+      "unreduced" => "file2.c",
+      "test_script" => "test6.sh",
+      "expected" => "test6_expected.c",
+    },
     );
 
 foreach my $tref (@tests) {
@@ -31,9 +56,6 @@ foreach my $tref (@tests) {
     my $temp_dir = tempdir( "${name}_XXXXX", 
 		       DIR => $test_dir,
 		       CLEANUP => $CLEANUP );
-
-    print "$temp_dir\n";
-    exit 0;
 
     chdir $temp_dir or die;
 

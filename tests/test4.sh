@@ -36,7 +36,7 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  grep 'value computed is not used' outa.txt
+  grep 'truncated' outa.txt
 then
   exit 0
 else
