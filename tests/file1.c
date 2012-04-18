@@ -1654,11 +1654,10 @@ static int func_55(long long p_56, int p_57, unsigned long long p_58)
 
 
 
-int main (int argc, char* argv[])
+int main (void)
 {
     int i, j, k;
     int print_hash_value = 0;
-    if (argc == 2 && strcmp(argv[1], "1") == 0) print_hash_value = 1;
     platform_main_begin();
     crc32_gentab();
     func_1();
