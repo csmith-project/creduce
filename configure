@@ -663,7 +663,6 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-perllibdir
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
@@ -2891,10 +2890,6 @@ fi
 # This can perhaps be removed in a few years after Autoconf 2.60.
 # See <http://www.gnu.org/software/libtool/manual/autoconf/Changed-Directory-Variables.html>
 #
-
-
-# Where Perl modules are installed.
-perllibdir='${pkgdatadir}/perl'
 
 
 DEPDIR="${am__leading_dot}deps"

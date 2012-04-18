@@ -9,7 +9,10 @@
 ###############################################################################
 
 dist_bin_SCRIPTS = \
-	c_reduce.pl \
+	c_reduce.pl
+
+perllibdir = $(pkgdatadir)/perl
+dist_perllib_DATA = \
 	creduce_regexes.pm \
 	creduce_utils.pm \
 	pass_balanced.pm \
