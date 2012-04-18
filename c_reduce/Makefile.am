@@ -49,6 +49,22 @@ c_reduce.pl: $(srcdir)/c_reduce.pl.in
 CLEANFILES = \
 	c_reduce.pl
 
+###
+
+# The `c_reduce.pl' script knows to look in its own directory for modules.
+# But if one uses a separate build tree, the script doesn't know to look in
+# the source tree.  So: handle that case by making symbolic links.
+#
+all-local:
+	for pm in $(dist_perllib_DATA); do \
+	  test -e "$$pm" || ln -s "$(srcdir)/$$pm" "$$pm"; \
+	done
+
+clean-local:
+	for pm in $(dist_perllib_DATA); do \
+	  test -L "$$pm" && rm -f "$$pm"; \
+	done
+
 ###############################################################################
 
 ## End of file.

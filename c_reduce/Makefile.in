@@ -368,7 +368,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(SCRIPTS) $(DATA)
+all-am: Makefile $(SCRIPTS) $(DATA) all-local
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -406,7 +406,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f Makefile
@@ -472,18 +472,19 @@ uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_perllibDATA
 
 .MAKE: install-am install-strip
 
-.PHONY: all all-am check check-am clean clean-generic clean-libtool \
-	distclean distclean-generic distclean-libtool distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dist_binSCRIPTS \
-	install-dist_perllibDATA install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-dist_binSCRIPTS uninstall-dist_perllibDATA
+.PHONY: all all-am all-local check check-am clean clean-generic \
+	clean-libtool clean-local distclean distclean-generic \
+	distclean-libtool distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-dist_binSCRIPTS install-dist_perllibDATA install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	uninstall uninstall-am uninstall-dist_binSCRIPTS \
+	uninstall-dist_perllibDATA
 
 
 c_reduce.pl: Makefile
@@ -496,6 +497,22 @@ c_reduce.pl: Makefile
 	mv $@.tmp $@
 
 c_reduce.pl: $(srcdir)/c_reduce.pl.in
+
+###
+
+# The `c_reduce.pl' script knows to look in its own directory for modules.
+# But if one uses a separate build tree, the script doesn't know to look in
+# the source tree.  So: handle that case by making symbolic links.
+#
+all-local:
+	for pm in $(dist_perllib_DATA); do \
+	  test -e "$$pm" || ln -s "$(srcdir)/$$pm" "$$pm"; \
+	done
+
+clean-local:
+	for pm in $(dist_perllib_DATA); do \
+	  test -L "$$pm" && rm -f "$$pm"; \
+	done
 
 ###############################################################################
 
