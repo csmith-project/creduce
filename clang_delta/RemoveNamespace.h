@@ -92,14 +92,20 @@ private:
   void rewriteNamedDecls(void);
 
   bool getNewNameFromNameMap(const clang::NamedDecl *ND,
-                             const NamedDeclToNameMap &NameMap,
-                             std::string &Name);
+                             std::string &Name,
+                             const NamedDeclToNameMap &NameMap);
+
+  bool getNewNameByNameFromNameMap(const std::string &Name,
+                                   std::string &NewName,
+                                   const NamedDeclToNameMap &NameMap);
 
   bool getNewNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
 
   bool getNewUsingNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
 
   bool getNewName(const clang::NamedDecl *ND, std::string &Name);
+
+  bool getNewNameByName(const std::string &Name, std::string &NewName);
 
   bool isGlobalNamespace(clang::NestedNameSpecifierLoc Loc);
 

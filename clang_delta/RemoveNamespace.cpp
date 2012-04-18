@@ -92,6 +92,19 @@ public:
 
   bool VisitElaboratedTypeLoc(ElaboratedTypeLoc ETLoc);
 
+  bool VisitTemplateSpecializationTypeLoc(
+         TemplateSpecializationTypeLoc TSPLoc);
+
+  bool VisitClassTemplatePartialSpecializationDecl(
+         ClassTemplatePartialSpecializationDecl *D);
+
+  bool VisitDependentTemplateSpecializationTypeLoc(
+         DependentTemplateSpecializationTypeLoc DTSLoc);
+
+  bool VisitInjectedClassNameTypeLoc(InjectedClassNameTypeLoc TyLoc);
+
+  bool VisitTypedefTypeLoc(TypedefTypeLoc TpLoc);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -345,6 +358,8 @@ bool RemoveNamespaceRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
   return true;
 }
 
+// FIXME: need to invoke this function from where TemplateArgument[s]
+//        could appear
 bool RemoveNamespaceRewriteVisitor::VisitTemplateArgumentLoc(
        const TemplateArgumentLoc &TAL)
 {
@@ -375,6 +390,151 @@ bool RemoveNamespaceRewriteVisitor::VisitElaboratedTypeLoc(
   if (NestedNameSpecifierLoc QualifierLoc = ETLoc.getQualifierLoc())
     ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
 
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitTemplateSpecializationTypeLoc(
+       TemplateSpecializationTypeLoc TSPLoc)
+{
+  const Type *Ty = TSPLoc.getTypePtr();
+  const TemplateSpecializationType *TST = 
+    dyn_cast<TemplateSpecializationType>(Ty);
+  TransAssert(TST && "Bad TemplateSpecializationType!");
+
+  TemplateName TplName = TST->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  // in some cases, ND could be NULL, e.g., the 
+  // template template parameter code below:
+  // template<template<class> class BBB>
+  // struct AAA {
+  //   template <class T>
+  //   struct CCC {
+  //     static BBB<T> a;
+  //   };
+  // };
+  // where we don't know BBB
+  if (!ND)
+    return true;
+
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
+  if (!CXXRD)
+    return true;
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TSPLoc.getTemplateNameLoc();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
+       ClassTemplatePartialSpecializationDecl *D)
+{
+  const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
+  TransAssert(Ty && "Bad TypePtr!");
+  const TemplateSpecializationType *TST = 
+    dyn_cast<TemplateSpecializationType>(Ty);
+  TransAssert(TST && "Bad TemplateSpecializationType!");
+
+  TemplateName TplName = TST->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
+  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    const TypeSourceInfo *TyInfo = D->getTypeAsWritten();
+    if (!TyInfo)
+      return true;
+    TypeLoc TyLoc = TyInfo->getTypeLoc();
+    SourceLocation LocStart = TyLoc.getLocStart();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+  return true;
+}
+
+// handle the case where a template specialization type cannot be resolved, e.g.
+// template <class T> struct Base {};
+// template <class T> struct Derived: public Base<T> {
+//  typename Derived::template Base<double>* p1;
+// };
+bool RemoveNamespaceRewriteVisitor::VisitDependentTemplateSpecializationTypeLoc(
+       DependentTemplateSpecializationTypeLoc DTSLoc)
+{
+  const Type *Ty = DTSLoc.getTypePtr();
+  const DependentTemplateSpecializationType *DTST = 
+    dyn_cast<DependentTemplateSpecializationType>(Ty);
+  TransAssert(DTST && "Bad DependentTemplateSpecializationType!");
+
+  const IdentifierInfo *IdInfo = DTST->getIdentifier();
+  std::string IdName = IdInfo->getName();
+  std::string Name;
+
+  // FIXME:
+  // This isn't quite right, we will generate bad code for some cases, e.g.,
+  // namespace NS1 {
+  //   template <class T> struct Base {};
+  //   template <class T> struct Derived: public Base<T> {
+  //     typename Derived::template Base<double>* p1;
+  //   };
+  // }
+  // template <class T> struct Base {};
+  // template <class T> struct Derived: public Base<T> {
+  //   typename Derived::template Base<double>* p1;
+  // };
+  // For the global Derived template class, we will end up with
+  // typename Derived::template Tran_NS_NS1_Base ...,
+  // which is obviously wrong.
+  // Any way to avoid this bad transformation?
+  if (ConsumerInstance->getNewNameByName(IdName, Name)) {
+    SourceLocation LocStart = DTSLoc.getTemplateNameLoc();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, IdName.size(), Name);
+  }
+
+  if ( NestedNameSpecifierLoc QualifierLoc = DTSLoc.getQualifierLoc() )
+    ConsumerInstance->replaceNestedNameSpecifier(QualifierLoc);
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitInjectedClassNameTypeLoc(
+       InjectedClassNameTypeLoc TyLoc)
+{
+  const CXXRecordDecl *CXXRD = TyLoc.getDecl();
+  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
+
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TyLoc.getLocStart();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+  return true;
+}
+
+bool RemoveNamespaceRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc TyLoc)
+{
+  const TypedefNameDecl *D = TyLoc.getTypedefNameDecl();
+  
+  std::string Name;
+  if (ConsumerInstance->getNewName(D, Name)) {
+    SourceLocation LocStart = TyLoc.getLocStart();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, D->getNameAsString().size(), Name);
+  }
   return true;
 }
 
@@ -437,12 +597,21 @@ void RemoveNamespace::rewriteNamedDecls(void)
     const NamedDecl *D = (*I).first;
     std::string Name = (*I).second;
 
-    // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
-    // we need a special case for FunctionDecl
-    if ( const FunctionDecl *FD = dyn_cast<FunctionDecl>(D) ) {
+    Decl::Kind K = D->getKind();
+    switch (K) {
+    case Decl::Function: {
+      // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
+      // we need a special case for FunctionDecl
+      const FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
       RewriteHelper->replaceFunctionDeclName(FD, Name);
+      break;
     }
-    else {
+    case Decl::ClassTemplateSpecialization: {
+      // Skip this case, which will be handled by 
+      // VisitTemplateSpecializationTypeLoc
+      break;
+    }
+    default:
       RewriteHelper->replaceNamedDeclName(D, Name);
     }
   }
@@ -522,6 +691,10 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     }
     NewName += "::";
     NewName += IdInfo->getName();
+
+    if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(NamedD) ) {
+      NamedD = TD->getTemplatedDecl();
+    }
     UsingNamedDeclToNewName[NamedD] = NewName;
   }
 
@@ -574,6 +747,10 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
       const IdentifierInfo *IdInfo = ND->getIdentifier();
       NewName += "_";
       NewName += IdInfo->getName();
+
+      if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
+        ND = TD->getTemplatedDecl();
+      }
       NamedDeclToNewName[ND] = NewName;
     }
   }
@@ -645,8 +822,8 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
 }
 
 bool RemoveNamespace::getNewNameFromNameMap(const NamedDecl *ND, 
-                                            const NamedDeclToNameMap &NameMap,
-                                            std::string &Name)
+                                            std::string &Name,
+                                            const NamedDeclToNameMap &NameMap)
 {
   NamedDeclToNameMap::const_iterator Pos = 
     NameMap.find(ND);
@@ -657,16 +834,34 @@ bool RemoveNamespace::getNewNameFromNameMap(const NamedDecl *ND,
   return true;
 }
 
+bool RemoveNamespace::getNewNameByNameFromNameMap(const std::string &Name,
+                                            std::string &NewName,
+                                            const NamedDeclToNameMap &NameMap)
+{
+  for (NamedDeclToNameMap::const_iterator I = NameMap.begin(),
+       E = NameMap.end(); I != E; ++I) {
+    const NamedDecl *D = (*I).first;
+    const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(D);
+    if (!CXXRD)
+      continue;
+    if (Name == CXXRD->getNameAsString()) {
+      NewName = (*I).second;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool RemoveNamespace::getNewNamedDeclName(const NamedDecl *ND,
                                           std::string &Name)
 {
-  return getNewNameFromNameMap(ND, NamedDeclToNewName, Name);
+  return getNewNameFromNameMap(ND, Name, NamedDeclToNewName);
 }
 
 bool RemoveNamespace::getNewUsingNamedDeclName(const NamedDecl *ND,
                                                std::string &Name)
 {
-  return getNewNameFromNameMap(ND, UsingNamedDeclToNewName, Name);
+  return getNewNameFromNameMap(ND, Name, UsingNamedDeclToNewName);
 }
 
 bool RemoveNamespace::getNewName(const NamedDecl *ND, 
@@ -676,6 +871,15 @@ bool RemoveNamespace::getNewName(const NamedDecl *ND,
     return getNewUsingNamedDeclName(ND, Name);
   else
     return getNewNamedDeclName(ND, Name);
+}
+
+bool RemoveNamespace::getNewNameByName(const std::string &Name,
+                                       std::string &NewName)
+{
+  if (isForUsingNamedDecls)
+    return getNewNameByNameFromNameMap(Name, NewName, UsingNamedDeclToNewName);
+  else
+    return getNewNameByNameFromNameMap(Name, NewName, NamedDeclToNewName);
 }
 
 bool RemoveNamespace::isGlobalNamespace(NestedNameSpecifierLoc Loc)
