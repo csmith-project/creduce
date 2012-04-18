@@ -26,6 +26,7 @@ namespace clang {
   class UsingDirectiveDecl;
   class UsingShadowDecl;
   class UsingDecl;
+  class EnumDecl;
 }
 
 class RemoveNamespaceASTVisitor;
@@ -83,6 +84,13 @@ private:
   bool hasNameConflict(const clang::NamedDecl *ND,
                        const clang::DeclContext *ParentCtx);
 
+  bool isValidNamedDeclKind(const clang::NamedDecl *ND);
+
+  void handleOneEnumDecl(const clang::EnumDecl *ED,
+                         const std::string &Prefix,
+                         NamedDeclToNameMap &NameMap,
+                         const clang::DeclContext *ParentCtx);
+
   void handleOneUsingShadowDecl(const clang::UsingShadowDecl *UD,
                                 const clang::DeclContext *ParentCtx);
 
@@ -92,14 +100,20 @@ private:
   void rewriteNamedDecls(void);
 
   bool getNewNameFromNameMap(const clang::NamedDecl *ND,
-                             const NamedDeclToNameMap &NameMap,
-                             std::string &Name);
+                             std::string &Name,
+                             const NamedDeclToNameMap &NameMap);
+
+  bool getNewNameByNameFromNameMap(const std::string &Name,
+                                   std::string &NewName,
+                                   const NamedDeclToNameMap &NameMap);
 
   bool getNewNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
 
   bool getNewUsingNamedDeclName(const clang::NamedDecl *ND, std::string &Name);
 
   bool getNewName(const clang::NamedDecl *ND, std::string &Name);
+
+  bool getNewNameByName(const std::string &Name, std::string &NewName);
 
   bool isGlobalNamespace(clang::NestedNameSpecifierLoc Loc);
 
