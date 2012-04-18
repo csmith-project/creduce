@@ -1,0 +1,19 @@
+-----------------------------------------------------------------
+
+This directory contains a few random test cases for C-Reduce. They
+don't depend strongly on any particular compiler version. They serve
+two purposes:
+
+1. Regression testing.
+
+2. A training set for creating our CDE-based binary C-Reduce
+   distribution:
+
+  http://www.pgbovine.net/cde.html
+
+Run the tests like this:
+
+  ./run_tests
+
+-----------------------------------------------------------------
+

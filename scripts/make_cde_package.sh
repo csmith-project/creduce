@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# RUN THIS FROM THE C-REDUCE MAIN DIR
+
