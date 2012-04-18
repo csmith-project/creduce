@@ -690,8 +690,20 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
   
   std::string NewName;
   const UsingDecl *D = UD->getUsingDecl();
-  NestedNameSpecifierLoc PrefixLoc = D->getQualifierLoc().getPrefix();
-  RewriteHelper->getQualifierAsString(PrefixLoc, NewName);
+
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  NestedNameSpecifier *NNS = QualifierLoc.getNestedNameSpecifier();
+
+  // QualifierLoc could be ::foo, whose PrefixLoc is invalid, e.g.,
+  // void foo();
+  // namespace NS2 {
+  //   using ::foo;
+  //   void bar () { foo(); }
+  // }
+  if (NNS->getKind() != NestedNameSpecifier::Global) {
+    NestedNameSpecifierLoc PrefixLoc = QualifierLoc.getPrefix();
+    RewriteHelper->getQualifierAsString(PrefixLoc, NewName);
+  }
 
   NewName += "::";
   const IdentifierInfo *IdInfo = ND->getIdentifier();
