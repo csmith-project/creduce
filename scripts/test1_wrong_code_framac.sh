@@ -2,6 +2,9 @@
 
 rm -f out*.txt
 
+ulimit -t 3
+ulimit -v 2000000
+
 if 
   clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
   ! grep 'conversions than data arguments' out.txt &&\
@@ -21,6 +24,7 @@ if
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'return type defaults' outa.txt &&\
+  ! grep 'cast from pointer to integer' outa.txt &&\
   ! grep 'useless type name in empty declaration' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
   ! grep 'type defaults to' outa.txt &&\
@@ -34,9 +38,9 @@ if
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
   XXOPT1 small.c -o small1 > cc_out1.txt 2>&1 &&\
-  RunSafely.sh 3 1 /dev/null out1.txt ./small1 >/dev/null 2>&1 &&\
+  ./small1 >out1.txt 2>&1 &&\
   XXOPT2 small.c -o small2 > cc_out2.txt 2>&1 &&\
-  RunSafely.sh 3 1 /dev/null out2.txt ./small2 >/dev/null 2>&1 &&\
+  ./small2 >out2.txt 2>&1 &&\
   ! diff out1.txt out2.txt &&\
   cp small.c small-framac.c &&\
   perl -pi.bak -e 's/int main \(int argc, char\* argv\[\]\)/int argc; char **argv; int main (void)/' small-framac.c &&\

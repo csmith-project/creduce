@@ -2,6 +2,9 @@
 
 rm -f out*.txt
 
+ulimit -t 3
+ulimit -v 2000000
+
 if 
   clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
   ! grep 'conversions than data arguments' out.txt &&\
@@ -21,6 +24,7 @@ if
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'return type defaults' outa.txt &&\
+  ! grep 'cast from pointer to integer' outa.txt &&\
   ! grep 'useless type name in empty declaration' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
   ! grep 'type defaults to' outa.txt &&\

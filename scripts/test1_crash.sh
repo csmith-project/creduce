@@ -26,6 +26,7 @@ if
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
   ! grep 'incompatible pointer' outa.txt &&\
+  ! grep 'cast from pointer to integer' outa.txt &&\
   ! grep 'ordered comparison of pointer with integer' outa.txt &&\
   ! grep 'declaration does not declare anything' outa.txt &&\
   ! grep 'expects type' outa.txt &&\
