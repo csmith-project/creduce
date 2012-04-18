@@ -643,6 +643,11 @@ bool RemoveNamespace::isValidNamedDeclKind(const NamedDecl *ND)
 bool RemoveNamespace::hasNameConflict(const NamedDecl *ND, 
                                       const DeclContext *ParentCtx)
 {
+  // we cannot lookup names from LinkageSpecDecl, e.g.,
+  // extern "C++" { ... }
+  if (dyn_cast<LinkageSpecDecl>(ParentCtx))
+    return false;
+
   DeclarationName Name = ND->getDeclName();
   DeclContextLookupConstResult Result = ParentCtx->lookup(Name);
   return (Result.first != Result.second);
