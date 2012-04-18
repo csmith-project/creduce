@@ -502,7 +502,8 @@ c_reduce.pl: $(srcdir)/c_reduce.pl.in
 
 # The `c_reduce.pl' script knows to look in its own directory for modules.
 # But if one uses a separate build tree, the script doesn't know to look in
-# the source tree.  So: handle that case by making symbolic links.
+# the source tree.  Handle that case by making symbolic links to the source
+# tree.  (These symlinks do not impede the `install' target, fortunately.)
 #
 all-local:
 	for pm in $(dist_perllib_DATA); do \
