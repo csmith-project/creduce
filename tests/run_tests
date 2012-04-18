@@ -52,8 +52,6 @@ foreach my $tref (@tests) {
 		defined ($test_script) &&
 		defined ($expected));
 
-    next unless ($name eq "test5");
-
     my $test_dir = getcwd();
     my $temp_dir = tempdir( "${name}_XXXXX", 
 		       DIR => $test_dir,
