@@ -23,4 +23,26 @@ dist_bin_SCRIPTS = \
 
 ###############################################################################
 
+# Follow the recipe described in the Autoconf manual for inserting Autoconf
+# variables into scripts.  Notably, do *not* use AC_CONFIG_FILES in the root
+# `configure.ac' file to do the substitution.  See the Autoconf manual section
+# about "Installation Directory Variables" for details.
+
+edit = sed \
+	-e 's|@pkgdatadir[@]|$(pkgdatadir)|g' \
+	-e 's|@prefix[@]|$(prefix)|g'
+
+c_reduce.pl: Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(edit) $${srcdir}$@.in > $@.tmp
+	chmod +x $@.tmp
+	chmod a-w $@.tmp
+	mv $@.tmp $@
+
+c_reduce.pl: $(srcdir)/c_reduce.pl.in
+
+###############################################################################
+
 ## End of file.
