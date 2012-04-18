@@ -26,6 +26,7 @@ namespace clang {
   class UsingDirectiveDecl;
   class UsingShadowDecl;
   class UsingDecl;
+  class EnumDecl;
 }
 
 class RemoveNamespaceASTVisitor;
@@ -84,6 +85,11 @@ private:
                        const clang::DeclContext *ParentCtx);
 
   bool isValidNamedDeclKind(const clang::NamedDecl *ND);
+
+  void handleOneEnumDecl(const clang::EnumDecl *ED,
+                         const std::string &Prefix,
+                         NamedDeclToNameMap &NameMap,
+                         const clang::DeclContext *ParentCtx);
 
   void handleOneUsingShadowDecl(const clang::UsingShadowDecl *UD,
                                 const clang::DeclContext *ParentCtx);

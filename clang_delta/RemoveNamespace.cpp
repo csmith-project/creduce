@@ -105,6 +105,8 @@ public:
 
   bool VisitTypedefTypeLoc(TypedefTypeLoc TpLoc);
 
+  bool VisitEnumTypeLoc(EnumTypeLoc TpLoc);
+
 private:
   RemoveNamespace *ConsumerInstance;
 
@@ -312,7 +314,8 @@ bool RemoveNamespaceRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
 
   const ValueDecl *OrigDecl = DRE->getDecl();
-  if (isa<FunctionDecl>(OrigDecl) || isa<VarDecl>(OrigDecl)) {
+  if (isa<FunctionDecl>(OrigDecl) || isa<VarDecl>(OrigDecl) ||
+      isa<EnumConstantDecl>(OrigDecl)) {
     std::string Name;
     if (ConsumerInstance->getNewName(OrigDecl, Name)) {
       ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(),
@@ -538,6 +541,19 @@ bool RemoveNamespaceRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc TyLoc)
   return true;
 }
 
+bool RemoveNamespaceRewriteVisitor::VisitEnumTypeLoc(EnumTypeLoc TyLoc)
+{
+  const EnumDecl *D = TyLoc.getDecl();
+  
+  std::string Name;
+  if (ConsumerInstance->getNewName(D, Name)) {
+    SourceLocation LocStart = TyLoc.getLocStart();
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, D->getNameAsString().size(), Name);
+  }
+  return true;
+}
+
 void RemoveNamespace::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
@@ -632,6 +648,25 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
   return (Result.first != Result.second);
 }
 
+// We always prepend the Prefix string to EnumConstantDecl if ParentCtx
+// is NULL
+void RemoveNamespace::handleOneEnumDecl(const EnumDecl *ED,
+                                        const std::string &Prefix,
+                                        NamedDeclToNameMap &NameMap,
+                                        const DeclContext *ParentCtx)
+{
+  for (EnumDecl::enumerator_iterator I = ED->enumerator_begin(),
+       E = ED->enumerator_end(); I != E; ++I) {
+    EnumConstantDecl *ECD = (*I);
+    if (!ParentCtx || hasNameConflict(ECD, ParentCtx)) {
+      const IdentifierInfo *IdInfo = ECD->getIdentifier();
+      std::string NewName = Prefix;
+      NewName += IdInfo->getName();
+      NameMap[ECD] = NewName;
+    }
+  }
+}
+
 // A using declaration in the removed namespace could cause
 // name conflict, e.g.,
 // namespace NS1 {
@@ -696,11 +731,14 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
       NewName = NamespaceName;
     }
     NewName += "::";
-    NewName += IdInfo->getName();
 
     if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(NamedD) ) {
       NamedD = TD->getTemplatedDecl();
     }
+    else if (const EnumDecl *ED = dyn_cast<EnumDecl>(NamedD)) {
+      handleOneEnumDecl(ED, NewName, UsingNamedDeclToNewName, NULL);
+    }
+    NewName += IdInfo->getName();
     UsingNamedDeclToNewName[NamedD] = NewName;
   }
 
@@ -753,11 +791,14 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
     std::string NewName = NamePrefix + NamespaceName;
     const IdentifierInfo *IdInfo = ND->getIdentifier();
     NewName += "_";
-    NewName += IdInfo->getName();
 
     if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
       ND = TD->getTemplatedDecl();
     }
+    else if (const EnumDecl *ED = dyn_cast<EnumDecl>(ND)) {
+      handleOneEnumDecl(ED, NewName, NamedDeclToNewName, ParentCtx);
+    }
+    NewName += IdInfo->getName();
     NamedDeclToNewName[ND] = NewName;
   }
 }
