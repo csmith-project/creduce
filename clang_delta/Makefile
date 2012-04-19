@@ -26,7 +26,7 @@ INCLUDES = ${LLVM_CXXFLAGS} -I${llvm_dir}/include/clang/
 LDFLAGS = ${LLVM_LDFLAGS}
 LIBS = -lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
        -lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-       -lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
+       -lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
        ${LLVM_LIBS} -ldl
 
 TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h \
