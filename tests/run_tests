@@ -38,6 +38,16 @@ my @tests = (
       "test_script" => "test6.sh",
       "expected" => "test6_expected.c",
     },
+    { "name" => "test7",
+      "unreduced" => "file3.c",
+      "test_script" => "test7.sh",
+      "expected" => "test7_expected.c",
+    },
+    { "name" => "test8",
+      "unreduced" => "file3.c",
+      "test_script" => "test8.sh",
+      "expected" => "test8_expected.c",
+    },
     );
 
 foreach my $tref (@tests) {

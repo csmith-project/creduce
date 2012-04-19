@@ -2,9 +2,6 @@
 
 rm -f out*.txt
 
-ulimit -t 1
-ulimit -v 2000000
-
 if 
   clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\
@@ -21,7 +18,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -c -Wall -Wextra -O small.c  >outa.txt 2>&1 &&\
+  gcc -S -Wall -Wextra -Ofast small.c  >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
@@ -36,7 +33,7 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  grep "<<" small.c
+  grep xmm small.s
 then
   exit 0
 else
