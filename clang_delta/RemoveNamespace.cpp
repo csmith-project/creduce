@@ -643,6 +643,11 @@ bool RemoveNamespace::isValidNamedDeclKind(const NamedDecl *ND)
 bool RemoveNamespace::hasNameConflict(const NamedDecl *ND, 
                                       const DeclContext *ParentCtx)
 {
+  // we cannot lookup names from LinkageSpecDecl, e.g.,
+  // extern "C++" { ... }
+  if (dyn_cast<LinkageSpecDecl>(ParentCtx))
+    return false;
+
   DeclarationName Name = ND->getDeclName();
   DeclContextLookupConstResult Result = ParentCtx->lookup(Name);
   return (Result.first != Result.second);
@@ -690,8 +695,20 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
   
   std::string NewName;
   const UsingDecl *D = UD->getUsingDecl();
-  NestedNameSpecifierLoc PrefixLoc = D->getQualifierLoc().getPrefix();
-  RewriteHelper->getQualifierAsString(PrefixLoc, NewName);
+
+  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
+  NestedNameSpecifier *NNS = QualifierLoc.getNestedNameSpecifier();
+
+  // QualifierLoc could be ::foo, whose PrefixLoc is invalid, e.g.,
+  // void foo();
+  // namespace NS2 {
+  //   using ::foo;
+  //   void bar () { foo(); }
+  // }
+  if (NNS->getKind() != NestedNameSpecifier::Global) {
+    NestedNameSpecifierLoc PrefixLoc = QualifierLoc.getPrefix();
+    RewriteHelper->getQualifierAsString(PrefixLoc, NewName);
+  }
 
   NewName += "::";
   const IdentifierInfo *IdInfo = ND->getIdentifier();
