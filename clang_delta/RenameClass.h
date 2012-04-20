@@ -77,6 +77,9 @@ private:
 
   void analyzeOneRecordDecl(const clang::CXXRecordDecl *CXXRD);
 
+  void addOneRecordDecl(const clang::CXXRecordDecl *CanonicalRD, 
+                        unsigned Level);
+
   bool isValidName(const std::string &Name);
 
   bool isReservedName(char C);

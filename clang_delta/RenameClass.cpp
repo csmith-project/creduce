@@ -617,6 +617,28 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
   return Base;
 }
 
+void RenameClass::addOneRecordDecl(const CXXRecordDecl *CanonicalRD,
+                                   unsigned Level)
+{
+  RecordToLevel[CanonicalRD] = Level;
+  if (Level > MaxInheritanceLevel)
+    MaxInheritanceLevel = Level;
+
+  CXXRecordDeclSet *RDSet = LevelToRecords[Level];
+  if (!RDSet) {
+    RDSet = new CXXRecordDeclSet();
+    TransAssert(RDSet && "Cannot new a CXXRecordDeclSet!");
+    LevelToRecords[Level] = RDSet;
+  }
+  RDSet->insert(CanonicalRD);
+
+  std::string RDName = CanonicalRD->getNameAsString();
+  if (isValidName(RDName)) {
+    char C = RDName[0];
+    NameToRecord[C] = CanonicalRD;
+  }
+}
+
 void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
 {
   if (isSpecialRecordDecl(CXXRD))
@@ -633,11 +655,25 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
   if (RecordToLevel.find(CanonicalRD) != RecordToLevel.end())
     return;
 
-  unsigned NumBases = 0;
+  // in some cases, we will encounter a derived classs before
+  // its base class, safe to skip it if it has definition,
+  // because the Definition will be visited eventually. E.g.,
+  // namespace NS1 {
+  //   class Derived;
+  //   class Base {};
+  //   class Derived: public Base { };
+  // }
+  if (!CXXRD->isCompleteDefinition()) {
+    if (!CXXRD->hasDefinition())
+      addOneRecordDecl(CanonicalRD, 0);
+    return;
+  }
 
+  unsigned NumBases = 0;
   // getNumBases dies on the case where CXXRD has no definition.
-  if (CanonicalRD->hasDefinition())
+  if (CanonicalRD->hasDefinition()) {
     NumBases = CanonicalRD->getNumBases();
+  }
 
   unsigned Level = 0;
   if (NumBases > 0) {
@@ -666,23 +702,8 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
     }
     Level++;
   }
-  RecordToLevel[CanonicalRD] = Level;
-  if (Level > MaxInheritanceLevel)
-    MaxInheritanceLevel = Level;
 
-  CXXRecordDeclSet *RDSet = LevelToRecords[Level];
-  if (!RDSet) {
-    RDSet = new CXXRecordDeclSet();
-    TransAssert(RDSet && "Cannot new a CXXRecordDeclSet!");
-    LevelToRecords[Level] = RDSet;
-  }
-  RDSet->insert(CanonicalRD);
-
-  std::string RDName = CanonicalRD->getNameAsString();
-  if (isValidName(RDName)) {
-    char C = RDName[0];
-    NameToRecord[C] = CanonicalRD;
-  }
+  addOneRecordDecl(CanonicalRD, Level);
 }
 
 RenameClass::~RenameClass(void)
