@@ -309,11 +309,16 @@ bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
     switch (Kind) {
       case NestedNameSpecifier::TypeSpec: {
         const Type *Ty = NNS->getAsType();
+        // Avoid duplicated visiting, InjectedClassNameType will be visited
+        // from VisitInjectedClassNameType
+        if (dyn_cast<InjectedClassNameType>(Ty))
+          return true;
+
         const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
         if (CXXRD) {
-          ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
+          ConsumerInstance->rewriteClassName(CXXRD, Loc);
         }
-        break;
+        return true;
       }
 
       case NestedNameSpecifier::TypeSpecWithTemplate: {
@@ -327,16 +332,16 @@ bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
           TransAssert(ND && "Invalid NamedDecl!");
           const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
           if (CXXRD)
-            ConsumerInstance->rewriteClassName(CXXRD, NNS, Loc);
+            ConsumerInstance->rewriteClassName(CXXRD, Loc);
         }
-        break;
+        return true;
       }
 
       case NestedNameSpecifier::NamespaceAlias: // Fall-through
       case NestedNameSpecifier::Identifier: // Fall-through
       case NestedNameSpecifier::Global: // Fall-through
       case NestedNameSpecifier::Namespace:
-        break;
+        return true;
  
       default:
         TransAssert(0 && "Unreachable code: invalid SpecifierKind!");
@@ -473,7 +478,6 @@ bool RenameClass::getNewNameByName(const std::string &Name,
 }
 
 void RenameClass::rewriteClassName(const CXXRecordDecl *CXXRD, 
-                                   NestedNameSpecifier *NNS,
                                    NestedNameSpecifierLoc Loc)
 {
   std::string Name;
