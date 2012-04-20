@@ -85,6 +85,9 @@ public:
   bool VisitClassTemplatePartialSpecializationDecl(
          ClassTemplatePartialSpecializationDecl *D);
 
+  bool VisitClassTemplateSpecializationDecl(
+         ClassTemplateSpecializationDecl *TSD);
+
 private:
   RenameClass *ConsumerInstance;
 
@@ -124,6 +127,28 @@ bool RenameClassRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
     TransAssert(LocStart.isValid() && "Invalid Location!");
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+  return true;
+}
+
+// ISSUE: I am not sure why, but RecursiveASTVisitor doesn't recursively
+// visit base classes from explicit template specialization, e.g.,
+//   struct A { };
+//   template<typename T> class B : public A<T> { };
+//   template<> class B : public A<short> { };
+// In the above case, A<short> won't be touched.
+// So we have to do it manually
+bool RenameClassRewriteVisitor::VisitClassTemplateSpecializationDecl(
+       ClassTemplateSpecializationDecl *TSD)
+{
+  if (!TSD->isExplicitSpecialization())
+    return true;
+
+  for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
+       E = TSD->bases_end(); I != E; ++I) {
+    TypeSourceInfo *TSI = (*I).getTypeSourceInfo();
+    TransAssert(TSI && "Bad TypeSourceInfo!");
+    TraverseTypeLoc(TSI->getTypeLoc());
   }
   return true;
 }
