@@ -72,16 +72,6 @@ public:
   bool VisitDependentTemplateSpecializationTypeLoc(
          DependentTemplateSpecializationTypeLoc DTSLoc);
 
-  bool VisitNestedNameSpecifierLoc(NestedNameSpecifierLoc QualifierLoc);
-
-  bool VisitUsingDecl(UsingDecl *D);
-  
-  bool VisitUsingDirectiveDecl(UsingDirectiveDecl *D);
-
-  bool VisitUnresolvedUsingValueDecl(UnresolvedUsingValueDecl *D);
-
-  bool VisitUnresolvedUsingTypenameDecl(UnresolvedUsingTypenameDecl *D);
-
   bool VisitClassTemplatePartialSpecializationDecl(
          ClassTemplatePartialSpecializationDecl *D);
 
@@ -277,8 +267,6 @@ bool RenameClassRewriteVisitor::VisitDependentTemplateSpecializationTypeLoc(
       LocStart, IdName.size(), Name);
   }
 
-  if ( NestedNameSpecifierLoc QualifierLoc = DTSLoc.getQualifierLoc() )
-    return VisitNestedNameSpecifierLoc(QualifierLoc);
   return true;
 }
 
@@ -318,99 +306,6 @@ bool RenameClassRewriteVisitor::VisitTemplateSpecializationTypeLoc(
       LocStart, CXXRD->getNameAsString().size(), Name);
   }
   return true;
-}
-
-bool RenameClassRewriteVisitor::VisitNestedNameSpecifierLoc(
-       NestedNameSpecifierLoc QualifierLoc)
-{
-  SmallVector<NestedNameSpecifierLoc, 8> QualifierLocs;
-  for (; QualifierLoc; QualifierLoc = QualifierLoc.getPrefix())
-    QualifierLocs.push_back(QualifierLoc);
-
-  while (!QualifierLocs.empty()) {
-    NestedNameSpecifierLoc Loc = QualifierLocs.pop_back_val();
-    NestedNameSpecifier *NNS = Loc.getNestedNameSpecifier();
-    NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
-    switch (Kind) {
-      case NestedNameSpecifier::TypeSpec: {
-        const Type *Ty = NNS->getAsType();
-        // Avoid duplicated visiting, InjectedClassNameType will be visited
-        // from VisitInjectedClassNameType
-        if (dyn_cast<InjectedClassNameType>(Ty))
-          return true;
-
-        const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
-        if (CXXRD) {
-          ConsumerInstance->rewriteClassName(CXXRD, Loc);
-        }
-        return true;
-      }
-
-      case NestedNameSpecifier::TypeSpecWithTemplate: {
-        const Type *Ty = NNS->getAsType();
-        if ( const TemplateSpecializationType *TST = 
-             dyn_cast<TemplateSpecializationType>(Ty) ) {
-          TemplateName TplName = TST->getTemplateName();
-          const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-          TransAssert(TplD && "Invalid TemplateDecl!");
-          NamedDecl *ND = TplD->getTemplatedDecl();
-          TransAssert(ND && "Invalid NamedDecl!");
-          const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
-          if (CXXRD)
-            ConsumerInstance->rewriteClassName(CXXRD, Loc);
-        }
-        return true;
-      }
-
-      case NestedNameSpecifier::NamespaceAlias: // Fall-through
-      case NestedNameSpecifier::Identifier: // Fall-through
-      case NestedNameSpecifier::Global: // Fall-through
-      case NestedNameSpecifier::Namespace:
-        return true;
- 
-      default:
-        TransAssert(0 && "Unreachable code: invalid SpecifierKind!");
-    }
-  }
-  return true;
-}
-
-// e.g., using namespace_XX::identifie_YY
-bool RenameClassRewriteVisitor::VisitUsingDecl(UsingDecl *D)
-{
-  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
-  if (!QualifierLoc)
-    return true;
-  return VisitNestedNameSpecifierLoc(QualifierLoc);
-}
-
-// e.g., using namespace std
-bool RenameClassRewriteVisitor::VisitUsingDirectiveDecl(UsingDirectiveDecl *D)
-{
-  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
-  if (!QualifierLoc)
-    return true;
-  return VisitNestedNameSpecifierLoc(QualifierLoc);
-}
-
-// e.g., class A : public Base<T> { using Base<T>::foo; };
-bool RenameClassRewriteVisitor::VisitUnresolvedUsingValueDecl(
-       UnresolvedUsingValueDecl *D)
-{
-  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
-  if (!QualifierLoc)
-    return true;
-  return VisitNestedNameSpecifierLoc(QualifierLoc);
-}
-
-// e.g., class A : public Base<T> { using typename Base<T>::foo; };
-bool RenameClassRewriteVisitor::VisitUnresolvedUsingTypenameDecl(
-       UnresolvedUsingTypenameDecl *D)
-{
-  NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
-  if (!QualifierLoc)
-    return true;
-  return VisitNestedNameSpecifierLoc(QualifierLoc);
 }
 
 void RenameClass::Initialize(ASTContext &context) 
