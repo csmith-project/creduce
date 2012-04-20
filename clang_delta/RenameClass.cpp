@@ -212,7 +212,7 @@ bool RenameClassRewriteVisitor::VisitCXXMemberCallExpr(CXXMemberCallExpr *CE)
     return true;
 
   std::string Name;
-  if (!ConsumerInstance->getNewName(CXXRD, Name)) {
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
     ConsumerInstance->RewriteHelper->replaceCXXDtorCallExpr(CE, Name);
   }
   return true;
