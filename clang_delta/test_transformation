@@ -13,6 +13,7 @@ use warnings;
 my $keep_temp = 0;
 my $invoke_compiler = 0;
 my $verbose = 0;
+my @all_test_files = ();
 my $SRC_FILE = "";
 my $FILE_EXT = "c";
 my @transformations = ();
@@ -28,6 +29,7 @@ my $CSMITH_BIN = "";
 my $CSMITH_HOME = $ENV{"CSMITH_HOME"};
 my $test_iterations = 100;
 my $with_csmith = 0;
+my $tests_dir = "";
 
 sub print_msg($) {
   my ($msg) = @_;
@@ -154,7 +156,7 @@ sub do_one_test($) {
     my @results = ();
     my @veri_results = ();
 
-    print("Running transformation[$trans] ...\n");
+    print("Running transformation[$trans] on $SRC_FILE ...\n");
     for(my $i = 1; $i <= $instance_num; $i++) {
         my $orig_backup = "$WORKING_DIR/$trans/$trans" . "_0.$FILE_EXT";
   
@@ -331,6 +333,7 @@ test_transformation.pl [-transformation=<name>] [-keep] [-verify-output] [-verbo
   -with-csmith: invoke Csmith to generate a testing file. Please set CSMITH_HOME to make Csmith work correctly 
                 (we are not allowed to pass source.c if this option is given)
   -iterations: testing iterations with Csmith
+  -dir=[dir_name]: test all files in the dir_name
   -verbose: output detailed testing process
   source.c: file under test
 
@@ -351,6 +354,9 @@ sub main() {
             }
             elsif ($1 eq "iterations") {
                 $test_iterations = $2;
+            }
+            elsif ($1 eq "dir") {
+                $tests_dir = $2;
             }
             else {
                 die "unknown option: $opt";
@@ -385,33 +391,57 @@ sub main() {
     }
 
     if (@unused == 1) {
-        die "Cannot have both -with-csmith and testing file!" if ($with_csmith);
-        $SRC_FILE = $unused[0];
-        my @a = split('\.', $SRC_FILE);
-        if (@a > 1) {
-            $FILE_EXT = $a[-1];
-            print "$FILE_EXT\n";
-        }
+        die "Invalid use of -with-csmith option!" if ($with_csmith);
+        die "Invalid use of -dir=[dir] option!" if ($tests_dir ne "");
+        push @all_test_files, $unused[0];
     }
     elsif ($with_csmith) {
         die "Please set CSMITH_HOME env!" if (!defined($CSMITH_HOME));
+        die "Invalid use of -with-csmith option!" if ($tests_dir ne "");
         prepare();
         do_tests_with_csmith($transformation);
         return;
-        # Nothing to do
+    }
+    elsif ($tests_dir ne "") {
+      die "$tests_dir doesn't exist!" if (!(-d $tests_dir));
+      @all_test_files = glob ("$tests_dir/*.*");
     }
     else {
         die "Please give a test file!";
     }
 
     prepare();
-    if (defined($transformation)) {
-        do_one_test($transformation);
+
+    my $count = 0;
+    foreach (@all_test_files) {
+        $count++;
+        $SRC_FILE = $_;
+        my @a = split('\.', $SRC_FILE);
+        if (@a > 1) {
+            $FILE_EXT = $a[-1];
+        }
+        if (defined($transformation)) {
+            do_one_test($transformation);
+        }
+        else {
+            doit();
+        }
+
+        my $failure = dump_results();
+        if ($failure != -1) {
+            if ($keep_temp) {
+                system "mv $WORKING_DIR/$transformation $WORKING_DIR/${transformation}_$count";
+            }
+            else {
+                system "rm -rf $WORKING_DIR/*";
+            }
+        }
+        else {
+            last;
+        }
     }
-    else {
-        doit();
-    }
-    dump_results();
+
+    # dump_results();
     finish();
 }
 
