@@ -141,7 +141,7 @@ bool RenameClassRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
 bool RenameClassRewriteVisitor::VisitClassTemplateSpecializationDecl(
        ClassTemplateSpecializationDecl *TSD)
 {
-  if (!TSD->isExplicitSpecialization())
+  if (!TSD->isExplicitSpecialization() || !TSD->isCompleteDefinition())
     return true;
 
   for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
