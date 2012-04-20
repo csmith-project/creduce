@@ -703,7 +703,7 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
     return;
 
   // Avoid duplication
-  if (dyn_cast<ClassTemplatePartialSpecializationDecl>(CXXRD))
+  if (dyn_cast<ClassTemplateSpecializationDecl>(CXXRD))
     return;
 
   if (CXXRD->getNameAsString().empty())
