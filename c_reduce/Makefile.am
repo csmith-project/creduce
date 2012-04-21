@@ -8,8 +8,13 @@
 
 ###############################################################################
 
-dist_bin_SCRIPTS = \
+# Yuck.  Is there a better way to distribute the sources for a script that is
+# "compiled"?
+#
+nodist_bin_SCRIPTS = \
 	c_reduce.pl
+EXTRA_DIST = \
+	c_reduce.pl.in
 
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
@@ -41,10 +46,9 @@ c_reduce.pl: Makefile
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
 	  $(edit) $${srcdir}$@.in > $@.tmp
 	chmod +x $@.tmp
-	chmod a-w $@.tmp
 	mv $@.tmp $@
 
-c_reduce.pl: $(srcdir)/c_reduce.pl.in
+c_reduce.pl: c_reduce.pl.in
 
 CLEANFILES = \
 	c_reduce.pl
@@ -63,7 +67,7 @@ all-local:
 
 clean-local:
 	for pm in $(dist_perllib_DATA); do \
-	  test -L "$$pm" && rm -f "$$pm"; \
+	  test \! -L "$$pm" || rm -f "$$pm"; \
 	done
 
 ###############################################################################

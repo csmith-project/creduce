@@ -39,8 +39,8 @@ build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
 subdir = c_reduce
-DIST_COMMON = $(dist_bin_SCRIPTS) $(dist_perllib_DATA) \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_perllib_DATA) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_llvm.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -81,7 +81,7 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)"
-SCRIPTS = $(dist_bin_SCRIPTS)
+SCRIPTS = $(nodist_bin_SCRIPTS)
 SOURCES =
 DIST_SOURCES =
 DATA = $(dist_perllib_DATA)
@@ -210,8 +210,15 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-dist_bin_SCRIPTS = \
+
+# Yuck.  Is there a better way to distribute the sources for a script that is
+# "compiled"?
+#
+nodist_bin_SCRIPTS = \
 	c_reduce.pl
+
+EXTRA_DIST = \
+	c_reduce.pl.in
 
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
@@ -273,10 +280,10 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-dist_binSCRIPTS: $(dist_bin_SCRIPTS)
+install-nodist_binSCRIPTS: $(nodist_bin_SCRIPTS)
 	@$(NORMAL_INSTALL)
 	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
-	@list='$(dist_bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
+	@list='$(nodist_bin_SCRIPTS)'; test -n "$(bindir)" || list=; \
 	for p in $$list; do \
 	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
 	  if test -f "$$d$$p"; then echo "$$d$$p"; echo "$$p"; else :; fi; \
@@ -299,9 +306,9 @@ install-dist_binSCRIPTS: $(dist_bin_SCRIPTS)
 	     } \
 	; done
 
-uninstall-dist_binSCRIPTS:
+uninstall-nodist_binSCRIPTS:
 	@$(NORMAL_UNINSTALL)
-	@list='$(dist_bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
+	@list='$(nodist_bin_SCRIPTS)'; test -n "$(bindir)" || exit 0; \
 	files=`for p in $$list; do echo "$$p"; done | \
 	       sed -e 's,.*/,,;$(transform)'`; \
 	dir='$(DESTDIR)$(bindir)'; $(am__uninstall_files_from_dir)
@@ -430,7 +437,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-dist_binSCRIPTS
+install-exec-am: install-nodist_binSCRIPTS
 
 install-html: install-html-am
 
@@ -468,7 +475,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_perllibDATA
+uninstall-am: uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
 
 .MAKE: install-am install-strip
 
@@ -476,15 +483,15 @@ uninstall-am: uninstall-dist_binSCRIPTS uninstall-dist_perllibDATA
 	clean-libtool clean-local distclean distclean-generic \
 	distclean-libtool distdir dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am \
-	install-dist_binSCRIPTS install-dist_perllibDATA install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-dist_binSCRIPTS \
-	uninstall-dist_perllibDATA
+	install-dist_perllibDATA install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man \
+	install-nodist_binSCRIPTS install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
+	uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
 
 
 c_reduce.pl: Makefile
@@ -493,10 +500,9 @@ c_reduce.pl: Makefile
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
 	  $(edit) $${srcdir}$@.in > $@.tmp
 	chmod +x $@.tmp
-	chmod a-w $@.tmp
 	mv $@.tmp $@
 
-c_reduce.pl: $(srcdir)/c_reduce.pl.in
+c_reduce.pl: c_reduce.pl.in
 
 ###
 
@@ -512,7 +518,7 @@ all-local:
 
 clean-local:
 	for pm in $(dist_perllib_DATA); do \
-	  test -L "$$pm" && rm -f "$$pm"; \
+	  test \! -L "$$pm" || rm -f "$$pm"; \
 	done
 
 ###############################################################################
