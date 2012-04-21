@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-dist_bin_SCRIPTS = \
+dist_noinst_SCRIPTS = \
 	del_lines.pl \
 	godelta8 \
 	prep.pl \
