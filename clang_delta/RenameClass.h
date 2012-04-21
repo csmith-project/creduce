@@ -98,9 +98,6 @@ private:
 
   const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
 
-  void rewriteClassName(const clang::CXXRecordDecl *RD,
-                        clang::NestedNameSpecifierLoc Loc);
-
   const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
         const clang::TemplateSpecializationType *TSTy);
 

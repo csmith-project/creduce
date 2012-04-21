@@ -397,18 +397,6 @@ bool RenameClass::getNewNameByName(const std::string &Name,
   return RV;
 }
 
-void RenameClass::rewriteClassName(const CXXRecordDecl *CXXRD, 
-                                   NestedNameSpecifierLoc Loc)
-{
-  std::string Name;
-  if (!getNewName(CXXRD, Name))
-    return;
-
-  Name += "::";
-  SourceRange LocRange = Loc.getLocalSourceRange();
-  TheRewriter.ReplaceText(LocRange, Name);
-}
-
 bool RenameClass::matchCurrentName(const std::string &Name)
 {
   if (!isValidName(Name))
