@@ -39,6 +39,8 @@ change operators to other operators, e.g., replace / with +
 
 rename enumerate types
 
+typedef expansion
+
 - add supports to C++ specific features
  * simplify class names
  
@@ -64,5 +66,7 @@ rename enumerate types
 - constant folding
 
 - (low priority) constant-propagation
+
+- (low priority) replace peephole passes in c_reduce
 
 --------------------------------------------------------------------
