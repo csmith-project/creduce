@@ -60,6 +60,8 @@ private:
 
   typedef llvm::SmallPtrSet<const clang::DeclRefExpr *, 20> DeclRefExprSet;
 
+  typedef llvm::SmallPtrSet<const clang::MemberExpr *, 20> MemberExprSet;
+
   typedef llvm::DenseMap<int, DeclSet *> LevelToDeclMap;
 
   typedef void (ReducePointerLevel::*InitListHandler)(const clang::Expr *Init,
@@ -123,6 +125,8 @@ private:
   DeclSet AddrTakenDecls;
 
   DeclRefExprSet VisitedDeclRefExprs;
+
+  MemberExprSet VisitedMemberExprs;
 
   LevelToDeclMap AllPtrDecls;
 
