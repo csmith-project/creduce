@@ -123,7 +123,7 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (ArrayTy)
     Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
-  if (!Ty->isPointerType())
+  if (!Ty->isPointerType() || Ty->isVoidPointerType())
     return true;
 
   DeclaratorDecl *CanonicalDD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
