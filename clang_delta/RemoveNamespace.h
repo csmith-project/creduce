@@ -119,8 +119,6 @@ private:
 
   bool isTheNamespaceSpecifier(const clang::NestedNameSpecifier *NNS);
 
-  bool replaceNestedNameSpecifier(clang::NestedNameSpecifierLoc QualifierLoc);
-
   void removeLastNamespaceFromUsingDecl(const clang::UsingDirectiveDecl *D,
                                         const clang::NamespaceDecl *ND);
 
