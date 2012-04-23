@@ -1301,14 +1301,13 @@ bool RewriteUtils::replaceSpecifier(NestedNameSpecifierLoc Loc,
   return !(TheRewriter->ReplaceText(LocRange, Name + "::"));
 }
 
-// ISSUE: be careful of using this function.
-//        It returns the ending ";\n" for a UsingDecl's NestedNameSpecifier.
 void RewriteUtils::getQualifierAsString(NestedNameSpecifierLoc Loc,
                                         std::string &Str)
 {
   SourceLocation StartLoc = Loc.getBeginLoc();
   TransAssert(StartLoc.isValid() && "Bad StartLoc for NestedNameSpecifier!");
-  unsigned Len = Loc.getDataLength();
+  SourceRange Range = Loc.getSourceRange();
+  int Len = TheRewriter->getRangeSize(Range);
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   Str.assign(StartBuf, Len);
 }
