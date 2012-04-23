@@ -1043,9 +1043,9 @@ bool RewriteUtils::removeAnAddrOfAfter(const Expr *E)
   return removeASymbolAfter(E, '&');
 }
 
-bool RewriteUtils::insertAnAddrOfBefore(const DeclRefExpr *DRE)
+bool RewriteUtils::insertAnAddrOfBefore(const Expr *E)
 {
-  SourceRange ExprRange = DRE->getSourceRange();
+  SourceRange ExprRange = E->getSourceRange();
   SourceLocation LocStart = ExprRange.getBegin();
   return !TheRewriter->InsertTextBefore(LocStart, "&");
 }

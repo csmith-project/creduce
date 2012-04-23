@@ -146,7 +146,7 @@ public:
 
   bool removeASymbolAfter(const clang::Expr *E, char Symbol);
 
-  bool insertAnAddrOfBefore(const clang::DeclRefExpr *DRE);
+  bool insertAnAddrOfBefore(const clang::Expr *E);
 
   bool insertAStarBefore(const clang::Expr *E);
 
