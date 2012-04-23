@@ -258,8 +258,26 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
   return BaseE;
 }
 
+bool Transformation::isCXXMemberExpr(const MemberExpr *ME)
+{
+  const ValueDecl *VD = ME->getMemberDecl();
+  if (dyn_cast<CXXMethodDecl>(VD))
+    return true;
+
+  const FieldDecl *FD = dyn_cast<FieldDecl>(VD);
+  TransAssert(FD && "Bad FieldDecl!");
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(FD->getParent());
+  if (!CXXRD)
+    return false;
+
+  return !(CXXRD->isCLike());
+}
+
 const Expr *Transformation::getMemberExprElem(const MemberExpr *ME)
 {
+  if (isCXXMemberExpr(ME))
+    return NULL;
+
   IndexVector Idxs;
   const Expr *BaseE = getMemberExprBaseExprAndIdxs(ME, Idxs);
   return getInitExprFromBase(BaseE, Idxs);

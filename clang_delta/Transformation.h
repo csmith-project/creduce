@@ -154,6 +154,8 @@ protected:
 
   int getIndexAsInteger(const clang::Expr *E);
 
+  bool isCXXMemberExpr(const clang::MemberExpr *ME);
+
   const std::string &Name;
 
   int TransformationCounter;
