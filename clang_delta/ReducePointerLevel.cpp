@@ -346,14 +346,37 @@ bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
 bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 {
-  ValueDecl *OrigDecl = ME->getMemberDecl();
+  if (ConsumerInstance->VisitedMemberExprs.count(ME))
+    return true;
 
+  const ValueDecl *OrigDecl = ME->getMemberDecl();
   const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+  if (!DD)
+    return true;
 
-  if (DD && (DD == ConsumerInstance->TheDecl) &&
-      !(ConsumerInstance->VisitedMemberExprs.count(ME))) {
+  DD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
+  TransAssert(DD && "Bad DeclaratorDecl!");
+  if (DD == ConsumerInstance->TheDecl)
     ConsumerInstance->RewriteHelper->insertAnAddrOfBefore(ME);
+
+  // change x->y to x.y if x is TheDecl
+  if (!ME->isArrow())
+    return true;
+
+  const Expr *Base = ME->getBase()->IgnoreParenCasts();
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base);
+  if (!DRE)
+    return true;
+
+  OrigDecl = DRE->getDecl();
+  DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+  TransAssert(DD && "Bad VarDecl!");
+
+  if (DD == ConsumerInstance->TheDecl) {
+    ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+    ConsumerInstance->replaceArrowWithDot(ME);
   }
+  
   return true;
 }
 
@@ -794,6 +817,19 @@ void ReducePointerLevel::rewriteDerefOp(const UnaryOperator *UO)
 void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
 {
   RewriteHelper->insertAnAddrOfBefore(DRE);
+}
+
+void ReducePointerLevel::replaceArrowWithDot(const MemberExpr *ME)
+{
+  TransAssert(ME->isArrow() && "None arrow MemberExpr!");
+  std::string ES;
+  RewriteHelper->getExprString(ME, ES);
+  SourceLocation LocStart = ME->getLocStart();
+  
+  unsigned ArrowPos = ES.find("->");
+  TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");
+  LocStart = LocStart.getLocWithOffset(ArrowPos);
+  TheRewriter.ReplaceText(LocStart, 2, ".");
 }
 
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 

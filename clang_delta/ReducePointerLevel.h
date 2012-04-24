@@ -118,6 +118,8 @@ private:
 
   void rewriteDeclRefExpr(const clang::DeclRefExpr *DRE);
 
+  void replaceArrowWithDot(const clang::MemberExpr *ME);
+
   DeclSet VisitedDecls;
 
   DeclSet ValidDecls;
