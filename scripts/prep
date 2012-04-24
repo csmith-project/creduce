@@ -21,6 +21,6 @@ die if (!defined($outfile));
 
 system "${CSMITH_HOME}/src/csmith @ARGV";
 
-system "gcc -E -I${CSMITH_HOME}/runtime -DCSMITH_MINIMAL $outfile | ${CREDUCE_HOME}/scripts/shorten.pl > small.c";
+system "gcc -E -I${CSMITH_HOME}/runtime -DCSMITH_MINIMAL $outfile | ${CREDUCE_HOME}/scripts/shorten > small.c";
 
 system "indent small.c";
