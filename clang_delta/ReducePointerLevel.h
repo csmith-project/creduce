@@ -120,6 +120,8 @@ private:
 
   void replaceArrowWithDot(const clang::MemberExpr *ME);
 
+  bool isPointerToSelf(const clang::Type *Ty, const clang::DeclaratorDecl *DD);
+
   DeclSet VisitedDecls;
 
   DeclSet ValidDecls;

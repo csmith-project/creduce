@@ -126,6 +126,11 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
   if (!Ty->isPointerType() || Ty->isVoidPointerType())
     return true;
 
+  const Type *PointeeTy = Ty->getPointeeType().getTypePtr();
+  if (PointeeTy->isIncompleteType() ||
+      ConsumerInstance->isPointerToSelf(PointeeTy, DD))
+    return true;
+
   DeclaratorDecl *CanonicalDD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
   TransAssert(CanonicalDD && "Bad DeclaratorDecl!");
   if (ConsumerInstance->VisitedDecls.count(CanonicalDD))
@@ -830,6 +835,22 @@ void ReducePointerLevel::replaceArrowWithDot(const MemberExpr *ME)
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");
   LocStart = LocStart.getLocWithOffset(ArrowPos);
   TheRewriter.ReplaceText(LocStart, 2, ".");
+}
+
+bool ReducePointerLevel::isPointerToSelf(const Type *Ty, 
+                                         const DeclaratorDecl *DD)
+{
+  const RecordType *RTy = Ty->getAs<RecordType>();
+  if (!RTy)
+    return false;
+
+  const DeclContext *Ctx = DD->getDeclContext();
+  const RecordDecl *RD = dyn_cast<RecordDecl>(Ctx);
+  if (!RD)
+    return false;
+
+  const RecordDecl *NestedRD = RTy->getDecl();
+  return (RD->getCanonicalDecl() == NestedRD->getCanonicalDecl());
 }
 
 void ReducePointerLevel::rewriteRecordInit(const RecordDecl *RD, 
