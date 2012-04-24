@@ -96,8 +96,7 @@ private:
 
   void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
-  void getNewLocalInitStr(const clang::Expr *Init, 
-                          std::string &InitStr);
+  void getNewLocalInitStr(const clang::Expr *Init, std::string &InitStr);
 
   void getNewGlobalInitStr(const clang::Expr *Init, 
                            std::string &InitStr);

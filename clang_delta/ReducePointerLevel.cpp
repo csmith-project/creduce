@@ -655,7 +655,7 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
 
   case Expr::UnaryOperatorClass: {
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
-    TransAssert((UO->getOpcode() == UO_AddrOf) && "None Unary Operator!");
+    TransAssert((UO->getOpcode() == UO_AddrOf) && "Non-Unary Operator!");
 
     const Expr *SubE = UO->getSubExpr();
     TransAssert(SubE && "Bad Sub Expr!");
@@ -772,6 +772,19 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
   if (!Init)
     return;
   
+  const Type *Ty = VD->getType().getTypePtr();
+  TransAssert(Ty->isPointerType() && "Non-pointer type!");
+  const Type *PointeeTy = Ty->getPointeeType().getTypePtr();
+  if (PointeeTy->isRecordType()) {
+    const Expr *E = Init->IgnoreParenCasts();
+    Expr::StmtClass SC = E->getStmtClass();
+    if ((SC == Expr::IntegerLiteralClass) || 
+        (SC == Expr::StringLiteralClass)) {
+      RewriteHelper->removeVarInitExpr(VD);
+      return;
+    }
+  }
+
   std::string NewInitStr("");
   if (VD->hasLocalStorage()) {
     getNewLocalInitStr(Init, NewInitStr);
@@ -826,7 +839,7 @@ void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
 
 void ReducePointerLevel::replaceArrowWithDot(const MemberExpr *ME)
 {
-  TransAssert(ME->isArrow() && "None arrow MemberExpr!");
+  TransAssert(ME->isArrow() && "Non-arrow MemberExpr!");
   std::string ES;
   RewriteHelper->getExprString(ME, ES);
   SourceLocation LocStart = ME->getLocStart();
