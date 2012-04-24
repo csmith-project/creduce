@@ -2,8 +2,8 @@
 
 rm -f out*.txt
 
-ulimit -t 15
-ulimit -v 2000000
+ulimit -t 25
+ulimit -v 6000000
 
 if 
   clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
@@ -39,8 +39,8 @@ if
   ! grep 'comparison between pointer and integer' outa.txt &&\
   ./smallz >out1.txt 2>&1 &&\
   grep 'checksum = e' out1.txt &&\
-  frama-c -cpp-command "gcc -C -Dvolatile= -E -I." -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions small.c > out_framac.txt 2>&1 &&\
-  ! egrep -i '(user error|assert)' out_framac.txt >/dev/null 2>&1
+  kcc small.c -o out-kcc >/dev/null 2>&1 &&\
+  ./out-kcc
 then
   exit 0
 else

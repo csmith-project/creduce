@@ -33,7 +33,7 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  grep 'goto' small.c
+  grep "<<" small.c
 then
   exit 0
 else
