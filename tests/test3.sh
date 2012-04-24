@@ -2,9 +2,6 @@
 
 rm -f out*.txt
 
-ulimit -t 1
-ulimit -v 2000000
-
 if 
   clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\

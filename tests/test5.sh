@@ -2,7 +2,7 @@
 
 rm -f out*.txt
 
-ulimit -t 10
+ulimit -t 15
 ulimit -v 2000000
 
 if 

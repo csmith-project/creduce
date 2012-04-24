@@ -4,49 +4,38 @@ use strict;
 use File::Temp qw/ tempfile tempdir /;
 use Cwd;
 
-# delete tmp dirs on exit?
-my $CLEANUP = 0;
-
 my @tests = (
     { "name" => "test1",
-      "unreduced" => "file1.c",
+      "unreduced" => "file2.c",
       "test_script" => "test1.sh",
-      "expected" => "test1_expected.c",
     },
     { "name" => "test2",
-      "unreduced" => "file1.c",
+      "unreduced" => "file2.c",
       "test_script" => "test2.sh",
-      "expected" => "test2_expected.c",
     },
     { "name" => "test3",
-      "unreduced" => "file1.c",
+      "unreduced" => "file2.c",
       "test_script" => "test3.sh",
-      "expected" => "test3_expected.c",
     },
     { "name" => "test4",
       "unreduced" => "file2.c",
       "test_script" => "test4.sh",
-      "expected" => "test4_expected.c",
     },
     { "name" => "test5",
       "unreduced" => "file2.c",
       "test_script" => "test5.sh",
-      "expected" => "test5_expected.c",
     },
     { "name" => "test6",
       "unreduced" => "file2.c",
       "test_script" => "test6.sh",
-      "expected" => "test6_expected.c",
     },
     { "name" => "test7",
       "unreduced" => "file3.c",
       "test_script" => "test7.sh",
-      "expected" => "test7_expected.c",
     },
     { "name" => "test8",
       "unreduced" => "file3.c",
       "test_script" => "test8.sh",
-      "expected" => "test8_expected.c",
     },
     );
 
@@ -56,16 +45,14 @@ foreach my $tref (@tests) {
     my $name = $test{"name"};
     my $unreduced = $test{"unreduced"};
     my $test_script = $test{"test_script"};
-    my $expected = $test{"expected"};
     die unless (defined ($name) &&
 		defined ($unreduced) &&
-		defined ($test_script) &&
-		defined ($expected));
+		defined ($test_script));
 
     my $test_dir = getcwd();
     my $temp_dir = tempdir( "tmp_${name}_XXXXX", 
 		       DIR => $test_dir,
-		       CLEANUP => $CLEANUP );
+		       CLEANUP => 0 );
 
     chdir $temp_dir or die;
 
