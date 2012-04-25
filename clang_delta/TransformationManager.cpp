@@ -21,6 +21,19 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
+/*
+ * Avoid a bunch of warnings about redefinitions of PACKAGE_* symbols.
+ *
+ * The definitions of these symbols are produced by Autoconf et al.
+ * For C-Reduce, we define these in <config.h>.
+ * LLVM defines these symbols in "llvm/Config/config.h".
+ * But we don't care anything about these symbols in this source file.
+ */
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
 #include "llvm/Config/config.h"
 
 #include "Transformation.h"
