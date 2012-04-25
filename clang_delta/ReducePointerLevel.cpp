@@ -698,6 +698,10 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     InitStr = 'a';
     return;
 
+  case Expr::ConditionalOperatorClass:
+    InitStr = "";
+    return;
+
   case Expr::UnaryOperatorClass: {
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
     TransAssert(UO->getSubExpr() && "Bad Sub Expr!");
