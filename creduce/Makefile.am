@@ -12,9 +12,9 @@
 # "compiled"?
 #
 nodist_bin_SCRIPTS = \
-	c_reduce.pl
+	creduce
 EXTRA_DIST = \
-	c_reduce.pl.in
+	creduce.in
 
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
@@ -40,7 +40,7 @@ edit = sed \
 	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
 
-c_reduce.pl: Makefile
+creduce: Makefile
 	rm -f $@ $@.tmp
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
@@ -48,17 +48,17 @@ c_reduce.pl: Makefile
 	chmod +x $@.tmp
 	mv $@.tmp $@
 
-c_reduce.pl: c_reduce.pl.in
+creduce: creduce.in
 
 CLEANFILES = \
-	c_reduce.pl
+	creduce
 
 ###
 
-# The `c_reduce.pl' script knows to look in its own directory for modules.
-# But if one uses a separate build tree, the script doesn't know to look in
-# the source tree.  Handle that case by making symbolic links to the source
-# tree.  (These symlinks do not impede the `install' target, fortunately.)
+# The `creduce' script knows to look in its own directory for modules.  But if
+# one uses a separate build tree, the script doesn't know to look in the source
+# tree.  Handle that case by making symbolic links to the source tree.  (These
+# symlinks do not impede the `install' target, fortunately.)
 #
 all-local:
 	for pm in $(dist_perllib_DATA); do \

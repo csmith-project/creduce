@@ -61,8 +61,12 @@ bool ATSCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
   ValueDecl *OrigDecl = ME->getMemberDecl();
   FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
-  // in C++, getMemberDecl returns a CXXMethodDecl.
-  TransAssert(FD && "Bad FD!\n");
+  if (!FD) {
+    // in C++, getMemberDecl returns a CXXMethodDecl.
+    if (TransformationManager::isCXXLangOpt())
+      return true;
+    TransAssert(0 && "Bad FD!\n");
+  }
 
   const Type *T = FD->getType().getTypePtr();
   if (!T->isScalarType())
@@ -254,7 +258,7 @@ void AggregateToScalar::addOneIdx(const Expr *E,
 bool AggregateToScalar::isStructuralEqualVectors(IndexVector *IV1, 
                                                  IndexVector *IV2)
 {
-  unsigned int Sz = IV2->size();
+  unsigned int Sz = IV1->size();
   if (Sz != IV2->size())
     return false;
 

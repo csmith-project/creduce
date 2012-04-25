@@ -72,6 +72,36 @@ private:
   ReturnStmt *CurrentReturnStmt;
 };
 
+class ExprCountVisitor : public 
+  RecursiveASTVisitor<ExprCountVisitor> {
+
+public:
+
+  ExprCountVisitor(void)
+    : NumExprs(0)
+  { }
+
+  unsigned int getNumExprs(void) {
+    return NumExprs;
+  }
+
+  void resetNumExprs(void) {
+    NumExprs = 0;
+  }
+
+  bool VisitExpr(Expr *E);
+
+private:
+  unsigned int NumExprs;
+
+};
+
+bool ExprCountVisitor::VisitExpr(Expr *E)
+{
+  NumExprs++;
+  return true;
+}
+
 bool ReplaceCallExprVisitor::isValidReturnStmt(ReturnStmt *RS)
 {
   Expr *E = RS->getRetValue();
@@ -311,16 +341,15 @@ void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
   V->push_back(DE);
 }
 
-bool ReplaceCallExpr::hasUnmatchedParmArg(ReturnStmt *RS, 
-                                          CallExpr *CE)
+void ReplaceCallExpr::getParmPosVector(ParameterPosVector &PosVector,
+                                       ReturnStmt *RS, CallExpr *CE)
 {
   DenseMap<ReturnStmt *, ParmRefsVector *>::iterator RI =
     ReturnStmtToParmRefs.find(RS);
   if (RI == ReturnStmtToParmRefs.end())
-    return false;
+    return;
 
   ParmRefsVector *PVector = (*RI).second;
-  unsigned int ArgNum = CE->getNumArgs();
 
   FunctionDecl *FD = CE->getDirectCallee();
   for (ParmRefsVector::const_iterator PI = PVector->begin(), 
@@ -335,11 +364,62 @@ bool ReplaceCallExpr::hasUnmatchedParmArg(ReturnStmt *RS,
         break;
       Pos++;
     }
+    PosVector.push_back(Pos);
+  }
+}
 
-    if (Pos >= ArgNum)
+bool ReplaceCallExpr::hasUnmatchedParmArg(const ParameterPosVector &PosVector,
+                                          CallExpr *CE)
+{
+  unsigned int ArgNum = CE->getNumArgs();
+
+  for (ParameterPosVector::const_iterator I = PosVector.begin(),
+       E = PosVector.end(); I != E; ++I) {
+    if ((*I) >= ArgNum)
       return true;
   }
   return false;
+}
+
+// A heuristic way to check if replacing CallExpr could cause
+// code bloat. 
+bool ReplaceCallExpr::hasBadEffect(const ParameterPosVector &PosVector,
+                                   ReturnStmt *RS, CallExpr *CE)
+{
+  ExprCountVisitor ECVisitor;
+  
+  Expr *RVExpr = RS->getRetValue();
+  TransAssert(RVExpr && "Bad Return Expr!");
+  ECVisitor.TraverseStmt(RVExpr);
+  unsigned int RVNumExprs = ECVisitor.getNumExprs();
+  TransAssert(RVNumExprs && "Bad NumExprs!");
+
+  // really conservatively set 5 as a threshold value
+  unsigned int ArgNum = CE->getNumArgs();
+  if (!ArgNum)
+    return (RVNumExprs > 5);
+
+  llvm::SmallVector<unsigned int, 10> ArgNumExprs;
+  unsigned int Num;
+  unsigned int CallExprsNum = 0;
+  for (unsigned int I = 0; I < ArgNum; ++I) {
+    ECVisitor.TraverseStmt(CE->getArg(I));
+    Num = ECVisitor.getNumExprs();
+    TransAssert(Num && "Bad NumExprs!");
+    ArgNumExprs.push_back(Num);
+    CallExprsNum += Num;
+  }
+
+  // Adjust the size of RVExpr
+  for (ParameterPosVector::const_iterator I = PosVector.begin(), 
+       E = PosVector.end(); I != E; ++I) {
+    unsigned int Pos = (*I);
+    TransAssert((Pos < ArgNum) && "Bad ParmPos!");
+    Num = ArgNumExprs[Pos];
+    RVNumExprs += (Num - 1);
+  }
+
+  return (RVNumExprs > (CallExprsNum + 5));
 }
 
 void ReplaceCallExpr::doAnalysis(void)
@@ -358,7 +438,14 @@ void ReplaceCallExpr::doAnalysis(void)
     TransAssert(RVector && "NULL RVector!");
     for (ReturnStmtsVector::iterator RI = RVector->begin(),
          RE = RVector->end(); RI != RE; ++RI) {
-      if (hasUnmatchedParmArg(*RI, *CI))
+
+      ParameterPosVector PosVector;
+      getParmPosVector(PosVector, *RI, *CI);
+
+      if (hasUnmatchedParmArg(PosVector, *CI))
+        continue;
+
+      if (hasBadEffect(PosVector, *RI, *CI))
         continue;
 
       ValidInstanceNum++;

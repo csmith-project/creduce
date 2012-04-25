@@ -9,9 +9,20 @@
 ###############################################################################
 
 dist_noinst_SCRIPTS = \
-	test1_crash.sh \
-	test1_null.sh \
-	test1_wrong_code.sh
+	run_tests \
+	test0.sh \
+	test1.sh \
+	test2.sh \
+	test3.sh \
+	test4.sh \
+	test5.sh \
+	test6.sh \
+	test7.sh
+
+dist_noinst_DATA = \
+	file1.c \
+	file2.c \
+	file3.c
 
 ###############################################################################
 

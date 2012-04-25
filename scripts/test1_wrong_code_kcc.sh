@@ -2,24 +2,29 @@
 
 rm -f out*.txt
 
+ulimit -t 3
+ulimit -v 2000000
+
 if 
   clang -pedantic -Wall -O0 -c small.c  >out.txt 2>&1 &&\
+  ! grep 'conversions than data arguments' out.txt &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
   ! grep 'eliding middle term' out.txt &&\
   ! grep 'end of non-void function' out.txt &&\
-  ! grep 'specifies type' out.txt &&\
   ! grep 'invalid in C99' out.txt &&\
+  ! grep 'specifies type' out.txt &&\
   ! grep 'should return a value' out.txt &&\
   ! grep 'uninitialized' out.txt &&\
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -Wall -Wextra -O2 small.c  >outa.txt 2>&1 &&\
+  gcc -Wall -Wextra -O1 small.c  >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'return type defaults' outa.txt &&\
+  ! grep 'cast from pointer to integer' outa.txt &&\
   ! grep 'useless type name in empty declaration' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
   ! grep 'type defaults to' outa.txt &&\

@@ -11,20 +11,21 @@ sub check_prereqs () {
     return 1;
 }
 
-my $index;
-my $fail;
-
-sub reset () {
-    $index = 0;
-    $fail = 0;
+sub new ($$) {
+    my $index = 0;
+    return \$index;
 }
 
-sub advance () {
+sub advance ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my $index = ${$state};
     $index++;
+    return \$index;
 }
 
-sub transform ($$) {
-    (my $cfile, my $which) = @_;
+sub transform ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my $index = ${$state};
 
     my $prog = read_file ($cfile);
     my $prog2 = $prog;
@@ -46,16 +47,16 @@ sub transform ($$) {
 	$prog2 =~ s/(?<all>(?<pref>$borderorspc)(?<numpart>0[Xx][0-9a-fA-F]+)(?<ll>[ULul]*)(?<suf>$borderorspc))/replace_aux($index,$+{all},$+{pref}.hex($+{numpart}).$+{ll}.$+{suf})/egs;
     } elsif ($which eq "e") {
 	# remove the UuLl suffixes
-	$prog2 =~ s/(?<all>((?<pref>$borderorspc)(?<numpart>(0[Xx])?[0-9a-fA-F]+)[ULul]+(?<suf>$borderorspc)))/replace_aux($index,$+{all},$+{pref}.$+{numpart}.$+{suf})/egs;
+	$prog2 =~ s/(?<all>((?<pref>$borderorspc)(?<numpart>(\\-|\\+)?(0[Xx])?[0-9a-fA-F]+)[ULul]+(?<suf>$borderorspc)))/replace_aux($index,$+{all},$+{pref}.$+{numpart}.$+{suf})/egs;
     } else {
 	die;
     }
     
     if ($prog ne $prog2) {
 	write_file ($cfile, $prog2);
-	return $SUCCESS;
+	return ($OK, \$index);
     } else {
-	return $STOP;
+	return ($STOP, \$index);
     }
 }
 

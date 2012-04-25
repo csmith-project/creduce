@@ -67,6 +67,8 @@ clang_delta_SOURCES = \
 	ReduceArraySize.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveNamespace.cpp \
+	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
 	RemoveUnusedFunction.cpp \
@@ -75,6 +77,8 @@ clang_delta_SOURCES = \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \
 	RemoveUnusedVar.h \
+	RenameClass.cpp \
+	RenameClass.h \
 	RenameFun.cpp \
 	RenameFun.h \
 	RenameParam.cpp \
@@ -109,7 +113,7 @@ clang_delta_SOURCES = \
 EXTRA_DIST = \
 	LICENSE.TXT \
 	README.txt \
-	test_transformation.pl
+	test_transformation
 
 ###############################################################################
 

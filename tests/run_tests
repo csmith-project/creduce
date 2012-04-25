@@ -1,0 +1,78 @@
+#!/usr/bin/perl -w
+
+use strict;
+use File::Temp qw/ tempfile tempdir /;
+use Cwd;
+
+my @tests = (
+    { "name" => "test1",
+      "unreduced" => "file1.c",
+      "test_script" => "test1.sh",
+    },
+    { "name" => "test2",
+      "unreduced" => "file2.c",
+      "test_script" => "test2.sh",
+    },
+    { "name" => "test3",
+      "unreduced" => "file2.c",
+      "test_script" => "test3.sh",
+    },
+    { "name" => "test4",
+      "unreduced" => "file2.c",
+      "test_script" => "test4.sh",
+    },
+    { "name" => "test5",
+      "unreduced" => "file2.c",
+      "test_script" => "test5.sh",
+    },
+    { "name" => "test6",
+      "unreduced" => "file2.c",
+      "test_script" => "test6.sh",
+    },
+    { "name" => "test7",
+      "unreduced" => "file3.c",
+      "test_script" => "test7.sh",
+    },
+    { "name" => "test8",
+      "unreduced" => "file3.c",
+      "test_script" => "test8.sh",
+    },
+    );
+
+sub run_test ($) {
+    (my $num) = @_;
+
+    my $tref = $tests[$num];
+    my %test = %{$tref};
+    
+    my $name = $test{"name"};
+    my $unreduced = $test{"unreduced"};
+    my $test_script = $test{"test_script"};
+    die unless (defined ($name) &&
+		defined ($unreduced) &&
+		defined ($test_script));
+
+    my $test_dir = getcwd();
+    my $temp_dir = tempdir( "tmp_${name}_XXXXX", 
+		       DIR => $test_dir,
+		       CLEANUP => 0 );
+
+    print "\n\n===== running test $num in $temp_dir =====\n\n\n";
+
+    chdir $temp_dir or die;
+
+    system "cp ../$unreduced small.c";
+    system "creduce ../${test_script} small.c";
+    
+    chdir $test_dir or die;
+}
+
+if (scalar(@ARGV)>0) {
+    foreach my $i (@ARGV) {
+	run_test ($i);
+    }
+} else {
+    for (my $i=0; $i<scalar(@tests); $i++) {
+	run_test ($i);
+    }
+}

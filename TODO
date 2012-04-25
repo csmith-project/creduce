@@ -1,17 +1,25 @@
 --------------------------------------------------------------------
 
-c_reduce TODO list:
+C-Reduce TODO list:
 
-pass explicit state objects to passes
-add an option to keep stats about fast vs. slow tests
-expose quiet on command line
-add an option limiting the number of passes
-see if some passes want to work back to front
-watch for unexpected abnormal compiler outputs
+make a distribution using CDE
+  http://www.stanford.edu/~pgbovine/cde.html
+
+make it again possible to run just selected passes
+
+add regression tests
+
+optionally, keep stats about fast vs. slow tests
+
 exploit early-exit from delta test to speed this up
   keep per-pass statistic on the probability of requiring the slow test
   invert this to decide how many fast tests to run in a row
-  need to keep checkpoints
+  need to keep checkpoints of reducer state + file
+
+factor timeout out of test script: creduce can supply a timeout
+  decrease it as the test starts to run faster
+
+support testcase obfuscation better
 
 --------------------------------------------------------------------
 
@@ -20,10 +28,45 @@ clang_delta TODO list:
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
+reduce the indirect level of struct member accesses
+  s.f1.f2.f3 => s.f1.f2 or s.f2.f3
+  Note that to do these kinds of simplification, we also need to 
+  change struct declarations appropriately.
+
+change string literals
+
+change operators to other operators, e.g., replace / with +
+
+rename enumerate types
+
+typedef expansion
+
+- add supports to C++ specific features
+ * simplify class names
+ 
+ * remove namespace
+
+ * simplify template stuff
+
+ * rename class member functions to m_fn1 ...
+
+ * rename class member variables to m_a, m_b ...
+
+ * seems simple-inliner doesn't work with class member functions,
+   need to fix it or add a CXX-specific inlining pass
+
+ * reduce the level of class inheritance
+
 - (low priority) format string reductions:
 
  * remove anything that's not a %d or whatever from the format string
 
  * remove a %d directive and also the corresponding argument from a printf 
+
+- constant folding
+
+- (low priority) constant-propagation
+
+- (low priority) replace peephole passes in c_reduce
 
 --------------------------------------------------------------------

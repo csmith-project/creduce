@@ -1,41 +1,63 @@
 -*- mode: Text -*-
 
 --------------------------------------------------------------------
+
 C-Reduce 
+
 --------------------------------------------------------------------
+Prereqs:
 
-On debian-style Linux systems all non-standard prerequisites can be
-installed like this:
+On Ubuntu, all non-standard prerequisites can be installed like this:
 
-sudo apt-get install libfile-which-perl libregexp-common-perl indent astyle delta libexporter-lite-perl
+  sudo apt-get install libfile-which-perl libregexp-common-perl \
+  indent astyle delta libexporter-lite-perl
 
-On other systems, install:
+On other systems, install these packages either manually or using the
+package manager:
 
 GNU Indent
+  http://www.gnu.org/software/indent/
 
-astyle: http://astyle.sourceforge.net/
+astyle: 
+  http://astyle.sourceforge.net/
 
-these Perl modules
+Berkeley delta:
+  http://delta.tigris.org/
+
+Perl modules
   Exporter::Lite
   File::Which
   Regexp::Common
 
+for example (perhaps as root):
+
+  cpan -i 'Exporter::Lite'
+  cpan -i 'File::Which'
+  cpan -i 'Regexp::Common'
+
 --------------------------------------------------------------------
 Building and installing the clang_delta plugin
 
-1. Install LLVM/Clang 3.0
+1. Download, build, and install the latest LLVM/Clang from their
+repository:
+
+  http://llvm.org/docs/GettingStarted.html#checkout
+
+[Note: If you're having trouble with their trunk, you can use
+LLVM/Clang 3.0 instead, but in that case you'll have to grab an older
+C-Reduce tagged "creduce-1.0.0".]
 
 2. Build the plugin:
 
-cd clang_delta
-export LLVM_PATH=/where/your/clang/installation/path
-make
-copy clang_delta into your PATH 
+  cd clang_delta
+  export LLVM_PATH=PATH_TO_CLANG_INSTALLATION
+  make
+  cp clang_delta SOME_DIRECTORY_IN_PATH
 
 Note that assertions are enabled by default. To disable assertions,
 build the program with:
 
-LLVM_PATH=/path/ DISABLE_TRANS_ASSERT=1 make
+  DISABLE_TRANS_ASSERT=1 make
 
 --------------------------------------------------------------------
 

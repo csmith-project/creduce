@@ -42,22 +42,55 @@ TransformationManager *TransformationManager::GetInstance(void)
 
   TransformationManager::Instance->TransformationsMap = 
     *TransformationManager::TransformationsMapPtr;
-  TransformationManager::Instance->initializeCompilerInstance();
   return TransformationManager::Instance;
 }
 
-void TransformationManager::initializeCompilerInstance(void)
+bool TransformationManager::isCXXLangOpt(void)
 {
+  TransAssert(TransformationManager::Instance && "Invalid Instance!");
+  TransAssert(TransformationManager::Instance->ClangInstance && 
+              "Invalid ClangInstance!");
+  return (TransformationManager::Instance->ClangInstance->getLangOpts()
+          .CPlusPlus);
+}
+
+bool TransformationManager::isCLangOpt(void)
+{
+  TransAssert(TransformationManager::Instance && "Invalid Instance!");
+  TransAssert(TransformationManager::Instance->ClangInstance && 
+              "Invalid ClangInstance!");
+  return (TransformationManager::Instance->ClangInstance->getLangOpts()
+          .C99);
+}
+
+bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
+{
+  if (ClangInstance) {
+    ErrorMsg = "CompilerInstance has been initialized!";
+    return false;
+  }
+
   ClangInstance = new CompilerInstance();
   assert(ClangInstance);
   
   ClangInstance->createDiagnostics(0, NULL);
-  ClangInstance->getLangOpts().C99 = 1;
 
-  // Disable it for now: it causes some problems when building AST
-  // for a function which has a non-declared callee, e.g., 
-  // It results an empty AST for the caller. 
-  // ClangInstance->getLangOpts().CPlusPlus = 1;
+  InputKind IK = FrontendOptions::getInputKindForExtension(
+        StringRef(SrcFileName).rsplit('.').second);
+  if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
+    ClangInstance->getLangOpts().C99 = 1;
+  }
+  else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
+    // ISSUE: it might cause some problems when building AST
+    // for a function which has a non-declared callee, e.g., 
+    // It results an empty AST for the caller. 
+    ClangInstance->getLangOpts().CPlusPlus = 1;
+  }
+  else {
+    ErrorMsg = "Unsupported file type!";
+    return false;
+  }
+
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
   TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
@@ -72,6 +105,13 @@ void TransformationManager::initializeCompilerInstance(void)
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
                            &ClangInstance->getPreprocessor());
   ClangInstance->createASTContext();
+
+  if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
+    ErrorMsg = "Cannot open source file!";
+    return false;
+  }
+
+  return true;
 }
 
 void TransformationManager::Finalize(void)
@@ -86,6 +126,9 @@ void TransformationManager::Finalize(void)
     if ((*I).second != Instance->CurrentTransformationImpl)
       delete (*I).second;
   }
+  if (Instance->TransformationsMapPtr)
+    delete Instance->TransformationsMapPtr;
+
   delete Instance->ClangInstance;
 
   delete Instance;
@@ -155,19 +198,9 @@ bool TransformationManager::verify(std::string &ErrorMsg)
     return false;
   }
 
-  if (!ClangInstance) {
-    ErrorMsg = "Empty clang instance!";
-    return false;
-  }
-
   if ((TransformationCounter <= 0) && 
       !CurrentTransformationImpl->skipCounter()) {
     ErrorMsg = "Invalid transformation counter!";
-    return false;
-  }
-
-  if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
-    ErrorMsg = "Cannot open source file!";
     return false;
   }
 
@@ -234,7 +267,6 @@ TransformationManager::TransformationManager(void)
 
 TransformationManager::~TransformationManager(void)
 {
-  if (!TransformationsMapPtr)
-    delete TransformationsMapPtr;
+  // Nothing to do
 }
 

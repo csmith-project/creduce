@@ -40,7 +40,8 @@ Therefore, in the above example, foo() will not be propagated. \n";
 static RegisterTransformation<CopyPropagation>
          Trans("copy-propagation", DescriptionMsg);
 
-class CopyPropCollectionVisitor : public RecursiveASTVisitor<CopyPropCollectionVisitor> {
+class CopyPropCollectionVisitor : public 
+        RecursiveASTVisitor<CopyPropCollectionVisitor> {
 public:
 
   explicit CopyPropCollectionVisitor(CopyPropagation *Instance)

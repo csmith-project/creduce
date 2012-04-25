@@ -13,6 +13,7 @@
 
 #include <string>
 #include "clang/Basic/SourceLocation.h"
+#include "clang/AST/NestedNameSpecifier.h"
 
 #ifndef ENABLE_TRANS_ASSERT
   #define TransAssert(x) {if (!(x)) exit(0);}
@@ -37,6 +38,10 @@ namespace clang {
   class IfStmt;
   class Type;
   class FieldDecl;
+  class CXXConstructExpr;
+  class RecordDecl;
+  class CXXMemberCallExpr;
+  class RecordTypeLoc;
 }
 
 class RewriteUtils {
@@ -51,8 +56,11 @@ public:
                                       unsigned int NumParams,
                                       int ParamPos);
 
-  bool removeArgFromCallExpr(clang::CallExpr *CallE,
-                                    int ParamPos);
+  bool removeArgFromCallExpr(const clang::CallExpr *CallE,
+                             int ParamPos);
+                                    
+  bool removeArgFromCXXConstructExpr(const clang::CXXConstructExpr *CE,
+                                     int ParamPos);
                                     
   bool removeVarFromDeclStmt(clang::DeclStmt *DS,
                                     const clang::VarDecl *VD,
@@ -96,10 +104,16 @@ public:
                               const std::string &Str);
 
   bool replaceVarDeclName(clang::VarDecl *VD,
-                              const std::string &NameStr);
+                          const std::string &NameStr);
 
-  bool replaceFunctionDeclName(clang::FunctionDecl *FD,
-                              const std::string &NameStr);
+  bool replaceFunctionDeclName(const clang::FunctionDecl *FD,
+                          const std::string &NameStr);
+
+  bool replaceRecordDeclName(const clang::RecordDecl *RD,
+                             const std::string &NameStr);
+
+  bool replaceVarTypeName(const clang::VarDecl *VD,
+                          const std::string &NameStr);
 
   const char *getTmpVarNamePrefix(void);
 
@@ -132,7 +146,7 @@ public:
 
   bool removeASymbolAfter(const clang::Expr *E, char Symbol);
 
-  bool insertAnAddrOfBefore(const clang::DeclRefExpr *DRE);
+  bool insertAnAddrOfBefore(const clang::Expr *E);
 
   bool insertAStarBefore(const clang::Expr *E);
 
@@ -165,6 +179,27 @@ public:
                                             char Symbol);
 
   bool removeFieldDecl(const clang::FieldDecl *FD);
+
+  bool removeDecl(const clang::Decl *D);
+
+  bool replaceNamedDeclName(const clang::NamedDecl *ND,
+                            const std::string &NameStr);
+
+  bool replaceCXXDtorCallExpr(const clang::CXXMemberCallExpr *CE,
+                              std::string &Name);
+
+  bool removeSpecifier(clang::NestedNameSpecifierLoc Loc);
+
+  bool replaceSpecifier(clang::NestedNameSpecifierLoc Loc, 
+                        const std::string &Name);
+
+  void getQualifierAsString(clang::NestedNameSpecifierLoc Loc,
+                            std::string &Str);
+
+  void getSpecifierAsString(clang::NestedNameSpecifierLoc Loc,
+                            std::string &Str);
+
+  bool replaceRecordType(clang::RecordTypeLoc &RTLoc, const std::string &Name);
 
 private:
 
@@ -199,6 +234,8 @@ private:
 
   clang::SourceLocation getVarDeclTypeLocEnd(const clang::VarDecl *VD);
 
+  clang::SourceLocation getVarDeclTypeLocBegin(const clang::VarDecl *VD);
+
   clang::SourceLocation 
     getParamSubstringLocation(clang::SourceLocation StartLoc, size_t Size, 
                          const std::string &Substr);
@@ -217,6 +254,12 @@ private:
 
   void skipRangeByType(const std::string &BufStr, 
                        const clang::Type *Ty, int &Offset);
+
+  bool removeArgFromExpr(const clang::Expr *E, int ParamPos);
+
+  const clang::Expr *getArgWrapper(const clang::Expr *E, int ParamPos);
+
+  unsigned getNumArgsWrapper(const clang::Expr *E);
 
   // Unimplemented
   RewriteUtils(const RewriteUtils &);

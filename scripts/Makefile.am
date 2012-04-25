@@ -9,10 +9,11 @@
 ###############################################################################
 
 dist_noinst_SCRIPTS = \
-	del_lines.pl \
+	del_lines \
 	godelta8 \
-	prep.pl \
-	shorten.pl \
+	make_cde_package.sh \
+	prep \
+	shorten \
 	test1_crash.sh \
 	test1_wrong_code_framac.sh \
 	test1_wrong_code_kcc.sh

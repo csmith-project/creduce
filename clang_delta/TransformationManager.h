@@ -33,6 +33,10 @@ public:
   static void registerTransformation(const char *TransName, 
                                      Transformation *TransImpl);
   
+  static bool isCXXLangOpt(void);
+
+  static bool isCLangOpt(void);
+
   bool doTransformation(std::string &ErrorMsg);
 
   bool verify(std::string &ErrorMsg);
@@ -65,6 +69,8 @@ public:
   bool getQueryInstanceFlag(void) {
     return QueryInstanceOnly;
   }
+
+  bool initializeCompilerInstance(std::string &ErrorMsg);
 
   void outputNumTransformationInstances(void);
 
@@ -99,8 +105,6 @@ private:
   clang::CompilerInstance *ClangInstance;
 
   bool QueryInstanceOnly;
-
-  void initializeCompilerInstance(void);
 
   // Unimplemented
   TransformationManager(const TransformationManager &);

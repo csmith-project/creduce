@@ -84,6 +84,8 @@ public:
 
   bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
+  bool VisitMemberExpr(MemberExpr *ME);
+
 private:
 
   ReducePointerLevel *ConsumerInstance;
@@ -118,14 +120,14 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 
   // Only consider FieldDecl and VarDecl
   Decl::Kind K = DD->getKind();
-  if (!(K == Decl::Field) && !(K == Decl::Var))
+  if ((K != Decl::Field) && (K != Decl::Var))
     return true;
 
   const Type *Ty = DD->getType().getTypePtr();
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (ArrayTy)
     Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
-  if (!Ty->isPointerType())
+  if (!Ty->isPointerType() || Ty->isVoidPointerType())
     return true;
 
   DeclaratorDecl *CanonicalDD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
@@ -154,10 +156,6 @@ bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
       !dyn_cast<ArraySubscriptExpr>(SubE))
     return true;
 
-/*
-  const DeclaratorDecl *DD = 
-    ConsumerInstance->getCanonicalDeclaratorDecl(SubE);
-*/
   const DeclaratorDecl *DD = 
     ConsumerInstance->getRefDecl(SubE);
   TransAssert(DD && "NULL DD!");
@@ -263,10 +261,18 @@ bool PointerLevelRewriteVisitor::VisitUnaryOperator(UnaryOperator *UO)
     return true;
 
   const DeclRefExpr *DRE = ConsumerInstance->getDeclRefExpr(SubE);
-  if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
-    return true;
+  if (DRE) {
+    if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
+      return true;
+    ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+  }
+  else {
+    const MemberExpr *ME = dyn_cast<MemberExpr>(SubE);
+    if (ConsumerInstance->VisitedMemberExprs.count(ME))
+      return true;
+    ConsumerInstance->VisitedMemberExprs.insert(ME);
+  }
 
-  ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
   ConsumerInstance->rewriteDerefOp(UO);
 
   return true;
@@ -284,9 +290,17 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
     return true;
 
   const DeclRefExpr *DRE = ConsumerInstance->getDeclRefExpr(Lhs);
-  if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
-    return true;
-  ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+  if (DRE) {
+    if (ConsumerInstance->VisitedDeclRefExprs.count(DRE))
+      return true;
+    ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+  }
+  else {
+    const MemberExpr *ME = dyn_cast<MemberExpr>(Lhs);
+    if (ConsumerInstance->VisitedMemberExprs.count(ME))
+      return true;
+    ConsumerInstance->VisitedMemberExprs.insert(ME);
+  }
 
   const Expr *Rhs = BO->getRHS();
   const Type *Ty = Lhs->getType().getTypePtr();
@@ -331,6 +345,19 @@ bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     ConsumerInstance->rewriteDeclRefExpr(DRE);
   }
 
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
+{
+  ValueDecl *OrigDecl = ME->getMemberDecl();
+
+  const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+
+  if (DD && (DD == ConsumerInstance->TheDecl) &&
+      !(ConsumerInstance->VisitedMemberExprs.count(ME))) {
+    ConsumerInstance->RewriteHelper->insertAnAddrOfBefore(ME);
+  }
   return true;
 }
 
@@ -418,10 +445,14 @@ void ReducePointerLevel::setRecordDecl(void)
 const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
 {
   const Expr *E = ignoreSubscriptExprParenCasts(Exp);
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
 
-  if (DRE)
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E))
     return DRE;
+
+  if (const MemberExpr *ME = dyn_cast<MemberExpr>(E)) {
+    (void)ME;
+    return NULL;
+  }
 
   const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
   TransAssert(UO && "Bad UnaryOperator!");

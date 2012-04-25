@@ -70,10 +70,12 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReduceArrayDim.$(OBJEXT) \
 	clang_delta-ReduceArraySize.$(OBJEXT) \
 	clang_delta-ReducePointerLevel.$(OBJEXT) \
+	clang_delta-RemoveNamespace.$(OBJEXT) \
 	clang_delta-RemoveNestedFunction.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
 	clang_delta-RemoveUnusedStructField.$(OBJEXT) \
 	clang_delta-RemoveUnusedVar.$(OBJEXT) \
+	clang_delta-RenameClass.$(OBJEXT) \
 	clang_delta-RenameFun.$(OBJEXT) \
 	clang_delta-RenameParam.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
@@ -300,6 +302,8 @@ clang_delta_SOURCES = \
 	ReduceArraySize.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveNamespace.cpp \
+	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
 	RemoveUnusedFunction.cpp \
@@ -308,6 +312,8 @@ clang_delta_SOURCES = \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \
 	RemoveUnusedVar.h \
+	RenameClass.cpp \
+	RenameClass.h \
 	RenameFun.cpp \
 	RenameFun.h \
 	RenameParam.cpp \
@@ -342,7 +348,7 @@ clang_delta_SOURCES = \
 EXTRA_DIST = \
 	LICENSE.TXT \
 	README.txt \
-	test_transformation.pl
+	test_transformation
 
 all: all-am
 
@@ -447,10 +453,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArrayDim.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArraySize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerLevel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNestedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedStructField.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedVar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameFun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameParam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameVar.Po@am__quote@
@@ -712,6 +720,20 @@ clang_delta-ReducePointerLevel.obj: ReducePointerLevel.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerLevel.obj `if test -f 'ReducePointerLevel.cpp'; then $(CYGPATH_W) 'ReducePointerLevel.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerLevel.cpp'; fi`
 
+clang_delta-RemoveNamespace.o: RemoveNamespace.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveNamespace.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveNamespace.Tpo -c -o clang_delta-RemoveNamespace.o `test -f 'RemoveNamespace.cpp' || echo '$(srcdir)/'`RemoveNamespace.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveNamespace.Tpo $(DEPDIR)/clang_delta-RemoveNamespace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveNamespace.cpp' object='clang_delta-RemoveNamespace.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveNamespace.o `test -f 'RemoveNamespace.cpp' || echo '$(srcdir)/'`RemoveNamespace.cpp
+
+clang_delta-RemoveNamespace.obj: RemoveNamespace.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveNamespace.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveNamespace.Tpo -c -o clang_delta-RemoveNamespace.obj `if test -f 'RemoveNamespace.cpp'; then $(CYGPATH_W) 'RemoveNamespace.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveNamespace.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveNamespace.Tpo $(DEPDIR)/clang_delta-RemoveNamespace.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveNamespace.cpp' object='clang_delta-RemoveNamespace.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveNamespace.obj `if test -f 'RemoveNamespace.cpp'; then $(CYGPATH_W) 'RemoveNamespace.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveNamespace.cpp'; fi`
+
 clang_delta-RemoveNestedFunction.o: RemoveNestedFunction.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveNestedFunction.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveNestedFunction.Tpo -c -o clang_delta-RemoveNestedFunction.o `test -f 'RemoveNestedFunction.cpp' || echo '$(srcdir)/'`RemoveNestedFunction.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveNestedFunction.Tpo $(DEPDIR)/clang_delta-RemoveNestedFunction.Po
@@ -767,6 +789,20 @@ clang_delta-RemoveUnusedVar.obj: RemoveUnusedVar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnusedVar.cpp' object='clang_delta-RemoveUnusedVar.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedVar.obj `if test -f 'RemoveUnusedVar.cpp'; then $(CYGPATH_W) 'RemoveUnusedVar.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedVar.cpp'; fi`
+
+clang_delta-RenameClass.o: RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RenameClass.cpp' object='clang_delta-RenameClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
+
+clang_delta-RenameClass.obj: RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RenameClass.cpp' object='clang_delta-RenameClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
 
 clang_delta-RenameFun.o: RenameFun.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameFun.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameFun.Tpo -c -o clang_delta-RenameFun.o `test -f 'RenameFun.cpp' || echo '$(srcdir)/'`RenameFun.cpp

@@ -38,7 +38,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-subdir = c_reduce
+subdir = creduce
 DIST_COMMON = $(dist_perllib_DATA) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -215,10 +215,10 @@ top_srcdir = @top_srcdir@
 # "compiled"?
 #
 nodist_bin_SCRIPTS = \
-	c_reduce.pl
+	creduce
 
 EXTRA_DIST = \
-	c_reduce.pl.in
+	creduce.in
 
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
@@ -245,7 +245,7 @@ edit = sed \
 	-e 's|@prefix[@]|$(prefix)|g'
 
 CLEANFILES = \
-	c_reduce.pl
+	creduce
 
 all: all-am
 
@@ -259,9 +259,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu c_reduce/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu creduce/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu c_reduce/Makefile
+	  $(AUTOMAKE) --gnu creduce/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -494,7 +494,7 @@ uninstall-am: uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
 	uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
 
 
-c_reduce.pl: Makefile
+creduce: Makefile
 	rm -f $@ $@.tmp
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
@@ -502,14 +502,14 @@ c_reduce.pl: Makefile
 	chmod +x $@.tmp
 	mv $@.tmp $@
 
-c_reduce.pl: c_reduce.pl.in
+creduce: creduce.in
 
 ###
 
-# The `c_reduce.pl' script knows to look in its own directory for modules.
-# But if one uses a separate build tree, the script doesn't know to look in
-# the source tree.  Handle that case by making symbolic links to the source
-# tree.  (These symlinks do not impede the `install' target, fortunately.)
+# The `creduce' script knows to look in its own directory for modules.  But if
+# one uses a separate build tree, the script doesn't know to look in the source
+# tree.  Handle that case by making symbolic links to the source tree.  (These
+# symlinks do not impede the `install' target, fortunately.)
 #
 all-local:
 	for pm in $(dist_perllib_DATA); do \

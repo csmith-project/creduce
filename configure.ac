@@ -59,7 +59,7 @@ fi
 
 AC_OUTPUT(
   Makefile
-  c_reduce/Makefile
+  creduce/Makefile
   clang_delta/Makefile
   scripts/Makefile
   tests/Makefile

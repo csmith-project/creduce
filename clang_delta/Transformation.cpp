@@ -125,6 +125,9 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransMaxVarsError) {
     ErrorMsg = "Too many variables!";
   }
+  else if (TransError == TransMaxClassesError) {
+    ErrorMsg = "Too many classes!";
+  }
   else if (TransError == TransNoValidVarsError) {
     ErrorMsg = "No variables need to be renamed!";
   }
@@ -259,8 +262,26 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
   return BaseE;
 }
 
+bool Transformation::isCXXMemberExpr(const MemberExpr *ME)
+{
+  const ValueDecl *VD = ME->getMemberDecl();
+  if (dyn_cast<CXXMethodDecl>(VD))
+    return true;
+
+  const FieldDecl *FD = dyn_cast<FieldDecl>(VD);
+  TransAssert(FD && "Bad FieldDecl!");
+  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(FD->getParent());
+  if (!CXXRD)
+    return false;
+
+  return !(CXXRD->isCLike());
+}
+
 const Expr *Transformation::getMemberExprElem(const MemberExpr *ME)
 {
+  if (isCXXMemberExpr(ME))
+    return NULL;
+
   IndexVector Idxs;
   const Expr *BaseE = getMemberExprBaseExprAndIdxs(ME, Idxs);
   return getInitExprFromBase(BaseE, Idxs);
@@ -403,6 +424,23 @@ int Transformation::getIndexAsInteger(const Expr *E)
     TransAssert(0 && "Non-integer value!");
 
   return Idx;
+}
+
+const Type* Transformation::getBaseType(const Type *T)
+{
+  if (T->isPointerType() || T->isReferenceType())
+    return getBaseType(T->getPointeeType().getTypePtr());
+  else if (T->isRecordType())
+    T = T->getAs<RecordType>();
+  else if (T->isEnumeralType())
+    T = T->getAs<EnumType>();
+  else if (T->getTypeClass() == Type::Typedef)
+    T = T->getAs<TypedefType>();
+  else if (T->isArrayType())
+    return getBaseType(T->castAsArrayTypeUnsafe()->
+        getElementType().getTypePtr());
+
+  return T;
 }
 
 Transformation::~Transformation(void)

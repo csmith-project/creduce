@@ -1,5 +1,8 @@
 #!/usr/bin/perl -w
 
+# this pass is really dumb, but it does a lot of work and is hard to
+# replace...
+
 package pass_peep;
 
 use strict;
@@ -12,12 +15,11 @@ sub check_prereqs () {
     return 1;
 }
 
-my $index;
-my $index2;
-
-sub reset () {
-    $index = 0;
-    $index2 = 0;
+sub new ($$) {
+    my %sh;
+    $sh{"index"} = 0;
+    $sh{"index2"} = 0;
+    return \%sh;
 }
 
 my @subexprs = (
@@ -44,8 +46,9 @@ foreach my $x (@subexprs) {
     push @delimited_regexes_to_replace, [",\\s*$x", ""];
 }
 
-sub advance ($) {
-    (my $which) = @_;
+sub advance ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my %sh = %{$state};
     my $lim;
     if ($which eq "a") {
 	$lim = scalar (@regexes_to_replace);
@@ -54,43 +57,45 @@ sub advance ($) {
     } else {
 	die;
     }
-    $index2++;
-    if ($index2 >= $lim) {
-	$index2 = 0;
-	$index++;
+    $sh{"index2"}++;
+    if ($sh{"index2"} >= $lim) {
+	$sh{"index2"} = 0;
+	$sh{"index"}++;
     } 
+    return \%sh;
 }
 
-sub transform ($$) {
-    (my $cfile, my $which) = @_;
+sub transform ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my %sh = %{$state};
 
     my $prog = read_file ($cfile);
     my $prog2 = $prog;
 
     while (1) {
 	
-	return $STOP if ($index > length ($prog));
+	return ($STOP, \%sh) if ($sh{"index"} > length ($prog));
 	
 	if (0) {
 	} elsif ($which eq "a") {
-	    my $l = $regexes_to_replace[$index2];
+	    my $l = $regexes_to_replace[$sh{"index2"}];
 	    my $str = @{$l}[0];
 	    my $repl = @{$l}[1];
-	    my $first = substr($prog2, 0, $index);
-	    my $rest = substr($prog2, $index);
+	    my $first = substr($prog2, 0, $sh{"index"});
+	    my $rest = substr($prog2, $sh{"index"});
 	    if ($rest =~ s/^($str)/$repl/sm) {
 		$prog2 = $first.$rest;
 		if ($prog ne $prog2) {
 		    write_file ($cfile, $prog2);
-		    return $SUCCESS;
+		    return ($OK, \%sh);
 		}
 	    }
 	} elsif ($which eq "b") {
-	    my $l = $delimited_regexes_to_replace[$index2];
+	    my $l = $delimited_regexes_to_replace[$sh{"index2"}];
 	    my $str = @{$l}[0];
 	    my $repl = @{$l}[1];
-	    my $first = substr($prog2, 0, $index);
-	    my $rest = substr($prog2, $index);
+	    my $first = substr($prog2, 0, $sh{"index"});
+	    my $rest = substr($prog2, $sh{"index"});
 	    my $front;
 	    my $back;
 	    if (substr($rest,0,1) eq ",") {
@@ -119,14 +124,15 @@ sub transform ($$) {
 		$prog2 = $first.$rest;
 		if ($prog ne $prog2) {
 		    write_file ($cfile, $prog2);
-		    return $SUCCESS;
+		    return ($OK, \%sh);
 		} 
 	    }
 	} else {
 	    die;
 	}
       out:
-	advance($which);
+	$state = advance($cfile, $which, \%sh);
+	%sh = %{$state};
     }
 }
 

@@ -69,6 +69,10 @@ private:
 
 bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  // renaming CXXMethodDecl will be in a seperate pass
+  if (dyn_cast<CXXMethodDecl>(FD))
+    return true;
+
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   ConsumerInstance->addFun(CanonicalFD);
   if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
@@ -79,6 +83,10 @@ bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
   FunctionDecl *FD = CE->getDirectCallee();
+  // It could happen, e.g., CE could refer to a DependentScopeDeclRefExpr
+  if (!FD || dyn_cast<CXXMethodDecl>(FD))
+    return true;
+
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
   // This case is handled by VisitFunctionDecl
@@ -94,6 +102,9 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
 bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  if (dyn_cast<CXXMethodDecl>(FD))
+    return true;
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   llvm::DenseMap<FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
@@ -108,6 +119,9 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool RenameFunVisitor::VisitCallExpr(CallExpr *CE)
 {
   FunctionDecl *FD = CE->getDirectCallee();
+  if (!FD || dyn_cast<CXXMethodDecl>(FD))
+    return true;
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   llvm::DenseMap<FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
