@@ -155,6 +155,8 @@ public:
   bool removeVarDecl(const clang::VarDecl *VD,
                             clang::DeclGroupRef DGR);
 
+  bool removeVarDecl(const clang::VarDecl *VD);
+
   void getTmpTransName(unsigned Postfix, std::string &Name);
 
   bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
@@ -200,6 +202,10 @@ public:
                             std::string &Str);
 
   bool replaceRecordType(clang::RecordTypeLoc &RTLoc, const std::string &Name);
+
+  bool isSingleDecl(const clang::VarDecl *VD);
+
+  bool isTheFirstDecl(const clang::VarDecl *VD);
 
 private:
 
