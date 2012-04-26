@@ -10,6 +10,7 @@
 
 #include "RemoveUnusedVar.h"
 
+#include <cctype>
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
@@ -105,8 +106,35 @@ void RemoveUnusedVar::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+void RemoveUnusedVar::removeVarDeclFromLinkageSpecDecl(
+       const LinkageSpecDecl *LinkageD, const VarDecl *VD)
+{
+  const DeclContext *Ctx = LinkageSpecDecl::castToDeclContext(LinkageD);
+  unsigned NumDecls = 0;
+  for (DeclContext::decl_iterator I = Ctx->decls_begin(), E = Ctx->decls_end();
+       I != E; ++I) {
+    NumDecls++;
+    if (NumDecls > 1)
+      break;
+  }
+
+  if (NumDecls <= 1) {
+    RewriteHelper->removeDecl(LinkageD);
+    return;
+  }
+  else {
+    RewriteHelper->removeVarDecl(VD);
+  }
+}
+
 void RemoveUnusedVar::removeVarDecl(void)
 {
+  const DeclContext *Ctx = TheVarDecl->getDeclContext();
+  if (const LinkageSpecDecl *LinkageDecl = dyn_cast<LinkageSpecDecl>(Ctx)) {
+    removeVarDeclFromLinkageSpecDecl(LinkageDecl, TheVarDecl);
+    return;
+  }
+
   llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI = 
     VarToDeclGroup.find(TheVarDecl);
   TransAssert((DI != VarToDeclGroup.end()) &&

@@ -19,6 +19,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class VarDecl;
+  class LinkageSpecDecl;
 }
 
 class RemoveUnusedVarAnalysisVisitor;
@@ -45,6 +46,9 @@ private:
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   void removeVarDecl(void);
+
+  void removeVarDeclFromLinkageSpecDecl(const clang::LinkageSpecDecl *LinkageD,
+                                        const clang::VarDecl *VD);
 
   llvm::DenseMap<const clang::VarDecl *, clang::DeclGroupRef> VarToDeclGroup;
 
