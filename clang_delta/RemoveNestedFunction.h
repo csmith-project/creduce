@@ -27,9 +27,11 @@ namespace clang {
 }
 
 class RNFCollectionVisitor;
+class RNFStatementVisitor;
 
 class RemoveNestedFunction : public Transformation {
 friend class RNFCollectionVisitor;
+friend class RNFStatementVisitor;
 
 public:
 
@@ -79,6 +81,8 @@ private:
   clang::SmallVector<clang::CallExpr *, 10> ValidCallExprs;
 
   RNFCollectionVisitor *NestedInvocationVisitor;
+
+  RNFStatementVisitor *StmtVisitor;
 
   TransNameQueryWrap *NameQueryWrap;
 

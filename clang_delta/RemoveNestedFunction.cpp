@@ -36,16 +36,26 @@ static RegisterTransformation<RemoveNestedFunction>
 class RNFCollectionVisitor : public RecursiveASTVisitor<RNFCollectionVisitor> {
 public:
 
-  typedef RecursiveASTVisitor<RNFCollectionVisitor> Super;
-
   explicit RNFCollectionVisitor(RemoveNestedFunction *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  RemoveNestedFunction *ConsumerInstance;
+  
+};
+
+class RNFStatementVisitor : public RecursiveASTVisitor<RNFStatementVisitor> {
+public:
+
+  explicit RNFStatementVisitor(RemoveNestedFunction *Instance)
     : ConsumerInstance(Instance),
       CurrentFuncDecl(NULL),
       CurrentStmt(NULL),
       NeedParen(false)
   { }
-
-  bool VisitFunctionDecl(FunctionDecl *FD);
 
   bool VisitCompoundStmt(CompoundStmt *S);
 
@@ -65,6 +75,10 @@ public:
 
   bool VisitCallExpr(CallExpr *CallE);
 
+  void setCurrentFunctionDecl(FunctionDecl *FD) {
+    CurrentFuncDecl = FD;
+  }
+
 private:
 
   RemoveNestedFunction *ConsumerInstance;
@@ -82,11 +96,12 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
   if (!FD->isThisDeclarationADefinition())
     return true;
 
-  CurrentFuncDecl = FD;
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
+  ConsumerInstance->StmtVisitor->TraverseDecl(FD);
   return true;
 }
 
-bool RNFCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
+bool RNFStatementVisitor::VisitCompoundStmt(CompoundStmt *CS)
 {
   for (CompoundStmt::body_iterator I = CS->body_begin(),
        E = CS->body_end(); I != E; ++I) {
@@ -96,7 +111,7 @@ bool RNFCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
   return false;
 }
 
-void RNFCollectionVisitor::visitNonCompoundStmt(Stmt *S)
+void RNFStatementVisitor::visitNonCompoundStmt(Stmt *S)
 {
   if (!S)
     return;
@@ -118,7 +133,7 @@ void RNFCollectionVisitor::visitNonCompoundStmt(Stmt *S)
 // from VisitCompoundStmt, e.g.,
 //   if (x)
 //     foo(bar())
-bool RNFCollectionVisitor::VisitIfStmt(IfStmt *IS)
+bool RNFStatementVisitor::VisitIfStmt(IfStmt *IS)
 {
   Expr *E = IS->getCond();
   TraverseStmt(E);
@@ -149,7 +164,7 @@ bool RNFCollectionVisitor::VisitIfStmt(IfStmt *IS)
 //     for(i = 0; i < bar(tmp_var); i++)
 //       ...
 //   }
-bool RNFCollectionVisitor::VisitForStmt(ForStmt *FS)
+bool RNFStatementVisitor::VisitForStmt(ForStmt *FS)
 {
   Stmt *Init = FS->getInit();
   TraverseStmt(Init);
@@ -165,7 +180,7 @@ bool RNFCollectionVisitor::VisitForStmt(ForStmt *FS)
   return false;
 }
 
-bool RNFCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
+bool RNFStatementVisitor::VisitWhileStmt(WhileStmt *WS)
 {
   Expr *E = WS->getCond();
   TraverseStmt(E);
@@ -175,7 +190,7 @@ bool RNFCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
   return false;
 }
 
-bool RNFCollectionVisitor::VisitDoStmt(DoStmt *DS)
+bool RNFStatementVisitor::VisitDoStmt(DoStmt *DS)
 {
   Expr *E = DS->getCond();
   TraverseStmt(E);
@@ -185,21 +200,21 @@ bool RNFCollectionVisitor::VisitDoStmt(DoStmt *DS)
   return false;
 }
 
-bool RNFCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
+bool RNFStatementVisitor::VisitCaseStmt(CaseStmt *CS)
 {
   Stmt *Body = CS->getSubStmt();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool RNFCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
+bool RNFStatementVisitor::VisitDefaultStmt(DefaultStmt *DS)
 {
   Stmt *Body = DS->getSubStmt();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool RNFCollectionVisitor::VisitCallExpr(CallExpr *CallE) 
+bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
   if ((std::find(ConsumerInstance->ValidCallExprs.begin(), 
                  ConsumerInstance->ValidCallExprs.end(), CallE) 
@@ -234,6 +249,7 @@ void RemoveNestedFunction::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   NestedInvocationVisitor = new RNFCollectionVisitor(this);
+  StmtVisitor = new RNFStatementVisitor(this);
   NameQueryWrap = 
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
@@ -398,6 +414,9 @@ RemoveNestedFunction::~RemoveNestedFunction(void)
 {
   if (NestedInvocationVisitor)
     delete NestedInvocationVisitor;
+
+  if (StmtVisitor)
+    delete StmtVisitor;
 
   if (NameQueryWrap)
     delete NameQueryWrap;
