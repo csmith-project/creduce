@@ -303,14 +303,9 @@ const FunctionDecl *RemoveNestedFunction::lookupFunctionDecl(
 }
 
 const DeclContext *RemoveNestedFunction::getDeclContextFromSpecifier(
-        const NestedNameSpecifier *Qualifier)
+        const NestedNameSpecifier *NNS)
 {
-  llvm::SmallVector<const NestedNameSpecifier *, 8> Qualifiers;
-  for (; Qualifier; Qualifier = Qualifier->getPrefix())
-    Qualifiers.push_back(Qualifier);
-
-  while (!Qualifiers.empty()) {
-    const NestedNameSpecifier *NNS = Qualifiers.pop_back_val();
+  for (; NNS; NNS = NNS->getPrefix()) {
     NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
 
     switch (Kind) {
@@ -362,7 +357,7 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
     DeclarationName DName = UE->getName();
     TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
                 "Not an indentifier!");
-    const FunctionDecl *FD;
+    const FunctionDecl *FD = NULL;
     if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
       if (const DeclContext *Ctx = getDeclContextFromSpecifier(NNS))
         FD = lookupFunctionDecl(DName, Ctx);
