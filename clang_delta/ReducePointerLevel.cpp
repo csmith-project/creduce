@@ -338,6 +338,9 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
 bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
   const ValueDecl *OrigDecl = DRE->getDecl();
+  if (dyn_cast<EnumConstantDecl>(OrigDecl))
+    return true;
+
   const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(OrigDecl);
   TransAssert(DD && "Bad VarDecl!");
 
