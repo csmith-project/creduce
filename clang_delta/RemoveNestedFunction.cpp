@@ -45,6 +45,8 @@ public:
       NeedParen(false)
   { }
 
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
   bool VisitCompoundStmt(CompoundStmt *S);
 
   bool VisitIfStmt(IfStmt *IS);
@@ -63,10 +65,6 @@ public:
 
   bool VisitCallExpr(CallExpr *CallE);
 
-  void setCurrentFuncDecl(FunctionDecl *FD) {
-    CurrentFuncDecl = FD;
-  }
-
 private:
 
   RemoveNestedFunction *ConsumerInstance;
@@ -78,6 +76,15 @@ private:
   bool NeedParen;
 
 };
+
+bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  if (!FD->isThisDeclarationADefinition())
+    return true;
+
+  CurrentFuncDecl = FD;
+  return true;
+}
 
 bool RNFCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
 {
@@ -234,12 +241,7 @@ void RemoveNestedFunction::Initialize(ASTContext &context)
 bool RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      NestedInvocationVisitor->setCurrentFuncDecl(FD);
-      NestedInvocationVisitor->TraverseDecl(FD);
-      NestedInvocationVisitor->setCurrentFuncDecl(NULL);
-    }
+    NestedInvocationVisitor->TraverseDecl(*I);
   }
   return true;
 }
