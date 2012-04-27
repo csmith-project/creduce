@@ -12,6 +12,7 @@
 
 #include <sstream>
 
+#include "llvm/ADT/SmallVector.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
@@ -301,6 +302,39 @@ const FunctionDecl *RemoveNestedFunction::lookupFunctionDecl(
   return lookupFunctionDecl(DName, ParentCtx);
 }
 
+const DeclContext *RemoveNestedFunction::getDeclContextFromSpecifier(
+        const NestedNameSpecifier *Qualifier)
+{
+  llvm::SmallVector<const NestedNameSpecifier *, 8> Qualifiers;
+  for (; Qualifier; Qualifier = Qualifier->getPrefix())
+    Qualifiers.push_back(Qualifier);
+
+  while (!Qualifiers.empty()) {
+    const NestedNameSpecifier *NNS = Qualifiers.pop_back_val();
+    NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
+
+    switch (Kind) {
+      case NestedNameSpecifier::Namespace: {
+        return NNS->getAsNamespace()->getCanonicalDecl();
+      }
+      case NestedNameSpecifier::NamespaceAlias: {
+        const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
+        return NAD->getNamespace()->getCanonicalDecl();
+      }
+      case NestedNameSpecifier::TypeSpec: // Fall-through
+      case NestedNameSpecifier::TypeSpecWithTemplate: {
+        const Type *Ty = NNS->getAsType();
+        if (const RecordType *RT = Ty->getAs<RecordType>())
+          return RT->getDecl();
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return NULL;
+}
+
 bool RemoveNestedFunction::addNewTmpVariable(void)
 {
   std::string VarStr;
@@ -324,11 +358,17 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
     // foo2<T>(1) has BuiltinType and hence 
     // TheCallExpr->getCallReturnType() will segfault.
     // In this case, we have to lookup a corresponding function decl
+
     DeclarationName DName = UE->getName();
     TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
                 "Not an indentifier!");
-    const FunctionDecl *FD = 
-      lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
+    const FunctionDecl *FD;
+    if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
+      if (const DeclContext *Ctx = getDeclContextFromSpecifier(NNS))
+        FD = lookupFunctionDecl(DName, Ctx);
+    }
+    if (!FD)
+      FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
   }

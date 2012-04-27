@@ -23,6 +23,7 @@ namespace clang {
   class CallExpr;
   class DeclarationName;
   class DeclContext;
+  class NestedNameSpecifier;
 }
 
 class RNFCollectionVisitor;
@@ -61,6 +62,9 @@ private:
 
   const clang::FunctionDecl *lookupFunctionDecl(clang::DeclarationName &DName,
                                                 const clang::DeclContext *Ctx);
+
+  const clang::DeclContext *getDeclContextFromSpecifier(
+          const clang::NestedNameSpecifier *Qualifier);
 
   void setTmpVarName(std::string &Name) {
     TmpVarName = Name;
