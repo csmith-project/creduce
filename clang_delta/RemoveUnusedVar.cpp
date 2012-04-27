@@ -43,7 +43,8 @@ private:
 
 bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
 {
-  if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD))
+  if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD) || 
+      VD->isStaticDataMember())
     return true;
 
   ConsumerInstance->ValidInstanceNum++;
