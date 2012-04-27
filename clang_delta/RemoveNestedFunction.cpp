@@ -270,9 +270,39 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
+const FunctionDecl *RemoveNestedFunction::lookupFunctionDecl(
+        DeclarationName &DName, const DeclContext *Ctx)
+{
+  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
+  for (DeclContext::lookup_const_iterator I = Result.first, E = Result.second;
+       I != E; ++I) {
+    const FunctionTemplateDecl *TD = NULL;
+    if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
+      TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
+    }
+    else { 
+      TD = dyn_cast<FunctionTemplateDecl>(*I);
+    }
+    if (TD)
+      return TD->getTemplatedDecl();
+  }
+
+  for (DeclContext::udir_iterator I = Ctx->using_directives_begin(),
+       E = Ctx->using_directives_end(); I != E; ++I) {
+    const NamespaceDecl *ND = (*I)->getNominatedNamespace();
+    if (const FunctionDecl *FD = lookupFunctionDecl(DName, ND))
+      return FD;
+  }
+
+  const DeclContext *ParentCtx = Ctx->getLookupParent();
+  if (!ParentCtx || dyn_cast<LinkageSpecDecl>(ParentCtx))
+    return NULL;
+
+  return lookupFunctionDecl(DName, ParentCtx);
+}
+
 bool RemoveNestedFunction::addNewTmpVariable(void)
 {
-  QualType QT = TheCallExpr->getCallReturnType();
   std::string VarStr;
   std::stringstream SS;
   unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
@@ -280,6 +310,31 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
   SS << RewriteHelper->getTmpVarNamePrefix() << (NamePostfix + 1);
   VarStr = SS.str();
   setTmpVarName(VarStr);
+
+  QualType QT;
+  const Expr *E = TheCallExpr->getCallee();
+
+  // ISSUE: also handle UnresolvedMemberExpr? 
+  if (const UnresolvedLookupExpr *UE = dyn_cast<UnresolvedLookupExpr>(E)) {
+    // clang doesn't always resolve CallExpr's callee. For example:
+    //   template<typename T> int foo1(int p) {return p;}
+    //   template<typename T> int foo2(int p) {return p;}
+    //   template<typename T>
+    //   void bar(void) { foo1<T>(foo2<T>(1)); }
+    // foo2<T>(1) has BuiltinType and hence 
+    // TheCallExpr->getCallReturnType() will segfault.
+    // In this case, we have to lookup a corresponding function decl
+    DeclarationName DName = UE->getName();
+    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+                "Not an indentifier!");
+    const FunctionDecl *FD = 
+      lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
+    TransAssert(FD && "Cannot resolve DName!");
+    QT = FD->getResultType();
+  }
+  else {
+    QT = TheCallExpr->getCallReturnType();
+  }
 
   QT.getAsStringInternal(VarStr,
                          Context->getPrintingPolicy());

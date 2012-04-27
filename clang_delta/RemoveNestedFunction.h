@@ -21,6 +21,8 @@ namespace clang {
   class FunctionDecl;
   class Stmt;
   class CallExpr;
+  class DeclarationName;
+  class DeclContext;
 }
 
 class RNFCollectionVisitor;
@@ -56,6 +58,9 @@ private:
   bool addNewAssignStmt(void);
 
   bool replaceCallExpr(void);
+
+  const clang::FunctionDecl *lookupFunctionDecl(clang::DeclarationName &DName,
+                                                const clang::DeclContext *Ctx);
 
   void setTmpVarName(std::string &Name) {
     TmpVarName = Name;
