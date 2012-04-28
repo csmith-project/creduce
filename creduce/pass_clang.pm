@@ -38,7 +38,9 @@ sub transform ($$$) {
     } else {
 	if ($res == -1) {
 	} else {
-	    my $tmpfile2 = "clang_delta_crash_${tmpfile}";
+            my $tmpfile2 = $tmpfile;
+            $tmpfile2 =~ s/\//_/g;
+            $tmpfile2 = "clang_delta_crash${tmpfile2}";
 	    system "cp $cfile $tmpfile2";
 	    open TMPF, ">>$tmpfile2";
 	    print TMPF "\n\n$cmd\n";
