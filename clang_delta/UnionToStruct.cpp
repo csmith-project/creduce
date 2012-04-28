@@ -93,8 +93,7 @@ bool UnionToStructCollectionVisitor::VisitDeclStmt(DeclStmt *DS)
 {
   for (DeclStmt::decl_iterator I = DS->decl_begin(),
        E = DS->decl_end(); I != E; ++I) {
-    VarDecl *CurrVD = dyn_cast<VarDecl>(*I);
-    if (CurrVD)
+    if (VarDecl *CurrVD = dyn_cast<VarDecl>(*I))
       ConsumerInstance->VarToDeclStmt[CurrVD] = DS;
   }
   return true;
@@ -109,8 +108,7 @@ void UnionToStruct::Initialize(ASTContext &context)
 bool UnionToStruct::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    VarDecl *VD = dyn_cast<VarDecl>(*I);
-    if (VD)
+    if (VarDecl *VD = dyn_cast<VarDecl>(*I))
       VarToDeclGroup[VD] = D;
 
     CollectionVisitor->TraverseDecl(*I);
@@ -166,7 +164,8 @@ void UnionToStruct::doAnalysis(void)
        E = RecordToDeclarator.end(); I != E; ++I) {
     ValidInstanceNum++;
     if (ValidInstanceNum == TransformationCounter) {
-      TheRecordDecl = ((*I).first)->getDefinition();
+      // TheRecordDecl = ((*I).first)->getDefinition();
+      TheRecordDecl = (*I).first;
       TheDeclaratorSet = (*I).second;
     }
   }
@@ -255,9 +254,25 @@ void UnionToStruct::getInitStrWithNonPointerType(const Expr *Exp,
   }
 }
 
-bool UnionToStruct::isTheFirstDecl(const VarDecl *VD,
-                                   DeclGroupRef DGR)
+bool UnionToStruct::isTheFirstDecl(const VarDecl *VD)
 {
+  // always return false if VD is declared in a LinkageSpecDecl,
+  // because the first decl should be implicitly declared union record,
+  // which is handled by rewriteOneRecordDecl
+  const DeclContext *Ctx = VD->getDeclContext();
+  if (dyn_cast<LinkageSpecDecl>(Ctx)) {
+    return false;
+    // return RewriteHelper->isTheFirstDecl(VD);
+  }
+
+  DeclGroupRef DGR;
+  if (const DeclStmt *DS = VarToDeclStmt[VD])
+    DGR = DS->getDeclGroup();
+  else
+    DGR = VarToDeclGroup[VD];
+
+  TransAssert(!DGR.isNull() && "Bad DeclRefGroup!");
+
   if (DGR.isSingleDecl())
     return true;
 
@@ -276,26 +291,16 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
     return; 
   }
 
-  const DeclStmt *DS = VarToDeclStmt[VD];
-  DeclGroupRef DGR;
-  if (DS)
-    DGR = DS->getDeclGroup();
-  else
-    DGR = VarToDeclGroup[VD];
-
-  TransAssert(!DGR.isNull() && "Bad DeclRefGroup!");
-
   // If the first decl is RecordDecl, it will be handled
   // by rewriteOneRecordDecl.
-  if (isTheFirstDecl(VD, DGR))
+  if (isTheFirstDecl(VD))
     RewriteHelper->replaceUnionWithStruct(VD);
 
   const Type *VDTy = VD->getType().getTypePtr();
   if (!VD->hasInit())
     return;
 
-  const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy);
-  if (ArrayTy) {
+  if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy)) {
     VDTy = getArrayBaseElemType(ArrayTy);
     // We remove the initializer for an array of unions
     if (!VDTy->isUnionType()) {
@@ -354,14 +359,12 @@ void UnionToStruct::rewriteDeclarators(void)
 {
   for (DeclaratorDeclSet::const_iterator I = TheDeclaratorSet->begin(),
        E = TheDeclaratorSet->end(); I != E; ++I) {
-    const FieldDecl *FD = dyn_cast<FieldDecl>(*I);
-    if (FD) {
+    if (const FieldDecl *FD = dyn_cast<FieldDecl>(*I)) {
       rewriteOneFieldDecl(FD);
       continue;
     }
 
-    const FunctionDecl *FunD = dyn_cast<FunctionDecl>(*I);
-    if (FunD) {
+    if (const FunctionDecl *FunD = dyn_cast<FunctionDecl>(*I)) {
       rewriteOneFunctionDecl(FunD);
       continue;
     }
@@ -374,8 +377,7 @@ void UnionToStruct::rewriteDeclarators(void)
 
 void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
 {
-  const ArrayType *ArrayTy = dyn_cast<ArrayType>(T);
-  if (ArrayTy)
+  if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(T))
     T = getArrayBaseElemType(ArrayTy);
 
   if (T->isPointerType())
