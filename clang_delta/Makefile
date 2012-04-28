@@ -16,7 +16,7 @@ ifeq (${DISABLE_TRANS_ASSERT}, 1)
 endif
 
 CXX = g++
-CXXFLAGS = -Wall
+CXXFLAGS = -Wall -fno-strict-aliasing 
 
 LLVM_CXXFLAGS = `${llvm_dir}/bin/llvm-config --cxxflags`
 LLVM_LDFLAGS = `${llvm_dir}/bin/llvm-config --ldflags`
