@@ -262,7 +262,6 @@ bool UnionToStruct::isTheFirstDecl(const VarDecl *VD)
   const DeclContext *Ctx = VD->getDeclContext();
   if (dyn_cast<LinkageSpecDecl>(Ctx)) {
     return false;
-    // return RewriteHelper->isTheFirstDecl(VD);
   }
 
   DeclGroupRef DGR;
@@ -316,6 +315,7 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
       return;
 
     RewriteHelper->removeVarInitExpr(VD);
+    return;
   }
 
   if (!VDTy->isUnionType()) {
