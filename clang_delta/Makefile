@@ -129,7 +129,7 @@ CallExprToValue.o: CallExprToValue.cpp CallExprToValue.h ${SUB_TRANSFORMATION_DE
 
 UnionToStruct.o: UnionToStruct.cpp UnionToStruct.h ${SUB_TRANSFORMATION_DEPS}
 
-SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h ${SUB_TRANSFORMATION_DEPS}
+SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 ReduceArrayDim.o: ReduceArrayDim.cpp ReduceArrayDim.h ${SUB_TRANSFORMATION_DEPS}
 
