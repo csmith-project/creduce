@@ -117,7 +117,7 @@ RemoveUnusedFunction.o: RemoveUnusedFunction.cpp RemoveUnusedFunction.h ${SUB_TR
 
 ReducePointerLevel.o: ReducePointerLevel.cpp ReducePointerLevel.h ${SUB_TRANSFORMATION_DEPS}
 
-LiftAssignmentExpr.o: LiftAssignmentExpr.cpp LiftAssignmentExpr.h ${SUB_TRANSFORMATION_DEPS}
+LiftAssignmentExpr.o: LiftAssignmentExpr.cpp LiftAssignmentExpr.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 CopyPropagation.o: CopyPropagation.cpp CopyPropagation.h ${SUB_TRANSFORMATION_DEPS}
 
