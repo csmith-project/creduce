@@ -213,7 +213,9 @@ const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
 {
   TransAssert(BaseE && "Bad Array Base Expression!");
   const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
-  TransAssert(DRE && "Bad DeclRefExpr!");
+  if (!DRE)
+    return NULL;
+
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
   TransAssert(VD && "Bad VarDecl!");
