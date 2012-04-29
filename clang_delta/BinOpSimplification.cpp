@@ -15,6 +15,7 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
+#include "CommonStatementVisitor.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -30,165 +31,44 @@ static RegisterTransformation<BinOpSimplification>
 class BSCollectionVisitor : public RecursiveASTVisitor<BSCollectionVisitor> {
 public:
 
-  typedef RecursiveASTVisitor<BSCollectionVisitor> Super;
-
   explicit BSCollectionVisitor(BinOpSimplification *Instance)
-    : ConsumerInstance(Instance),
-      CurrentFuncDecl(NULL),
-      CurrentStmt(NULL),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
 
-  bool VisitCompoundStmt(CompoundStmt *S);
-
-  bool VisitIfStmt(IfStmt *IS);
-
-  bool VisitForStmt(ForStmt *FS);
-
-  bool VisitWhileStmt(WhileStmt *WS);
-
-  bool VisitDoStmt(DoStmt *DS);
-
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
-
-  bool VisitBinaryOperator(BinaryOperator *BinOp);
-
-  void setCurrentFuncDecl(FunctionDecl *FD) {
-    CurrentFuncDecl = FD;
-  }
+  bool VisitFunctionDecl(FunctionDecl *FD);
 
 private:
 
   BinOpSimplification *ConsumerInstance;
-
-  FunctionDecl *CurrentFuncDecl;
-
-  Stmt *CurrentStmt;
-
-  bool NeedParen;
-
-  void handleSubExpr(Expr *E);
-
 };
 
-bool BSCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
+class BSStatementVisitor : public CommonStatementVisitor<BSStatementVisitor> {
+public:
+
+  explicit BSStatementVisitor(BinOpSimplification *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitBinaryOperator(BinaryOperator *BinOp);
+
+private:
+  void handleSubExpr(Expr *E);
+
+  BinOpSimplification *ConsumerInstance;
+};
+
+bool BSCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    CurrentStmt = (*I);
-    TraverseStmt(*I);
-  }
-  return false;
+  if (!FD->isThisDeclarationADefinition())
+    return true;
+
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
+  ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);
+  return true;
 }
 
-void BSCollectionVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  CurrentStmt = (S);
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
-}
-
-// It is used to handle the case where if-then or else branch
-// is not treated as a CompoundStmt. So it cannot be traversed
-// from VisitCompoundStmt, e.g.,
-//   if (x)
-//     foo(bar())
-bool BSCollectionVisitor::VisitIfStmt(IfStmt *IS)
-{
-  Expr *E = IS->getCond();
-  TraverseStmt(E);
-
-  Stmt *ThenB = IS->getThen();
-  visitNonCompoundStmt(ThenB);
-
-  Stmt *ElseB = IS->getElse();
-  visitNonCompoundStmt(ElseB);
-
-  return false;
-}
-
-// It causes unsound transformation because 
-// the semantics of loop execution has been changed. 
-// For example,
-//   int foo(int x)
-//   {
-//     int i;
-//     for(i = 0; i < bar(bar(x)); i++)
-//       ...
-//   }
-// will be transformed to:
-//   int foo(int x)
-//   {
-//     int i;
-//     int tmp_var = bar(x);
-//     for(i = 0; i < bar(tmp_var); i++)
-//       ...
-//   }
-bool BSCollectionVisitor::VisitForStmt(ForStmt *FS)
-{
-  Stmt *Init = FS->getInit();
-  TraverseStmt(Init);
-
-  Expr *Cond = FS->getCond();
-  TraverseStmt(Cond);
-
-  Expr *Inc = FS->getInc();
-  TraverseStmt(Inc);
-
-  Stmt *Body = FS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool BSCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
-{
-  Expr *E = WS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = WS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool BSCollectionVisitor::VisitDoStmt(DoStmt *DS)
-{
-  Expr *E = DS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = DS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool BSCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool BSCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-void BSCollectionVisitor::handleSubExpr(Expr *E)
+void BSStatementVisitor::handleSubExpr(Expr *E)
 {
   BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParenCasts());
   if (!BinOp)
@@ -212,7 +92,7 @@ void BSCollectionVisitor::handleSubExpr(Expr *E)
   TraverseStmt(BinOp);
 }
 
-bool BSCollectionVisitor::VisitBinaryOperator(BinaryOperator *BinOp) 
+bool BSStatementVisitor::VisitBinaryOperator(BinaryOperator *BinOp) 
 {
   if (BinOp->isAssignmentOp() && !BinOp->isCompoundAssignmentOp()) {
     Expr *RHS = BinOp->getRHS();
@@ -232,6 +112,7 @@ void BinOpSimplification::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   BinOpCollectionVisitor = new BSCollectionVisitor(this);
+  StmtVisitor = new BSStatementVisitor(this);
   NameQueryWrap = 
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
@@ -239,12 +120,7 @@ void BinOpSimplification::Initialize(ASTContext &context)
 bool BinOpSimplification::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      BinOpCollectionVisitor->setCurrentFuncDecl(FD);
-      BinOpCollectionVisitor->TraverseDecl(FD);
-      BinOpCollectionVisitor->setCurrentFuncDecl(NULL);
-    }
+    BinOpCollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -310,6 +186,9 @@ BinOpSimplification::~BinOpSimplification(void)
 {
   if (BinOpCollectionVisitor)
     delete BinOpCollectionVisitor;
+
+  if (StmtVisitor)
+    delete StmtVisitor;
 
   if (NameQueryWrap)
     delete NameQueryWrap;
