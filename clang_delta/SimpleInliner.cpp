@@ -58,21 +58,9 @@ public:
       NumStmts(0)
   { }
 
+  bool VisitStmt(Stmt *S);
+
   bool VisitCallExpr(CallExpr *CE);
-  bool VisitBreakStmt(BreakStmt *S);
-  bool VisitCompoundStmt(CompoundStmt *S);
-  bool VisitContinueStmt(ContinueStmt *S);
-  bool VisitDeclStmt(DeclStmt *S);
-  bool VisitDoStmt(DoStmt *S);
-  bool VisitForStmt(ForStmt *S);
-  bool VisitGotoStmt(GotoStmt *S);
-  bool VisitIfStmt(IfStmt *S);
-  bool VisitIndirectGotoStmt(IndirectGotoStmt *S);
-  bool VisitReturnStmt(ReturnStmt *S);
-  bool VisitSwitchCase(SwitchCase *S);
-  bool VisitSwitchStmt(SwitchStmt *S);
-  bool VisitWhileStmt(WhileStmt *S);
-  bool VisitBinaryOperator(BinaryOperator *S);
 
   unsigned int getNumStmts(void) {
     return NumStmts;
@@ -147,6 +135,31 @@ private:
 
 };
 
+bool SimpleInlinerCollectionVisitor::VisitStmt(Stmt *S)
+{
+  Stmt::StmtClass SC = S->getStmtClass();
+  switch (SC) {
+  case Stmt::BreakStmtClass:
+  case Stmt::CompoundStmtClass:
+  case Stmt::ContinueStmtClass:
+  case Stmt::DeclStmtClass:
+  case Stmt::DoStmtClass:
+  case Stmt::ForStmtClass:
+  case Stmt::GotoStmtClass:
+  case Stmt::IndirectGotoStmtClass:
+  case Stmt::IfStmtClass:
+  case Stmt::ReturnStmtClass:
+  case Stmt::CaseStmtClass:
+  case Stmt::SwitchStmtClass:
+  case Stmt::WhileStmtClass:
+  case Stmt::BinaryOperatorClass:
+    NumStmts++;
+    break;
+  default:
+    break;
+  }
+  return true;
+}
 
 bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
@@ -162,90 +175,6 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
   NumCalls++;
   ConsumerInstance->FunctionDeclNumCalls[CanonicalFD] = NumCalls;
 
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitBreakStmt(BreakStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitCompoundStmt(CompoundStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitContinueStmt(ContinueStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitDeclStmt(DeclStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitDoStmt(DoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitForStmt(ForStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitGotoStmt(GotoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitIfStmt(IfStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitIndirectGotoStmt(IndirectGotoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitReturnStmt(ReturnStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitSwitchCase(SwitchCase *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitSwitchStmt(SwitchStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitWhileStmt(WhileStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitBinaryOperator(BinaryOperator *S)
-{
   NumStmts++;
   return true;
 }
