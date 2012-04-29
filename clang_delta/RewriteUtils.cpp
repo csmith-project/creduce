@@ -94,6 +94,8 @@ int RewriteUtils::getOffsetUntil(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf != Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
@@ -104,6 +106,8 @@ int RewriteUtils::getSkippingOffset(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf == Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
