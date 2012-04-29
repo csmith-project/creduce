@@ -69,6 +69,7 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
   ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);
   return true;
 }
 
