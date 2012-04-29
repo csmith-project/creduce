@@ -1388,8 +1388,11 @@ bool RewriteUtils::isSingleDecl(const VarDecl *VD)
   return (*EndBuf == ';');
 }
 
-// in case we don't know if VD is in a single decl group,
-// also we don't know if VD is the first decl or not
+// In case we don't know if VD is in a single decl group,
+// also we don't know if VD is the first decl or not.
+// once this version is well-tested, probably we should remove 
+// bool RewriteUtils::removeVarDecl(const VarDecl *VD,
+//                                  DeclGroupRef DGR)
 bool RewriteUtils::removeVarDecl(const VarDecl *VD)
 {
   if (isSingleDecl(VD)) {
