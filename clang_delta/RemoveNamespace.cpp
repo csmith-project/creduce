@@ -801,8 +801,18 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
                                                   const DeclContext *ParentCtx)
 {
   const NamespaceDecl *ND = UD->getNominatedNamespace();
-  TransAssert(!ND->isAnonymousNamespace() && 
-              "Cannot have anonymous namespaces!");
+
+  // It could happen, for example:
+  //  namespace NS {
+  //    namespace {
+  //      int x;
+  //    }
+  //  }
+  // where the inner anonymous namespace will have an implicit using directive
+  // declaration
+  if (ND->isAnonymousNamespace())
+    return;
+
   std::string NamespaceName = ND->getNameAsString();
 
   for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
