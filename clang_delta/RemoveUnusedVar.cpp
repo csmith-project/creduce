@@ -135,6 +135,12 @@ void RemoveUnusedVar::removeVarDecl(void)
     removeVarDeclFromLinkageSpecDecl(LinkageDecl, TheVarDecl);
     return;
   }
+  else if (dyn_cast<NamespaceDecl>(Ctx)) {
+    // if a var is declared inside a namespace, we don't know
+    // which declaration group it belongs to. 
+    RewriteHelper->removeVarDecl(TheVarDecl);
+    return;
+  }
 
   llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI = 
     VarToDeclGroup.find(TheVarDecl);
