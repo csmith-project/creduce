@@ -89,7 +89,7 @@ ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h ${SUB_TRANSFORMATION_DEPS}
 
 ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h ${SUB_TRANSFORMATION_DEPS}
 
-RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h ${SUB_TRANSFORMATION_DEPS}
+RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 BinOpSimplification.o: BinOpSimplification.cpp BinOpSimplification.h ${SUB_TRANSFORMATION_DEPS}
 
