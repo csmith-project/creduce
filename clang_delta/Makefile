@@ -111,7 +111,7 @@ CombineLocalVarDecl.o: CombineLocalVarDecl.cpp CombineLocalVarDecl.h ${SUB_TRANS
 
 ReplaceCallExpr.o: ReplaceCallExpr.cpp ReplaceCallExpr.h ${SUB_TRANSFORMATION_DEPS}
 
-SimpleInliner.o: SimpleInliner.cpp SimpleInliner.h ${SUB_TRANSFORMATION_DEPS}
+SimpleInliner.o: SimpleInliner.cpp SimpleInliner.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveUnusedFunction.o: RemoveUnusedFunction.cpp RemoveUnusedFunction.h ${SUB_TRANSFORMATION_DEPS}
 

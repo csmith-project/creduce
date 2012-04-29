@@ -32,11 +32,13 @@ namespace clang {
 
 class SimpleInlinerCollectionVisitor;
 class SimpleInlinerFunctionVisitor;
+class SimpleInlinerFunctionStmtVisitor;
 class SimpleInlinerStmtVisitor;
 
 class SimpleInliner : public Transformation {
 friend class SimpleInlinerCollectionVisitor;
 friend class SimpleInlinerFunctionVisitor;
+friend class SimpleInlinerFunctionStmtVisitor;
 friend class SimpleInlinerStmtVisitor;
 
 public:
@@ -45,6 +47,7 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       FunctionVisitor(NULL),
+      FunctionStmtVisitor(NULL),
       StmtVisitor(NULL),
       NameQueryWrap(NULL),
       TheCallExpr(NULL),
@@ -124,6 +127,8 @@ private:
   SimpleInlinerCollectionVisitor *CollectionVisitor;
 
   SimpleInlinerFunctionVisitor *FunctionVisitor;
+
+  SimpleInlinerFunctionStmtVisitor *FunctionStmtVisitor;
 
   SimpleInlinerStmtVisitor *StmtVisitor;
 
