@@ -139,7 +139,7 @@ MoveFunctionBody.o: MoveFunctionBody.cpp MoveFunctionBody.h ${SUB_TRANSFORMATION
 
 SimplifyStructUnionDecl.o: SimplifyStructUnionDecl.cpp SimplifyStructUnionDecl.h ${SUB_TRANSFORMATION_DEPS}
 
-SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h ${SUB_TRANSFORMATION_DEPS}
+SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 MoveGlobalVar.o: MoveGlobalVar.cpp MoveGlobalVar.h ${SUB_TRANSFORMATION_DEPS}
 
