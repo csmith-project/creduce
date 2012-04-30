@@ -24,15 +24,18 @@ namespace clang {
 }
 
 class BSCollectionVisitor;
+class BSStatementVisitor;
 
 class BinOpSimplification : public Transformation {
 friend class BSCollectionVisitor;
+friend class BSStatementVisitor;
 
 public:
 
   BinOpSimplification(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       BinOpCollectionVisitor(NULL),
+      StmtVisitor(NULL),
       NameQueryWrap(NULL),
       TheFuncDecl(NULL),
       TheStmt(NULL),
@@ -68,6 +71,8 @@ private:
   clang::SmallVector<clang::BinaryOperator *, 10> ValidBinOps;
 
   BSCollectionVisitor *BinOpCollectionVisitor;
+
+  BSStatementVisitor *StmtVisitor;
 
   TransNameQueryWrap *NameQueryWrap;
 

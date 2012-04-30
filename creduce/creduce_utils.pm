@@ -13,8 +13,14 @@ $STOP = 111333;
 sub runit ($) {
     (my $cmd) = @_;
     if ((system "$cmd") != 0) {
-	return -1;
-    }   
+        my $res = $? >> 8;
+        if ($res == 255) {
+            return -1;
+        }
+        else {
+            return -2;
+        }
+    }
     return ($? >> 8);
 }
 

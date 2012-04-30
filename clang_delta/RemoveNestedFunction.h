@@ -21,12 +21,17 @@ namespace clang {
   class FunctionDecl;
   class Stmt;
   class CallExpr;
+  class DeclarationName;
+  class DeclContext;
+  class NestedNameSpecifier;
 }
 
 class RNFCollectionVisitor;
+class RNFStatementVisitor;
 
 class RemoveNestedFunction : public Transformation {
 friend class RNFCollectionVisitor;
+friend class RNFStatementVisitor;
 
 public:
 
@@ -57,6 +62,12 @@ private:
 
   bool replaceCallExpr(void);
 
+  const clang::FunctionDecl *lookupFunctionDecl(clang::DeclarationName &DName,
+                                                const clang::DeclContext *Ctx);
+
+  const clang::DeclContext *getDeclContextFromSpecifier(
+          const clang::NestedNameSpecifier *Qualifier);
+
   void setTmpVarName(std::string &Name) {
     TmpVarName = Name;
   }
@@ -70,6 +81,8 @@ private:
   clang::SmallVector<clang::CallExpr *, 10> ValidCallExprs;
 
   RNFCollectionVisitor *NestedInvocationVisitor;
+
+  RNFStatementVisitor *StmtVisitor;
 
   TransNameQueryWrap *NameQueryWrap;
 

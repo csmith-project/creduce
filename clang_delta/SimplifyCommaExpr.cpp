@@ -18,6 +18,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonStatementVisitor.h"
 
 using namespace clang;
 
@@ -36,82 +37,43 @@ class SimplifyCommaExprCollectionVisitor : public
 public:
 
   explicit SimplifyCommaExprCollectionVisitor(SimplifyCommaExpr *Instance)
-    : ConsumerInstance(Instance),
-      CurrentStmt(NULL),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
 
-  bool VisitCompoundStmt(CompoundStmt *S);
+  bool VisitFunctionDecl(FunctionDecl *FD);
 
-  bool VisitBinaryOperator(BinaryOperator *BO);
+private:
+  SimplifyCommaExpr *ConsumerInstance;
+};
+
+class SimplifyCommaExprStmtVisitor : public 
+        CommonStatementVisitor<SimplifyCommaExprStmtVisitor> {
+public:
+
+  explicit SimplifyCommaExprStmtVisitor(SimplifyCommaExpr *Instance)
+    : ConsumerInstance(Instance)
+  { }
 
   bool VisitForStmt(ForStmt *FS);
-
-  bool VisitIfStmt(IfStmt *IS);
 
   bool VisitWhileStmt(WhileStmt *WS);
 
   bool VisitDoStmt(DoStmt *DS);
 
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
+  bool VisitBinaryOperator(BinaryOperator *BO);
 
 private:
 
   SimplifyCommaExpr *ConsumerInstance;
-
-  Stmt *CurrentStmt;
-
-  bool NeedParen;
 };
 
-bool SimplifyCommaExprCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
+bool SimplifyCommaExprCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    CurrentStmt = (*I);
-    TraverseStmt(*I);
-  }
-  return false;
-}
+  if (!FD->isThisDeclarationADefinition())
+    return true;
 
-void SimplifyCommaExprCollectionVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  CurrentStmt = S;
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
-}
-
-// It is used to handle the case where if-then or else branch
-// is not treated as a CompoundStmt. So it cannot be traversed
-// from VisitCompoundStmt, e.g.,
-//   if (x)
-//     foo(bar())
-bool SimplifyCommaExprCollectionVisitor::VisitIfStmt(IfStmt *IS)
-{
-  Expr *E = IS->getCond();
-  TraverseStmt(E);
-
-  Stmt *ThenB = IS->getThen();
-  visitNonCompoundStmt(ThenB);
-
-  Stmt *ElseB = IS->getElse();
-  visitNonCompoundStmt(ElseB);
-
-  return false;
+  ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  return true;
 }
 
 // It causes unsound transformation because 
@@ -131,42 +93,28 @@ bool SimplifyCommaExprCollectionVisitor::VisitIfStmt(IfStmt *IS)
 //     for(i = 0; i < bar(tmp_var); i++)
 //       ...
 //   }
-bool SimplifyCommaExprCollectionVisitor::VisitForStmt(ForStmt *FS)
+bool SimplifyCommaExprStmtVisitor::VisitForStmt(ForStmt *FS)
 {
   Stmt *Body = FS->getBody();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool SimplifyCommaExprCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
+bool SimplifyCommaExprStmtVisitor::VisitWhileStmt(WhileStmt *WS)
 {
   Stmt *Body = WS->getBody();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool SimplifyCommaExprCollectionVisitor::VisitDoStmt(DoStmt *DS)
+bool SimplifyCommaExprStmtVisitor::VisitDoStmt(DoStmt *DS)
 {
   Stmt *Body = DS->getBody();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool SimplifyCommaExprCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimplifyCommaExprCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimplifyCommaExprCollectionVisitor::VisitBinaryOperator(
+bool SimplifyCommaExprStmtVisitor::VisitBinaryOperator(
        BinaryOperator *BO)
 {
   BinaryOperator::Opcode Op = BO->getOpcode();
@@ -193,15 +141,13 @@ void SimplifyCommaExpr::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new SimplifyCommaExprCollectionVisitor(this);
+  StmtVisitor = new SimplifyCommaExprStmtVisitor(this);
 }
 
 bool SimplifyCommaExpr::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      CollectionVisitor->TraverseDecl(FD);
-    }
+    CollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -249,5 +195,7 @@ SimplifyCommaExpr::~SimplifyCommaExpr(void)
 {
   if (CollectionVisitor)
     delete CollectionVisitor;
+  if (StmtVisitor)
+    delete StmtVisitor;
 }
 

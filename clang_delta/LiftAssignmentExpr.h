@@ -24,15 +24,18 @@ namespace clang {
 }
 
 class AssignExprCollectionVisitor;
+class AssignExprStatementVisitor;
 
 class LiftAssignmentExpr : public Transformation {
 friend class AssignExprCollectionVisitor;
+friend class AssignExprStatementVisitor;
 
 public:
 
   LiftAssignmentExpr(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      StmtVisitor(NULL),
       TheFuncDecl(NULL),
       TheStmt(NULL),
       TheAssignExpr(NULL),
@@ -56,6 +59,8 @@ private:
   clang::SmallVector<clang::BinaryOperator *, 20> ValidAssignExprs;
 
   AssignExprCollectionVisitor *CollectionVisitor;
+
+  AssignExprStatementVisitor *StmtVisitor;
 
   clang::FunctionDecl *TheFuncDecl;
 

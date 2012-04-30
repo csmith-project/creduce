@@ -18,6 +18,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonStatementVisitor.h"
 
 using namespace clang;
 
@@ -36,19 +37,31 @@ to \n\
   {...} \n\
 if there is no else-if left, the last else keyword will be removed. \n";  
 
-static RegisterTransformation<SimplifyIf>
-         Trans("simplify-if", DescriptionMsg);
-
 class SimplifyIfCollectionVisitor : public 
         RecursiveASTVisitor<SimplifyIfCollectionVisitor> {
 public:
 
   explicit SimplifyIfCollectionVisitor(SimplifyIf *Instance)
-    : ConsumerInstance(Instance),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
 
-  bool VisitCompoundStmt(CompoundStmt *S);
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  SimplifyIf *ConsumerInstance;
+  
+};
+
+static RegisterTransformation<SimplifyIf>
+         Trans("simplify-if", DescriptionMsg);
+
+class SimplifyIfStatementVisitor : public 
+        CommonStatementVisitor<SimplifyIfStatementVisitor> {
+public:
+
+  explicit SimplifyIfStatementVisitor(SimplifyIf *Instance)
+    : ConsumerInstance(Instance)
+  { }
 
   bool VisitIfStmt(IfStmt *IS);
 
@@ -58,43 +71,19 @@ public:
 
   bool VisitDoStmt(DoStmt *DS);
 
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
-
 private:
 
   SimplifyIf *ConsumerInstance;
 
-  bool NeedParen;
-
 };
 
-bool SimplifyIfCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
+bool SimplifyIfCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    TraverseStmt(*I);
-  }
-  return false;
-}
+  if (!FD->isThisDeclarationADefinition())
+    return true;
 
-void SimplifyIfCollectionVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
+  ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  return true;
 }
 
 // It is used to handle the case where if-then or else branch
@@ -102,7 +91,7 @@ void SimplifyIfCollectionVisitor::visitNonCompoundStmt(Stmt *S)
 // from VisitCompoundStmt, e.g.,
 //   if (x)
 //     foo(bar())
-bool SimplifyIfCollectionVisitor::VisitIfStmt(IfStmt *IS)
+bool SimplifyIfStatementVisitor::VisitIfStmt(IfStmt *IS)
 {
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->ValidInstanceNum == 
@@ -137,37 +126,23 @@ bool SimplifyIfCollectionVisitor::VisitIfStmt(IfStmt *IS)
 //     for(i = 0; i < bar(tmp_var); i++)
 //       ...
 //   }
-bool SimplifyIfCollectionVisitor::VisitForStmt(ForStmt *FS)
+bool SimplifyIfStatementVisitor::VisitForStmt(ForStmt *FS)
 {
   Stmt *Body = FS->getBody();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool SimplifyIfCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
+bool SimplifyIfStatementVisitor::VisitWhileStmt(WhileStmt *WS)
 {
   Stmt *Body = WS->getBody();
   visitNonCompoundStmt(Body);
   return false;
 }
 
-bool SimplifyIfCollectionVisitor::VisitDoStmt(DoStmt *DS)
+bool SimplifyIfStatementVisitor::VisitDoStmt(DoStmt *DS)
 {
   Stmt *Body = DS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimplifyIfCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimplifyIfCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
   visitNonCompoundStmt(Body);
   return false;
 }
@@ -176,15 +151,13 @@ void SimplifyIf::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new SimplifyIfCollectionVisitor(this);
+  StmtVisitor = new SimplifyIfStatementVisitor(this);
 }
 
 bool SimplifyIf::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      CollectionVisitor->TraverseDecl(FD);
-    }
+    CollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -233,5 +206,8 @@ SimplifyIf::~SimplifyIf(void)
 {
   if (CollectionVisitor)
     delete CollectionVisitor;
+
+  if (StmtVisitor)
+    delete StmtVisitor;
 }
 

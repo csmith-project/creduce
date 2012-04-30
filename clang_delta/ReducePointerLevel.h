@@ -96,8 +96,7 @@ private:
 
   void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
-  void getNewLocalInitStr(const clang::Expr *Init, 
-                          std::string &InitStr);
+  void getNewLocalInitStr(const clang::Expr *Init, std::string &InitStr);
 
   void getNewGlobalInitStr(const clang::Expr *Init, 
                            std::string &InitStr);
@@ -117,6 +116,10 @@ private:
   void rewriteDerefOp(const clang::UnaryOperator *UO);
 
   void rewriteDeclRefExpr(const clang::DeclRefExpr *DRE);
+
+  void replaceArrowWithDot(const clang::MemberExpr *ME);
+
+  bool isPointerToSelf(const clang::Type *Ty, const clang::DeclaratorDecl *DD);
 
   DeclSet VisitedDecls;
 

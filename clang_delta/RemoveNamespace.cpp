@@ -785,9 +785,22 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
     RewriteHelper->getQualifierAsString(QualifierLoc, NewName);
   }
 
+  if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
+    ND = TD->getTemplatedDecl();
+  }
+
   // NewName += "::";
-  const IdentifierInfo *IdInfo = ND->getIdentifier();
-  NewName += IdInfo->getName();
+  const FunctionDecl *FD = dyn_cast<FunctionDecl>(ND);
+  if (FD && FD->isOverloadedOperator()) {
+    const char *Op = clang::getOperatorSpelling(FD->getOverloadedOperator());
+    std::string OpStr(Op);
+    NewName += ("operator::" + OpStr);
+  }
+  else {
+    const IdentifierInfo *IdInfo = ND->getIdentifier();
+    TransAssert(IdInfo && "Invalid IdentifierInfo!");
+    NewName += IdInfo->getName();
+  }
   UsingNamedDeclToNewName[ND] = NewName;
   
   // the tied UsingDecl becomes useless, and hence it's removable
@@ -801,8 +814,18 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
                                                   const DeclContext *ParentCtx)
 {
   const NamespaceDecl *ND = UD->getNominatedNamespace();
-  TransAssert(!ND->isAnonymousNamespace() && 
-              "Cannot have anonymous namespaces!");
+
+  // It could happen, for example:
+  //  namespace NS {
+  //    namespace {
+  //      int x;
+  //    }
+  //  }
+  // where the inner anonymous namespace will have an implicit using directive
+  // declaration
+  if (ND->isAnonymousNamespace())
+    return;
+
   std::string NamespaceName = ND->getNameAsString();
 
   for (DeclContext::decl_iterator I = ND->decls_begin(), E = ND->decls_end();
@@ -888,6 +911,15 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
     else if (const EnumDecl *ED = dyn_cast<EnumDecl>(ND)) {
       handleOneEnumDecl(ED, NewName, NamedDeclToNewName, ParentCtx);
     }
+
+    // This is bad. Any better solution? Maybe we need to change
+    // the overloaded operator to a regular function?
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(ND)) {
+      if (FD->isOverloadedOperator())
+        return;
+    }
+
+    TransAssert(IdInfo && "Invalid IdentifierInfo!");
     NewName += IdInfo->getName();
     NamedDeclToNewName[ND] = NewName;
   }

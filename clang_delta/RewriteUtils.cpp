@@ -98,6 +98,8 @@ int RewriteUtils::getOffsetUntil(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf != Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
@@ -108,6 +110,8 @@ int RewriteUtils::getSkippingOffset(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf == Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
@@ -1353,5 +1357,87 @@ bool RewriteUtils::replaceRecordType(RecordTypeLoc &RTLoc,
     return true;
 
   return !(TheRewriter->ReplaceText(LocStart, TypeId->getLength(), Name));
+}
+
+bool RewriteUtils::isTheFirstDecl(const VarDecl *VD)
+{
+  SourceRange Range = VD->getSourceRange();
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation NameStartLoc = VD->getLocation();
+  
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  const char *NameStartBuf = SrcManager->getCharacterData(NameStartLoc);
+  
+  while (StartBuf != NameStartBuf) {
+    if (*StartBuf == ',')
+      return false;
+    StartBuf++;
+  }
+  return true;
+}
+
+bool RewriteUtils::isSingleDecl(const VarDecl *VD)
+{
+  if (!isTheFirstDecl(VD))
+    return false;
+
+  SourceRange Range = VD->getSourceRange();
+  SourceLocation StartLoc = Range.getBegin();
+  int RangeSize = TheRewriter->getRangeSize(Range);
+  SourceLocation EndLoc = StartLoc.getLocWithOffset(RangeSize);
+  const char *EndBuf = SrcManager->getCharacterData(EndLoc);
+  while (isspace(*EndBuf))
+    EndBuf++;
+
+  return (*EndBuf == ';');
+}
+
+// In case we don't know if VD is in a single decl group,
+// also we don't know if VD is the first decl or not.
+// once this version is well-tested, probably we should remove 
+// bool RewriteUtils::removeVarDecl(const VarDecl *VD,
+//                                  DeclGroupRef DGR)
+bool RewriteUtils::removeVarDecl(const VarDecl *VD)
+{
+  if (isSingleDecl(VD)) {
+    return removeDecl(VD);
+  }
+
+  SourceRange VarRange = VD->getSourceRange();
+
+  // VD is the first declaration in a declaration group.
+  // We keep the leading type string
+  if (isTheFirstDecl(VD)) {
+    // We need to get the outermost TypeLocEnd instead of the StartLoc of
+    // a var name, because we need to handle the case below:
+    //   int *x, *y;
+    // If we rely on the StartLoc of a var name, then we will make bad
+    // transformation like:
+    //   int * *y;
+    SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD);
+
+    SourceLocation NewEndLoc = getEndLocationUntil(VarRange, ',');
+    
+    return 
+      !(TheRewriter->RemoveText(SourceRange(NewStartLoc, NewEndLoc)));
+  }
+
+  SourceLocation NameLoc = VD->getLocation();
+  SourceLocation VarStartLoc = VarRange.getBegin();
+  const char *NameStartBuf = SrcManager->getCharacterData(NameLoc);
+  const char *VarStartBuf = SrcManager->getCharacterData(VarStartLoc);
+  int Offset = 0;
+  TransAssert((VarStartBuf < NameStartBuf) && "Bad Name Location!");
+  while (NameStartBuf != VarStartBuf) {
+    if (*NameStartBuf == ',')
+      break;
+    Offset--;
+    NameStartBuf--;
+  }
+  TransAssert((VarStartBuf < NameStartBuf) && "Cannot find comma!");
+  SourceLocation PrevDeclEndLoc = NameLoc.getLocWithOffset(Offset);
+  SourceLocation VarEndLoc = VarRange.getEnd();
+
+  return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
 
