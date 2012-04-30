@@ -903,7 +903,6 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
 
     std::string NewName = NamePrefix + NamespaceName;
     const IdentifierInfo *IdInfo = ND->getIdentifier();
-    TransAssert(IdInfo && "Invalid IdentifierInfo!");
     NewName += "_";
 
     if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
@@ -920,6 +919,7 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
         return;
     }
 
+    TransAssert(IdInfo && "Invalid IdentifierInfo!");
     NewName += IdInfo->getName();
     NamedDeclToNewName[ND] = NewName;
   }
