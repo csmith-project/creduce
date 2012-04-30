@@ -888,6 +888,13 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
     if (!hasNameConflict(ND, ParentCtx))
       return;
 
+    // This is bad. Any better solution? Maybe we need to change
+    // the overloaded operator to a regular function?
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(ND)) {
+      if (FD->isOverloadedOperator())
+        return;
+    }
+
     std::string NewName = NamePrefix + NamespaceName;
     const IdentifierInfo *IdInfo = ND->getIdentifier();
     NewName += "_";
