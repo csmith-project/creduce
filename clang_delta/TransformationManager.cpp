@@ -14,6 +14,7 @@
 
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
+#include "clang/Lex/Preprocessor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
@@ -69,6 +70,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance = new CompilerInstance();
   assert(ClangInstance);
   
+  // TODO
   ClangInstance->createDiagnostics(0, NULL);
 
   InputKind IK = FrontendOptions::getInputKindForExtension(
@@ -100,6 +102,10 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   DiagnosticConsumer &DgClient = ClangInstance->getDiagnosticClient();
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
                            &ClangInstance->getPreprocessor());
+  Preprocessor &PP = ClangInstance->getPreprocessor();
+  PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
+                                         PP.getLangOpts());
+
   ClangInstance->createASTContext();
 
   if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
@@ -157,6 +163,7 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
   ClangInstance->setASTConsumer(CurrentTransformationImpl);
   ClangInstance->createSema(TU_Complete, 0);
   ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
+  //ClangInstance->getDiagnostics().setSuppressAllDiagnostics(false);
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
