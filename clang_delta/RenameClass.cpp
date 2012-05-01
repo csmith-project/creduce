@@ -524,12 +524,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
   }
 
   case Type::DependentTemplateSpecialization: {
-    const DependentTemplateSpecializationType *DTST = 
-           dyn_cast<DependentTemplateSpecializationType>(Ty);
-    (void)DTST;
-    TransAssert(0 && "We cannot have DependentTemplateSpecializationType \
-                     here!");
-    break;
+    return NULL;
   }
 
   case Type::Elaborated: {
