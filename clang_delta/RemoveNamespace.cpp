@@ -578,7 +578,7 @@ bool RemoveNamespaceRewriteVisitor::TraverseNestedNameSpecifierLoc(
 
     if (ND == ConsumerInstance->TheNamespaceDecl) {
       ConsumerInstance->RewriteHelper->removeSpecifier(Loc);
-      return true;
+      continue;
     }
 
     std::string SpecifierName;
