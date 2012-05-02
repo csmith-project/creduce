@@ -582,6 +582,9 @@ bool RemoveNamespaceRewriteVisitor::TraverseNestedNameSpecifierLoc(
     }
 
     std::string SpecifierName;
+    if (Loc.getBeginLoc().isInvalid())
+      continue;
+
     ConsumerInstance->RewriteHelper->getSpecifierAsString(Loc, SpecifierName);
     std::string NDName = ND->getNameAsString();
     std::string Name = "";
