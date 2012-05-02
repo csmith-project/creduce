@@ -254,16 +254,9 @@ void ParamToLocal::Initialize(ASTContext &context)
   RewriteVisitor = new ParamToLocalRewriteVisitor(this);
 }
 
-bool ParamToLocal::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
-  return true;
-}
- 
 void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   if (QueryInstanceOnly)
     return;
 
