@@ -23,14 +23,17 @@ namespace clang {
 }
 
 class RVASTVisitor;
+class RVCollectionVisitor;
 
 class ReturnVoid : public Transformation {
 friend class RVASTVisitor;
+friend class RVCollectionVisitor;
 
 public:
 
   ReturnVoid(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
+      CollectionVisitor(NULL),
       TransformationASTVisitor(NULL),
       TheFuncDecl(NULL),
       FuncDefStartPos(NULL),
@@ -43,8 +46,6 @@ private:
   
   virtual void Initialize(clang::ASTContext &context);
 
-  virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
-
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   void keepFuncDefRange(clang::FunctionDecl *FD);
@@ -52,6 +53,8 @@ private:
   bool isNonVoidReturnFunction(clang::FunctionDecl *FD);
 
   bool isInTheFuncDef(clang::ReturnStmt *RS);
+
+  RVCollectionVisitor *CollectionVisitor;
 
   RVASTVisitor *TransformationASTVisitor;
 
