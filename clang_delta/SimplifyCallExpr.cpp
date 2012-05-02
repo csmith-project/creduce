@@ -84,18 +84,9 @@ void SimplifyCallExpr::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
-bool SimplifyCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition())
-      CollectionVisitor->TraverseDecl(FD);
-  }
-  return true;
-}
- 
 void SimplifyCallExpr::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   if (QueryInstanceOnly)
     return;
 
