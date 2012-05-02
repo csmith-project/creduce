@@ -115,12 +115,6 @@ void RemoveUnusedStructField::Initialize(ASTContext &context)
   RewriteVisitor = new RemoveUnusedStructFieldRewriteVisitor(this);
 }
 
-bool RemoveUnusedStructField::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  // Nothing to do
-  return true;
-}
- 
 void RemoveUnusedStructField::HandleTranslationUnit(ASTContext &Ctx)
 {
   CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
