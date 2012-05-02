@@ -298,6 +298,9 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
     return false;
   }
 
+  if (FD->isOverloadedOperator())
+    return false;
+
   // Avoid duplications
   if (std::find(ValidFuncDecls.begin(), 
                 ValidFuncDecls.end(), FD) != 
