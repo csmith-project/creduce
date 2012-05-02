@@ -1,4 +1,4 @@
-## -*- mode: Makefile.am -*-
+## -*- mode: Makefile-Automake -*-
 ##
 ## Copyright (c) 2012 The University of Utah
 ## All rights reserved.
