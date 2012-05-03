@@ -12,9 +12,9 @@
 #define RENAME_CLASS_H
 
 #include <string>
+#include <set>
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/SmallSet.h"
 #include "clang/AST/NestedNameSpecifier.h"
 #include "Transformation.h"
 
@@ -63,7 +63,7 @@ private:
   typedef llvm::DenseMap<char, const clang::CXXRecordDecl *> 
             NameToRecordDeclMap;
 
-  typedef llvm::SmallSet<std::string, 20> ClassNameSet;
+  typedef std::set<std::string> ClassNameSet;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -100,6 +100,9 @@ private:
 
   const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
         const clang::TemplateSpecializationType *TSTy);
+
+  unsigned getMaxNameValue(ClassNameSet &AllClassNames, 
+                           const std::string &Prefix);
 
   RecordToInheritanceLevelMap RecordToLevel;
 

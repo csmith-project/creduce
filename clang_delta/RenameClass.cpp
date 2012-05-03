@@ -437,21 +437,42 @@ void RenameClass::incCurrentName(void)
   }
 }
 
+unsigned RenameClass::getMaxNameValue(ClassNameSet &AllClassNames, 
+                                      const std::string &Prefix)
+{
+  unsigned MaxV = 0;
+  for (ClassNameSet::iterator I = AllClassNames.begin(), 
+       E = AllClassNames.end(); I != E; ++I) {
+    std::string Name = (*I);
+    if (Name.size() <= 2)
+      continue;
+
+    if (Name.compare(0, 2, Prefix))
+      continue;
+
+    std::string NumStr = Name.substr(2);
+    std::stringstream TmpSS(NumStr);
+    unsigned int V;
+    if (!(TmpSS >> V))
+      continue;
+    if (V > MaxV)
+      MaxV = V;
+  }
+  return MaxV + 1;
+}
+
 void RenameClass::setBackupName(ClassNameSet &AllClassNames)
 {
   ConflictingRD = NameToRecord[NewName];
   if (!ConflictingRD || (NewName > 'Z'))
     return;
 
-  for (unsigned I = 0; I < 23; ++I) {
-    std::stringstream SS;
-    SS << NewName << "_" << I;
-    BackupName = SS.str();
-    if (!AllClassNames.count(BackupName)) {
-      return;
-    }
-  }
-  TransAssert(0 && "Unreachable code");
+  std::stringstream SS;
+  SS << NewName << "_";
+  unsigned MaxV = getMaxNameValue(AllClassNames, SS.str());
+  SS << MaxV;
+  BackupName = SS.str();
+  TransAssert(!AllClassNames.count(BackupName));
 }
 
 bool RenameClass::doAnalysis(void)
