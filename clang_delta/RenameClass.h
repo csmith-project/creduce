@@ -15,6 +15,7 @@
 #include <set>
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/SmallSet.h"
 #include "clang/AST/NestedNameSpecifier.h"
 #include "Transformation.h"
 
@@ -40,10 +41,7 @@ public:
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
       TheCXXRecordDecl(NULL),
-      ConflictingRD(NULL),
-      NewName('A'),
       NewNameStr(""),
-      BackupName(""),
       CurrentName('A'),
       MaxInheritanceLevel(0)
   { }
@@ -55,23 +53,20 @@ private:
   typedef llvm::DenseMap<const clang::CXXRecordDecl *, unsigned> 
             RecordToInheritanceLevelMap;
 
-  typedef llvm::SmallPtrSet<const clang::CXXRecordDecl *, 5> CXXRecordDeclSet;
+  typedef llvm::SmallPtrSet<const clang::CXXRecordDecl *, 15> CXXRecordDeclSet;
 
   typedef llvm::DenseMap<unsigned, CXXRecordDeclSet *> 
             InheritanceLevelToRecordsMap;
 
-  typedef llvm::DenseMap<char, const clang::CXXRecordDecl *> 
-            NameToRecordDeclMap;
+  typedef llvm::SmallSet<char, 20> NameCharSet;
 
   typedef std::set<std::string> ClassNameSet;
 
   virtual void Initialize(clang::ASTContext &context);
 
-  virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
-
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  bool doAnalysis(void);
+  void doAnalysis(void);
 
   bool isSpecialRecordDecl(const clang::CXXRecordDecl *CXXRD);
 
@@ -84,13 +79,7 @@ private:
 
   bool isReservedName(char C);
 
-  void incCurrentName(void);
-
   void incValidInstance(const clang::CXXRecordDecl *CXXRD);
-
-  bool matchCurrentName(const std::string &Name);
-
-  void setBackupName(ClassNameSet &AllClassNames);
 
   bool getNewName(const clang::CXXRecordDecl *CXXRD, std::string &NewName);
 
@@ -101,14 +90,13 @@ private:
   const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
         const clang::TemplateSpecializationType *TSTy);
 
-  unsigned getMaxNameValue(ClassNameSet &AllClassNames, 
-                           const std::string &Prefix);
-
   RecordToInheritanceLevelMap RecordToLevel;
 
   InheritanceLevelToRecordsMap LevelToRecords;
 
-  NameToRecordDeclMap NameToRecord;
+  CXXRecordDeclSet UsedNameDecls;
+
+  NameCharSet UsedNames;
 
   RenameClassASTVisitor *CollectionVisitor;
 
@@ -116,14 +104,7 @@ private:
 
   const clang::CXXRecordDecl *TheCXXRecordDecl;
 
-  const clang::CXXRecordDecl *ConflictingRD;
-
-  char NewName;
-
   std::string NewNameStr;
-
-  // used to replace the conflicting class name
-  std::string BackupName;
 
   char CurrentName;
 

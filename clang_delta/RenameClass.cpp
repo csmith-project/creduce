@@ -10,7 +10,6 @@
 
 #include "RenameClass.h"
 
-#include <sstream>
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
@@ -315,31 +314,20 @@ void RenameClass::Initialize(ASTContext &context)
   RewriteVisitor = new RenameClassRewriteVisitor(this);
 }
 
-bool RenameClass::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  if (TransformationManager::isCLangOpt()) {
-    return true;
-  }
-
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
-  return true;
-}
- 
 void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (TransformationManager::isCLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
+    CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
     doAnalysis();
   }
 
   if (QueryInstanceOnly)
     return;
 
-  if (NewName > 'Z') {
+  if ((ValidInstanceNum + UsedNames.size() > 23)) {
     TransError = TransMaxClassesError;
     return;
   }
@@ -362,47 +350,32 @@ bool RenameClass::getNewName(const CXXRecordDecl *CXXRD,
                              std::string &NewName)
 {
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();
-  bool RV;
   if (CanonicalRD == TheCXXRecordDecl) {
     NewName = NewNameStr;
-    RV = true;
-  }
-  else if (CanonicalRD == ConflictingRD) {
-    NewName = BackupName;
-    RV = true;
+    return true;
   }
   else {
     NewName = "";
-    RV = false;
+    return false;
   }
-  return RV;
 }
 
 bool RenameClass::getNewNameByName(const std::string &Name,
                              std::string &NewName)
 {
-  bool RV;
   if (TheCXXRecordDecl && (Name == TheCXXRecordDecl->getNameAsString())) {
     NewName = NewNameStr;
-    RV = true;
-  }
-  else if (ConflictingRD && (Name == ConflictingRD->getNameAsString())) {
-    NewName = BackupName;
-    RV = true;
+    return true;
   }
   else {
     NewName = "";
-    RV = false;
+    return false;
   }
-  return RV;
 }
 
-bool RenameClass::matchCurrentName(const std::string &Name)
+bool RenameClass::isReservedName(char C)
 {
-  if (!isValidName(Name))
-    return false;
-
-  return (Name[0] == CurrentName);
+  return ((C == 'E') || (C == 'T') || (C == 'U'));
 }
 
 void RenameClass::incValidInstance(const CXXRecordDecl *CXXRD)
@@ -411,74 +384,18 @@ void RenameClass::incValidInstance(const CXXRecordDecl *CXXRD)
   if (ValidInstanceNum != TransformationCounter)
     return;
 
-  TheCXXRecordDecl = CXXRD;
-  NewName = CurrentName;
-  NewNameStr.assign(1, NewName);
-}
-
-bool RenameClass::isReservedName(char C)
-{
-  return ((C == 'E') || (C == 'T') || (C == 'U'));
-}
-
-void RenameClass::incCurrentName(void)
-{
-  if (CurrentName > 'Z')
-    return;
-
-  CurrentName++;
-  if (CurrentName > 'Z')
-    return;
-
-  while (isReservedName(CurrentName)) {
+  while (isReservedName(CurrentName) || UsedNames.count(CurrentName)) {
     if (CurrentName > 'Z')
       return;
     CurrentName++;
   }
+
+  TheCXXRecordDecl = CXXRD;
+  NewNameStr.assign(1, CurrentName);
 }
 
-unsigned RenameClass::getMaxNameValue(ClassNameSet &AllClassNames, 
-                                      const std::string &Prefix)
+void RenameClass::doAnalysis(void)
 {
-  unsigned MaxV = 0;
-  for (ClassNameSet::iterator I = AllClassNames.begin(), 
-       E = AllClassNames.end(); I != E; ++I) {
-    std::string Name = (*I);
-    if (Name.size() <= 2)
-      continue;
-
-    if (Name.compare(0, 2, Prefix))
-      continue;
-
-    std::string NumStr = Name.substr(2);
-    std::stringstream TmpSS(NumStr);
-    unsigned int V;
-    if (!(TmpSS >> V))
-      continue;
-    if (V > MaxV)
-      MaxV = V;
-  }
-  return MaxV + 1;
-}
-
-void RenameClass::setBackupName(ClassNameSet &AllClassNames)
-{
-  ConflictingRD = NameToRecord[NewName];
-  if (!ConflictingRD || (NewName > 'Z'))
-    return;
-
-  std::stringstream SS;
-  SS << NewName << "_";
-  unsigned MaxV = getMaxNameValue(AllClassNames, SS.str());
-  SS << MaxV;
-  BackupName = SS.str();
-  TransAssert(!AllClassNames.count(BackupName));
-}
-
-bool RenameClass::doAnalysis(void)
-{
-  ClassNameSet AllClassNames;
-
   for (unsigned Level = 0; Level <= MaxInheritanceLevel; ++Level) {
     CXXRecordDeclSet *RDSet = LevelToRecords[Level];
     if (!RDSet)
@@ -487,20 +404,12 @@ bool RenameClass::doAnalysis(void)
     for (CXXRecordDeclSet::const_iterator I = RDSet->begin(),
          E = RDSet->end(); I != E; ++I) {
       const CXXRecordDecl *CXXRD = (*I);
-      std::string RDName = CXXRD->getNameAsString();
-      AllClassNames.insert(RDName);
+      if (UsedNameDecls.count(CXXRD->getCanonicalDecl()))
+        continue;
 
-      if (!matchCurrentName(RDName)) {
-        incValidInstance(CXXRD);
-      }
-      else {
-        incCurrentName();
-      }
+      incValidInstance(CXXRD);
     }
   }
-
-  setBackupName(AllClassNames);
-  return true;
 }
 
 bool RenameClass::isSpecialRecordDecl(const CXXRecordDecl *CXXRD)
@@ -541,7 +450,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
       dyn_cast<TemplateSpecializationType>(Ty);
     Base = getBaseDeclFromTemplateSpecializationType(TSTy);
     TransAssert(Base && "Bad base class type!");
-    break;
+    return Base;
   }
 
   case Type::DependentTemplateSpecialization: {
@@ -555,11 +464,14 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
          dyn_cast<TemplateSpecializationType>(NamedT) ) {
       Base = getBaseDeclFromTemplateSpecializationType(TSTy);
     }
+    else if ( const TypedefType * Ty = dyn_cast<TypedefType>(NamedT) ){
+      Base = getBaseDeclFromType(Ty);
+    }
     else {
       Base = ETy->getAsCXXRecordDecl();
     }
     TransAssert(Base && "Bad base class type from ElaboratedType!");
-    break;
+    return Base;
   }
 
   case Type::DependentName: {
@@ -590,6 +502,7 @@ const CXXRecordDecl *RenameClass::getBaseDeclFromType(const Type *Ty)
       Base = UnderlyingTy->getAsCXXRecordDecl();
     }
     TransAssert(Base && "Bad base class type from Typedef!");
+    return Base;
   }
 
   case Type::TemplateTypeParm: {
@@ -639,7 +552,8 @@ void RenameClass::addOneRecordDecl(const CXXRecordDecl *CanonicalRD,
   std::string RDName = CanonicalRD->getNameAsString();
   if (isValidName(RDName)) {
     char C = RDName[0];
-    NameToRecord[C] = CanonicalRD;
+    UsedNames.insert(C);
+    UsedNameDecls.insert(CanonicalRD);
   }
 }
 
@@ -659,53 +573,55 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
   if (RecordToLevel.find(CanonicalRD) != RecordToLevel.end())
     return;
 
+  if (!CXXRD->hasDefinition()) {
+      addOneRecordDecl(CanonicalRD, 0);
+      return;
+  }
+
+  // getNumBases dies on the case where CXXRD has no definition.
+  unsigned NumBases = CanonicalRD->getNumBases();
+
   // in some cases, we will encounter a derived classs before
-  // its base class, safe to skip it if it has definition,
-  // because the Definition will be visited eventually. E.g.,
+  // its base class,
   // namespace NS1 {
   //   class Derived;
   //   class Base {};
   //   class Derived: public Base { };
   // }
-  if (!CXXRD->isCompleteDefinition()) {
-    if (!CXXRD->hasDefinition())
-      addOneRecordDecl(CanonicalRD, 0);
+  if (NumBases == 0) {
+    addOneRecordDecl(CanonicalRD, 0);
     return;
   }
 
-  unsigned NumBases = 0;
-  // getNumBases dies on the case where CXXRD has no definition.
-  if (CanonicalRD->hasDefinition()) {
-    NumBases = CanonicalRD->getNumBases();
-  }
-
   unsigned Level = 0;
-  if (NumBases > 0) {
-    for (CXXRecordDecl::base_class_const_iterator I = 
-         CanonicalRD->bases_begin(), E = CanonicalRD->bases_end(); I != E; ++I) {
+  for (CXXRecordDecl::base_class_const_iterator I = 
+       CanonicalRD->bases_begin(), E = CanonicalRD->bases_end(); I != E; ++I) {
 
-      const CXXBaseSpecifier *BS = I;
-      const Type *Ty = BS->getType().getTypePtr();
-      const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
-      unsigned BaseLevel;
+    const CXXBaseSpecifier *BS = I;
+    const Type *Ty = BS->getType().getTypePtr();
+    const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+    // If cannot find CXXRD's base class, then we assume its base class
+    // has the level of 0
+    if (!Base)
+      continue;
 
-      if (Base) {
-        RecordToInheritanceLevelMap::iterator LI = 
-          RecordToLevel.find(Base->getCanonicalDecl());
-        TransAssert((LI != RecordToLevel.end()) && "Unknown base class!");
-        BaseLevel = (*LI).second;
-      }
-      else {
-        // If cannot find CXXRD's base class, then we assume its base class
-        // has the level of 0
-        BaseLevel = 0;
-      }
+    const CXXRecordDecl *CanonicalBase = Base->getCanonicalDecl();
+    if (CanonicalBase == CanonicalRD);
+      continue;
 
-      if (BaseLevel > Level)
-        Level = BaseLevel;
+    unsigned BaseLevel;
+    RecordToInheritanceLevelMap::iterator LI = 
+      RecordToLevel.find(CanonicalBase);
+
+    if (LI == RecordToLevel.end()) {
+      continue;
     }
-    Level++;
+
+    BaseLevel = (*LI).second;
+    if (BaseLevel > Level)
+      Level = BaseLevel;
   }
+  Level++;
 
   addOneRecordDecl(CanonicalRD, Level);
 }
