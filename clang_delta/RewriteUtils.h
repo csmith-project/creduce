@@ -207,6 +207,11 @@ public:
 
   bool isTheFirstDecl(const clang::VarDecl *VD);
 
+  bool removeTextFromLeftAt(clang::SourceRange Range, char C,
+                            clang::SourceLocation EndLoc);
+
+  bool removeTextUntil(clang::SourceRange Range, char C);
+
 private:
 
   static RewriteUtils *Instance;
