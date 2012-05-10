@@ -169,7 +169,6 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
     return true;
 
   ConsumerInstance->VisitedDecls.insert(CanonicalD);
-  TemplateParameterList *TPList = CanonicalD->getTemplateParameters();
   if (!ConsumerInstance->isValidClassTemplateDecl(D))
     return true;
 
@@ -188,6 +187,7 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
   //   template<typename T> struct<true, T> S{};
   // if we remove bool and true, we will have two definitions for S
   unsigned Index = 0;
+  TemplateParameterList *TPList = CanonicalD->getTemplateParameters();
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ND = (*I);
