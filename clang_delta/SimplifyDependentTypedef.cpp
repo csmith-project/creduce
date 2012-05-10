@@ -178,7 +178,7 @@ void SimplifyDependentTypedef::handleOneTypedefDecl(const TypedefDecl *D)
        E = TmplParmList->end(); I != E; ++I) {
     if (const TemplateTypeParmDecl *TmplTypeParmD = 
         dyn_cast<TemplateTypeParmDecl>(*I)) {
-      if (!FirstParmD)
+      if (!FirstParmD && !TmplTypeParmD->getNameAsString().empty())
         FirstParmD = TmplTypeParmD;
       const TemplateTypeParmType *TmplParmTy = 
         dyn_cast<TemplateTypeParmType>(TmplTypeParmD->getTypeForDecl());
