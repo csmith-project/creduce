@@ -63,6 +63,12 @@ bool CallExprToValueVisitor::VisitCallExpr(CallExpr *CE)
 
 bool CallExprToValueVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  // Note that CurrentFD could not be the function decl where TheCallExpr
+  // shows up, e.g., we could have:
+  // struct A { 
+  //   void foo(); 
+  //   static int value = bar();
+  // };
   CurrentFD = FD;
   return true;
 }
@@ -75,18 +81,10 @@ void CallExprToValue::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
-bool CallExprToValue::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition())
-      CollectionVisitor->TraverseDecl(FD);
-  }
-  return true;
-}
- 
 void CallExprToValue::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+
   if (QueryInstanceOnly)
     return;
 

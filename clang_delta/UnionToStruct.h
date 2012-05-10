@@ -85,8 +85,7 @@ private:
 
   void getInitStrWithNonPointerType(const clang::Expr *E, std::string &Str);
 
-  bool isTheFirstDecl(const clang::VarDecl *VD, 
-                      clang::DeclGroupRef DGR);
+  bool isTheFirstDecl(const clang::VarDecl *VD);
 
   VarToDeclStmtMap VarToDeclStmt;
 

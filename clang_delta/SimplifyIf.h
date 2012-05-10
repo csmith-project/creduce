@@ -22,15 +22,18 @@ namespace clang {
 }
 
 class SimplifyIfCollectionVisitor;
+class SimplifyIfStatementVisitor;
 
 class SimplifyIf : public Transformation {
 friend class SimplifyIfCollectionVisitor;
+friend class SimplifyIfStatementVisitor;
 
 public:
 
   SimplifyIf(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      StmtVisitor(NULL),
       TheIfStmt(NULL),
       NeedParen(false)
   { }
@@ -48,6 +51,8 @@ private:
   void simplifyIfStmt(void);
 
   SimplifyIfCollectionVisitor *CollectionVisitor;
+
+  SimplifyIfStatementVisitor *StmtVisitor;
 
   clang::IfStmt *TheIfStmt;
 

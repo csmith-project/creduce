@@ -94,6 +94,8 @@ int RewriteUtils::getOffsetUntil(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf != Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
@@ -104,6 +106,8 @@ int RewriteUtils::getSkippingOffset(const char *Buf, char Symbol)
   int Offset = 0;
   while (*Buf == Symbol) {
     Buf++;
+    if (*Buf == '\0')
+      break;
     Offset++;
   }
   return Offset;
@@ -1384,8 +1388,11 @@ bool RewriteUtils::isSingleDecl(const VarDecl *VD)
   return (*EndBuf == ';');
 }
 
-// in case we don't know if VD is in a single decl group,
-// also we don't know if VD is the first decl or not
+// In case we don't know if VD is in a single decl group,
+// also we don't know if VD is the first decl or not.
+// once this version is well-tested, probably we should remove 
+// bool RewriteUtils::removeVarDecl(const VarDecl *VD,
+//                                  DeclGroupRef DGR)
 bool RewriteUtils::removeVarDecl(const VarDecl *VD)
 {
   if (isSingleDecl(VD)) {
@@ -1428,5 +1435,36 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD)
   SourceLocation VarEndLoc = VarRange.getEnd();
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
+}
+
+bool RewriteUtils::removeTextFromLeftAt(SourceRange Range, char C, 
+                                        SourceLocation EndLoc)
+{
+  SourceLocation StartLoc = Range.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  int Offset = 0;
+  while (*StartBuf != C) {
+    StartBuf--;
+    Offset--;
+  }
+  StartLoc = StartLoc.getLocWithOffset(Offset);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+bool RewriteUtils::removeTextUntil(SourceRange Range, char C)
+{
+  SourceLocation StartLoc = Range.getBegin();
+
+  // I don't know the reason, but seems Clang treats the following two
+  // cases differently:
+  // (1) template<bool, typename>
+  //    in this case, the RangeSize is 5, which includes the ','
+  // (2) template<typename, typename>
+  //    in this case, the RangeSize is 8, which excludes the comma
+  SourceLocation EndLoc = Range.getEnd();
+  const char *EndBuf = SrcManager->getCharacterData(EndLoc);
+  if (*EndBuf != C)
+    EndLoc = getEndLocationUntil(Range, C);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 

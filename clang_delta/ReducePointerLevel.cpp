@@ -120,8 +120,7 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
     return true;
 
   const Type *Ty = DD->getType().getTypePtr();
-  const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
-  if (ArrayTy)
+  if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty))
     Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
   if (!Ty->isPointerType() || Ty->isVoidPointerType())
     return true;
@@ -231,8 +230,7 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
   if (!VDTy->isAggregateType())
     return true;
 
-  const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy);
-  if (ArrayTy) {
+  if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(VDTy)) {
     const Type *ArrayElemTy = ConsumerInstance->getArrayBaseElemType(ArrayTy);
     if (!ArrayElemTy->isStructureType() && !ArrayElemTy->isUnionType())
       return true;
@@ -364,27 +362,37 @@ bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 
   DD = dyn_cast<DeclaratorDecl>(DD->getCanonicalDecl());
   TransAssert(DD && "Bad DeclaratorDecl!");
-  if (DD == ConsumerInstance->TheDecl)
+  if (DD == ConsumerInstance->TheDecl) {
     ConsumerInstance->RewriteHelper->insertAnAddrOfBefore(ME);
+    return true;
+  }
 
   // change x->y to x.y if x is TheDecl
   if (!ME->isArrow())
     return true;
 
   const Expr *Base = ME->getBase()->IgnoreParenCasts();
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base);
-  if (!DRE)
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base)) {
+    OrigDecl = DRE->getDecl();
+    DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+    TransAssert(DD && "Bad VarDecl!");
+    if (DD == ConsumerInstance->TheDecl) {
+      ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+      ConsumerInstance->replaceArrowWithDot(ME);
+    }
     return true;
-
-  OrigDecl = DRE->getDecl();
-  DD = dyn_cast<DeclaratorDecl>(OrigDecl);
-  TransAssert(DD && "Bad VarDecl!");
-
-  if (DD == ConsumerInstance->TheDecl) {
-    ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
-    ConsumerInstance->replaceArrowWithDot(ME);
   }
   
+  if (const MemberExpr *BaseME = dyn_cast<MemberExpr>(Base)) {
+    OrigDecl = BaseME->getMemberDecl();
+    DD = dyn_cast<DeclaratorDecl>(OrigDecl);
+    TransAssert(DD && "Bad FieldDecl!");
+    if (DD == ConsumerInstance->TheDecl) {
+      ConsumerInstance->VisitedMemberExprs.insert(BaseME);
+      ConsumerInstance->replaceArrowWithDot(ME);
+    }
+  }
+
   return true;
 }
 
@@ -476,8 +484,7 @@ const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E))
     return DRE;
 
-  if (const MemberExpr *ME = dyn_cast<MemberExpr>(E)) {
-    (void)ME;
+  if (dyn_cast<MemberExpr>(E)) {
     return NULL;
   }
 
@@ -494,13 +501,11 @@ const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
 const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
 {
   const Expr *E = ignoreSubscriptExprParenCasts(Exp);
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
 
-  if (DRE)
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E))
     return getCanonicalDeclaratorDecl(DRE);
 
-  const MemberExpr *ME = dyn_cast<MemberExpr>(E);
-  if (ME)
+  if (const MemberExpr *ME = dyn_cast<MemberExpr>(E))
     return getCanonicalDeclaratorDecl(ME);
 
   const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
@@ -528,15 +533,13 @@ const DeclaratorDecl *
 ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
 {
   const DeclaratorDecl *DD = NULL;
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
-  const MemberExpr *ME = dyn_cast<MemberExpr>(E);
 
-  if (DRE) {
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E)) {
     const ValueDecl *ValueD = DRE->getDecl();
     DD = dyn_cast<DeclaratorDecl>(ValueD);
     TransAssert(DD && "Bad Declarator!"); 
   }
-  else if (ME) {
+  else if (const MemberExpr *ME = dyn_cast<MemberExpr>(E)) {
     ValueDecl *OrigDecl = ME->getMemberDecl();
 
     // in C++, getMemberDecl returns a CXXMethodDecl.
@@ -582,8 +585,12 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
     const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
     TransAssert(VD && "Bad VarDecl!");
     const Expr *InitE = VD->getAnyInitializer();
-    if (!InitE)
+    if (!InitE) {
+      const Type *Ty = VD->getType().getTypePtr();
+      if (Ty->isIntegerType() || Ty->isPointerType())
+        InitStr = "0";
       return;
+    }
 
     const Type *VT = VD->getType().getTypePtr();
     const ArrayType *AT = dyn_cast<ArrayType>(VT);
@@ -603,16 +610,14 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
   
   case Expr::ArraySubscriptExprClass: {
     const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
-    const Expr *ElemE = getArraySubscriptElem(ASE);
-    if (ElemE)
+    if (const Expr *ElemE = getArraySubscriptElem(ASE))
       RewriteHelper->getExprString(ElemE, InitStr);
     return;
   }
 
   case Expr::MemberExprClass: {
     const MemberExpr *ME = dyn_cast<MemberExpr>(E);
-    const Expr *ElemE = getMemberExprElem(ME);
-    if (ElemE)
+    if (const Expr *ElemE = getMemberExprElem(ME))
       RewriteHelper->getExprString(ElemE, InitStr);
     return;
   }
@@ -633,6 +638,11 @@ void ReducePointerLevel::getInitListExprString(const InitListExpr *ILE,
     const Expr *SubInitE = ILE->getInit(I);
     std::string SubInitStr("");
     (this->*Handler)(SubInitE, SubInitStr);
+    if (SubInitStr == "") {
+      NewInitStr = "{}";
+      return;
+    }
+
     if (I == 0)
       NewInitStr += SubInitStr;
     else
@@ -734,11 +744,10 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     RewriteHelper->getExprString(E, InitStr);
 
     const Type *VT = DE->getType().getTypePtr();
-    const ArrayType *AT = dyn_cast<ArrayType>(VT);
     // handle case like:
     // int a[10];
     // int *p = (int*)a;
-    if (AT) {
+    if (const ArrayType *AT = dyn_cast<ArrayType>(VT)) {
       unsigned int Dim = getArrayDimension(AT);
       std::string ArrayElemsStr("");
       for (unsigned int I = 0; I < Dim; ++I) {
@@ -780,15 +789,16 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
     return;
   
   const Type *Ty = VD->getType().getTypePtr();
-  TransAssert(Ty->isPointerType() && "Non-pointer type!");
-  const Type *PointeeTy = Ty->getPointeeType().getTypePtr();
-  if (PointeeTy->isRecordType()) {
-    const Expr *E = Init->IgnoreParenCasts();
-    Expr::StmtClass SC = E->getStmtClass();
-    if ((SC == Expr::IntegerLiteralClass) || 
-        (SC == Expr::StringLiteralClass)) {
-      RewriteHelper->removeVarInitExpr(VD);
-      return;
+  if (Ty->isPointerType()) {
+    const Type *PointeeTy = Ty->getPointeeType().getTypePtr();
+    if (PointeeTy->isRecordType()) {
+      const Expr *E = Init->IgnoreParenCasts();
+      Expr::StmtClass SC = E->getStmtClass();
+      if ((SC == Expr::IntegerLiteralClass) || 
+          (SC == Expr::StringLiteralClass)) {
+        RewriteHelper->removeVarInitExpr(VD);
+        return;
+      }
     }
   }
 

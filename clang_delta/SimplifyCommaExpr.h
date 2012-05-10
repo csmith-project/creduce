@@ -22,15 +22,18 @@ namespace clang {
 }
 
 class SimplifyCommaExprCollectionVisitor;
+class SimplifyCommaExprStmtVisitor;
 
 class SimplifyCommaExpr : public Transformation {
 friend class SimplifyCommaExprCollectionVisitor;
+friend class SimplifyCommaExprStmtVisitor;
 
 public:
 
   SimplifyCommaExpr(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      StmtVisitor(NULL),
       TheBinaryOperator(NULL),
       TheStmt(NULL),
       NeedParen(false)
@@ -49,6 +52,8 @@ private:
   void simplifyCommaExpr(void);
 
   SimplifyCommaExprCollectionVisitor *CollectionVisitor;
+
+  SimplifyCommaExprStmtVisitor *StmtVisitor;
 
   clang::BinaryOperator *TheBinaryOperator;
 

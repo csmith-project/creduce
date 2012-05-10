@@ -17,6 +17,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonStatementVisitor.h"
 
 using namespace clang;
 
@@ -47,47 +48,17 @@ private:
   
 };
 
-class RNFStatementVisitor : public RecursiveASTVisitor<RNFStatementVisitor> {
+class RNFStatementVisitor : public CommonStatementVisitor<RNFStatementVisitor> {
 public:
 
   explicit RNFStatementVisitor(RemoveNestedFunction *Instance)
-    : ConsumerInstance(Instance),
-      CurrentFuncDecl(NULL),
-      CurrentStmt(NULL),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
-
-  bool VisitCompoundStmt(CompoundStmt *S);
-
-  bool VisitIfStmt(IfStmt *IS);
-
-  bool VisitForStmt(ForStmt *FS);
-
-  bool VisitWhileStmt(WhileStmt *WS);
-
-  bool VisitDoStmt(DoStmt *DS);
-
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
 
   bool VisitCallExpr(CallExpr *CallE);
 
-  void setCurrentFunctionDecl(FunctionDecl *FD) {
-    CurrentFuncDecl = FD;
-  }
-
 private:
-
   RemoveNestedFunction *ConsumerInstance;
-
-  FunctionDecl *CurrentFuncDecl;
-
-  Stmt *CurrentStmt;
-
-  bool NeedParen;
 
 };
 
@@ -98,120 +69,8 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
   ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);
   return true;
-}
-
-bool RNFStatementVisitor::VisitCompoundStmt(CompoundStmt *CS)
-{
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    CurrentStmt = (*I);
-    TraverseStmt(*I);
-  }
-  return false;
-}
-
-void RNFStatementVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  CurrentStmt = (S);
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
-}
-
-// It is used to handle the case where if-then or else branch
-// is not treated as a CompoundStmt. So it cannot be traversed
-// from VisitCompoundStmt, e.g.,
-//   if (x)
-//     foo(bar())
-bool RNFStatementVisitor::VisitIfStmt(IfStmt *IS)
-{
-  Expr *E = IS->getCond();
-  TraverseStmt(E);
-
-  Stmt *ThenB = IS->getThen();
-  visitNonCompoundStmt(ThenB);
-
-  Stmt *ElseB = IS->getElse();
-  visitNonCompoundStmt(ElseB);
-
-  return false;
-}
-
-// It causes unsound transformation because 
-// the semantics of loop execution has been changed. 
-// For example,
-//   int foo(int x)
-//   {
-//     int i;
-//     for(i = 0; i < bar(bar(x)); i++)
-//       ...
-//   }
-// will be transformed to:
-//   int foo(int x)
-//   {
-//     int i;
-//     int tmp_var = bar(x);
-//     for(i = 0; i < bar(tmp_var); i++)
-//       ...
-//   }
-bool RNFStatementVisitor::VisitForStmt(ForStmt *FS)
-{
-  Stmt *Init = FS->getInit();
-  TraverseStmt(Init);
-
-  Expr *Cond = FS->getCond();
-  TraverseStmt(Cond);
-
-  Expr *Inc = FS->getInc();
-  TraverseStmt(Inc);
-
-  Stmt *Body = FS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool RNFStatementVisitor::VisitWhileStmt(WhileStmt *WS)
-{
-  Expr *E = WS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = WS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool RNFStatementVisitor::VisitDoStmt(DoStmt *DS)
-{
-  Expr *E = DS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = DS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool RNFStatementVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool RNFStatementVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
 }
 
 bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 

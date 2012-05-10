@@ -14,6 +14,7 @@
 
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
+#include "clang/Lex/Preprocessor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
@@ -71,16 +72,17 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   
   ClangInstance->createDiagnostics(0, NULL);
 
+  CompilerInvocation &Invocation = ClangInstance->getInvocation();
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
   if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
-    ClangInstance->getLangOpts().C99 = 1;
+    Invocation.setLangDefaults(IK_C);
   }
   else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g., 
     // It results an empty AST for the caller. 
-    ClangInstance->getLangOpts().CPlusPlus = 1;
+    Invocation.setLangDefaults(IK_CXX);
   }
   else {
     ErrorMsg = "Unsupported file type!";
@@ -101,6 +103,12 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
                            &ClangInstance->getPreprocessor());
   ClangInstance->createASTContext();
+
+  assert(CurrentTransformationImpl && "Bad transformation instance!");
+  ClangInstance->setASTConsumer(CurrentTransformationImpl);
+  Preprocessor &PP = ClangInstance->getPreprocessor();
+  PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
+                                         PP.getLangOpts());
 
   if (!ClangInstance->InitializeSourceManager(SrcFileName)) {
     ErrorMsg = "Cannot open source file!";
@@ -153,8 +161,6 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
 {
   ErrorMsg = "";
 
-  assert(CurrentTransformationImpl && "Bad transformation instance!");
-  ClangInstance->setASTConsumer(CurrentTransformationImpl);
   ClangInstance->createSema(TU_Complete, 0);
   ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
 

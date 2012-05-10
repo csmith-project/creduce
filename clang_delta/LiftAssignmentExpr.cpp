@@ -14,6 +14,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonStatementVisitor.h"
 
 using namespace clang;
 
@@ -32,13 +33,23 @@ class AssignExprCollectionVisitor : public
 public:
 
   explicit AssignExprCollectionVisitor(LiftAssignmentExpr *Instance)
-    : ConsumerInstance(Instance),
-      CurrentFuncDecl(NULL),
-      CurrentStmt(NULL),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
 
-  bool VisitCompoundStmt(CompoundStmt *S);
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  LiftAssignmentExpr *ConsumerInstance;
+  
+};
+
+class AssignExprStatementVisitor : public 
+        CommonStatementVisitor<AssignExprStatementVisitor> {
+public:
+
+  explicit AssignExprStatementVisitor(LiftAssignmentExpr *Instance)
+    : ConsumerInstance(Instance)
+  { }
 
   bool VisitIfStmt(IfStmt *IS);
 
@@ -48,57 +59,25 @@ public:
 
   bool VisitDoStmt(DoStmt *DS);
 
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
-
   bool VisitCallExpr(CallExpr *CallE);
-
-  void setCurrentFuncDecl(FunctionDecl *FD) {
-    CurrentFuncDecl = FD;
-  }
 
 private:
 
   LiftAssignmentExpr *ConsumerInstance;
 
-  FunctionDecl *CurrentFuncDecl;
-
-  Stmt *CurrentStmt;
-
-  bool NeedParen;
-
   void handleSubExpr(Expr *E);
 
 };
 
-bool AssignExprCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
+bool AssignExprCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    CurrentStmt = (*I);
-    TraverseStmt(*I);
-  }
-  return false;
-}
+  if (!FD->isThisDeclarationADefinition())
+    return true;
 
-void AssignExprCollectionVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  CurrentStmt = (S);
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
+  ConsumerInstance->StmtVisitor->TraverseDecl(FD);
+  ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);
+  return true;
 }
 
 // It is used to handle the case where if-then or else branch
@@ -106,7 +85,7 @@ void AssignExprCollectionVisitor::visitNonCompoundStmt(Stmt *S)
 // from VisitCompoundStmt, e.g.,
 //   if (x)
 //     foo(bar())
-bool AssignExprCollectionVisitor::VisitIfStmt(IfStmt *IS)
+bool AssignExprStatementVisitor::VisitIfStmt(IfStmt *IS)
 {
   Expr *E = IS->getCond();
   handleSubExpr(E);
@@ -137,7 +116,7 @@ bool AssignExprCollectionVisitor::VisitIfStmt(IfStmt *IS)
 //     for(i = 0; i < bar(tmp_var); i++)
 //       ...
 //   }
-bool AssignExprCollectionVisitor::VisitForStmt(ForStmt *FS)
+bool AssignExprStatementVisitor::VisitForStmt(ForStmt *FS)
 {
   Stmt *Init = FS->getInit();
   Expr *InitE = NULL;
@@ -160,7 +139,7 @@ bool AssignExprCollectionVisitor::VisitForStmt(ForStmt *FS)
   return false;
 }
 
-bool AssignExprCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
+bool AssignExprStatementVisitor::VisitWhileStmt(WhileStmt *WS)
 {
   Expr *E = WS->getCond();
   handleSubExpr(E);
@@ -170,7 +149,7 @@ bool AssignExprCollectionVisitor::VisitWhileStmt(WhileStmt *WS)
   return false;
 }
 
-bool AssignExprCollectionVisitor::VisitDoStmt(DoStmt *DS)
+bool AssignExprStatementVisitor::VisitDoStmt(DoStmt *DS)
 {
   Expr *E = DS->getCond();
   handleSubExpr(E);
@@ -180,21 +159,7 @@ bool AssignExprCollectionVisitor::VisitDoStmt(DoStmt *DS)
   return false;
 }
 
-bool AssignExprCollectionVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool AssignExprCollectionVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool AssignExprCollectionVisitor::VisitCallExpr(CallExpr *CallE) 
+bool AssignExprStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
   for (CallExpr::arg_iterator I = CallE->arg_begin(),
        E = CallE->arg_end(); I != E; ++I) {
@@ -203,7 +168,7 @@ bool AssignExprCollectionVisitor::VisitCallExpr(CallExpr *CallE)
   return false;
 }
 
-void AssignExprCollectionVisitor::handleSubExpr(Expr *E)
+void AssignExprStatementVisitor::handleSubExpr(Expr *E)
 {
   if (!E)
     return;
@@ -240,17 +205,13 @@ void LiftAssignmentExpr::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new AssignExprCollectionVisitor(this);
+  StmtVisitor = new AssignExprStatementVisitor(this);
 }
 
 bool LiftAssignmentExpr::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      CollectionVisitor->setCurrentFuncDecl(FD);
-      CollectionVisitor->TraverseDecl(FD);
-      CollectionVisitor->setCurrentFuncDecl(NULL);
-    }
+    CollectionVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -301,4 +262,7 @@ LiftAssignmentExpr::~LiftAssignmentExpr(void)
 {
   if (CollectionVisitor)
     delete CollectionVisitor;
+
+  if (StmtVisitor)
+    delete StmtVisitor;
 }

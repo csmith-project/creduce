@@ -28,8 +28,6 @@ static RegisterTransformation<ReturnVoid>
 
 class RVASTVisitor : public RecursiveASTVisitor<RVASTVisitor> {
 public:
-  typedef RecursiveASTVisitor<RVASTVisitor> Inherited;
-
   explicit RVASTVisitor(ReturnVoid *Instance)
     : ConsumerInstance(Instance)
   { }
@@ -48,9 +46,43 @@ private:
 
 };
 
+
+class RVCollectionVisitor : public RecursiveASTVisitor<RVCollectionVisitor> {
+public:
+  explicit RVCollectionVisitor(ReturnVoid *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+
+  ReturnVoid *ConsumerInstance;
+};
+
+bool RVCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
+  if (ConsumerInstance->isNonVoidReturnFunction(CanonicalDecl)) {
+    ConsumerInstance->ValidInstanceNum++;
+    ConsumerInstance->ValidFuncDecls.push_back(CanonicalDecl);
+
+    if (ConsumerInstance->ValidInstanceNum == 
+        ConsumerInstance->TransformationCounter)
+      ConsumerInstance->TheFuncDecl = CanonicalDecl;
+  }
+
+  if ((ConsumerInstance->TheFuncDecl == CanonicalDecl) && 
+       FD->isThisDeclarationADefinition())
+    ConsumerInstance->keepFuncDefRange(FD);
+
+  return true;
+}
+
 void ReturnVoid::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
+  CollectionVisitor = new RVCollectionVisitor(this);
   TransformationASTVisitor = new RVASTVisitor(this);
 }
 
@@ -107,30 +139,10 @@ bool ReturnVoid::isInTheFuncDef(ReturnStmt *RS)
   return false;
 }
 
-bool ReturnVoid::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (!FD)
-      continue;
-
-    FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
-    if (isNonVoidReturnFunction(CanonicalDecl)) {
-      ValidInstanceNum++;
-      ValidFuncDecls.push_back(CanonicalDecl);
-
-      if (ValidInstanceNum == TransformationCounter)
-        TheFuncDecl = CanonicalDecl;
-    }
-
-    if ((TheFuncDecl == CanonicalDecl) && FD->isThisDeclarationADefinition())
-      keepFuncDefRange(FD);
-  }
-  return true;
-}
- 
 void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+
   if (QueryInstanceOnly)
     return;
 
@@ -197,6 +209,9 @@ bool RVASTVisitor::VisitReturnStmt(ReturnStmt *RS)
 
 ReturnVoid::~ReturnVoid(void)
 {
+  if (CollectionVisitor)
+    delete CollectionVisitor;
+
   if (TransformationASTVisitor)
     delete TransformationASTVisitor;
 }

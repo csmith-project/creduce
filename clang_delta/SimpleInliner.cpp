@@ -16,6 +16,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonStatementVisitor.h"
 
 using namespace clang;
 using namespace llvm;
@@ -58,21 +59,9 @@ public:
       NumStmts(0)
   { }
 
+  bool VisitStmt(Stmt *S);
+
   bool VisitCallExpr(CallExpr *CE);
-  bool VisitBreakStmt(BreakStmt *S);
-  bool VisitCompoundStmt(CompoundStmt *S);
-  bool VisitContinueStmt(ContinueStmt *S);
-  bool VisitDeclStmt(DeclStmt *S);
-  bool VisitDoStmt(DoStmt *S);
-  bool VisitForStmt(ForStmt *S);
-  bool VisitGotoStmt(GotoStmt *S);
-  bool VisitIfStmt(IfStmt *S);
-  bool VisitIndirectGotoStmt(IndirectGotoStmt *S);
-  bool VisitReturnStmt(ReturnStmt *S);
-  bool VisitSwitchCase(SwitchCase *S);
-  bool VisitSwitchStmt(SwitchStmt *S);
-  bool VisitWhileStmt(WhileStmt *S);
-  bool VisitBinaryOperator(BinaryOperator *S);
 
   unsigned int getNumStmts(void) {
     return NumStmts;
@@ -108,45 +97,62 @@ private:
 
 };
 
+class SimpleInlinerFunctionStmtVisitor : public 
+        RecursiveASTVisitor<SimpleInlinerFunctionStmtVisitor> {
+public:
+
+  explicit SimpleInlinerFunctionStmtVisitor(SimpleInliner *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  SimpleInliner *ConsumerInstance;
+  
+};
+
 class SimpleInlinerStmtVisitor : public 
-  RecursiveASTVisitor<SimpleInlinerStmtVisitor> {
+  CommonStatementVisitor<SimpleInlinerStmtVisitor> {
 
 public:
 
   explicit SimpleInlinerStmtVisitor(SimpleInliner *Instance)
-    : ConsumerInstance(Instance),
-      CurrentStmt(NULL),
-      NeedParen(false)
+    : ConsumerInstance(Instance)
   { }
-
-  bool VisitCompoundStmt(CompoundStmt *S);
-
-  bool VisitIfStmt(IfStmt *IS);
-
-  bool VisitForStmt(ForStmt *FS);
-
-  bool VisitWhileStmt(WhileStmt *WS);
-
-  bool VisitDoStmt(DoStmt *DS);
-
-  bool VisitCaseStmt(CaseStmt *CS);
-
-  bool VisitDefaultStmt(DefaultStmt *DS);
-
-  void visitNonCompoundStmt(Stmt *S);
 
   bool VisitCallExpr(CallExpr *CallE);
 
 private:
 
   SimpleInliner *ConsumerInstance;
-
-  Stmt *CurrentStmt;
-
-  bool NeedParen;
-
 };
 
+bool SimpleInlinerCollectionVisitor::VisitStmt(Stmt *S)
+{
+  Stmt::StmtClass SC = S->getStmtClass();
+  switch (SC) {
+  case Stmt::BreakStmtClass:
+  case Stmt::CompoundStmtClass:
+  case Stmt::ContinueStmtClass:
+  case Stmt::DeclStmtClass:
+  case Stmt::DoStmtClass:
+  case Stmt::ForStmtClass:
+  case Stmt::GotoStmtClass:
+  case Stmt::IndirectGotoStmtClass:
+  case Stmt::IfStmtClass:
+  case Stmt::ReturnStmtClass:
+  case Stmt::CaseStmtClass:
+  case Stmt::SwitchStmtClass:
+  case Stmt::WhileStmtClass:
+  case Stmt::BinaryOperatorClass:
+    NumStmts++;
+    break;
+  default:
+    break;
+  }
+  return true;
+}
 
 bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
@@ -166,90 +172,6 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
   return true;
 }
 
-bool SimpleInlinerCollectionVisitor::VisitBreakStmt(BreakStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitCompoundStmt(CompoundStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitContinueStmt(ContinueStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitDeclStmt(DeclStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitDoStmt(DoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitForStmt(ForStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitGotoStmt(GotoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitIfStmt(IfStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitIndirectGotoStmt(IndirectGotoStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitReturnStmt(ReturnStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitSwitchCase(SwitchCase *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitSwitchStmt(SwitchStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitWhileStmt(WhileStmt *S)
-{
-  NumStmts++;
-  return true;
-}
-
-bool SimpleInlinerCollectionVisitor::VisitBinaryOperator(BinaryOperator *S)
-{
-  NumStmts++;
-  return true;
-}
-
 bool SimpleInlinerFunctionVisitor::VisitReturnStmt(ReturnStmt *RS)
 {
   ConsumerInstance->ReturnStmts.push_back(RS);
@@ -265,117 +187,20 @@ bool SimpleInlinerFunctionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   return true;
 }
 
-bool SimpleInlinerStmtVisitor::VisitCompoundStmt(CompoundStmt *CS)
+bool SimpleInlinerFunctionStmtVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  for (CompoundStmt::body_iterator I = CS->body_begin(),
-       E = CS->body_end(); I != E; ++I) {
-    CurrentStmt = (*I);
-    TraverseStmt(*I);
+  if (!FD->isThisDeclarationADefinition())
+    return true;
+
+  ConsumerInstance->CurrentFD = FD;
+  ConsumerInstance->CollectionVisitor->setNumStmts(0);
+  ConsumerInstance->CollectionVisitor->TraverseDecl(FD);
+
+  if (!FD->isVariadic()) {
+    ConsumerInstance->FunctionDeclNumStmts[FD->getCanonicalDecl()] = 
+      ConsumerInstance->CollectionVisitor->getNumStmts();
   }
-  return false;
-}
-
-void SimpleInlinerStmtVisitor::visitNonCompoundStmt(Stmt *S)
-{
-  if (!S)
-    return;
-
-  CompoundStmt *CS = dyn_cast<CompoundStmt>(S);
-  if (CS) {
-    VisitCompoundStmt(CS);
-    return;
-  }
-
-  CurrentStmt = (S);
-  NeedParen = true;
-  TraverseStmt(S);
-  NeedParen = false;
-}
-
-// It is used to handle the case where if-then or else branch
-// is not treated as a CompoundStmt. So it cannot be traversed
-// from VisitCompoundStmt, e.g.,
-//   if (x)
-//     foo(bar())
-bool SimpleInlinerStmtVisitor::VisitIfStmt(IfStmt *IS)
-{
-  Expr *E = IS->getCond();
-  TraverseStmt(E);
-
-  Stmt *ThenB = IS->getThen();
-  visitNonCompoundStmt(ThenB);
-
-  Stmt *ElseB = IS->getElse();
-  visitNonCompoundStmt(ElseB);
-
-  return false;
-}
-
-// It causes unsound transformation because 
-// the semantics of loop execution has been changed. 
-// For example,
-//   int foo(int x)
-//   {
-//     int i;
-//     for(i = 0; i < bar(bar(x)); i++)
-//       ...
-//   }
-// will be transformed to:
-//   int foo(int x)
-//   {
-//     int i;
-//     int tmp_var = bar(x);
-//     for(i = 0; i < bar(tmp_var); i++)
-//       ...
-//   }
-bool SimpleInlinerStmtVisitor::VisitForStmt(ForStmt *FS)
-{
-  Stmt *Init = FS->getInit();
-  TraverseStmt(Init);
-
-  Expr *Cond = FS->getCond();
-  TraverseStmt(Cond);
-
-  Expr *Inc = FS->getInc();
-  TraverseStmt(Inc);
-
-  Stmt *Body = FS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimpleInlinerStmtVisitor::VisitWhileStmt(WhileStmt *WS)
-{
-  Expr *E = WS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = WS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimpleInlinerStmtVisitor::VisitDoStmt(DoStmt *DS)
-{
-  Expr *E = DS->getCond();
-  TraverseStmt(E);
-
-  Stmt *Body = DS->getBody();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimpleInlinerStmtVisitor::VisitCaseStmt(CaseStmt *CS)
-{
-  Stmt *Body = CS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
-}
-
-bool SimpleInlinerStmtVisitor::VisitDefaultStmt(DefaultStmt *DS)
-{
-  Stmt *Body = DS->getSubStmt();
-  visitNonCompoundStmt(Body);
-  return false;
+  return true;
 }
 
 bool SimpleInlinerStmtVisitor::VisitCallExpr(CallExpr *CallE) 
@@ -388,6 +213,7 @@ bool SimpleInlinerStmtVisitor::VisitCallExpr(CallExpr *CallE)
   }
   return true;
 }
+
 void SimpleInliner::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
@@ -395,24 +221,14 @@ void SimpleInliner::Initialize(ASTContext &context)
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
   CollectionVisitor = new SimpleInlinerCollectionVisitor(this);
   FunctionVisitor = new SimpleInlinerFunctionVisitor(this);
+  FunctionStmtVisitor = new SimpleInlinerFunctionStmtVisitor(this);
   StmtVisitor = new SimpleInlinerStmtVisitor(this);
 }
 
 bool SimpleInliner::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (!(FD && FD->isThisDeclarationADefinition()))
-      continue;
-
-    CurrentFD = FD;
-    CollectionVisitor->setNumStmts(0);
-    CollectionVisitor->TraverseDecl(FD);
-
-    if (!FD->isVariadic()) {
-      FunctionDeclNumStmts[FD->getCanonicalDecl()] = 
-        CollectionVisitor->getNumStmts();
-    }
+    FunctionStmtVisitor->TraverseDecl(*I);
   }
   return true;
 }
@@ -712,6 +528,8 @@ SimpleInliner::~SimpleInliner(void)
     delete CollectionVisitor;
   if (FunctionVisitor)
     delete FunctionVisitor;
+  if (FunctionStmtVisitor)
+    delete FunctionStmtVisitor;
   if (StmtVisitor)
     delete StmtVisitor;
 }

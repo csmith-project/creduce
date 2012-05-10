@@ -254,16 +254,9 @@ void ParamToGlobal::Initialize(ASTContext &context)
   RewriteVisitor = new ParamToGlobalRewriteVisitor(this);
 }
 
-bool ParamToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
-  return true;
-}
- 
 void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   if (QueryInstanceOnly)
     return;
 
@@ -297,6 +290,9 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
   if (FD->isVariadic() && (FD->getNumParams() == 1)) {
     return false;
   }
+
+  if (FD->isOverloadedOperator())
+    return false;
 
   // Avoid duplications
   if (std::find(ValidFuncDecls.begin(), 

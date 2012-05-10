@@ -89,9 +89,9 @@ ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h ${SUB_TRANSFORMATION_DEPS}
 
 ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h ${SUB_TRANSFORMATION_DEPS}
 
-RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h ${SUB_TRANSFORMATION_DEPS}
+RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
-BinOpSimplification.o: BinOpSimplification.cpp BinOpSimplification.h ${SUB_TRANSFORMATION_DEPS}
+BinOpSimplification.o: BinOpSimplification.cpp BinOpSimplification.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 LocalToGlobal.o: LocalToGlobal.cpp LocalToGlobal.h ${SUB_TRANSFORMATION_DEPS}
 
@@ -111,13 +111,13 @@ CombineLocalVarDecl.o: CombineLocalVarDecl.cpp CombineLocalVarDecl.h ${SUB_TRANS
 
 ReplaceCallExpr.o: ReplaceCallExpr.cpp ReplaceCallExpr.h ${SUB_TRANSFORMATION_DEPS}
 
-SimpleInliner.o: SimpleInliner.cpp SimpleInliner.h ${SUB_TRANSFORMATION_DEPS}
+SimpleInliner.o: SimpleInliner.cpp SimpleInliner.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveUnusedFunction.o: RemoveUnusedFunction.cpp RemoveUnusedFunction.h ${SUB_TRANSFORMATION_DEPS}
 
 ReducePointerLevel.o: ReducePointerLevel.cpp ReducePointerLevel.h ${SUB_TRANSFORMATION_DEPS}
 
-LiftAssignmentExpr.o: LiftAssignmentExpr.cpp LiftAssignmentExpr.h ${SUB_TRANSFORMATION_DEPS}
+LiftAssignmentExpr.o: LiftAssignmentExpr.cpp LiftAssignmentExpr.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 CopyPropagation.o: CopyPropagation.cpp CopyPropagation.h ${SUB_TRANSFORMATION_DEPS}
 
@@ -129,7 +129,7 @@ CallExprToValue.o: CallExprToValue.cpp CallExprToValue.h ${SUB_TRANSFORMATION_DE
 
 UnionToStruct.o: UnionToStruct.cpp UnionToStruct.h ${SUB_TRANSFORMATION_DEPS}
 
-SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h ${SUB_TRANSFORMATION_DEPS}
+SimplifyIf.o: SimplifyIf.cpp SimplifyIf.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 ReduceArrayDim.o: ReduceArrayDim.cpp ReduceArrayDim.h ${SUB_TRANSFORMATION_DEPS}
 
@@ -139,7 +139,7 @@ MoveFunctionBody.o: MoveFunctionBody.cpp MoveFunctionBody.h ${SUB_TRANSFORMATION
 
 SimplifyStructUnionDecl.o: SimplifyStructUnionDecl.cpp SimplifyStructUnionDecl.h ${SUB_TRANSFORMATION_DEPS}
 
-SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h ${SUB_TRANSFORMATION_DEPS}
+SimplifyCommaExpr.o: SimplifyCommaExpr.cpp SimplifyCommaExpr.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 MoveGlobalVar.o: MoveGlobalVar.cpp MoveGlobalVar.h ${SUB_TRANSFORMATION_DEPS}
 

@@ -47,6 +47,8 @@ public:
       CurrentReturnStmt(NULL)
   { }
 
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
   bool VisitCallExpr(CallExpr *CE);
 
   bool VisitReturnStmt(ReturnStmt *RS);
@@ -113,6 +115,15 @@ bool ReplaceCallExprVisitor::isValidReturnStmt(ReturnStmt *RS)
   bool RV = isValidExpr(E);
   CurrentReturnStmt = NULL;
   return RV;
+}
+
+bool ReplaceCallExprVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  ConsumerInstance->CurrentFD = NULL;
+  if (FD->isThisDeclarationADefinition())
+    ConsumerInstance->CurrentFD = FD;
+
+  return true;
 }
 
 bool ReplaceCallExprVisitor::VisitReturnStmt(ReturnStmt *RS)
@@ -263,20 +274,9 @@ void ReplaceCallExpr::Initialize(ASTContext &context)
   CollectionVisitor = new ReplaceCallExprVisitor(this);
 }
 
-bool ReplaceCallExpr::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition())
-      CurrentFD = FD;
-      CollectionVisitor->TraverseDecl(FD);
-      CurrentFD = NULL;
-  }
-  return true;
-}
- 
 void ReplaceCallExpr::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   doAnalysis();
   if (QueryInstanceOnly)
     return;
