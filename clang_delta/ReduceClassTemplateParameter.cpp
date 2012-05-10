@@ -45,6 +45,8 @@ private:
 
 };
 
+namespace {
+
 class TemplateParameterVisitor : public 
   RecursiveASTVisitor<TemplateParameterVisitor> {
 
@@ -71,6 +73,14 @@ private:
   TemplateParameterSet *UsedParameters;
 };
 
+bool TemplateParameterVisitor::VisitTemplateTypeParmType(
+       TemplateTypeParmType *Ty)
+{
+  const TemplateTypeParmDecl *D = Ty->getDecl();
+  UsedParameters->insert(D);
+  return true;
+}
+
 class ArgumentDependencyVisitor : public 
   RecursiveASTVisitor<ArgumentDependencyVisitor> {
 
@@ -88,6 +98,19 @@ private:
   TypeToVisitsCountSet &VisitsCountSet;
 };
 
+bool ArgumentDependencyVisitor::VisitTemplateTypeParmType(
+       TemplateTypeParmType *Ty)
+{
+  TypeToVisitsCountSet::iterator I = VisitsCountSet.find(Ty);
+  if (I != VisitsCountSet.end()) {
+    unsigned Count = (*I).second + 1;
+    VisitsCountSet[(*I).first] = Count;
+  }
+  return true;
+}
+
+}
+
 class ReduceClassTemplateParameterRewriteVisitor : public 
   RecursiveASTVisitor<ReduceClassTemplateParameterRewriteVisitor> {
 
@@ -103,25 +126,6 @@ private:
 
   ReduceClassTemplateParameter *ConsumerInstance;
 };
-
-bool TemplateParameterVisitor::VisitTemplateTypeParmType(
-       TemplateTypeParmType *Ty)
-{
-  const TemplateTypeParmDecl *D = Ty->getDecl();
-  UsedParameters->insert(D);
-  return true;
-}
-
-bool ArgumentDependencyVisitor::VisitTemplateTypeParmType(
-       TemplateTypeParmType *Ty)
-{
-  TypeToVisitsCountSet::iterator I = VisitsCountSet.find(Ty);
-  if (I != VisitsCountSet.end()) {
-    unsigned Count = (*I).second + 1;
-    VisitsCountSet[(*I).first] = Count;
-  }
-  return true;
-}
 
 bool ReduceClassTemplateParameterRewriteVisitor::
        VisitTemplateSpecializationTypeLoc(TemplateSpecializationTypeLoc Loc)
