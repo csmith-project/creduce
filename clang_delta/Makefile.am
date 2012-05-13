@@ -13,11 +13,15 @@ libexec_PROGRAMS = clang_delta
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
-LLVMCONFIG	:= $(LLVM_BINDIR)/llvm-config
-LLVMCXXFLAGS	:= $(shell "$(LLVMCONFIG)" --cxxflags)
-LLVMLDFLAGS	:= $(shell "$(LLVMCONFIG)" --ldflags)
-LLVMINCLUDEDIR	:= $(shell "$(LLVMCONFIG)" --includedir)
-LLVMLIBS	:= $(shell "$(LLVMCONFIG)" --libs engine)
+# The funny quoting in `LLVMLIBS' avoids a warning from Automake:
+#   ...: linker flags such as `--libs' belong in `clang_delta_LDFLAGS'
+# The warning comes about because Automake doesn't understand $(shell).
+# Avoid the warning by making `--libs' not look like a linker option.
+#
+LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags)
+LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" --ldflags)
+LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
+LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs engine)
 
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
@@ -27,13 +31,25 @@ clang_delta_CXXFLAGS = \
 	$(LLVMCXXFLAGS)
 
 clang_delta_LDFLAGS = \
-	$(LLVMLDFLAGS) \
+	$(LLVMLDFLAGS)
+
+# Try to do the "right thing" by putting these in `clang_delta_LDADD' instead
+# of `clang_delta_LDFLAGS'.  This leads to the funny escape in `LLVMLIBS',
+# above, and the need to define `clang_delta_DEPENDENCIES', below.
+#
+clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
 	-lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
 	-lclangEdit \
 	$(LLVMLIBS) \
 	-ldl
+
+# Automake doesn't grok our use of $(shell) in `clang_delta_LDADD', so it puts
+# $(LLVMLIBS) in the dependencies by default.  To avoid this problem, we must
+# define `clang_delta_DEPENDENCIES' explicitly.
+#
+clang_delta_DEPENDENCIES =
 
 clang_delta_SOURCES = \
 	AggregateToScalar.cpp \
