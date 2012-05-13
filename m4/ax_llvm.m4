@@ -1,97 +1,92 @@
-# ===========================================================================
-#          http://www.gnu.org/software/autoconf-archive/ax_llvm.html
-# ===========================================================================
+# -*- mode: m4 -*-
 #
+# Copyright (c) 2012 The University of Utah
+# Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
+#
+# Copying and distribution of this file, with or without modification, are
+# permitted in any medium without royalty provided the copyright notice
+# and this notice are preserved.  This file is offered as-is, without any
+# warranty.
+
+###############################################################################
+
 # SYNOPSIS
 #
 #   AX_LLVM([llvm-libs])
 #
 # DESCRIPTION
 #
-#   Test for the existance of llvm, and make sure that it can be linked with
-#   the llvm-libs argument that is passed on to llvm-config i.e.:
+#   Test for the existence of LLVM and make sure that a simple test program
+#   can be linked with the libraries described in the llvm-libs argument,
+#   i.e.:
 #
 #     llvm --libs <llvm-libs>
 #
-#   llvm-config will also include any libraries that are depended apon.
+# This file was derived from the LLVM Autoconf macro found in the Autoconf
+# Macro Archive: <http://www.gnu.org/software/autoconf-archive/ax_llvm.html>.
+# The definition of AX_LLVM in this file is almost completely rewritten from
+# the version (serial #12) found in the Archive.
 #
-# LICENSE
-#
-#   Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
-#
-#   Copying and distribution of this file, with or without modification, are
-#   permitted in any medium without royalty provided the copyright notice
-#   and this notice are preserved. This file is offered as-is, without any
-#   warranty.
-
-#serial 12
+# The current file has been updated for modern LLVM (3.1).
 
 AC_DEFUN([AX_LLVM],
 [
-AC_ARG_WITH([llvm],
-  AS_HELP_STRING([--with-llvm@<:@=DIR@:>@],
-    [use LLVM located in DIR]),
-  [
-    if test "$withval" = "no"; then
-      want_llvm="no"
-    elif test "$withval" = "yes"; then
-      want_llvm="yes"
-      ac_llvm_config_path=`which llvm-config`
-    else
-      want_llvm="yes"
-      ac_llvm_config_path="$withval"
-    fi
-  ],
-  [want_llvm="yes"])
+  AC_ARG_WITH([llvm],
+    AS_HELP_STRING([--with-llvm@<:@=DIR@:>@],
+      [use LLVM located in DIR]),
+    [with_llvm="$withval"],
+    [with_llvm=yes])
 
-	succeeded=no
-	if test -z "$ac_llvm_config_path"; then
-		ac_llvm_config_path=`which llvm-config`
-	fi
+  if test "x$with_llvm" = "xno"; then
+    AC_MSG_FAILURE(
+      [--with-llvm=no was given but this package requires LLVM])
+  elif test "x$with_llvm" = "xyes"; then
+    with_llvm_path="$PATH"
+  else
+    with_llvm_path="$with_llvm/bin$PATH_SEPARATOR$with_llvm"
+  fi
 
-	if test "x$want_llvm" = "xyes"; then
-		if test -e "$ac_llvm_config_path"; then
-			LLVM_BINDIR=`$ac_llvm_config_path --bindir`
-			LLVM_CPPFLAGS=`$ac_llvm_config_path --cxxflags`
-			LLVM_LDFLAGS="$($ac_llvm_config_path --ldflags) $($ac_llvm_config_path --libs $1)"
+  AC_PATH_PROG([LLVM_CONFIG], [llvm-config], [], [$with_llvm_path])
+  if test -z "$LLVM_CONFIG"; then
+    AC_MSG_FAILURE(
+      [LLVM is required but program `llvm-config' cannot be found in $with_llvm_path])
+  fi
 
-			AC_REQUIRE([AC_PROG_CXX])
-			CPPFLAGS_SAVED="$CPPFLAGS"
-			CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
-			export CPPFLAGS
+  LLVM_BINDIR=`$LLVM_CONFIG --bindir`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
+  LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
+  LLVM_LIBS=`$LLVM_CONFIG --libs $1`
 
-			LDFLAGS_SAVED="$LDFLAGS"
-			LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
-			export LDFLAGS
+  AC_REQUIRE([AC_PROG_CXX])
+  CPPFLAGS_SAVED="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
+  LDFLAGS_SAVED="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
+  LIBS_SAVED="$LIBS"
+  LIBS="$LIBS $LLVM_LIBS"
 
-			AC_CACHE_CHECK(can compile with and link with llvm([$1]),
-						   ax_cv_llvm,
-		[AC_LANG_PUSH([C++])
-				 AC_LINK_IFELSE([AC_LANG_PROGRAM([[@%:@include <llvm/LLVMContext.h>
+  AC_CACHE_CHECK(can compile with and link with LLVM([$1]),
+    ax_cv_llvm,
+    [
+      AC_LANG_PUSH([C++])
+      AC_LINK_IFELSE([
+        AC_LANG_PROGRAM(
+          [[@%:@include <llvm/LLVMContext.h>
 @%:@include <llvm/Module.h>]],
-					   [[llvm::LLVMContext context;
+          [[llvm::LLVMContext context;
 llvm::Module *M = new llvm::Module("test", context);]])],
-			   ax_cv_llvm=yes, ax_cv_llvm=no)
-		 AC_LANG_POP([C++])
-			])
+        ax_cv_llvm=yes,
+        ax_cv_llvm=no)
+      AC_LANG_POP([C++])
+    ])
 
-			if test "x$ax_cv_llvm" = "xyes"; then
-				succeeded=yes
-			fi
+  CPPFLAGS="$CPPFLAGS_SAVED"
+  LDFLAGS="$LDFLAGS_SAVED"
+  LIBS="$LIBS_SAVED"
 
-			CPPFLAGS="$CPPFLAGS_SAVED"
-		LDFLAGS="$LDFLAGS_SAVED"
-		else
-			succeeded=no
-		fi
-	fi
-
-		if test "$succeeded" != "yes" ; then
-			AC_MSG_ERROR([[We could not detect the llvm libraries make sure that llvm-config is on your path or specified by --with-llvm.]])
-		else
-		AC_SUBST(LLVM_BINDIR)
-dnl		AC_SUBST(LLVM_CPPFLAGS)
-dnl		AC_SUBST(LLVM_LDFLAGS)
-		AC_DEFINE(HAVE_LLVM,,[define if the llvm library is available])
-		fi
+  if test "$ax_cv_llvm" != "yes"; then
+    AC_MSG_ERROR(
+      [cannot compile and link test program with selected LLVM])
+  fi
+  AC_SUBST(LLVM_BINDIR)
 ])

@@ -617,6 +617,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
 LLVM_BINDIR
+LLVM_CONFIG
 CXXCPP
 CPP
 OTOOL64
@@ -15099,56 +15100,99 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 # Check whether --with-llvm was given.
 if test "${with_llvm+set}" = set; then :
-  withval=$with_llvm;
-    if test "$withval" = "no"; then
-      want_llvm="no"
-    elif test "$withval" = "yes"; then
-      want_llvm="yes"
-      ac_llvm_config_path=`which llvm-config`
-    else
-      want_llvm="yes"
-      ac_llvm_config_path="$withval"
-    fi
-
+  withval=$with_llvm; with_llvm="$withval"
 else
-  want_llvm="yes"
+  with_llvm=yes
 fi
 
 
-	succeeded=no
-	if test -z "$ac_llvm_config_path"; then
-		ac_llvm_config_path=`which llvm-config`
-	fi
+  if test "x$with_llvm" = "xno"; then
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "--with-llvm=no was given but this package requires LLVM
+See \`config.log' for more details" "$LINENO" 5; }
+  elif test "x$with_llvm" = "xyes"; then
+    with_llvm_path="$PATH"
+  else
+    with_llvm_path="$with_llvm/bin$PATH_SEPARATOR$with_llvm"
+  fi
 
-	if test "x$want_llvm" = "xyes"; then
-		if test -e "$ac_llvm_config_path"; then
-			LLVM_BINDIR=`$ac_llvm_config_path --bindir`
-			LLVM_CPPFLAGS=`$ac_llvm_config_path --cxxflags`
-			LLVM_LDFLAGS="$($ac_llvm_config_path --ldflags) $($ac_llvm_config_path --libs engine)"
+  # Extract the first word of "llvm-config", so it can be a program name with args.
+set dummy llvm-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_LLVM_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $LLVM_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_LLVM_CONFIG="$LLVM_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $with_llvm_path
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_LLVM_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+LLVM_CONFIG=$ac_cv_path_LLVM_CONFIG
+if test -n "$LLVM_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LLVM_CONFIG" >&5
+$as_echo "$LLVM_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
 
 
-			CPPFLAGS_SAVED="$CPPFLAGS"
-			CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
-			export CPPFLAGS
+  if test -z "$LLVM_CONFIG"; then
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "LLVM is required but program \`llvm-config' cannot be found in $with_llvm_path
+See \`config.log' for more details" "$LINENO" 5; }
+  fi
 
-			LDFLAGS_SAVED="$LDFLAGS"
-			LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
-			export LDFLAGS
+  LLVM_BINDIR=`$LLVM_CONFIG --bindir`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
+  LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
+  LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking can compile with and link with llvm(engine)" >&5
-$as_echo_n "checking can compile with and link with llvm(engine)... " >&6; }
+
+  CPPFLAGS_SAVED="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
+  LDFLAGS_SAVED="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
+  LIBS_SAVED="$LIBS"
+  LIBS="$LIBS $LLVM_LIBS"
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking can compile with and link with LLVM(engine)" >&5
+$as_echo_n "checking can compile with and link with LLVM(engine)... " >&6; }
 if ${ax_cv_llvm+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_ext=cpp
+
+      ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
-				 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <llvm/LLVMContext.h>
+
+        #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
 int
 main ()
@@ -15166,7 +15210,7 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-		 ac_ext=c
+      ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
@@ -15177,25 +15221,14 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_llvm" >&5
 $as_echo "$ax_cv_llvm" >&6; }
 
-			if test "x$ax_cv_llvm" = "xyes"; then
-				succeeded=yes
-			fi
+  CPPFLAGS="$CPPFLAGS_SAVED"
+  LDFLAGS="$LDFLAGS_SAVED"
+  LIBS="$LIBS_SAVED"
 
-			CPPFLAGS="$CPPFLAGS_SAVED"
-		LDFLAGS="$LDFLAGS_SAVED"
-		else
-			succeeded=no
-		fi
-	fi
+  if test "$ax_cv_llvm" != "yes"; then
+    as_fn_error $? "cannot compile and link test program with selected LLVM" "$LINENO" 5
+  fi
 
-		if test "$succeeded" != "yes" ; then
-			as_fn_error $? "We could not detect the llvm libraries make sure that llvm-config is on your path or specified by --with-llvm." "$LINENO" 5
-		else
-
-
-$as_echo "#define HAVE_LLVM /**/" >>confdefs.h
-
-		fi
 
 
 # clang_delta: handle configure-time choice of assertion-checking method.
