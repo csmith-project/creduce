@@ -59,6 +59,8 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
+	ClassTemplateToClass.cpp \
+	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \
 	CombineGlobalVarDecl.h \
 	CombineLocalVarDecl.cpp \
@@ -82,6 +84,8 @@ clang_delta_SOURCES = \
 	ReduceArrayDim.h \
 	ReduceArraySize.cpp \
 	ReduceArraySize.h \
+	ReduceClassTemplateParameter.cpp \
+	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
 	RemoveNamespace.cpp \
@@ -114,6 +118,8 @@ clang_delta_SOURCES = \
 	SimplifyCallExpr.h \
 	SimplifyCommaExpr.cpp \
 	SimplifyCommaExpr.h \
+	SimplifyDependentTypedef.cpp \
+	SimplifyDependentTypedef.h \
 	SimplifyIf.cpp \
 	SimplifyIf.h \
 	SimplifyStructUnionDecl.cpp \

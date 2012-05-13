@@ -58,6 +58,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-BinOpSimplification.$(OBJEXT) \
 	clang_delta-CallExprToValue.$(OBJEXT) \
 	clang_delta-ClangDelta.$(OBJEXT) \
+	clang_delta-ClassTemplateToClass.$(OBJEXT) \
 	clang_delta-CombineGlobalVarDecl.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
 	clang_delta-CopyPropagation.$(OBJEXT) \
@@ -69,6 +70,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ParamToLocal.$(OBJEXT) \
 	clang_delta-ReduceArrayDim.$(OBJEXT) \
 	clang_delta-ReduceArraySize.$(OBJEXT) \
+	clang_delta-ReduceClassTemplateParameter.$(OBJEXT) \
 	clang_delta-ReducePointerLevel.$(OBJEXT) \
 	clang_delta-RemoveNamespace.$(OBJEXT) \
 	clang_delta-RemoveNestedFunction.$(OBJEXT) \
@@ -85,6 +87,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-SimpleInliner.$(OBJEXT) \
 	clang_delta-SimplifyCallExpr.$(OBJEXT) \
 	clang_delta-SimplifyCommaExpr.$(OBJEXT) \
+	clang_delta-SimplifyDependentTypedef.$(OBJEXT) \
 	clang_delta-SimplifyIf.$(OBJEXT) \
 	clang_delta-SimplifyStructUnionDecl.$(OBJEXT) \
 	clang_delta-Transformation.$(OBJEXT) \
@@ -296,6 +299,8 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
+	ClassTemplateToClass.cpp \
+	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \
 	CombineGlobalVarDecl.h \
 	CombineLocalVarDecl.cpp \
@@ -319,6 +324,8 @@ clang_delta_SOURCES = \
 	ReduceArrayDim.h \
 	ReduceArraySize.cpp \
 	ReduceArraySize.h \
+	ReduceClassTemplateParameter.cpp \
+	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
 	RemoveNamespace.cpp \
@@ -351,6 +358,8 @@ clang_delta_SOURCES = \
 	SimplifyCallExpr.h \
 	SimplifyCommaExpr.cpp \
 	SimplifyCommaExpr.h \
+	SimplifyDependentTypedef.cpp \
+	SimplifyDependentTypedef.h \
 	SimplifyIf.cpp \
 	SimplifyIf.h \
 	SimplifyStructUnionDecl.cpp \
@@ -460,6 +469,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-BinOpSimplification.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CallExprToValue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClangDelta.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClassTemplateToClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineGlobalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CopyPropagation.Po@am__quote@
@@ -471,6 +481,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ParamToLocal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArrayDim.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArraySize.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerLevel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNestedFunction.Po@am__quote@
@@ -487,6 +498,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimpleInliner.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyCallExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyCommaExpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyDependentTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyIf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyStructUnionDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-Transformation.Po@am__quote@
@@ -570,6 +582,20 @@ clang_delta-ClangDelta.obj: ClangDelta.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ClangDelta.cpp' object='clang_delta-ClangDelta.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ClangDelta.obj `if test -f 'ClangDelta.cpp'; then $(CYGPATH_W) 'ClangDelta.cpp'; else $(CYGPATH_W) '$(srcdir)/ClangDelta.cpp'; fi`
+
+clang_delta-ClassTemplateToClass.o: ClassTemplateToClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ClassTemplateToClass.o -MD -MP -MF $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo -c -o clang_delta-ClassTemplateToClass.o `test -f 'ClassTemplateToClass.cpp' || echo '$(srcdir)/'`ClassTemplateToClass.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo $(DEPDIR)/clang_delta-ClassTemplateToClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ClassTemplateToClass.cpp' object='clang_delta-ClassTemplateToClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ClassTemplateToClass.o `test -f 'ClassTemplateToClass.cpp' || echo '$(srcdir)/'`ClassTemplateToClass.cpp
+
+clang_delta-ClassTemplateToClass.obj: ClassTemplateToClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ClassTemplateToClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo -c -o clang_delta-ClassTemplateToClass.obj `if test -f 'ClassTemplateToClass.cpp'; then $(CYGPATH_W) 'ClassTemplateToClass.cpp'; else $(CYGPATH_W) '$(srcdir)/ClassTemplateToClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo $(DEPDIR)/clang_delta-ClassTemplateToClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ClassTemplateToClass.cpp' object='clang_delta-ClassTemplateToClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ClassTemplateToClass.obj `if test -f 'ClassTemplateToClass.cpp'; then $(CYGPATH_W) 'ClassTemplateToClass.cpp'; else $(CYGPATH_W) '$(srcdir)/ClassTemplateToClass.cpp'; fi`
 
 clang_delta-CombineGlobalVarDecl.o: CombineGlobalVarDecl.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-CombineGlobalVarDecl.o -MD -MP -MF $(DEPDIR)/clang_delta-CombineGlobalVarDecl.Tpo -c -o clang_delta-CombineGlobalVarDecl.o `test -f 'CombineGlobalVarDecl.cpp' || echo '$(srcdir)/'`CombineGlobalVarDecl.cpp
@@ -724,6 +750,20 @@ clang_delta-ReduceArraySize.obj: ReduceArraySize.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReduceArraySize.cpp' object='clang_delta-ReduceArraySize.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReduceArraySize.obj `if test -f 'ReduceArraySize.cpp'; then $(CYGPATH_W) 'ReduceArraySize.cpp'; else $(CYGPATH_W) '$(srcdir)/ReduceArraySize.cpp'; fi`
+
+clang_delta-ReduceClassTemplateParameter.o: ReduceClassTemplateParameter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReduceClassTemplateParameter.o -MD -MP -MF $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Tpo -c -o clang_delta-ReduceClassTemplateParameter.o `test -f 'ReduceClassTemplateParameter.cpp' || echo '$(srcdir)/'`ReduceClassTemplateParameter.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Tpo $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReduceClassTemplateParameter.cpp' object='clang_delta-ReduceClassTemplateParameter.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReduceClassTemplateParameter.o `test -f 'ReduceClassTemplateParameter.cpp' || echo '$(srcdir)/'`ReduceClassTemplateParameter.cpp
+
+clang_delta-ReduceClassTemplateParameter.obj: ReduceClassTemplateParameter.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReduceClassTemplateParameter.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Tpo -c -o clang_delta-ReduceClassTemplateParameter.obj `if test -f 'ReduceClassTemplateParameter.cpp'; then $(CYGPATH_W) 'ReduceClassTemplateParameter.cpp'; else $(CYGPATH_W) '$(srcdir)/ReduceClassTemplateParameter.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Tpo $(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReduceClassTemplateParameter.cpp' object='clang_delta-ReduceClassTemplateParameter.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReduceClassTemplateParameter.obj `if test -f 'ReduceClassTemplateParameter.cpp'; then $(CYGPATH_W) 'ReduceClassTemplateParameter.cpp'; else $(CYGPATH_W) '$(srcdir)/ReduceClassTemplateParameter.cpp'; fi`
 
 clang_delta-ReducePointerLevel.o: ReducePointerLevel.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReducePointerLevel.o -MD -MP -MF $(DEPDIR)/clang_delta-ReducePointerLevel.Tpo -c -o clang_delta-ReducePointerLevel.o `test -f 'ReducePointerLevel.cpp' || echo '$(srcdir)/'`ReducePointerLevel.cpp
@@ -948,6 +988,20 @@ clang_delta-SimplifyCommaExpr.obj: SimplifyCommaExpr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SimplifyCommaExpr.cpp' object='clang_delta-SimplifyCommaExpr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyCommaExpr.obj `if test -f 'SimplifyCommaExpr.cpp'; then $(CYGPATH_W) 'SimplifyCommaExpr.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyCommaExpr.cpp'; fi`
+
+clang_delta-SimplifyDependentTypedef.o: SimplifyDependentTypedef.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyDependentTypedef.o -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Tpo -c -o clang_delta-SimplifyDependentTypedef.o `test -f 'SimplifyDependentTypedef.cpp' || echo '$(srcdir)/'`SimplifyDependentTypedef.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Tpo $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SimplifyDependentTypedef.cpp' object='clang_delta-SimplifyDependentTypedef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyDependentTypedef.o `test -f 'SimplifyDependentTypedef.cpp' || echo '$(srcdir)/'`SimplifyDependentTypedef.cpp
+
+clang_delta-SimplifyDependentTypedef.obj: SimplifyDependentTypedef.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyDependentTypedef.obj -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Tpo -c -o clang_delta-SimplifyDependentTypedef.obj `if test -f 'SimplifyDependentTypedef.cpp'; then $(CYGPATH_W) 'SimplifyDependentTypedef.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyDependentTypedef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Tpo $(DEPDIR)/clang_delta-SimplifyDependentTypedef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='SimplifyDependentTypedef.cpp' object='clang_delta-SimplifyDependentTypedef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyDependentTypedef.obj `if test -f 'SimplifyDependentTypedef.cpp'; then $(CYGPATH_W) 'SimplifyDependentTypedef.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyDependentTypedef.cpp'; fi`
 
 clang_delta-SimplifyIf.o: SimplifyIf.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyIf.o -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyIf.Tpo -c -o clang_delta-SimplifyIf.o `test -f 'SimplifyIf.cpp' || echo '$(srcdir)/'`SimplifyIf.cpp
