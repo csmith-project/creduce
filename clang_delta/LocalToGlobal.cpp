@@ -30,10 +30,11 @@ to avoid possible name conflicts. \n";
 static RegisterTransformation<LocalToGlobal>
          Trans("local-to-global", DescriptionMsg);
 
-class CollectionVisitor : public RecursiveASTVisitor<CollectionVisitor> {
+class LocalToGlobalCollectionVisitor : public 
+        RecursiveASTVisitor<LocalToGlobalCollectionVisitor> {
 public:
 
-  explicit CollectionVisitor(LocalToGlobal *Instance)
+  explicit LocalToGlobalCollectionVisitor(LocalToGlobal *Instance)
     : ConsumerInstance(Instance),
       CurrentFuncDecl(NULL)
   { }
@@ -49,6 +50,21 @@ private:
   LocalToGlobal *ConsumerInstance;
 
   FunctionDecl *CurrentFuncDecl;
+};
+
+class LocalToGlobalFunctionVisitor : public 
+        RecursiveASTVisitor<LocalToGlobalFunctionVisitor> {
+public:
+
+  explicit LocalToGlobalFunctionVisitor(LocalToGlobal *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *VD);
+
+private:
+
+  LocalToGlobal *ConsumerInstance;
 };
 
 class LToGASTVisitor : public RecursiveASTVisitor<LToGASTVisitor> {
@@ -67,33 +83,49 @@ private:
 
   LocalToGlobal *ConsumerInstance;
 
-  bool makeLocalAsGlobalVar(FunctionDecl *FP,
+  bool makeLocalAsGlobalVar(FunctionDecl *FD,
                             VarDecl *VD);
 
 };
 
-void LocalToGlobal::Initialize(ASTContext &context) 
+bool LocalToGlobalFunctionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  Transformation::Initialize(context);
-  LocalVarCollectionVisitor = new CollectionVisitor(this);
-  TransformationASTVisitor = new LToGASTVisitor(this);
-}
-
-bool LocalToGlobal::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (FD && FD->isThisDeclarationADefinition()) {
-      LocalVarCollectionVisitor->setCurrentFuncDecl(FD);
-      LocalVarCollectionVisitor->TraverseDecl(FD);
-      LocalVarCollectionVisitor->setCurrentFuncDecl(NULL);
-    }
+  if (FD->isThisDeclarationADefinition()) {
+    ConsumerInstance->LocalVarCollectionVisitor->setCurrentFuncDecl(FD);
+    ConsumerInstance->LocalVarCollectionVisitor->TraverseDecl(FD);
+    ConsumerInstance->LocalVarCollectionVisitor->setCurrentFuncDecl(NULL);
   }
   return true;
 }
- 
+
+bool LocalToGlobalCollectionVisitor::VisitVarDecl(VarDecl *VD)
+{
+  TransAssert(CurrentFuncDecl && "NULL CurrentFuncDecl!");
+
+  if (!VD->isLocalVarDecl() || VD->isStaticLocal() || VD->hasExternalStorage())
+    return true;
+
+  ConsumerInstance->ValidInstanceNum++;
+  if (ConsumerInstance->ValidInstanceNum == 
+      ConsumerInstance->TransformationCounter) {
+    ConsumerInstance->TheVarDecl = VD;
+    ConsumerInstance->TheFuncDecl = CurrentFuncDecl;
+    ConsumerInstance->setNewName(CurrentFuncDecl, VD);
+  }
+  return true;
+}
+
+void LocalToGlobal::Initialize(ASTContext &context) 
+{
+  Transformation::Initialize(context);
+  LocalVarCollectionVisitor = new LocalToGlobalCollectionVisitor(this);
+  FunctionVisitor = new LocalToGlobalFunctionVisitor(this);
+  TransformationASTVisitor = new LToGASTVisitor(this);
+}
+
 void LocalToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
+  FunctionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   if (QueryInstanceOnly)
     return;
 
@@ -128,30 +160,15 @@ void LocalToGlobal::setNewName(FunctionDecl *FD,
 
 LocalToGlobal::~LocalToGlobal(void)
 {
+  if (FunctionVisitor)
+    delete FunctionVisitor;
   if (LocalVarCollectionVisitor)
     delete LocalVarCollectionVisitor;
   if (TransformationASTVisitor)
     delete TransformationASTVisitor;
 }
 
-bool CollectionVisitor::VisitVarDecl(VarDecl *VD)
-{
-  TransAssert(CurrentFuncDecl && "NULL CurrentFuncDecl!");
-
-  if (!VD->isLocalVarDecl() || VD->isStaticLocal() || VD->hasExternalStorage())
-    return true;
-
-  ConsumerInstance->ValidInstanceNum++;
-  if (ConsumerInstance->ValidInstanceNum == 
-      ConsumerInstance->TransformationCounter) {
-    ConsumerInstance->TheVarDecl = VD;
-    ConsumerInstance->TheFuncDecl = CurrentFuncDecl;
-    ConsumerInstance->setNewName(CurrentFuncDecl, VD);
-  }
-  return true;
-}
-
-bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FP,
+bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD,
                                           VarDecl *LV)
 {
   std::string GlobalVarStr;
@@ -174,11 +191,8 @@ bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FP,
 
   GlobalVarStr += ";\n";
 
-  SourceRange FuncRange = FP->getSourceRange();
-  SourceLocation StartLoc = FuncRange.getBegin();
-  return !(ConsumerInstance->TheRewriter.InsertText(StartLoc, 
-                                                    GlobalVarStr,
-                                                    false));
+  return ConsumerInstance->RewriteHelper->
+           insertStringBeforeFunc(FD, GlobalVarStr);
 }
 
 bool LToGASTVisitor::VisitDeclStmt(DeclStmt *DS)

@@ -578,10 +578,13 @@ bool RemoveNamespaceRewriteVisitor::TraverseNestedNameSpecifierLoc(
 
     if (ND == ConsumerInstance->TheNamespaceDecl) {
       ConsumerInstance->RewriteHelper->removeSpecifier(Loc);
-      return true;
+      continue;
     }
 
     std::string SpecifierName;
+    if (Loc.getBeginLoc().isInvalid())
+      continue;
+
     ConsumerInstance->RewriteHelper->getSpecifierAsString(Loc, SpecifierName);
     std::string NDName = ND->getNameAsString();
     std::string Name = "";
@@ -737,7 +740,7 @@ void RemoveNamespace::handleOneEnumDecl(const EnumDecl *ED,
 {
   for (EnumDecl::enumerator_iterator I = ED->enumerator_begin(),
        E = ED->enumerator_end(); I != E; ++I) {
-    EnumConstantDecl *ECD = (*I);
+    EnumConstantDecl *ECD = &(*I);
     if (!ParentCtx || hasNameConflict(ECD, ParentCtx)) {
       const IdentifierInfo *IdInfo = ECD->getIdentifier();
       std::string NewName = Prefix;

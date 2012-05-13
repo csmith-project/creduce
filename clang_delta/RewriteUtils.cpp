@@ -1162,7 +1162,13 @@ void RewriteUtils::getTmpTransName(unsigned Postfix, std::string &Name)
 bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
                                           const std::string &Str)
 {
-  SourceRange FuncRange = FD->getSourceRange();
+  SourceRange FuncRange;
+  if (FunctionTemplateDecl *TmplD = FD->getDescribedFunctionTemplate()) {
+    FuncRange = TmplD->getSourceRange();
+  }
+  else {
+    FuncRange = FD->getSourceRange();
+  }
   SourceLocation StartLoc = FuncRange.getBegin();
   return !TheRewriter->InsertTextBefore(StartLoc, Str);
 }
@@ -1439,5 +1445,36 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD)
   SourceLocation VarEndLoc = VarRange.getEnd();
 
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
+}
+
+bool RewriteUtils::removeTextFromLeftAt(SourceRange Range, char C, 
+                                        SourceLocation EndLoc)
+{
+  SourceLocation StartLoc = Range.getBegin();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  int Offset = 0;
+  while (*StartBuf != C) {
+    StartBuf--;
+    Offset--;
+  }
+  StartLoc = StartLoc.getLocWithOffset(Offset);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+bool RewriteUtils::removeTextUntil(SourceRange Range, char C)
+{
+  SourceLocation StartLoc = Range.getBegin();
+
+  // I don't know the reason, but seems Clang treats the following two
+  // cases differently:
+  // (1) template<bool, typename>
+  //    in this case, the RangeSize is 5, which includes the ','
+  // (2) template<typename, typename>
+  //    in this case, the RangeSize is 8, which excludes the comma
+  SourceLocation EndLoc = Range.getEnd();
+  const char *EndBuf = SrcManager->getCharacterData(EndLoc);
+  if (*EndBuf != C)
+    EndLoc = getEndLocationUntil(Range, C);
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 

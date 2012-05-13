@@ -154,7 +154,7 @@ bool UnionToStruct::isValidRecordDecl(const RecordDecl *RD)
 
   for (RecordDecl::field_iterator I = RD->field_begin(),
        E = RD->field_end(); I != E; ++I) {
-    const FieldDecl *FD = (*I);
+    const FieldDecl *FD = &(*I);
     const Type *FDTy = FD->getType().getTypePtr();
     if (!FDTy->isScalarType())
       return false;
@@ -223,7 +223,7 @@ void UnionToStruct::getInitStrWithPointerType(const Expr *Exp, std::string &Str)
   QualType ETy = Exp->getType().getCanonicalType();
   for (; I != E; ++I) {
     Str += ",";
-    const FieldDecl *FD = (*I);
+    const FieldDecl *FD = &(*I);
     QualType FTy = FD->getType().getCanonicalType();
     if (ETy == FTy)
       Str += ExprStr;
@@ -249,7 +249,7 @@ void UnionToStruct::getInitStrWithNonPointerType(const Expr *Exp,
 
   for (; I != E; ++I) {
     Str += ",";
-    const FieldDecl *FD = (*I);
+    const FieldDecl *FD = &(*I);
     const Type *FTy = FD->getType().getTypePtr();
     if (FTy->isPointerType())
       Str += "0";

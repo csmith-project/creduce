@@ -93,7 +93,7 @@ bool RemoveUnusedStructFieldRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
   unsigned Idx = 0;
   for (RecordDecl::field_iterator I = RDDef->field_begin(),
        E = RDDef->field_end(); I != E; ++I) {
-    const FieldDecl *FD = (*I);
+    const FieldDecl *FD = &(*I);
     const Type *FDTy = FD->getType().getTypePtr();
     const RecordDecl *BaseRD = ConsumerInstance->getBaseRecordDef(FDTy);
     if (BaseRD)
@@ -119,12 +119,6 @@ void RemoveUnusedStructField::Initialize(ASTContext &context)
   RewriteVisitor = new RemoveUnusedStructFieldRewriteVisitor(this);
 }
 
-bool RemoveUnusedStructField::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  // Nothing to do
-  return true;
-}
- 
 void RemoveUnusedStructField::HandleTranslationUnit(ASTContext &Ctx)
 {
   CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
@@ -164,7 +158,7 @@ void RemoveUnusedStructField::setBaseLine(const RecordDecl *RD,
 
   // IsLastField = (FD->getNextDeclInContext() == NULL);
   RecordDecl::field_iterator I = RD->field_begin();
-  IsFirstField = (FD == (*I));
+  IsFirstField = (FD == &(*I));
   RecordDecl::field_iterator E = RD->field_end();
 
   for (; I != E; ++I) {
@@ -221,7 +215,7 @@ const FieldDecl *RemoveUnusedStructField::getFieldDeclByIdx(
   for (RecordDecl::field_iterator RI = RD->field_begin(),
        RE = RD->field_end(); RI != RE; ++RI, ++I) {
     if (I == Idx)
-      return (*RI);
+      return &(*RI);
   }
   return NULL;
 }
