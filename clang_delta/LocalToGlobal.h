@@ -23,17 +23,20 @@ namespace clang {
   class ParmVarDecl;
 }
 
+class LocalToGlobalFunctionVisitor;
 class LToGASTVisitor;
-class CollectionVisitor;
+class LocalToGlobalCollectionVisitor;
 
 class LocalToGlobal : public Transformation {
+friend class LocalToGlobalFunctionVisitor;
 friend class LToGASTVisitor;
-friend class CollectionVisitor;
+friend class LocalToGlobalCollectionVisitor;
 
 public:
 
   LocalToGlobal(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
+      FunctionVisitor(NULL),
       LocalVarCollectionVisitor(NULL),
       TransformationASTVisitor(NULL),
       TheFuncDecl(NULL),
@@ -47,8 +50,6 @@ private:
   
   virtual void Initialize(clang::ASTContext &context);
 
-  virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
-
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   void setNewName(clang::FunctionDecl *FD, const clang::VarDecl *VD);
@@ -57,7 +58,9 @@ private:
     return TheNewDeclName;
   }
 
-  CollectionVisitor *LocalVarCollectionVisitor;
+  LocalToGlobalFunctionVisitor *FunctionVisitor;
+
+  LocalToGlobalCollectionVisitor *LocalVarCollectionVisitor;
 
   LToGASTVisitor *TransformationASTVisitor;
 

@@ -1158,7 +1158,13 @@ void RewriteUtils::getTmpTransName(unsigned Postfix, std::string &Name)
 bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
                                           const std::string &Str)
 {
-  SourceRange FuncRange = FD->getSourceRange();
+  SourceRange FuncRange;
+  if (FunctionTemplateDecl *TmplD = FD->getDescribedFunctionTemplate()) {
+    FuncRange = TmplD->getSourceRange();
+  }
+  else {
+    FuncRange = FD->getSourceRange();
+  }
   SourceLocation StartLoc = FuncRange.getBegin();
   return !TheRewriter->InsertTextBefore(StartLoc, Str);
 }
