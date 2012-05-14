@@ -39,45 +39,15 @@ public:
 
 private:
   ParamToLocal *ConsumerInstance;
-
 };
 
 class ParamToLocalRewriteVisitor : public 
-  RecursiveASTVisitor<ParamToLocalRewriteVisitor> {
+  CommonParameterRewriteVisitor<ParamToLocalRewriteVisitor, ParamToLocal> {
 
 public:
   explicit ParamToLocalRewriteVisitor(ParamToLocal *Instance)
-    : ConsumerInstance(Instance)
+    : CommonParameterRewriteVisitor(Instance)
   { }
-
-  bool VisitCallExpr(CallExpr *E);
-
-  bool VisitCXXConstructorDecl(CXXConstructorDecl *CD);
-
-  bool VisitFunctionDecl(FunctionDecl *FD);
-
-  void rewriteAllExprs(void);
-
-private:
-
-  ParamToLocal *ConsumerInstance;
-
-  SmallVector<CallExpr *, 10> AllCallExprs;
-
-  SmallVector<const CXXConstructExpr *, 5> AllConstructExprs;
-
-  bool rewriteFuncDecl(FunctionDecl *FP);
-
-  bool rewriteParam(const ParmVarDecl *PV, 
-                    unsigned int NumParams);
-
-  bool rewriteOneCallExpr(CallExpr *CallE);
-
-  bool rewriteOneConstructExpr(const CXXConstructExpr *CE);
-
-  bool makeParamAsLocalVar(FunctionDecl *FP,
-                           const ParmVarDecl *PV);
-
 };
 
 bool ParamToLocalASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
@@ -85,196 +55,6 @@ bool ParamToLocalASTVisitor::VisitFunctionDecl(FunctionDecl *FD)
   if (ConsumerInstance->isValidFuncDecl(FD->getCanonicalDecl())) {
     ConsumerInstance->ValidFuncDecls.push_back(FD->getCanonicalDecl());
   }
-  return true;
-}
-
-bool ParamToLocalRewriteVisitor::rewriteParam(const ParmVarDecl *PV, 
-                                              unsigned int NumParams)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
-                                          NumParams,
-                                          ConsumerInstance->TheParamPos);
-}
-
-// ISSUE: we could have another type of bad transformation, e.g.,
-// class A { ... };
-// class B : public A {
-//   B(int x) : A(x) {...}
-// };
-// ==>
-// class A { ... };
-// class B : public A {
-//   B(void) : A(x) {int x ...}
-// };
-// hence x is undeclared for A(x)
-bool ParamToLocalRewriteVisitor::makeParamAsLocalVar(FunctionDecl *FD,
-                                                     const ParmVarDecl *PV)
-{
-  std::string PName = PV->getNameAsString();
-  // Safe to omit an un-named parameter
-  if (PName.empty())
-    return true;
-
-  std::string LocalVarStr;
-
-  LocalVarStr += PV->getType().getAsString();
-  LocalVarStr += " ";
-  LocalVarStr += PV->getNameAsString();
-
-  QualType PVType = PV->getOriginalType();
-  const Type *T = PVType.getTypePtr();
-  if ( const Expr *DefaultArgE = PV->getDefaultArg() ) {
-    std::string ArgStr;
-    ConsumerInstance->RewriteHelper->getExprString(DefaultArgE, ArgStr);
-    LocalVarStr += " = ";
-    LocalVarStr += ArgStr;
-  }
-  else if (T->isPointerType() || 
-           T->isIntegralType(*(ConsumerInstance->Context))) {
-    LocalVarStr += " = 0";
-  }
-  LocalVarStr += ";";
-
-  return ConsumerInstance->RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
-}
-
-// For CXX, this function could generate bad code, e.g.,
-// class A {
-//   void foo(void) {...}
-//   void foo(int x) {...}
-// };
-//
-// will be transformed to 
-// class A {
-//   void foo(void) {...}
-//   void foo(void) {int x ...}
-// };
-bool ParamToLocalRewriteVisitor::rewriteFuncDecl(FunctionDecl *FD) 
-{
-  const ParmVarDecl *PV = 
-    FD->getParamDecl(ConsumerInstance->TheParamPos);  
-
-  TransAssert(PV && "Unmatched ParamPos!");
-  if (!rewriteParam(PV, FD->getNumParams()))
-    return false;
-
-  if (FD->isThisDeclarationADefinition()) {
-    if (!makeParamAsLocalVar(FD, PV))
-      return false;
-  }
-  return true;
-}
-
-bool ParamToLocalRewriteVisitor::VisitFunctionDecl(FunctionDecl *FD)
-{
-  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
-
-  if (CanonicalFD == ConsumerInstance->TheFuncDecl)
-    return rewriteFuncDecl(FD);
-
-  return true;
-}
-
-bool ParamToLocalRewriteVisitor::rewriteOneCallExpr(CallExpr *CallE)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeArgFromCallExpr(CallE, 
-                                        ConsumerInstance->TheParamPos);
-}
-
-bool ParamToLocalRewriteVisitor::rewriteOneConstructExpr(
-       const CXXConstructExpr *CE)
-{
-  return 
-    ConsumerInstance->RewriteHelper->removeArgFromCXXConstructExpr(CE,
-                                        ConsumerInstance->TheParamPos);
-}
-
-void ParamToLocalRewriteVisitor::rewriteAllExprs(void)
-{
-  while (!AllCallExprs.empty()) {
-    CallExpr *CallE = AllCallExprs.pop_back_val();
-    rewriteOneCallExpr(CallE);
-  }
-
-  while (!AllConstructExprs.empty()) {
-    const CXXConstructExpr *CE = AllConstructExprs.pop_back_val();
-    rewriteOneConstructExpr(CE);
-  }
-}
-
-bool ParamToLocalRewriteVisitor::VisitCXXConstructorDecl(
-       CXXConstructorDecl *CD)
-{
-  for (CXXConstructorDecl::init_iterator I = CD->init_begin(),
-       E = CD->init_end(); I != E; ++I) {
-    const Expr *InitE = (*I)->getInit();
-    if (!InitE)
-      continue;
-    const CXXConstructExpr *CE = dyn_cast<CXXConstructExpr>(InitE);
-    if (!CE)
-      continue;
-
-    const CXXConstructorDecl *CtorD = CE->getConstructor();
-    if (CtorD->getCanonicalDecl() == ConsumerInstance->TheFuncDecl)
-      AllConstructExprs.push_back(CE);
-  }
-
-  return true;
-}
-
-bool ParamToLocalRewriteVisitor::VisitCallExpr(CallExpr *CallE) 
-{
-  const FunctionDecl *CalleeDecl = NULL;
-  const Expr *E = CallE->getCallee();
-  if (const UnresolvedLookupExpr *UE = dyn_cast<UnresolvedLookupExpr>(E)) {
-    DeclarationName DName = UE->getName();
-    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
-                "Not an indentifier!");
-    if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
-      if (const DeclContext *Ctx = 
-          ConsumerInstance->getDeclContextFromSpecifier(NNS))
-        CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, Ctx);
-    }
-    if (!CalleeDecl)
-      CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, 
-                     ConsumerInstance->TheFuncDecl->getLookupParent());
-    TransAssert(CalleeDecl && "NULL CalleeDecl!");
-  }
-  else {
-    CalleeDecl = CallE->getDirectCallee();
-    if (!CalleeDecl) {
-      return true;
-    }
-  }
-
-  if (FunctionTemplateDecl *TheTmplFuncD = 
-        ConsumerInstance->TheFuncDecl->getDescribedFunctionTemplate()) {
-    FunctionTemplateDecl *TmplFuncD;
-    if (CalleeDecl->isTemplateInstantiation())
-      TmplFuncD = CalleeDecl->getPrimaryTemplate();
-    else 
-      TmplFuncD = CalleeDecl->getDescribedFunctionTemplate();
-    if (!TmplFuncD || 
-        (TmplFuncD->getCanonicalDecl() != TheTmplFuncD->getCanonicalDecl()))
-      return true;
-  }
-  else if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl) {
-    return true;
-  }
-
-  // We now have a correct CallExpr
-  // Here we only collect these valid CallExprs, and 
-  // will rewrite them later in a reverse order. 
-  // The reason is that if we have code like below:
-  //    foo(foo(1));
-  // we want to rewrite the nested foo(1) first.
-  // If we rewrite the outside foo first, we will
-  // end up with bad transformation when we try to 
-  // rewrite foo(1), which has been removed. 
-  AllCallExprs.push_back(CallE);
-
   return true;
 }
 
@@ -307,6 +87,74 @@ void ParamToLocal::HandleTranslationUnit(ASTContext &Ctx)
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+// For CXX, this function could generate bad code, e.g.,
+// class A {
+//   void foo(void) {...}
+//   void foo(int x) {...}
+// };
+//
+// will be transformed to 
+// class A {
+//   void foo(void) {...}
+//   void foo(void) {int x ...}
+// };
+bool ParamToLocal::rewriteFuncDecl(FunctionDecl *FD) 
+{
+  const ParmVarDecl *PV = FD->getParamDecl(TheParamPos);  
+
+  TransAssert(PV && "Unmatched ParamPos!");
+  RewriteHelper->removeParamFromFuncDecl(PV, 
+                                         FD->getNumParams(),
+                                         TheParamPos);
+
+  if (FD->isThisDeclarationADefinition()) {
+    if (!transformParamVar(FD, PV))
+      return false;
+  }
+  return true;
+}
+
+// ISSUE: we could have another type of bad transformation, e.g.,
+// class A { ... };
+// class B : public A {
+//   B(int x) : A(x) {...}
+// };
+// ==>
+// class A { ... };
+// class B : public A {
+//   B(void) : A(x) {int x ...}
+// };
+// hence x is undeclared for A(x)
+bool ParamToLocal::transformParamVar(FunctionDecl *FD,
+                                     const ParmVarDecl *PV)
+{
+  std::string PName = PV->getNameAsString();
+  // Safe to omit an un-named parameter
+  if (PName.empty())
+    return true;
+
+  std::string LocalVarStr;
+
+  LocalVarStr += PV->getType().getAsString();
+  LocalVarStr += " ";
+  LocalVarStr += PV->getNameAsString();
+
+  QualType PVType = PV->getOriginalType();
+  const Type *T = PVType.getTypePtr();
+  if ( const Expr *DefaultArgE = PV->getDefaultArg() ) {
+    std::string ArgStr;
+    RewriteHelper->getExprString(DefaultArgE, ArgStr);
+    LocalVarStr += " = ";
+    LocalVarStr += ArgStr;
+  }
+  else if (T->isPointerType() || T->isIntegralType(*Context)) {
+    LocalVarStr += " = 0";
+  }
+  LocalVarStr += ";";
+
+  return RewriteHelper->addLocalVarToFunc(LocalVarStr, FD);
 }
 
 bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD) 

@@ -85,7 +85,7 @@ RewriteUtils.o: RewriteUtils.cpp RewriteUtils.h
 
 Transformation.o: Transformation.cpp Transformation.h RewriteUtils.cpp RewriteUtils.h
 
-ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h ${SUB_TRANSFORMATION_DEPS}
+ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h CommonParameterRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h CommonParameterRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
