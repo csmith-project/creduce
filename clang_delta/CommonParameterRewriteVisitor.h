@@ -28,8 +28,6 @@ public:
 
   bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *CD);
 
-  bool VisitDeclRefExpr(clang::DeclRefExpr *ParmRefExpr);
-
   void rewriteAllExprs(void);
 
 protected:
@@ -38,45 +36,12 @@ protected:
 
   clang::SmallVector<const clang::CXXConstructExpr *, 5> AllConstructExprs;
 
-  bool rewriteFuncDecl(clang::FunctionDecl *FP);
-
-  bool rewriteParam(const clang::ParmVarDecl *PV, 
-                    unsigned int NumParams);
-
   bool rewriteOneCallExpr(clang::CallExpr *E);
 
   bool rewriteOneConstructExpr(const clang::CXXConstructExpr *CE);
 
   Trans *ConsumerInstance;
 };
-
-template<typename T, typename Trans>
-bool CommonParameterRewriteVisitor<T, Trans>::rewriteParam(
-       const clang::ParmVarDecl *PV, unsigned int NumParams)
-{
-  return ConsumerInstance->RewriteHelper->removeParamFromFuncDecl(PV, 
-                                                NumParams,
-                                                ConsumerInstance->TheParamPos);
-}
-
-template<typename T, typename Trans>
-bool CommonParameterRewriteVisitor<T, Trans>::rewriteFuncDecl(
-       clang::FunctionDecl *FD)
-{
-  const clang::ParmVarDecl *PV = 
-    FD->getParamDecl(ConsumerInstance->TheParamPos);
-
-  TransAssert(PV && "Unmatched ParamPos!");
-  if (!rewriteParam(PV, FD->getNumParams()))
-    return false;
-
-  if (FD->isThisDeclarationADefinition()) {
-    ConsumerInstance->TheParmVarDecl = PV;
-    if (!ConsumerInstance->transformParamVar(FD, PV))
-      return false;
-  }
-  return true;
-}
 
 template<typename T, typename Trans>
 bool CommonParameterRewriteVisitor<T, Trans>::VisitCXXConstructorDecl(
@@ -108,7 +73,7 @@ bool CommonParameterRewriteVisitor<T, Trans>::VisitFunctionDecl(
   clang::FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
   if (CanonicalFD == ConsumerInstance->TheFuncDecl)
-    return rewriteFuncDecl(FD);
+    return ConsumerInstance->rewriteFuncDecl(FD);
 
   return true;
 }
