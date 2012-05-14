@@ -13,19 +13,6 @@
 
 #include "clang/AST/RecursiveASTVisitor.h"
 
-namespace clang {
-  class CompoundStmt;
-  class IfStmt;
-  class ForStmt;
-  class WhileStmt;
-  class DoStmt;
-  class CaseStmt;
-  class DefaultStmt;
-  class Stmt;
-  class FunctionDecl;
-  class Expr;
-}
-
 template<typename T>
 class CommonStatementVisitor : public clang::RecursiveASTVisitor<T> {
 public:
