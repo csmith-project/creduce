@@ -136,6 +136,23 @@ bool ParamToGlobal::transformParamVar(FunctionDecl *FD, const ParmVarDecl *PV)
   return RewriteHelper->insertStringBeforeFunc(FD, GlobalVarStr);
 }
 
+bool ParamToGlobal::rewriteFuncDecl(clang::FunctionDecl *FD)
+{
+  const clang::ParmVarDecl *PV = FD->getParamDecl(TheParamPos);
+
+  TransAssert(PV && "Unmatched ParamPos!");
+  RewriteHelper->removeParamFromFuncDecl(PV, 
+                                         FD->getNumParams(),
+                                         TheParamPos);
+
+  if (FD->isThisDeclarationADefinition()) {
+    TheParmVarDecl = PV;
+    if (!transformParamVar(FD, PV))
+      return false;
+  }
+  return true;
+}
+
 bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD) 
 {
   bool IsValid = false;

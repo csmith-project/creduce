@@ -26,9 +26,7 @@ namespace clang {
 
 class ParamToGlobalASTVisitor;
 class ParamToGlobalRewriteVisitor;
-
-template<typename T, typename Trans>
-class CommonParameterRewriteVisitor;
+template<typename T, typename Trans> class CommonParameterRewriteVisitor;
 
 class ParamToGlobal : public Transformation {
 friend class ParamToGlobalASTVisitor;
@@ -58,6 +56,8 @@ private:
 
   bool transformParamVar(clang::FunctionDecl *FD, 
                          const clang::ParmVarDecl *PV);
+
+  bool rewriteFuncDecl(clang::FunctionDecl *FD);
 
   std::string getNewName(clang::FunctionDecl *FP,
                          const clang::ParmVarDecl *PV);
