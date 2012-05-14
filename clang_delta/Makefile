@@ -87,7 +87,7 @@ Transformation.o: Transformation.cpp Transformation.h RewriteUtils.cpp RewriteUt
 
 ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h ${SUB_TRANSFORMATION_DEPS}
 
-ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h ${SUB_TRANSFORMATION_DEPS}
+ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h CommonParameterRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
