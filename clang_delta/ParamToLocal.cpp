@@ -226,12 +226,43 @@ bool ParamToLocalRewriteVisitor::VisitCXXConstructorDecl(
 
 bool ParamToLocalRewriteVisitor::VisitCallExpr(CallExpr *CallE) 
 {
-  FunctionDecl *CalleeDecl = CallE->getDirectCallee();
-  if (!CalleeDecl)
-    return true;
+  const FunctionDecl *CalleeDecl = NULL;
+  const Expr *E = CallE->getCallee();
+  if (const UnresolvedLookupExpr *UE = dyn_cast<UnresolvedLookupExpr>(E)) {
+    DeclarationName DName = UE->getName();
+    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+                "Not an indentifier!");
+    if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
+      if (const DeclContext *Ctx = 
+          ConsumerInstance->getDeclContextFromSpecifier(NNS))
+        CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, Ctx);
+    }
+    if (!CalleeDecl)
+      CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, 
+                     ConsumerInstance->TheFuncDecl->getLookupParent());
+    TransAssert(CalleeDecl && "NULL CalleeDecl!");
+  }
+  else {
+    CalleeDecl = CallE->getDirectCallee();
+    if (!CalleeDecl) {
+      return true;
+    }
+  }
 
-  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl)
+  if (FunctionTemplateDecl *TheTmplFuncD = 
+        ConsumerInstance->TheFuncDecl->getDescribedFunctionTemplate()) {
+    FunctionTemplateDecl *TmplFuncD;
+    if (CalleeDecl->isTemplateInstantiation())
+      TmplFuncD = CalleeDecl->getPrimaryTemplate();
+    else 
+      TmplFuncD = CalleeDecl->getDescribedFunctionTemplate();
+    if (!TmplFuncD || 
+        (TmplFuncD->getCanonicalDecl() != TheTmplFuncD->getCanonicalDecl()))
+      return true;
+  }
+  else if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl) {
     return true;
+  }
 
   // We now have a correct CallExpr
   // Here we only collect these valid CallExprs, and 
