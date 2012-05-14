@@ -10,7 +10,6 @@
 
 #include "ParamToLocal.h"
 
-#include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
