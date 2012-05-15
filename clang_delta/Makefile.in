@@ -280,8 +280,7 @@ clang_delta_LDFLAGS = \
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-	-lclangIndex -lclangRewrite -lclangAST -lclangLex -lclangBasic \
-	-lclangEdit \
+	-lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
 	$(LLVMLIBS) \
 	-ldl
 
