@@ -64,6 +64,7 @@ clang_delta_SOURCES = \
 	CombineGlobalVarDecl.h \
 	CombineLocalVarDecl.cpp \
 	CombineLocalVarDecl.h \
+	CommonParameterRewriteVisitor.h \
 	CommonStatementVisitor.h \
 	CopyPropagation.cpp \
 	CopyPropagation.h \
