@@ -120,6 +120,15 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
     return true;
 
   const Type *Ty = DD->getType().getTypePtr();
+  // omit SubstTemplateTypeParmType for now, .e.g.,
+  //  template <typename T>
+  //  void foo(T last) { T t; }
+  //  void bar(void) { int a; foo(&a); }
+  // in this example, T is inferred as int *, 
+  // but we cannot do anything useful for "T t"
+  if (dyn_cast<SubstTemplateTypeParmType>(Ty))
+    return true;
+
   if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty))
     Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
   if (!Ty->isPointerType() || Ty->isVoidPointerType())
