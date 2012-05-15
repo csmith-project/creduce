@@ -67,8 +67,6 @@ private:
 
   void doAnalysis(void);
 
-  bool isSpecialRecordDecl(const clang::CXXRecordDecl *CXXRD);
-
   void analyzeOneRecordDecl(const clang::CXXRecordDecl *CXXRD);
 
   void addOneRecordDecl(const clang::CXXRecordDecl *CanonicalRD, 

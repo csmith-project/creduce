@@ -500,6 +500,12 @@ const DeclContext *Transformation::getDeclContextFromSpecifier(
   return NULL;
 }
 
+bool Transformation::isSpecialRecordDecl(const RecordDecl *RD)
+{
+  std::string Name = RD->getNameAsString();
+  return (Name == "__va_list_tag");
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

@@ -146,12 +146,6 @@ void RenameClass::doAnalysis(void)
   }
 }
 
-bool RenameClass::isSpecialRecordDecl(const CXXRecordDecl *CXXRD)
-{
-  std::string Name = CXXRD->getNameAsString();
-  return (Name == "__va_list_tag");
-}
-
 bool RenameClass::isValidName(const std::string &Name)
 {
   if (Name.size() != 1)

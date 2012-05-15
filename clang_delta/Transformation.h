@@ -165,6 +165,8 @@ protected:
   const clang::DeclContext *getDeclContextFromSpecifier(
           const clang::NestedNameSpecifier *NNS);
 
+  bool isSpecialRecordDecl(const clang::RecordDecl *RD);
+
   const std::string &Name;
 
   int TransformationCounter;
