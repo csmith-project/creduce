@@ -45,7 +45,8 @@ class ParamToLocalRewriteVisitor : public
 
 public:
   explicit ParamToLocalRewriteVisitor(ParamToLocal *Instance)
-    : CommonParameterRewriteVisitor(Instance)
+    : CommonParameterRewriteVisitor<ParamToLocalRewriteVisitor, 
+                                    ParamToLocal>(Instance)
   { }
 };
 

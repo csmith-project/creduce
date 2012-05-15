@@ -46,7 +46,8 @@ class ParamToGlobalRewriteVisitor : public
 
 public:
   explicit ParamToGlobalRewriteVisitor(ParamToGlobal *Instance)
-    : CommonParameterRewriteVisitor(Instance)
+    : CommonParameterRewriteVisitor<ParamToGlobalRewriteVisitor,
+                                    ParamToGlobal>(Instance)
   { }
 
   bool VisitDeclRefExpr(DeclRefExpr *ParmRefExpr);
