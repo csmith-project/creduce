@@ -606,7 +606,7 @@ void RenameClass::analyzeOneRecordDecl(const CXXRecordDecl *CXXRD)
       continue;
 
     const CXXRecordDecl *CanonicalBase = Base->getCanonicalDecl();
-    if (CanonicalBase == CanonicalRD);
+    if (CanonicalBase == CanonicalRD)
       continue;
 
     unsigned BaseLevel;
