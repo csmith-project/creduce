@@ -32,7 +32,6 @@ class RenameClassRewriteVisitor;
 
 class RenameClass : public Transformation {
 friend class RenameClassASTVisitor;
-friend class RenameClassRewriteVisitor;
 
 public:
 
@@ -80,10 +79,6 @@ private:
   bool isReservedName(char C);
 
   void incValidInstance(const clang::CXXRecordDecl *CXXRD);
-
-  bool getNewName(const clang::CXXRecordDecl *CXXRD, std::string &NewName);
-
-  bool getNewNameByName(const std::string &Name, std::string &NewName);
 
   const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
 

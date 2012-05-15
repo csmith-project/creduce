@@ -147,7 +147,7 @@ UnifyFunctionDecl.o: UnifyFunctionDecl.cpp UnifyFunctionDecl.h ${SUB_TRANSFORMAT
 
 RemoveUnusedStructField.o: RemoveUnusedStructField.cpp RemoveUnusedStructField.h ${SUB_TRANSFORMATION_DEPS}
 
-RenameClass.o: RenameClass.cpp RenameClass.h ${SUB_TRANSFORMATION_DEPS}
+RenameClass.o: RenameClass.cpp RenameClass.h CommonRenameClassRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
