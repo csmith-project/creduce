@@ -1,0 +1,4 @@
+# Additions to the patterns specified in the root `.gitignore' file.
+
+# Files made by compilation.
+clang_delta

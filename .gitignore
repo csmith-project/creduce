@@ -15,6 +15,7 @@ stamp-h1
 *.lo
 *.o
 *.obj
+creduce-*.tar.gz
 
 # Files made by Eclipse CDT.
 .autotools
