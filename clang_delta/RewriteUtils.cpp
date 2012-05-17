@@ -142,7 +142,16 @@ SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range,
   return EndLoc.getLocWithOffset(Offset);
 }
 
-SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc, 
+SourceLocation RewriteUtils::getLocationAfter(SourceLocation Loc, 
+                                                char Symbol)
+{
+  const char *Buf = SrcManager->getCharacterData(Loc);
+  int Offset = getOffsetUntil(Buf, Symbol);
+  Offset++;
+  return Loc.getLocWithOffset(Offset);
+}
+
+SourceLocation RewriteUtils::getLocationAfterSkiping(SourceLocation StartLoc, 
                                               char Symbol)
 {
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
@@ -943,7 +952,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     getStringBetweenLocs(Str, TypeLocEnd, LocEnd);
 
     SourceLocation StartLoc = VarRange.getBegin();
-    SourceLocation NewEndLoc = getLocationAfter(LocEnd, ';');
+    SourceLocation NewEndLoc = getLocationAfterSkiping(LocEnd, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }
 
@@ -967,7 +976,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
   getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc);
 
   SourceLocation StartLoc = FirstVD->getLocStart();
-  SourceLocation NewLastEndLoc = getLocationAfter(LastEndLoc, ';');
+  SourceLocation NewLastEndLoc = getLocationAfterSkiping(LastEndLoc, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewLastEndLoc)));
 }
 
