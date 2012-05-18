@@ -185,7 +185,7 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
   }
-  if (const CXXDependentScopeMemberExpr *ME = 
+  else if (const CXXDependentScopeMemberExpr *ME = 
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
     // handle cases where base expr or member name is dependent, e.g.,
     // template<typename T>
