@@ -115,7 +115,7 @@ private:
 
   void rewriteDeclRefExpr(const clang::DeclRefExpr *DRE);
 
-  void replaceArrowWithDot(const clang::MemberExpr *ME);
+  void replaceArrowWithDot(const clang::Expr *E);
 
   bool isPointerToSelf(const clang::Type *Ty, const clang::DeclaratorDecl *DD);
 

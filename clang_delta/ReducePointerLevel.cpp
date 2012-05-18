@@ -82,6 +82,8 @@ public:
 
   bool VisitMemberExpr(MemberExpr *ME);
 
+  bool VisitCXXDependentScopeMemberExpr(CXXDependentScopeMemberExpr *ME);
+
 private:
 
   ReducePointerLevel *ConsumerInstance;
@@ -402,6 +404,21 @@ bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
     }
   }
 
+  return true;
+}
+
+bool PointerLevelRewriteVisitor::VisitCXXDependentScopeMemberExpr(
+       CXXDependentScopeMemberExpr *ME)
+{
+  const Expr *Base = ME->getBase()->IgnoreParenCasts();
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base)) {
+    const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(DRE->getDecl());
+    TransAssert(DD && "Bad VarDecl!");
+    if (DD == ConsumerInstance->TheDecl) {
+      ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+      ConsumerInstance->replaceArrowWithDot(ME);
+    }
+  }
   return true;
 }
 
@@ -856,12 +873,11 @@ void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
   RewriteHelper->insertAnAddrOfBefore(DRE);
 }
 
-void ReducePointerLevel::replaceArrowWithDot(const MemberExpr *ME)
+void ReducePointerLevel::replaceArrowWithDot(const Expr *E)
 {
-  TransAssert(ME->isArrow() && "Non-arrow MemberExpr!");
   std::string ES;
-  RewriteHelper->getExprString(ME, ES);
-  SourceLocation LocStart = ME->getLocStart();
+  RewriteHelper->getExprString(E, ES);
+  SourceLocation LocStart = E->getLocStart();
   
   unsigned ArrowPos = ES.find("->");
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");
