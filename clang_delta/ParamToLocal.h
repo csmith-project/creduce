@@ -14,19 +14,24 @@
 #include <string>
 #include "llvm/ADT/SmallVector.h"
 #include "Transformation.h"
+#include "CommonParameterRewriteVisitor.h"
 
 namespace clang {
-  class FunctionDecl;
   class DeclGroupRef;
   class ASTContext;
+  class FunctionDecl;
+  class ParmVarDecl;
 }
 
 class ParamToLocalASTVisitor;
 class ParamToLocalRewriteVisitor;
+template<typename T, typename Trans> class CommonParameterRewriteVisitor;
 
 class ParamToLocal : public Transformation {
 friend class ParamToLocalASTVisitor;
 friend class ParamToLocalRewriteVisitor;
+friend class CommonParameterRewriteVisitor<ParamToLocalRewriteVisitor, 
+                                           ParamToLocal>;
 
 public:
 
@@ -47,6 +52,10 @@ private:
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   bool isValidFuncDecl(clang::FunctionDecl *FD);
+
+  bool transformParamVar(clang::FunctionDecl *FD, const clang::ParmVarDecl *PV);
+
+  bool rewriteFuncDecl(clang::FunctionDecl *FD);
 
   llvm::SmallVector<clang::FunctionDecl *, 10> ValidFuncDecls;
 

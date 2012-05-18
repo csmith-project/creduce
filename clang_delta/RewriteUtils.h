@@ -167,7 +167,10 @@ public:
   bool removeIfAndCond(const clang::IfStmt *IS);
 
   clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
-                                           char Symbol);
+                                         char Symbol);
+
+  clang::SourceLocation getLocationAfter(clang::SourceLocation Loc,
+                                         char Symbol);
 
   bool removeArraySubscriptExpr(const clang::Expr *E);
 
@@ -234,10 +237,10 @@ private:
   int getSkippingOffset(const char *Buf, char Symbol);
 
   clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
-                                           char Symbol);
+                                            char Symbol);
 
-  clang::SourceLocation getLocationAfter(clang::SourceLocation StartLoc,
-                                           char Symbol);
+  clang::SourceLocation getLocationAfterSkiping(clang::SourceLocation StartLoc,
+                                                char Symbol);
 
   unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,

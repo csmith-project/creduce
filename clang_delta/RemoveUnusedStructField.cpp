@@ -342,12 +342,6 @@ void RemoveUnusedStructField::removeFieldDecl(void)
   RewriteHelper->removeFieldDecl(TheFieldDecl);
 }
 
-bool RemoveUnusedStructField::isSpecialRecordDecl(const RecordDecl *RD)
-{
-  std::string Name = RD->getNameAsString();
-  return (Name == "__va_list_tag");
-}
-
 RemoveUnusedStructField::~RemoveUnusedStructField(void)
 {
   if (CollectionVisitor)

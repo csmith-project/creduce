@@ -62,12 +62,6 @@ private:
 
   bool replaceCallExpr(void);
 
-  const clang::FunctionDecl *lookupFunctionDecl(clang::DeclarationName &DName,
-                                                const clang::DeclContext *Ctx);
-
-  const clang::DeclContext *getDeclContextFromSpecifier(
-          const clang::NestedNameSpecifier *Qualifier);
-
   void setTmpVarName(std::string &Name) {
     TmpVarName = Name;
   }

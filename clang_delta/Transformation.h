@@ -30,6 +30,9 @@ namespace clang {
   class MemberExpr;
   class Type;
   class ConstantArrayType;
+  class DeclContext;
+  class DeclarationName;
+  class NestedNameSpecifier;
 }
 
 typedef enum {
@@ -155,6 +158,14 @@ protected:
   int getIndexAsInteger(const clang::Expr *E);
 
   bool isCXXMemberExpr(const clang::MemberExpr *ME);
+
+  const clang::FunctionDecl *lookupFunctionDecl(
+          clang::DeclarationName &DName, const clang::DeclContext *Ctx);
+
+  const clang::DeclContext *getDeclContextFromSpecifier(
+          const clang::NestedNameSpecifier *NNS);
+
+  bool isSpecialRecordDecl(const clang::RecordDecl *RD);
 
   const std::string &Name;
 

@@ -38,7 +38,9 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     CallExprToValue.h UnionToStruct.h SimplifyIf.h \
                     ReduceArrayDim.h ReduceArraySize.h MoveFunctionBody.h \
                     SimplifyStructUnionDecl.h SimplifyCommaExpr.h MoveGlobalVar.h \
-                    UnifyFunctionDecl.h RemoveUnusedStructField.h RenameClass.h
+                    UnifyFunctionDecl.h RemoveUnusedStructField.h RenameClass.h \
+                    RemoveNamespace.h SimplifyDependentTypedef.h ReduceClassTemplateParameter.h \
+                    ClassTemplateToClass.h RemoveBaseClass.h ReplaceSimpleTypedef.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -49,7 +51,9 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     CallExprToValue.cpp UnionToStruct.cpp SimplifyIf.cpp \
                     ReduceArrayDim.cpp ReduceArraySize.cpp MoveFunctionBody.cpp \
                     SimplifyStructUnionDecl.cpp SimplifyCommaExpr.cpp MoveGlobalVar.cpp \
-                    UnifyFunctionDecl.cpp RemoveUnusedStructField.cpp RenameClass.cpp
+                    UnifyFunctionDecl.cpp RemoveUnusedStructField.cpp RenameClass.cpp \
+                    RemoveNamespace.cpp SimplifyDependentTypedef.cpp ReduceClassTemplateParameter.cpp \
+                    ClassTemplateToClass.cpp RemoveBaseClass.cpp ReplaceSimpleTypedef.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -60,7 +64,9 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  CallExprToValue.o UnionToStruct.o SimplifyIf.o \
                  ReduceArrayDim.o ReduceArraySize.o MoveFunctionBody.o \
                  SimplifyStructUnionDecl.o SimplifyCommaExpr.o MoveGlobalVar.o \
-                 UnifyFunctionDecl.o RemoveUnusedStructField.o RenameClass.o
+                 UnifyFunctionDecl.o RemoveUnusedStructField.o RenameClass.o \
+                 RemoveNamespace.o SimplifyDependentTypedef.o ReduceClassTemplateParameter.o \
+                 ClassTemplateToClass.o RemoveBaseClass.o ReplaceSimpleTypedef.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -85,9 +91,9 @@ RewriteUtils.o: RewriteUtils.cpp RewriteUtils.h
 
 Transformation.o: Transformation.cpp Transformation.h RewriteUtils.cpp RewriteUtils.h
 
-ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h ${SUB_TRANSFORMATION_DEPS}
+ParamToLocal.o: ParamToLocal.cpp ParamToLocal.h CommonParameterRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
-ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h ${SUB_TRANSFORMATION_DEPS}
+ParamToGlobal.o: ParamToGlobal.cpp ParamToGlobal.h CommonParameterRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveNestedFunction.o: RemoveNestedFunction.cpp RemoveNestedFunction.h CommonStatementVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
@@ -147,7 +153,19 @@ UnifyFunctionDecl.o: UnifyFunctionDecl.cpp UnifyFunctionDecl.h ${SUB_TRANSFORMAT
 
 RemoveUnusedStructField.o: RemoveUnusedStructField.cpp RemoveUnusedStructField.h ${SUB_TRANSFORMATION_DEPS}
 
-RenameClass.o: RenameClass.cpp RenameClass.h ${SUB_TRANSFORMATION_DEPS}
+RenameClass.o: RenameClass.cpp RenameClass.h CommonRenameClassRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
+
+RemoveNamespace.o: RemoveNamespace.cpp RemoveNamespace.h ${SUB_TRANSFORMATION_DEPS}
+
+SimplifyDependentTypedef.o: SimplifyDependentTypedef.cpp SimplifyDependentTypedef.h ${SUB_TRANSFORMATION_DEPS}
+
+ReduceClassTemplateParameter.o: ReduceClassTemplateParameter.cpp ReduceClassTemplateParameter.h ${SUB_TRANSFORMATION_DEPS}
+
+ClassTemplateToClass.o: ClassTemplateToClass.cpp ClassTemplateToClass.h ${SUB_TRANSFORMATION_DEPS}
+
+RemoveBaseClass.o: RemoveBaseClass.cpp RemoveBaseClass.h CommonRenameClassRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
+
+ReplaceSimpleTypedef.o: ReplaceSimpleTypedef.cpp ReplaceSimpleTypedef.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o

@@ -148,65 +148,6 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-const FunctionDecl *RemoveNestedFunction::lookupFunctionDecl(
-        DeclarationName &DName, const DeclContext *Ctx)
-{
-  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
-  for (DeclContext::lookup_const_iterator I = Result.first, E = Result.second;
-       I != E; ++I) {
-    const FunctionTemplateDecl *TD = NULL;
-    if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
-      TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
-    }
-    else { 
-      TD = dyn_cast<FunctionTemplateDecl>(*I);
-    }
-    if (TD)
-      return TD->getTemplatedDecl();
-  }
-
-  for (DeclContext::udir_iterator I = Ctx->using_directives_begin(),
-       E = Ctx->using_directives_end(); I != E; ++I) {
-    const NamespaceDecl *ND = (*I)->getNominatedNamespace();
-    if (const FunctionDecl *FD = lookupFunctionDecl(DName, ND))
-      return FD;
-  }
-
-  const DeclContext *ParentCtx = Ctx->getLookupParent();
-  if (!ParentCtx || dyn_cast<LinkageSpecDecl>(ParentCtx))
-    return NULL;
-
-  return lookupFunctionDecl(DName, ParentCtx);
-}
-
-const DeclContext *RemoveNestedFunction::getDeclContextFromSpecifier(
-        const NestedNameSpecifier *NNS)
-{
-  for (; NNS; NNS = NNS->getPrefix()) {
-    NestedNameSpecifier::SpecifierKind Kind = NNS->getKind();
-
-    switch (Kind) {
-      case NestedNameSpecifier::Namespace: {
-        return NNS->getAsNamespace()->getCanonicalDecl();
-      }
-      case NestedNameSpecifier::NamespaceAlias: {
-        const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
-        return NAD->getNamespace()->getCanonicalDecl();
-      }
-      case NestedNameSpecifier::TypeSpec: // Fall-through
-      case NestedNameSpecifier::TypeSpecWithTemplate: {
-        const Type *Ty = NNS->getAsType();
-        if (const RecordType *RT = Ty->getAs<RecordType>())
-          return RT->getDecl();
-        break;
-      }
-      default:
-        break;
-    }
-  }
-  return NULL;
-}
-
 bool RemoveNestedFunction::addNewTmpVariable(void)
 {
   std::string VarStr;
