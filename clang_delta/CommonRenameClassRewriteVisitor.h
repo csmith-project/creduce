@@ -56,6 +56,8 @@ public:
   bool VisitClassTemplateSpecializationDecl(
          ClassTemplateSpecializationDecl *TSD);
 
+  bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
+
 private:
   bool getNewName(const CXXRecordDecl *CXXRD, std::string &NewName);
 
@@ -70,9 +72,25 @@ private:
   std::string NewNameStr;
 };
 
-template<typename T> bool CommonRenameClassRewriteVisitor<T>::
-  VisitClassTemplatePartialSpecializationDecl(
-    ClassTemplatePartialSpecializationDecl *D)
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::TraverseConstructorInitializer(
+       CXXCtorInitializer *Init) 
+{
+  if (Init->isBaseInitializer() && !Init->isWritten())
+    return true;
+
+  if (TypeSourceInfo *TInfo = Init->getTypeSourceInfo())
+    getDerived().TraverseTypeLoc(TInfo->getTypeLoc());
+
+  if (Init->isWritten())
+    getDerived().TraverseStmt(Init->getInit());
+  return true;
+}
+
+template<typename T> 
+bool CommonRenameClassRewriteVisitor<T>::
+     VisitClassTemplatePartialSpecializationDecl(
+       ClassTemplatePartialSpecializationDecl *D)
 {
   const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
   TransAssert(Ty && "Bad TypePtr!");
