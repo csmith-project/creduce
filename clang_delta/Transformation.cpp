@@ -447,6 +447,10 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
   DeclContext::lookup_const_result Result = Ctx->lookup(DName);
   for (DeclContext::lookup_const_iterator I = Result.first, E = Result.second;
        I != E; ++I) {
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
+      return FD;
+    }
+
     const FunctionTemplateDecl *TD = NULL;
     if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
       TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
