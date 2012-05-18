@@ -412,16 +412,9 @@ void ReducePointerLevel::Initialize(ASTContext &context)
   RewriteVisitor = new PointerLevelRewriteVisitor(this);
 }
 
-bool ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
-  return true;
-}
- 
 void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   doAnalysis();
   
   if (QueryInstanceOnly)
