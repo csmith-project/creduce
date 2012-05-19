@@ -90,8 +90,6 @@ private:
 
   void setRecordDecl(void);
 
-  const clang::RecordType *getRecordType(const clang::Type *T);
-
   void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
   void getNewLocalInitStr(const clang::Expr *Init, std::string &InitStr);

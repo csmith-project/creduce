@@ -245,17 +245,18 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
     const Type *ArrayElemTy = ConsumerInstance->getArrayBaseElemType(ArrayTy);
     if (!ArrayElemTy->isStructureType() && !ArrayElemTy->isUnionType())
       return true;
-    const RecordType *RDTy = ConsumerInstance->getRecordType(ArrayElemTy);
-    TransAssert(RDTy && "Bad RDTy!");
-    const RecordDecl *RD = RDTy->getDecl();
-    ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
+    if (const RecordType *RDTy = ArrayElemTy->getAs<RecordType>()) {
+      const RecordDecl *RD = RDTy->getDecl();
+      ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
+    }
     return true;
   }
 
-  const RecordType *RDTy = ConsumerInstance->getRecordType(VDTy);
-  TransAssert(RDTy && "Bad RecordType!");
-  const RecordDecl *RD = RDTy->getDecl();
-  ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
+  if (const RecordType *RDTy = VDTy->getAs<RecordType>()) {
+    const RecordDecl *RD = RDTy->getDecl();
+    ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
+  }
+
   return true;
 }
 
@@ -846,16 +847,6 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
     RewriteHelper->removeVarInitExpr(VD);
   else
     RewriteHelper->replaceExpr(Init, NewInitStr);
-}
-
-const RecordType *ReducePointerLevel::getRecordType(const Type *T)
-{
-  if (T->isUnionType())
-    return T->getAsUnionType();
-  else if (T->isStructureType())
-    return T->getAsStructureType();
-  else
-    return NULL;
 }
 
 void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
