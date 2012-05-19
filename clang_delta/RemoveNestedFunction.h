@@ -24,6 +24,7 @@ namespace clang {
   class DeclarationName;
   class DeclContext;
   class NestedNameSpecifier;
+  class CXXOperatorCallExpr;
 }
 
 class RNFCollectionVisitor;
@@ -61,6 +62,8 @@ private:
   bool addNewAssignStmt(void);
 
   bool replaceCallExpr(void);
+
+  bool isInvalidOperator(const clang::CXXOperatorCallExpr *OpE);
 
   void setTmpVarName(std::string &Name) {
     TmpVarName = Name;
