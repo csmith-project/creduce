@@ -26,7 +26,7 @@ public:
 
   bool VisitFunctionDecl(clang::FunctionDecl *FD);
 
-  bool VisitCXXConstructorDecl(clang::CXXConstructorDecl *CD);
+  bool VisitCXXConstructExpr(clang::CXXConstructExpr *CE);
 
   void rewriteAllExprs(void);
 
@@ -44,25 +44,12 @@ protected:
 };
 
 template<typename T, typename Trans>
-bool CommonParameterRewriteVisitor<T, Trans>::VisitCXXConstructorDecl(
-       clang::CXXConstructorDecl *CD)
+bool CommonParameterRewriteVisitor<T, Trans>::VisitCXXConstructExpr(
+       clang::CXXConstructExpr *CE)
 {
-  for (clang::CXXConstructorDecl::init_iterator I = CD->init_begin(),
-       E = CD->init_end(); I != E; ++I) {
-    const clang::Expr *InitE = (*I)->getInit();
-    if (!InitE)
-      continue;
-
-    const clang::CXXConstructExpr *CE = 
-      llvm::dyn_cast<clang::CXXConstructExpr>(InitE);
-    if (!CE)
-      continue;
-
-    const clang::CXXConstructorDecl *CtorD = CE->getConstructor();
-    if (CtorD->getCanonicalDecl() == ConsumerInstance->TheFuncDecl)
-      AllConstructExprs.push_back(CE);
-  }
-
+  const clang::CXXConstructorDecl *CtorD = CE->getConstructor();
+  if (CtorD->getCanonicalDecl() == ConsumerInstance->TheFuncDecl)
+    AllConstructExprs.push_back(CE);
   return true;
 }
 
