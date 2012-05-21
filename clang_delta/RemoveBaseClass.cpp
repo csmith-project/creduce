@@ -10,7 +10,6 @@
 
 #include "RemoveBaseClass.h"
 
-#include "llvm/ADT/DenseMap.h"
 #include "clang/Basic/SourceManager.h"
 #include "CommonRenameClassRewriteVisitor.h"
 
