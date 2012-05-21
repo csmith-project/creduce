@@ -69,6 +69,14 @@ private:
          const clang::ClassTemplatePartialSpecializationDecl *PartialD,
          const clang::TemplateArgument &Arg);
 
+  void removeOneParameterByArgType(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
+  void removeOneParameterByArgTemplate(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
   void removeArgumentFromSpecializations(void);
 
   bool referToTheTemplateDecl(clang::TemplateName TmplName);

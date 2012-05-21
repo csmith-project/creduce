@@ -294,6 +294,9 @@ void ReduceClassTemplateParameter::removeOneParameterByArgExpression(
        const ClassTemplatePartialSpecializationDecl *PartialD,
        const TemplateArgument &Arg)
 {
+  TransAssert((Arg.getKind() == TemplateArgument::Expression) && 
+              "Arg is not TemplateArgument::Expression!");
+
   const Expr *E = Arg.getAsExpr();
   TransAssert(E && "Bad Expression!");
   const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
@@ -317,20 +320,12 @@ void ReduceClassTemplateParameter::removeOneParameterByArgExpression(
   removeParameterByRange(Range, TPList, Idx);
 }
 
-void ReduceClassTemplateParameter::removeOneParameterFromPartialDecl(
+void ReduceClassTemplateParameter::removeOneParameterByArgType(
        const ClassTemplatePartialSpecializationDecl *PartialD,
        const TemplateArgument &Arg)
 {
-  if (!Arg.isInstantiationDependent())
-    return;
-
-  if (Arg.getKind() == TemplateArgument::Expression) {
-    removeOneParameterByArgExpression(PartialD, Arg);
-    return;
-  }
-
   TransAssert((Arg.getKind() == TemplateArgument::Type) && 
-               "Uncatched ArgKind!");
+              "Arg is not TemplateArgument::Type!");
   llvm::DenseMap<const Type *, unsigned> TypeToVisitsCount;
   llvm::DenseMap<const Type *, const NamedDecl *> TypeToNamedDecl;
   llvm::DenseMap<const Type *, unsigned> TypeToIndex;
@@ -402,6 +397,61 @@ void ReduceClassTemplateParameter::removeOneParameterFromPartialDecl(
     SourceRange Range = Param->getSourceRange();
     removeParameterByRange(Range, TPList, TypeToIndex[(*I).first]);
   }
+}
+
+void ReduceClassTemplateParameter::removeOneParameterByArgTemplate(
+       const ClassTemplatePartialSpecializationDecl *PartialD,
+       const TemplateArgument &Arg)
+{
+  TransAssert((Arg.getKind() == TemplateArgument::Template) && 
+              "Arg is not TemplateArgument::Template!");
+  TemplateName TmplName = Arg.getAsTemplate();
+  TransAssert((TmplName.getKind() == TemplateName::Template) &&
+              "Invalid TemplateName Kind!");
+  const TemplateDecl *TmplD = TmplName.getAsTemplateDecl();
+
+  const TemplateParameterList *TPList = PartialD->getTemplateParameters();
+  unsigned Idx = 0;
+  for (TemplateParameterList::const_iterator I = TPList->begin(),
+       E = TPList->end(); I != E; ++I) {
+    if ((*I) == TmplD)
+      break;
+    Idx++;
+  }
+
+  unsigned NumParams = TPList->size();
+  TransAssert((Idx < NumParams) && "Cannot find valid TemplateParameter!");
+  SourceRange Range = TmplD->getSourceRange();
+  removeParameterByRange(Range, TPList, Idx);
+  
+  return;
+}
+
+void ReduceClassTemplateParameter::removeOneParameterFromPartialDecl(
+       const ClassTemplatePartialSpecializationDecl *PartialD,
+       const TemplateArgument &Arg)
+{
+  if (!Arg.isInstantiationDependent())
+    return;
+
+  TemplateArgument::ArgKind K = Arg.getKind();
+  switch (K) {
+  case TemplateArgument::Expression:
+    removeOneParameterByArgExpression(PartialD, Arg);
+    return;
+
+  case TemplateArgument::Template:
+    removeOneParameterByArgTemplate(PartialD, Arg);
+    return;
+
+  case TemplateArgument::Type:
+    removeOneParameterByArgType(PartialD, Arg);
+    return;
+  
+  default:
+    TransAssert(0 && "Uncatched ArgKind!");
+  }
+  TransAssert(0 && "Unreachable code!");
 }
 
 void ReduceClassTemplateParameter::removeParameterFromPartialSpecs(void)
