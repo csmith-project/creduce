@@ -134,7 +134,13 @@ bool CommonParameterRewriteVisitor<T, Trans>::VisitCallExpr(
         (TmplFuncD->getCanonicalDecl() != TheTmplFuncD->getCanonicalDecl()))
       return true;
   }
-  else if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl) {
+
+  if (clang::FunctionDecl *InstFuncDecl = 
+           CalleeDecl->getInstantiatedFromMemberFunction()) {
+    CalleeDecl = InstFuncDecl;
+  }
+
+  if (CalleeDecl->getCanonicalDecl() != ConsumerInstance->TheFuncDecl) {
     return true;
   }
 
