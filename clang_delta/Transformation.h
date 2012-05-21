@@ -34,6 +34,7 @@ namespace clang {
   class DeclarationName;
   class NestedNameSpecifier;
   class TemplateSpecializationType;
+  class NamedDecl;
 }
 
 typedef enum {
@@ -172,6 +173,8 @@ protected:
 
   const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
         const clang::TemplateSpecializationType *TSTy);
+
+  bool isParameterPack(const clang::NamedDecl *ND);
 
   const std::string &Name;
 

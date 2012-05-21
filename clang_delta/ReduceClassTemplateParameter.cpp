@@ -510,25 +510,8 @@ bool ReduceClassTemplateParameter::isValidClassTemplateDecl(
   // FIXME: need to handle parameter pack later
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
-    const NamedDecl *ND = (*I);
-    if (const NonTypeTemplateParmDecl *NonTypeD = 
-        dyn_cast<NonTypeTemplateParmDecl>(ND)) {
-      if (NonTypeD->isParameterPack())
-        return false;
-    }
-    else if (const TemplateTypeParmDecl *TypeD = 
-               dyn_cast<TemplateTypeParmDecl>(ND)) {
-      if (TypeD->isParameterPack())
-        return false;
-    }
-    else if (const TemplateTemplateParmDecl *TmplD = 
-               dyn_cast<TemplateTemplateParmDecl>(ND)) {
-      if (TmplD->isParameterPack())
-        return false;
-    }
-    else {
-      TransAssert(0 && "Unknown template parameter type!");
-    }
+    if (isParameterPack(*I))
+      return false;
   }
   return true;
 }

@@ -620,6 +620,26 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   return Base;
 }
 
+bool Transformation::isParameterPack(const NamedDecl *ND)
+{
+  if (const NonTypeTemplateParmDecl *NonTypeD = 
+      dyn_cast<NonTypeTemplateParmDecl>(ND)) {
+    return NonTypeD->isParameterPack();
+  }
+  else if (const TemplateTypeParmDecl *TypeD = 
+             dyn_cast<TemplateTypeParmDecl>(ND)) {
+    return TypeD->isParameterPack();
+  }
+  else if (const TemplateTemplateParmDecl *TmplD = 
+             dyn_cast<TemplateTemplateParmDecl>(ND)) {
+    return TmplD->isParameterPack();
+  }
+  else {
+    TransAssert(0 && "Unknown template parameter type!");
+    return false;
+  }
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();
