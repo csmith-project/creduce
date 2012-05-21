@@ -510,6 +510,113 @@ bool Transformation::isSpecialRecordDecl(const RecordDecl *RD)
   return (Name == "__va_list_tag");
 }
 
+const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
+        const TemplateSpecializationType *TSTy)
+{
+  TemplateName TplName = TSTy->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+  return dyn_cast<CXXRecordDecl>(ND);
+}
+
+// This function could return NULL
+const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
+{
+  const CXXRecordDecl *Base = NULL;
+  Type::TypeClass TyClass = Ty->getTypeClass();
+
+  switch (TyClass) {
+  case Type::TemplateSpecialization: {
+    const TemplateSpecializationType *TSTy = 
+      dyn_cast<TemplateSpecializationType>(Ty);
+    Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    TransAssert(Base && "Bad base class type!");
+    return Base;
+  }
+
+  case Type::DependentTemplateSpecialization: {
+    return NULL;
+  }
+
+  case Type::Elaborated: {
+    const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty);
+    const Type *NamedT = ETy->getNamedType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(NamedT) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if ( const TypedefType * Ty = dyn_cast<TypedefType>(NamedT) ){
+      Base = getBaseDeclFromType(Ty);
+    }
+    else {
+      Base = ETy->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from ElaboratedType!");
+    return Base;
+  }
+
+  case Type::DependentName: {
+    // It's not always the case that we could resolve a dependent name type.
+    // For example, 
+    //   template<typename T1, typename T2>
+    //   struct AAA { typedef T2 new_type; };
+    //   template<typename T3>
+    //   struct BBB : public AAA<int, T3>::new_type { };
+    // In the above code, we can't figure out what new_type refers to 
+    // until BBB is instantiated
+    // Due to this reason, simply return NULL from here.
+    return NULL;
+  }
+
+  case Type::Typedef: {
+    const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
+    const TypedefNameDecl *TdefD = TdefTy->getDecl();
+    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(UnderlyingTy) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
+      return NULL;
+    }
+    else {
+      Base = UnderlyingTy->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from Typedef!");
+    return Base;
+  }
+
+  case Type::TemplateTypeParm: {
+    // Yet another case we might not know the base class, e.g.,
+    // template<typename T1> 
+    // class AAA {
+    //   struct BBB : T1 {};
+    // };
+    return NULL;
+  }
+  default:
+    Base = Ty->getAsCXXRecordDecl();
+    TransAssert(Base && "Bad base class type!");
+
+    // getAsCXXRecordDecl could return a ClassTemplateSpecializationDecl.
+    // For example:
+    //   template <class T> class AAA { };
+    //   typedef AAA<int> BBB;
+    //   class CCC : BBB { };
+    // In the above code, BBB is of type ClassTemplateSpecializationDecl
+    if (const ClassTemplateSpecializationDecl *CTSDecl =
+        dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
+      Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
+      TransAssert(Base && 
+                  "Bad base decl from ClassTemplateSpecializationDecl!");
+    }
+  }
+
+  return Base;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

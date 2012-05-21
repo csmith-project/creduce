@@ -33,6 +33,7 @@ namespace clang {
   class DeclContext;
   class DeclarationName;
   class NestedNameSpecifier;
+  class TemplateSpecializationType;
 }
 
 typedef enum {
@@ -166,6 +167,11 @@ protected:
           const clang::NestedNameSpecifier *NNS);
 
   bool isSpecialRecordDecl(const clang::RecordDecl *RD);
+
+  const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
+
+  const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
+        const clang::TemplateSpecializationType *TSTy);
 
   const std::string &Name;
 
