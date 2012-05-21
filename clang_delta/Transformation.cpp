@@ -581,6 +581,9 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
       return NULL;
     }
+    else if (dyn_cast<TemplateTypeParmType>(UnderlyingTy)) {
+      return NULL;
+    }
     else {
       Base = UnderlyingTy->getAsCXXRecordDecl();
     }
