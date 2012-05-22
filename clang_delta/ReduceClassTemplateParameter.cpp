@@ -571,6 +571,9 @@ bool ReduceClassTemplateParameter::reducePartialSpec(
   return true;
 }
 
+// ISSUE: The transformation is known to go wrong in the following case:
+// template<typename T1, typename T2> struct S;
+// template<typename T1, typename T2> struct S<T2, T1>;
 void ReduceClassTemplateParameter::removeParameterFromPartialSpecs(void)
 {
   SmallVector<ClassTemplatePartialSpecializationDecl *, 10> PartialDecls;
