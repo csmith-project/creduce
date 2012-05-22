@@ -85,6 +85,18 @@ private:
                               const clang::TemplateParameterList *TPList, 
                               unsigned Index);
 
+  bool reducePartialSpec(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD);
+
+  bool isValidForReduction(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD);
+
+  bool referToAParameter(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
+  const clang::NamedDecl *getNamedDecl(const clang::TemplateArgument &Arg);
+
   ClassTemplateDeclSet VisitedDecls;
 
   ReduceClassTemplateParameterASTVisitor *CollectionVisitor;

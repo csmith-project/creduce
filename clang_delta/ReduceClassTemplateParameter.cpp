@@ -454,6 +454,123 @@ void ReduceClassTemplateParameter::removeOneParameterFromPartialDecl(
   TransAssert(0 && "Unreachable code!");
 }
 
+const NamedDecl *ReduceClassTemplateParameter::getNamedDecl(
+        const TemplateArgument &Arg)
+{
+  if (!Arg.isInstantiationDependent())
+    return NULL;
+
+  TemplateArgument::ArgKind K = Arg.getKind();
+  switch (K) {
+  case TemplateArgument::Expression: {
+    const Expr *E = Arg.getAsExpr();
+    if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E)) {
+      return dyn_cast<NonTypeTemplateParmDecl>(DRE->getDecl());
+    }
+    else {
+      return NULL;
+    }
+  }
+
+  case TemplateArgument::Template: {
+    TemplateName TmplName = Arg.getAsTemplate();
+    TransAssert((TmplName.getKind() == TemplateName::Template) &&
+                "Invalid TemplateName Kind!");
+    return TmplName.getAsTemplateDecl();
+  }
+
+  case TemplateArgument::Type: {
+    const Type *Ty = Arg.getAsType().getTypePtr();
+    if (const TemplateTypeParmType *TmplTy = 
+        dyn_cast<TemplateTypeParmType>(Ty)) {
+      return TmplTy->getDecl();
+    }
+    else {
+      return NULL;
+    }
+  }
+  
+  default:
+    return NULL;
+  }
+
+  TransAssert(0 && "Unreachable code!");
+  return NULL;
+}
+
+bool ReduceClassTemplateParameter::referToAParameter(
+       const ClassTemplatePartialSpecializationDecl *PartialD,
+       const TemplateArgument &Arg)
+{
+  const NamedDecl *ArgND = getNamedDecl(Arg);
+  if (!ArgND)
+    return false;
+
+  const TemplateParameterList *TPList = PartialD->getTemplateParameters();
+  for (TemplateParameterList::const_iterator PI = TPList->begin(),
+       PE = TPList->end(); PI != PE; ++PI) {
+    if (ArgND != (*PI))
+      return false;
+  }
+  return true;
+}
+
+bool ReduceClassTemplateParameter::isValidForReduction(
+       const ClassTemplatePartialSpecializationDecl *PartialD)
+{
+  unsigned NumArgsAsWritten = PartialD->getNumTemplateArgsAsWritten();
+  unsigned NumArgs = PartialD->getTemplateInstantiationArgs().size();
+
+  if ((NumArgsAsWritten > 0) && 
+      (TheParameterIndex >= NumArgsAsWritten) && 
+      hasDefaultArg &&
+      ((NumArgsAsWritten + 1) == NumArgs))  {
+
+    return true;
+  }
+
+  if (NumArgsAsWritten != NumArgs)
+    return false;
+
+  TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
+  for (unsigned AI = 0; AI < NumArgsAsWritten; ++AI) {
+    if (AI == TheParameterIndex)
+      continue;
+    TemplateArgumentLoc ArgLoc = ArgLocs[AI];
+    TemplateArgument Arg = ArgLoc.getArgument();
+    if (!referToAParameter(PartialD, Arg))
+      return false;
+  }
+
+  return true;
+}
+
+bool ReduceClassTemplateParameter::reducePartialSpec(
+       const ClassTemplatePartialSpecializationDecl *PartialD)
+{
+  const CXXRecordDecl *CXXRD = TheClassTemplateDecl->getTemplatedDecl();
+  // it CXXRD has definition, skip it to avoid duplication
+  if (CXXRD->hasDefinition())
+    return false;
+
+  if (!isValidForReduction(PartialD))
+    return false;
+
+  TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
+  unsigned NumArgsAsWritten = PartialD->getNumTemplateArgsAsWritten();
+  TemplateArgumentLoc FirstArgLoc = ArgLocs[0];
+  SourceRange FirstRange = FirstArgLoc.getSourceRange();
+  SourceLocation StartLoc = FirstRange.getBegin();
+
+  TemplateArgumentLoc LastArgLoc = ArgLocs[NumArgsAsWritten - 1];
+  SourceRange LastRange = LastArgLoc.getSourceRange();
+  SourceLocation EndLoc = 
+    RewriteHelper->getEndLocationUntil(LastRange, '>');
+
+  RewriteHelper->removeTextFromLeftAt(SourceRange(StartLoc, EndLoc), '<', EndLoc);
+  return true;
+}
+
 void ReduceClassTemplateParameter::removeParameterFromPartialSpecs(void)
 {
   SmallVector<ClassTemplatePartialSpecializationDecl *, 10> PartialDecls;
@@ -464,6 +581,16 @@ void ReduceClassTemplateParameter::removeParameterFromPartialSpecs(void)
     const ClassTemplatePartialSpecializationDecl *PartialD = (*I);
     TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
     if (!ArgLocs)
+      continue;
+
+    // handle a special case where we could reduce a partial specialization
+    // to a class template definition, e.g.:
+    //   template<typename T1, typename T2> struct A;
+    //   template<typename T1> struct A<T1, int> { };
+    // ==>
+    //   template<typename T1> struct A;
+    //   template<typename T1> struct A { };
+    if (reducePartialSpec(PartialD))
       continue;
 
     unsigned NumArgs = PartialD->getNumTemplateArgsAsWritten();
@@ -533,7 +660,6 @@ void ReduceClassTemplateParameter::setDefaultArgFlag(const NamedDecl *ND)
   else {
     TransAssert(0 && "Unknown template parameter type!");
   }
-
 }
 
 bool ReduceClassTemplateParameter::referToTheTemplateDecl(
