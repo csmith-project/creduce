@@ -12,6 +12,7 @@
 #define COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Lex/Lexer.h"
 
 namespace clang_delta_common_visitor {
 
@@ -198,8 +199,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXDestructorDecl(
 
   std::string Name;
   if (getNewName(CXXRD, Name)) {
-    Name = "~" + Name;
-    RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+    RewriteHelper->replaceCXXDestructorDeclName(DtorDecl, Name);
   }
 
   return true;

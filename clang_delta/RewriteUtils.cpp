@@ -838,11 +838,12 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
   DeclarationNameInfo NameInfo = FD->getNameInfo();
   DeclarationName DeclName = NameInfo.getName();
   DeclarationName::NameKind K = DeclName.getNameKind();
+  TransAssert((K != DeclarationName::CXXDestructorName) &&
+              "Cannot rename CXXDestructorName here!");
 
   std::string FDName = FD->getNameAsString();
   unsigned FDNameLen = FD->getNameAsString().length();
-  if ((K == DeclarationName::CXXConstructorName) ||
-      (K == DeclarationName::CXXDestructorName)) {
+  if (K == DeclarationName::CXXConstructorName) {
     const Type *Ty = DeclName.getCXXNameType().getTypePtr();
     if (Ty->getTypeClass() == Type::InjectedClassName) {
       const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
@@ -857,6 +858,44 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
   return !TheRewriter->ReplaceText(NameInfo.getLoc(),
                                    FDNameLen,
                                    NameStr);
+}
+
+bool RewriteUtils::replaceCXXDestructorDeclName(
+       const CXXDestructorDecl *DtorDecl,
+       const std::string &Name)
+{
+  SourceLocation StartLoc = DtorDecl->getLocation();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  TransAssert((*StartBuf == '~') && "Invalid Destructor Location");
+  // FIXME: it's quite ugly, better to use clang's Lexer
+  unsigned Off = 0;
+  StartBuf++;
+  while (isspace(*StartBuf)) {
+    StartBuf++;
+    Off++;
+  }
+
+  std::string DName = DtorDecl->getNameAsString();
+  DeclarationNameInfo NameInfo = DtorDecl->getNameInfo();
+  DeclarationName DeclName = NameInfo.getName();
+  const Type *Ty = DeclName.getCXXNameType().getTypePtr();
+  unsigned NameLen;
+  if (Ty->getTypeClass() == Type::InjectedClassName) {
+    const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
+    std::string RDName = CXXRD->getNameAsString();
+    NameLen = DName.find(RDName);
+    TransAssert((NameLen != std::string::npos) && 
+                "Cannot find RecordDecl Name!");
+    NameLen += RDName.length();
+  }
+  else {
+    NameLen = DName.length();
+  }
+  NameLen += Off;
+ 
+  return !TheRewriter->ReplaceText(StartLoc,
+                                   NameLen,
+                                   "~" + Name);
 }
 
 bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,

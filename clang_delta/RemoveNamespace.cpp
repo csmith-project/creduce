@@ -297,8 +297,7 @@ bool RemoveNamespaceRewriteVisitor::VisitCXXDestructorDecl(
       return true;
   }
 
-  Name = "~" + Name;
-  ConsumerInstance->RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+  ConsumerInstance->RewriteHelper->replaceCXXDestructorDeclName(DtorDecl, Name);
 
   return true;
 }
