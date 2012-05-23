@@ -343,6 +343,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "remove-trivial-base-template", "pri" => 231,  },
     { "name" => "pass_clang",    "arg" => "class-template-to-class",        "pri" => 232,  },
     { "name" => "pass_clang",    "arg" => "remove-base-class",      "pri" => 233,  },
+    { "name" => "pass_clang",    "arg" => "empty-struct-to-int",    "pri" => 234,  },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
