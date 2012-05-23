@@ -41,7 +41,7 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     UnifyFunctionDecl.h RemoveUnusedStructField.h RenameClass.h \
                     RemoveNamespace.h SimplifyDependentTypedef.h ReduceClassTemplateParameter.h \
                     ClassTemplateToClass.h RemoveBaseClass.h ReplaceSimpleTypedef.h \
-                    RemoveTrivialBaseTemplate.h
+                    RemoveTrivialBaseTemplate.h EmptyStructToInt.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -55,7 +55,7 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     UnifyFunctionDecl.cpp RemoveUnusedStructField.cpp RenameClass.cpp \
                     RemoveNamespace.cpp SimplifyDependentTypedef.cpp ReduceClassTemplateParameter.cpp \
                     ClassTemplateToClass.cpp RemoveBaseClass.cpp ReplaceSimpleTypedef.cpp \
-                    RemoveTrivialBaseTemplate.cpp
+                    RemoveTrivialBaseTemplate.cpp EmptyStructToInt.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -69,7 +69,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  UnifyFunctionDecl.o RemoveUnusedStructField.o RenameClass.o \
                  RemoveNamespace.o SimplifyDependentTypedef.o ReduceClassTemplateParameter.o \
                  ClassTemplateToClass.o RemoveBaseClass.o ReplaceSimpleTypedef.o \
-                 RemoveTrivialBaseTemplate.o
+                 RemoveTrivialBaseTemplate.o EmptyStructToInt.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -171,6 +171,8 @@ RemoveBaseClass.o: RemoveBaseClass.cpp RemoveBaseClass.h CommonRenameClassRewrit
 ReplaceSimpleTypedef.o: ReplaceSimpleTypedef.cpp ReplaceSimpleTypedef.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveTrivialBaseTemplate.o: RemoveTrivialBaseTemplate.cpp RemoveTrivialBaseTemplate.h ${SUB_TRANSFORMATION_DEPS}
+
+EmptyStructToInt.o: EmptyStructToInt.cpp EmptyStructToInt.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
