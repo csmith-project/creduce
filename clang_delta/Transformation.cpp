@@ -643,6 +643,18 @@ bool Transformation::isParameterPack(const NamedDecl *ND)
   }
 }
 
+unsigned Transformation::getNumCtorWrittenInitializers(
+           const CXXConstructorDecl &Ctor)
+{
+  unsigned Num = 0;
+  for (CXXConstructorDecl::init_const_iterator I = Ctor.init_begin(),
+       E = Ctor.init_end(); I != E; ++I) {
+    if ((*I)->isWritten())
+      Num++;
+  }
+  return Num;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

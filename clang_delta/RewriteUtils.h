@@ -43,6 +43,7 @@ namespace clang {
   class CXXMemberCallExpr;
   class RecordTypeLoc;
   class CXXDestructorDecl;
+  class CXXCtorInitializer;
 }
 
 class RewriteUtils {
@@ -218,6 +219,9 @@ public:
 
   bool replaceCXXDestructorDeclName(const clang::CXXDestructorDecl *DtorDecl, 
                                     const std::string &Name);
+
+  bool removeCXXCtorInitializer(const clang::CXXCtorInitializer *Init,
+                                unsigned Index, unsigned NumInits);
 
 private:
 

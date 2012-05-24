@@ -35,6 +35,7 @@ namespace clang {
   class NestedNameSpecifier;
   class TemplateSpecializationType;
   class NamedDecl;
+  class CXXConstructorDecl;
 }
 
 typedef enum {
@@ -175,6 +176,8 @@ protected:
         const clang::TemplateSpecializationType *TSTy);
 
   bool isParameterPack(const clang::NamedDecl *ND);
+
+  unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
 
   const std::string &Name;
 

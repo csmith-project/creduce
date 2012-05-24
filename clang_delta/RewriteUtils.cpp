@@ -1522,3 +1522,19 @@ bool RewriteUtils::removeTextUntil(SourceRange Range, char C)
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
+bool RewriteUtils::removeCXXCtorInitializer(const CXXCtorInitializer *Init,
+                                            unsigned Index, unsigned NumInits)
+{
+  SourceRange Range = Init->getSourceRange();
+  SourceLocation EndLoc = Init->getRParenLoc();
+  if (Index == 0) {
+    if (NumInits == 1)
+      return removeTextFromLeftAt(Range, ':', EndLoc);
+    else
+      return removeTextUntil(Range, ',');
+  }
+  else {
+    return removeTextFromLeftAt(Range, ',', EndLoc);
+  }
+}
+

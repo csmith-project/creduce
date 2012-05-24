@@ -60,8 +60,6 @@ private:
 
   void rewriteOneCtor(const clang::CXXConstructorDecl &Ctor);
 
-  unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
-
   bool isDirectlyDerivedFrom(const clang::CXXRecordDecl *SubC, 
                              const clang::CXXRecordDecl *Base);
 

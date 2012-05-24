@@ -279,18 +279,6 @@ void RemoveBaseClass::removeBaseSpecifier(void)
   TransAssert(0 && "Unreachable code!");
 }
 
-unsigned RemoveBaseClass::getNumCtorWrittenInitializers(
-           const CXXConstructorDecl &Ctor)
-{
-  unsigned Num = 0;
-  for (CXXConstructorDecl::init_const_iterator I = Ctor.init_begin(),
-       E = Ctor.init_end(); I != E; ++I) {
-    if ((*I)->isWritten())
-      Num++;
-  }
-  return Num;
-}
-
 void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
 {
   unsigned Idx = 0;
@@ -311,19 +299,9 @@ void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
     }
     Idx++;
   }
-  if (!Init)
-    return;
-
-  SourceRange Range = Init->getSourceRange();
-  SourceLocation EndLoc = Init->getRParenLoc();
-  if (Idx == 0) {
-    if (getNumCtorWrittenInitializers(Ctor) == 1)
-      RewriteHelper->removeTextFromLeftAt(Range, ':', EndLoc);
-    else
-      RewriteHelper->removeTextUntil(Range, ',');
-  }
-  else {
-    RewriteHelper->removeTextFromLeftAt(Range, ',', EndLoc);
+  if (Init) {
+    RewriteHelper->removeCXXCtorInitializer(Init, Idx,
+                     getNumCtorWrittenInitializers(Ctor));
   }
 }
 
