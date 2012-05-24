@@ -59,6 +59,8 @@ public:
 
   bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
 
+  bool VisitUsingDecl(UsingDecl *D);
+
 private:
   bool getNewName(const CXXRecordDecl *CXXRD, std::string &NewName);
 
@@ -72,6 +74,24 @@ private:
 
   std::string NewNameStr;
 };
+
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::VisitUsingDecl(UsingDecl *D)
+{
+  DeclarationNameInfo NameInfo = D->getNameInfo();
+  DeclarationName DeclName = NameInfo.getName();
+  if (DeclName.getNameKind() != DeclarationName::Identifier)
+    return true;
+
+  IdentifierInfo *IdInfo = DeclName.getAsIdentifierInfo();
+  std::string IdName = IdInfo->getName();
+  std::string Name;
+  if (getNewNameByName(IdName, Name)) {
+    SourceLocation LocStart = NameInfo.getBeginLoc();
+    TheRewriter->ReplaceText(LocStart, IdName.size(), Name);
+  }
+  return true;
+}
 
 template<typename T>
 bool CommonRenameClassRewriteVisitor<T>::TraverseConstructorInitializer(
