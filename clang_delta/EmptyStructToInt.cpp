@@ -126,13 +126,6 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
 
   SourceLocation StartLoc = Loc.getLocStart();
   TypeLoc TyLoc = Loc.getNamedTypeLoc();
-/*
-  void *LocPtr = TyLoc.getOpaqueData();
-  if (ConsumerInstance->VisitedLocs.count(LocPtr))
-    return true;
-
-  ConsumerInstance->VisitedLocs.insert(LocPtr);
-*/
   SourceLocation EndLoc = TyLoc.getLocStart();
   EndLoc = EndLoc.getLocWithOffset(-1);
   ConsumerInstance->TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
