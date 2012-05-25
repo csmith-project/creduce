@@ -44,6 +44,7 @@ namespace clang {
   class RecordTypeLoc;
   class CXXDestructorDecl;
   class CXXCtorInitializer;
+  class CXXRecordDecl;
 }
 
 class RewriteUtils {
@@ -222,6 +223,8 @@ public:
 
   bool removeCXXCtorInitializer(const clang::CXXCtorInitializer *Init,
                                 unsigned Index, unsigned NumInits);
+
+  bool removeClassDecls(const clang::CXXRecordDecl *CXXRD);
 
 private:
 

@@ -52,8 +52,6 @@ private:
 
   void copyBaseClassDecls(void);
 
-  void removeBaseClassDecls(void);
-
   void removeBaseSpecifier(void);
 
   void removeBaseInitializer(void);

@@ -1538,3 +1538,21 @@ bool RewriteUtils::removeCXXCtorInitializer(const CXXCtorInitializer *Init,
   }
 }
 
+bool RewriteUtils::removeClassDecls(const CXXRecordDecl *CXXRD)
+{
+  for (CXXRecordDecl::redecl_iterator I = CXXRD->redecls_begin(),
+      E = CXXRD->redecls_end(); I != E; ++I) {
+    SourceRange Range = (*I)->getSourceRange();
+    SourceLocation LocEnd;
+    if ((*I)->isThisDeclarationADefinition()) {
+      LocEnd = (*I)->getRBraceLoc();
+      LocEnd = getLocationUntil(LocEnd, ';');
+    }
+    else {
+      LocEnd = getEndLocationUntil(Range, ';');
+    }
+    TheRewriter->RemoveText(SourceRange(Range.getBegin(), LocEnd));
+  }
+  return true;
+}
+

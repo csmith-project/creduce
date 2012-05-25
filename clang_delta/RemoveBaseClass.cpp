@@ -181,7 +181,7 @@ void RemoveBaseClass::doRewrite(void)
 {
   copyBaseClassDecls();
   removeBaseSpecifier();
-  removeBaseClassDecls();
+  RewriteHelper->removeClassDecls(TheBaseClass);
 
   // ISSUE: I didn't handle Base initializer in a Ctor's initlist.
   //        * keeping it untouched is wrong, because delegating constructors 
@@ -218,23 +218,6 @@ void RemoveBaseClass::copyBaseClassDecls(void)
   TransAssert(!DeclsStr.empty() && "Empty DeclsStr!");
   SourceLocation InsertLoc = TheDerivedClass->getRBraceLoc();
   TheRewriter.InsertTextBefore(InsertLoc, DeclsStr);
-}
-
-void RemoveBaseClass::removeBaseClassDecls(void)
-{
-  for (CXXRecordDecl::redecl_iterator I = TheBaseClass->redecls_begin(),
-      E = TheBaseClass->redecls_end(); I != E; ++I) {
-    SourceRange Range = (*I)->getSourceRange();
-    SourceLocation LocEnd;
-    if ((*I)->isThisDeclarationADefinition()) {
-      LocEnd = (*I)->getRBraceLoc();
-      LocEnd = RewriteHelper->getLocationUntil(LocEnd, ';');
-    }
-    else {
-      LocEnd = RewriteHelper->getEndLocationUntil(Range, ';');
-    }
-    TheRewriter.RemoveText(SourceRange(Range.getBegin(), LocEnd));
-  }
 }
 
 bool RemoveBaseClass::isTheBaseClass(const CXXBaseSpecifier &Specifier)
