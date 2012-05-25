@@ -41,7 +41,8 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     UnifyFunctionDecl.h RemoveUnusedStructField.h RenameClass.h \
                     RemoveNamespace.h SimplifyDependentTypedef.h ReduceClassTemplateParameter.h \
                     ClassTemplateToClass.h RemoveBaseClass.h ReplaceSimpleTypedef.h \
-                    RemoveTrivialBaseTemplate.h EmptyStructToInt.h RemoveCtorInitializer.h
+                    RemoveTrivialBaseTemplate.h EmptyStructToInt.h RemoveCtorInitializer.h \
+                    RemoveUnresolvedBase.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -55,7 +56,8 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     UnifyFunctionDecl.cpp RemoveUnusedStructField.cpp RenameClass.cpp \
                     RemoveNamespace.cpp SimplifyDependentTypedef.cpp ReduceClassTemplateParameter.cpp \
                     ClassTemplateToClass.cpp RemoveBaseClass.cpp ReplaceSimpleTypedef.cpp \
-                    RemoveTrivialBaseTemplate.cpp EmptyStructToInt.cpp RemoveCtorInitializer.cpp
+                    RemoveTrivialBaseTemplate.cpp EmptyStructToInt.cpp RemoveCtorInitializer.cpp \
+                    RemoveUnresolvedBase.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -69,7 +71,8 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  UnifyFunctionDecl.o RemoveUnusedStructField.o RenameClass.o \
                  RemoveNamespace.o SimplifyDependentTypedef.o ReduceClassTemplateParameter.o \
                  ClassTemplateToClass.o RemoveBaseClass.o ReplaceSimpleTypedef.o \
-                 RemoveTrivialBaseTemplate.o EmptyStructToInt.o RemoveCtorInitializer.o
+                 RemoveTrivialBaseTemplate.o EmptyStructToInt.o RemoveCtorInitializer.o \
+                 RemoveUnresolvedBase.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -175,6 +178,8 @@ RemoveTrivialBaseTemplate.o: RemoveTrivialBaseTemplate.cpp RemoveTrivialBaseTemp
 EmptyStructToInt.o: EmptyStructToInt.cpp EmptyStructToInt.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveCtorInitializer.o: RemoveCtorInitializer.cpp RemoveCtorInitializer.h ${SUB_TRANSFORMATION_DEPS}
+
+RemoveUnresolvedBase.o: RemoveUnresolvedBase.cpp RemoveUnresolvedBase.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o
