@@ -69,6 +69,14 @@ private:
          const clang::ClassTemplatePartialSpecializationDecl *PartialD,
          const clang::TemplateArgument &Arg);
 
+  void removeOneParameterByArgType(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
+  void removeOneParameterByArgTemplate(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
   void removeArgumentFromSpecializations(void);
 
   bool referToTheTemplateDecl(clang::TemplateName TmplName);
@@ -76,6 +84,18 @@ private:
   void removeParameterByRange(clang::SourceRange Range,
                               const clang::TemplateParameterList *TPList, 
                               unsigned Index);
+
+  bool reducePartialSpec(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD);
+
+  bool isValidForReduction(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD);
+
+  bool referToAParameter(
+         const clang::ClassTemplatePartialSpecializationDecl *PartialD,
+         const clang::TemplateArgument &Arg);
+
+  const clang::NamedDecl *getNamedDecl(const clang::TemplateArgument &Arg);
 
   ClassTemplateDeclSet VisitedDecls;
 

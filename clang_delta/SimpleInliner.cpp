@@ -67,6 +67,8 @@ public:
 
   bool VisitCallExpr(CallExpr *CE);
 
+  bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
+
   unsigned int getNumStmts(void) {
     return NumStmts;
   }
@@ -173,6 +175,14 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
   ConsumerInstance->FunctionDeclNumCalls[CanonicalFD] = NumCalls;
 
   NumStmts++;
+  return true;
+}
+
+// Overload the default traverse function, because we cannot inline 
+// Ctor's initializer
+bool SimpleInlinerCollectionVisitor::TraverseConstructorInitializer(
+       CXXCtorInitializer *Init) 
+{
   return true;
 }
 

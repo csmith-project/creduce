@@ -56,8 +56,6 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  bool isSpecialRecordDecl(const clang::RecordDecl *RD);
-
   const clang::RecordDecl *getBaseRecordDef(const clang::Type *Ty);
 
   void handleOneRecordDecl(const clang::RecordDecl *RD, 

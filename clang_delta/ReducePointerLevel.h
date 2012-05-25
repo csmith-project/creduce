@@ -71,8 +71,6 @@ private:
 
   virtual void Initialize(clang::ASTContext &context);
 
-  virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
-
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   void getInitListExprString(const clang::InitListExpr *ILE,
@@ -91,8 +89,6 @@ private:
   void doAnalysis(void);
 
   void setRecordDecl(void);
-
-  const clang::RecordType *getRecordType(const clang::Type *T);
 
   void copyInitStr(const clang::Expr *Exp, std::string &InitStr);
 
@@ -117,7 +113,7 @@ private:
 
   void rewriteDeclRefExpr(const clang::DeclRefExpr *DRE);
 
-  void replaceArrowWithDot(const clang::MemberExpr *ME);
+  void replaceArrowWithDot(const clang::Expr *E);
 
   bool isPointerToSelf(const clang::Type *Ty, const clang::DeclaratorDecl *DD);
 

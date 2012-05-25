@@ -146,7 +146,16 @@ SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range,
   return EndLoc.getLocWithOffset(Offset);
 }
 
-SourceLocation RewriteUtils::getLocationAfter(SourceLocation StartLoc, 
+SourceLocation RewriteUtils::getLocationAfter(SourceLocation Loc, 
+                                                char Symbol)
+{
+  const char *Buf = SrcManager->getCharacterData(Loc);
+  int Offset = getOffsetUntil(Buf, Symbol);
+  Offset++;
+  return Loc.getLocWithOffset(Offset);
+}
+
+SourceLocation RewriteUtils::getLocationAfterSkiping(SourceLocation StartLoc, 
                                               char Symbol)
 {
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
@@ -833,11 +842,12 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
   DeclarationNameInfo NameInfo = FD->getNameInfo();
   DeclarationName DeclName = NameInfo.getName();
   DeclarationName::NameKind K = DeclName.getNameKind();
+  TransAssert((K != DeclarationName::CXXDestructorName) &&
+              "Cannot rename CXXDestructorName here!");
 
   std::string FDName = FD->getNameAsString();
   unsigned FDNameLen = FD->getNameAsString().length();
-  if ((K == DeclarationName::CXXConstructorName) ||
-      (K == DeclarationName::CXXDestructorName)) {
+  if (K == DeclarationName::CXXConstructorName) {
     const Type *Ty = DeclName.getCXXNameType().getTypePtr();
     if (Ty->getTypeClass() == Type::InjectedClassName) {
       const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
@@ -852,6 +862,44 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
   return !TheRewriter->ReplaceText(NameInfo.getLoc(),
                                    FDNameLen,
                                    NameStr);
+}
+
+bool RewriteUtils::replaceCXXDestructorDeclName(
+       const CXXDestructorDecl *DtorDecl,
+       const std::string &Name)
+{
+  SourceLocation StartLoc = DtorDecl->getLocation();
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  TransAssert((*StartBuf == '~') && "Invalid Destructor Location");
+  // FIXME: it's quite ugly, better to use clang's Lexer
+  unsigned Off = 0;
+  StartBuf++;
+  while (isspace(*StartBuf)) {
+    StartBuf++;
+    Off++;
+  }
+
+  std::string DName = DtorDecl->getNameAsString();
+  DeclarationNameInfo NameInfo = DtorDecl->getNameInfo();
+  DeclarationName DeclName = NameInfo.getName();
+  const Type *Ty = DeclName.getCXXNameType().getTypePtr();
+  unsigned NameLen;
+  if (Ty->getTypeClass() == Type::InjectedClassName) {
+    const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
+    std::string RDName = CXXRD->getNameAsString();
+    NameLen = DName.find(RDName);
+    TransAssert((NameLen != std::string::npos) && 
+                "Cannot find RecordDecl Name!");
+    NameLen += RDName.length();
+  }
+  else {
+    NameLen = DName.length();
+  }
+  NameLen += Off;
+ 
+  return !TheRewriter->ReplaceText(StartLoc,
+                                   NameLen,
+                                   "~" + Name);
 }
 
 bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,
@@ -947,7 +995,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     getStringBetweenLocs(Str, TypeLocEnd, LocEnd);
 
     SourceLocation StartLoc = VarRange.getBegin();
-    SourceLocation NewEndLoc = getLocationAfter(LocEnd, ';');
+    SourceLocation NewEndLoc = getLocationAfterSkiping(LocEnd, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }
 
@@ -971,7 +1019,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
   getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc);
 
   SourceLocation StartLoc = FirstVD->getLocStart();
-  SourceLocation NewLastEndLoc = getLocationAfter(LastEndLoc, ';');
+  SourceLocation NewLastEndLoc = getLocationAfterSkiping(LastEndLoc, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewLastEndLoc)));
 }
 
@@ -1476,5 +1524,21 @@ bool RewriteUtils::removeTextUntil(SourceRange Range, char C)
   if (*EndBuf != C)
     EndLoc = getEndLocationUntil(Range, C);
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+bool RewriteUtils::removeCXXCtorInitializer(const CXXCtorInitializer *Init,
+                                            unsigned Index, unsigned NumInits)
+{
+  SourceRange Range = Init->getSourceRange();
+  SourceLocation EndLoc = Init->getRParenLoc();
+  if (Index == 0) {
+    if (NumInits == 1)
+      return removeTextFromLeftAt(Range, ':', EndLoc);
+    else
+      return removeTextUntil(Range, ',');
+  }
+  else {
+    return removeTextFromLeftAt(Range, ',', EndLoc);
+  }
 }
 

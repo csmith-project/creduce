@@ -223,6 +223,9 @@ const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
   TransAssert(VD && "Bad VarDecl!");
+  const Type * Ty = VD->getType().getTypePtr();
+  if (Ty->isPointerType())
+    return NULL;
   const Expr *InitE = VD->getAnyInitializer();
 
   if (!InitE)
@@ -451,6 +454,10 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
   DeclContext::lookup_const_result Result = Ctx->lookup(DName);
   for (DeclContext::lookup_const_iterator I = Result.first, E = Result.second;
        I != E; ++I) {
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
+      return FD;
+    }
+
     const FunctionTemplateDecl *TD = NULL;
     if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
       TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
@@ -502,6 +509,154 @@ const DeclContext *Transformation::getDeclContextFromSpecifier(
     }
   }
   return NULL;
+}
+
+bool Transformation::isSpecialRecordDecl(const RecordDecl *RD)
+{
+  std::string Name = RD->getNameAsString();
+  return (Name == "__va_list_tag");
+}
+
+const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
+        const TemplateSpecializationType *TSTy)
+{
+  TemplateName TplName = TSTy->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TransAssert(TplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TplD->getTemplatedDecl();
+  TransAssert(ND && "Invalid NamedDecl!");
+  return dyn_cast<CXXRecordDecl>(ND);
+}
+
+// This function could return NULL
+const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
+{
+  const CXXRecordDecl *Base = NULL;
+  Type::TypeClass TyClass = Ty->getTypeClass();
+
+  switch (TyClass) {
+  case Type::TemplateSpecialization: {
+    const TemplateSpecializationType *TSTy = 
+      dyn_cast<TemplateSpecializationType>(Ty);
+    Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    TransAssert(Base && "Bad base class type!");
+    return Base;
+  }
+
+  case Type::DependentTemplateSpecialization: {
+    return NULL;
+  }
+
+  case Type::Elaborated: {
+    const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty);
+    const Type *NamedT = ETy->getNamedType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(NamedT) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if ( const TypedefType * Ty = dyn_cast<TypedefType>(NamedT) ){
+      Base = getBaseDeclFromType(Ty);
+    }
+    else {
+      Base = ETy->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from ElaboratedType!");
+    return Base;
+  }
+
+  case Type::DependentName: {
+    // It's not always the case that we could resolve a dependent name type.
+    // For example, 
+    //   template<typename T1, typename T2>
+    //   struct AAA { typedef T2 new_type; };
+    //   template<typename T3>
+    //   struct BBB : public AAA<int, T3>::new_type { };
+    // In the above code, we can't figure out what new_type refers to 
+    // until BBB is instantiated
+    // Due to this reason, simply return NULL from here.
+    return NULL;
+  }
+
+  case Type::Typedef: {
+    const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
+    const TypedefNameDecl *TdefD = TdefTy->getDecl();
+    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
+    if ( const TemplateSpecializationType *TSTy = 
+         dyn_cast<TemplateSpecializationType>(UnderlyingTy) ) {
+      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
+      return NULL;
+    }
+    else if (dyn_cast<TemplateTypeParmType>(UnderlyingTy)) {
+      return NULL;
+    }
+    else {
+      Base = UnderlyingTy->getAsCXXRecordDecl();
+    }
+    TransAssert(Base && "Bad base class type from Typedef!");
+    return Base;
+  }
+
+  case Type::TemplateTypeParm: {
+    // Yet another case we might not know the base class, e.g.,
+    // template<typename T1> 
+    // class AAA {
+    //   struct BBB : T1 {};
+    // };
+    return NULL;
+  }
+  default:
+    Base = Ty->getAsCXXRecordDecl();
+    TransAssert(Base && "Bad base class type!");
+
+    // getAsCXXRecordDecl could return a ClassTemplateSpecializationDecl.
+    // For example:
+    //   template <class T> class AAA { };
+    //   typedef AAA<int> BBB;
+    //   class CCC : BBB { };
+    // In the above code, BBB is of type ClassTemplateSpecializationDecl
+    if (const ClassTemplateSpecializationDecl *CTSDecl =
+        dyn_cast<ClassTemplateSpecializationDecl>(Base)) {
+      Base = CTSDecl->getSpecializedTemplate()->getTemplatedDecl();
+      TransAssert(Base && 
+                  "Bad base decl from ClassTemplateSpecializationDecl!");
+    }
+  }
+
+  return Base;
+}
+
+bool Transformation::isParameterPack(const NamedDecl *ND)
+{
+  if (const NonTypeTemplateParmDecl *NonTypeD = 
+      dyn_cast<NonTypeTemplateParmDecl>(ND)) {
+    return NonTypeD->isParameterPack();
+  }
+  else if (const TemplateTypeParmDecl *TypeD = 
+             dyn_cast<TemplateTypeParmDecl>(ND)) {
+    return TypeD->isParameterPack();
+  }
+  else if (const TemplateTemplateParmDecl *TmplD = 
+             dyn_cast<TemplateTemplateParmDecl>(ND)) {
+    return TmplD->isParameterPack();
+  }
+  else {
+    TransAssert(0 && "Unknown template parameter type!");
+    return false;
+  }
+}
+
+unsigned Transformation::getNumCtorWrittenInitializers(
+           const CXXConstructorDecl &Ctor)
+{
+  unsigned Num = 0;
+  for (CXXConstructorDecl::init_const_iterator I = Ctor.init_begin(),
+       E = Ctor.init_end(); I != E; ++I) {
+    if ((*I)->isWritten())
+      Num++;
+  }
+  return Num;
 }
 
 Transformation::~Transformation(void)

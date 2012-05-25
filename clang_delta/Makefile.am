@@ -65,9 +65,12 @@ clang_delta_SOURCES = \
 	CombineLocalVarDecl.cpp \
 	CombineLocalVarDecl.h \
 	CommonParameterRewriteVisitor.h \
+	CommonRenameClassRewriteVisitor.h \
 	CommonStatementVisitor.h \
 	CopyPropagation.cpp \
 	CopyPropagation.h \
+	EmptyStructToInt.cpp \
+	EmptyStructToInt.h \
 	LiftAssignmentExpr.cpp \
 	LiftAssignmentExpr.h \
 	LocalToGlobal.cpp \
@@ -88,10 +91,16 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveBaseClass.cpp \
+	RemoveBaseClass.h \
+	RemoveCtorInitializer.cpp \
+	RemoveCtorInitializer.h \
 	RemoveNamespace.cpp \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
+	RemoveTrivialBaseTemplate.cpp \
+	RemoveTrivialBaseTemplate.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
@@ -108,6 +117,8 @@ clang_delta_SOURCES = \
 	RenameVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
+	ReplaceSimpleTypedef.cpp \
+	ReplaceSimpleTypedef.h \
 	ReturnVoid.cpp \
 	ReturnVoid.h \
 	RewriteUtils.cpp \

@@ -33,6 +33,9 @@ namespace clang {
   class DeclContext;
   class DeclarationName;
   class NestedNameSpecifier;
+  class TemplateSpecializationType;
+  class NamedDecl;
+  class CXXConstructorDecl;
 }
 
 typedef enum {
@@ -164,6 +167,17 @@ protected:
 
   const clang::DeclContext *getDeclContextFromSpecifier(
           const clang::NestedNameSpecifier *NNS);
+
+  bool isSpecialRecordDecl(const clang::RecordDecl *RD);
+
+  const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
+
+  const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
+        const clang::TemplateSpecializationType *TSTy);
+
+  bool isParameterPack(const clang::NamedDecl *ND);
+
+  unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
 
   const std::string &Name;
 

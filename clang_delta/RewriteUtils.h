@@ -42,6 +42,8 @@ namespace clang {
   class RecordDecl;
   class CXXMemberCallExpr;
   class RecordTypeLoc;
+  class CXXDestructorDecl;
+  class CXXCtorInitializer;
 }
 
 class RewriteUtils {
@@ -167,7 +169,10 @@ public:
   bool removeIfAndCond(const clang::IfStmt *IS);
 
   clang::SourceLocation getLocationUntil(clang::SourceLocation Loc,
-                                           char Symbol);
+                                         char Symbol);
+
+  clang::SourceLocation getLocationAfter(clang::SourceLocation Loc,
+                                         char Symbol);
 
   bool removeArraySubscriptExpr(const clang::Expr *E);
 
@@ -212,6 +217,12 @@ public:
 
   bool removeTextUntil(clang::SourceRange Range, char C);
 
+  bool replaceCXXDestructorDeclName(const clang::CXXDestructorDecl *DtorDecl, 
+                                    const std::string &Name);
+
+  bool removeCXXCtorInitializer(const clang::CXXCtorInitializer *Init,
+                                unsigned Index, unsigned NumInits);
+
 private:
 
   static RewriteUtils *Instance;
@@ -234,10 +245,10 @@ private:
   int getSkippingOffset(const char *Buf, char Symbol);
 
   clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
-                                           char Symbol);
+                                            char Symbol);
 
-  clang::SourceLocation getLocationAfter(clang::SourceLocation StartLoc,
-                                           char Symbol);
+  clang::SourceLocation getLocationAfterSkiping(clang::SourceLocation StartLoc,
+                                                char Symbol);
 
   unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,
