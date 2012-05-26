@@ -10,7 +10,6 @@
 
 #include "RemoveBaseClass.h"
 
-#include "llvm/ADT/DenseMap.h"
 #include "clang/Basic/SourceManager.h"
 #include "CommonRenameClassRewriteVisitor.h"
 
@@ -182,7 +181,7 @@ void RemoveBaseClass::doRewrite(void)
 {
   copyBaseClassDecls();
   removeBaseSpecifier();
-  removeBaseClassDecls();
+  RewriteHelper->removeClassDecls(TheBaseClass);
 
   // ISSUE: I didn't handle Base initializer in a Ctor's initlist.
   //        * keeping it untouched is wrong, because delegating constructors 
@@ -219,23 +218,6 @@ void RemoveBaseClass::copyBaseClassDecls(void)
   TransAssert(!DeclsStr.empty() && "Empty DeclsStr!");
   SourceLocation InsertLoc = TheDerivedClass->getRBraceLoc();
   TheRewriter.InsertTextBefore(InsertLoc, DeclsStr);
-}
-
-void RemoveBaseClass::removeBaseClassDecls(void)
-{
-  for (CXXRecordDecl::redecl_iterator I = TheBaseClass->redecls_begin(),
-      E = TheBaseClass->redecls_end(); I != E; ++I) {
-    SourceRange Range = (*I)->getSourceRange();
-    SourceLocation LocEnd;
-    if ((*I)->isThisDeclarationADefinition()) {
-      LocEnd = (*I)->getRBraceLoc();
-      LocEnd = RewriteHelper->getLocationUntil(LocEnd, ';');
-    }
-    else {
-      LocEnd = RewriteHelper->getEndLocationUntil(Range, ';');
-    }
-    TheRewriter.RemoveText(SourceRange(Range.getBegin(), LocEnd));
-  }
 }
 
 bool RemoveBaseClass::isTheBaseClass(const CXXBaseSpecifier &Specifier)
@@ -280,18 +262,6 @@ void RemoveBaseClass::removeBaseSpecifier(void)
   TransAssert(0 && "Unreachable code!");
 }
 
-unsigned RemoveBaseClass::getNumCtorWrittenInitializers(
-           const CXXConstructorDecl &Ctor)
-{
-  unsigned Num = 0;
-  for (CXXConstructorDecl::init_const_iterator I = Ctor.init_begin(),
-       E = Ctor.init_end(); I != E; ++I) {
-    if ((*I)->isWritten())
-      Num++;
-  }
-  return Num;
-}
-
 void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
 {
   unsigned Idx = 0;
@@ -312,19 +282,9 @@ void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
     }
     Idx++;
   }
-  if (!Init)
-    return;
-
-  SourceRange Range = Init->getSourceRange();
-  SourceLocation EndLoc = Init->getRParenLoc();
-  if (Idx == 0) {
-    if (getNumCtorWrittenInitializers(Ctor) == 1)
-      RewriteHelper->removeTextFromLeftAt(Range, ':', EndLoc);
-    else
-      RewriteHelper->removeTextUntil(Range, ',');
-  }
-  else {
-    RewriteHelper->removeTextFromLeftAt(Range, ',', EndLoc);
+  if (Init) {
+    RewriteHelper->removeCXXCtorInitializer(Init, Idx,
+                     getNumCtorWrittenInitializers(Ctor));
   }
 }
 

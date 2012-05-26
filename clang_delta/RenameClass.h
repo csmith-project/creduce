@@ -78,11 +78,6 @@ private:
 
   void incValidInstance(const clang::CXXRecordDecl *CXXRD);
 
-  const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
-
-  const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
-        const clang::TemplateSpecializationType *TSTy);
-
   RecordToInheritanceLevelMap RecordToLevel;
 
   InheritanceLevelToRecordsMap LevelToRecords;

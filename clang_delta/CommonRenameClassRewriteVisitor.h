@@ -12,6 +12,7 @@
 #define COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/Lex/Lexer.h"
 
 namespace clang_delta_common_visitor {
 
@@ -56,6 +57,10 @@ public:
   bool VisitClassTemplateSpecializationDecl(
          ClassTemplateSpecializationDecl *TSD);
 
+  bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
+
+  bool VisitUsingDecl(UsingDecl *D);
+
 private:
   bool getNewName(const CXXRecordDecl *CXXRD, std::string &NewName);
 
@@ -70,9 +75,43 @@ private:
   std::string NewNameStr;
 };
 
-template<typename T> bool CommonRenameClassRewriteVisitor<T>::
-  VisitClassTemplatePartialSpecializationDecl(
-    ClassTemplatePartialSpecializationDecl *D)
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::VisitUsingDecl(UsingDecl *D)
+{
+  DeclarationNameInfo NameInfo = D->getNameInfo();
+  DeclarationName DeclName = NameInfo.getName();
+  if (DeclName.getNameKind() != DeclarationName::Identifier)
+    return true;
+
+  IdentifierInfo *IdInfo = DeclName.getAsIdentifierInfo();
+  std::string IdName = IdInfo->getName();
+  std::string Name;
+  if (getNewNameByName(IdName, Name)) {
+    SourceLocation LocStart = NameInfo.getBeginLoc();
+    TheRewriter->ReplaceText(LocStart, IdName.size(), Name);
+  }
+  return true;
+}
+
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::TraverseConstructorInitializer(
+       CXXCtorInitializer *Init) 
+{
+  if (Init->isBaseInitializer() && !Init->isWritten())
+    return true;
+
+  if (TypeSourceInfo *TInfo = Init->getTypeSourceInfo())
+    getDerived().TraverseTypeLoc(TInfo->getTypeLoc());
+
+  if (Init->isWritten())
+    getDerived().TraverseStmt(Init->getInit());
+  return true;
+}
+
+template<typename T> 
+bool CommonRenameClassRewriteVisitor<T>::
+     VisitClassTemplatePartialSpecializationDecl(
+       ClassTemplatePartialSpecializationDecl *D)
 {
   const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
   TransAssert(Ty && "Bad TypePtr!");
@@ -180,8 +219,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXDestructorDecl(
 
   std::string Name;
   if (getNewName(CXXRD, Name)) {
-    Name = "~" + Name;
-    RewriteHelper->replaceFunctionDeclName(DtorDecl, Name);
+    RewriteHelper->replaceCXXDestructorDeclName(DtorDecl, Name);
   }
 
   return true;

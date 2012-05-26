@@ -82,6 +82,8 @@ public:
 
   bool VisitMemberExpr(MemberExpr *ME);
 
+  bool VisitCXXDependentScopeMemberExpr(CXXDependentScopeMemberExpr *ME);
+
 private:
 
   ReducePointerLevel *ConsumerInstance;
@@ -243,17 +245,18 @@ bool PointerLevelRewriteVisitor::VisitVarDecl(VarDecl *VD)
     const Type *ArrayElemTy = ConsumerInstance->getArrayBaseElemType(ArrayTy);
     if (!ArrayElemTy->isStructureType() && !ArrayElemTy->isUnionType())
       return true;
-    const RecordType *RDTy = ConsumerInstance->getRecordType(ArrayElemTy);
-    TransAssert(RDTy && "Bad RDTy!");
-    const RecordDecl *RD = RDTy->getDecl();
-    ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
+    if (const RecordType *RDTy = ArrayElemTy->getAs<RecordType>()) {
+      const RecordDecl *RD = RDTy->getDecl();
+      ConsumerInstance->rewriteArrayInit(RD, VD->getInit());
+    }
     return true;
   }
 
-  const RecordType *RDTy = ConsumerInstance->getRecordType(VDTy);
-  TransAssert(RDTy && "Bad RecordType!");
-  const RecordDecl *RD = RDTy->getDecl();
-  ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
+  if (const RecordType *RDTy = VDTy->getAs<RecordType>()) {
+    const RecordDecl *RD = RDTy->getDecl();
+    ConsumerInstance->rewriteRecordInit(RD, VD->getInit());
+  }
+
   return true;
 }
 
@@ -405,6 +408,21 @@ bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
   return true;
 }
 
+bool PointerLevelRewriteVisitor::VisitCXXDependentScopeMemberExpr(
+       CXXDependentScopeMemberExpr *ME)
+{
+  const Expr *Base = ME->getBase()->IgnoreParenCasts();
+  if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base)) {
+    const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(DRE->getDecl());
+    TransAssert(DD && "Bad VarDecl!");
+    if (DD == ConsumerInstance->TheDecl) {
+      ConsumerInstance->VisitedDeclRefExprs.insert(DRE);
+      ConsumerInstance->replaceArrowWithDot(ME);
+    }
+  }
+  return true;
+}
+
 void ReducePointerLevel::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
@@ -412,16 +430,9 @@ void ReducePointerLevel::Initialize(ASTContext &context)
   RewriteVisitor = new PointerLevelRewriteVisitor(this);
 }
 
-bool ReducePointerLevel::HandleTopLevelDecl(DeclGroupRef D) 
-{
-  for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    CollectionVisitor->TraverseDecl(*I);
-  }
-  return true;
-}
- 
 void ReducePointerLevel::HandleTranslationUnit(ASTContext &Ctx)
 {
+  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   doAnalysis();
   
   if (QueryInstanceOnly)
@@ -838,16 +849,6 @@ void ReducePointerLevel::rewriteVarDecl(const VarDecl *VD)
     RewriteHelper->replaceExpr(Init, NewInitStr);
 }
 
-const RecordType *ReducePointerLevel::getRecordType(const Type *T)
-{
-  if (T->isUnionType())
-    return T->getAsUnionType();
-  else if (T->isStructureType())
-    return T->getAsStructureType();
-  else
-    return NULL;
-}
-
 void ReducePointerLevel::rewriteFieldDecl(const FieldDecl *FD)
 {
   RewriteHelper->removeAStarBefore(FD); 
@@ -863,12 +864,11 @@ void ReducePointerLevel::rewriteDeclRefExpr(const DeclRefExpr *DRE)
   RewriteHelper->insertAnAddrOfBefore(DRE);
 }
 
-void ReducePointerLevel::replaceArrowWithDot(const MemberExpr *ME)
+void ReducePointerLevel::replaceArrowWithDot(const Expr *E)
 {
-  TransAssert(ME->isArrow() && "Non-arrow MemberExpr!");
   std::string ES;
-  RewriteHelper->getExprString(ME, ES);
-  SourceLocation LocStart = ME->getLocStart();
+  RewriteHelper->getExprString(E, ES);
+  SourceLocation LocStart = E->getLocStart();
   
   unsigned ArrowPos = ES.find("->");
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");

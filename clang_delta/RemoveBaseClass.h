@@ -52,15 +52,11 @@ private:
 
   void copyBaseClassDecls(void);
 
-  void removeBaseClassDecls(void);
-
   void removeBaseSpecifier(void);
 
   void removeBaseInitializer(void);
 
   void rewriteOneCtor(const clang::CXXConstructorDecl &Ctor);
-
-  unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
 
   bool isDirectlyDerivedFrom(const clang::CXXRecordDecl *SubC, 
                              const clang::CXXRecordDecl *Base);

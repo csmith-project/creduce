@@ -42,6 +42,9 @@ namespace clang {
   class RecordDecl;
   class CXXMemberCallExpr;
   class RecordTypeLoc;
+  class CXXDestructorDecl;
+  class CXXCtorInitializer;
+  class CXXRecordDecl;
 }
 
 class RewriteUtils {
@@ -214,6 +217,14 @@ public:
                             clang::SourceLocation EndLoc);
 
   bool removeTextUntil(clang::SourceRange Range, char C);
+
+  bool replaceCXXDestructorDeclName(const clang::CXXDestructorDecl *DtorDecl, 
+                                    const std::string &Name);
+
+  bool removeCXXCtorInitializer(const clang::CXXCtorInitializer *Init,
+                                unsigned Index, unsigned NumInits);
+
+  bool removeClassDecls(const clang::CXXRecordDecl *CXXRD);
 
 private:
 

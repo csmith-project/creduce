@@ -75,6 +75,11 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
+  if (const CXXOperatorCallExpr *OpE = dyn_cast<CXXOperatorCallExpr>(CallE)) {
+    if (ConsumerInstance->isInvalidOperator(OpE))
+      return true;
+  }
+
   if ((std::find(ConsumerInstance->ValidCallExprs.begin(), 
                  ConsumerInstance->ValidCallExprs.end(), CallE) 
           == ConsumerInstance->ValidCallExprs.end()) && 
@@ -185,6 +190,31 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
   }
+  else if (const CXXDependentScopeMemberExpr *ME = 
+      dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+    // handle cases where base expr or member name is dependent, e.g.,
+    // template<typename T>
+    // class S {
+    //   int f1(int p1) { return p1; };
+    //   int f2(int p2) { return p2; };
+    //   void f3(void);
+    // };
+    // template<typename T>
+    // void S<T>::f3(void)
+    // {
+    //   f1(this->f2(1));
+    // }
+    // where this->f2(1) is a CXXDependentScopeMemberExpr
+    
+    DeclarationName DName = ME->getMember();
+    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+                "Not an indentifier!");
+
+    const FunctionDecl *FD = 
+      lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
+    TransAssert(FD && "Cannot resolve DName!");
+    QT = FD->getResultType();
+  }
   else {
     QT = TheCallExpr->getCallReturnType();
   }
@@ -208,6 +238,32 @@ bool RemoveNestedFunction::addNewAssignStmt(void)
 bool RemoveNestedFunction::replaceCallExpr(void)
 {
   return RewriteHelper->replaceExpr(TheCallExpr, TmpVarName);
+}
+
+bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
+{
+  OverloadedOperatorKind K = OpE->getOperator();
+  // ISSUE: overloaded Equal-family operators cause bad recursion, 
+  //        omit it for now.
+  switch (K) {
+  case OO_Equal:
+  case OO_PlusEqual:
+  case OO_MinusEqual:
+  case OO_StarEqual:
+  case OO_SlashEqual:
+  case OO_PercentEqual:
+  case OO_CaretEqual:
+  case OO_AmpEqual:
+  case OO_PipeEqual:
+  case OO_LessLessEqual:
+  case OO_GreaterGreaterEqual:
+  case OO_ExclaimEqual:
+  case OO_LessEqual:
+  case OO_GreaterEqual: // Fall-through
+    return true;
+  default:
+    return false;
+  }
 }
 
 RemoveNestedFunction::~RemoveNestedFunction(void)
