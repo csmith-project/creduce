@@ -45,6 +45,7 @@ namespace clang {
   class CXXDestructorDecl;
   class CXXCtorInitializer;
   class CXXRecordDecl;
+  class ClassTemplateDecl;
 }
 
 class RewriteUtils {
@@ -225,6 +226,8 @@ public:
                                 unsigned Index, unsigned NumInits);
 
   bool removeClassDecls(const clang::CXXRecordDecl *CXXRD);
+
+  bool removeClassTemplateDecls(const clang::ClassTemplateDecl *TmplD);
 
 private:
 

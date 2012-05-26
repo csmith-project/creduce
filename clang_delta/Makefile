@@ -42,7 +42,7 @@ TRANSFORM_HEADERS = ParamToLocal.h ParamToGlobal.h LocalToGlobal.h ReturnVoid.h 
                     RemoveNamespace.h SimplifyDependentTypedef.h ReduceClassTemplateParameter.h \
                     ClassTemplateToClass.h RemoveBaseClass.h ReplaceSimpleTypedef.h \
                     RemoveTrivialBaseTemplate.h EmptyStructToInt.h RemoveCtorInitializer.h \
-                    RemoveUnresolvedBase.h
+                    RemoveUnresolvedBase.h ReplaceDerivedClass.h
 
 TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnVoid.cpp \
                     RemoveNestedFunction.cpp BinOpSimplification.cpp AggregateToScalar.cpp \
@@ -57,7 +57,7 @@ TRANSFORM_SOURCES = ParamToLocal.cpp ParamToGlobal.cpp LocalToGlobal.cpp ReturnV
                     RemoveNamespace.cpp SimplifyDependentTypedef.cpp ReduceClassTemplateParameter.cpp \
                     ClassTemplateToClass.cpp RemoveBaseClass.cpp ReplaceSimpleTypedef.cpp \
                     RemoveTrivialBaseTemplate.cpp EmptyStructToInt.cpp RemoveCtorInitializer.cpp \
-                    RemoveUnresolvedBase.cpp
+                    RemoveUnresolvedBase.cpp ReplaceDerivedClass.cpp
 
 TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNestedFunction.o BinOpSimplification.o AggregateToScalar.o \
@@ -72,7 +72,7 @@ TRANSFORM_OBJS = ParamToLocal.o ParamToGlobal.o LocalToGlobal.o ReturnVoid.o \
                  RemoveNamespace.o SimplifyDependentTypedef.o ReduceClassTemplateParameter.o \
                  ClassTemplateToClass.o RemoveBaseClass.o ReplaceSimpleTypedef.o \
                  RemoveTrivialBaseTemplate.o EmptyStructToInt.o RemoveCtorInitializer.o \
-                 RemoveUnresolvedBase.o
+                 RemoveUnresolvedBase.o ReplaceDerivedClass.o
 
 OBJS = ClangDelta.o \
        TransformationManager.o \
@@ -180,6 +180,8 @@ EmptyStructToInt.o: EmptyStructToInt.cpp EmptyStructToInt.h ${SUB_TRANSFORMATION
 RemoveCtorInitializer.o: RemoveCtorInitializer.cpp RemoveCtorInitializer.h ${SUB_TRANSFORMATION_DEPS}
 
 RemoveUnresolvedBase.o: RemoveUnresolvedBase.cpp RemoveUnresolvedBase.h ${SUB_TRANSFORMATION_DEPS}
+
+ReplaceDerivedClass.o: ReplaceDerivedClass.cpp ReplaceDerivedClass.h CommonRenameClassRewriteVisitor.h ${SUB_TRANSFORMATION_DEPS}
 
 clean:
 	rm -rf *.o

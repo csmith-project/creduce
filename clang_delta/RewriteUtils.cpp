@@ -1556,3 +1556,25 @@ bool RewriteUtils::removeClassDecls(const CXXRecordDecl *CXXRD)
   return true;
 }
 
+bool RewriteUtils::removeClassTemplateDecls(const ClassTemplateDecl *TmplD)
+{
+  for (ClassTemplateDecl::redecl_iterator I = TmplD->redecls_begin(),
+      E = TmplD->redecls_end(); I != E; ++I) {
+    const CXXRecordDecl *CXXRD = 
+      dyn_cast<CXXRecordDecl>((*I)->getTemplatedDecl());
+    TransAssert(CXXRD && "Invalid class template!");
+
+    SourceRange Range = (*I)->getSourceRange();
+    SourceLocation LocEnd;
+    if (CXXRD->isThisDeclarationADefinition()) {
+      LocEnd = CXXRD->getRBraceLoc();
+      LocEnd = getLocationUntil(LocEnd, ';');
+    }
+    else {
+      LocEnd = getEndLocationUntil(Range, ';');
+    }
+    TheRewriter->RemoveText(SourceRange(Range.getBegin(), LocEnd));
+  }
+  return true;
+}
+
