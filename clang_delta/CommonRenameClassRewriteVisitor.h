@@ -11,8 +11,8 @@
 #ifndef COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 #define COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 
+#include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Lex/Lexer.h"
 
 namespace clang_delta_common_visitor {
 
@@ -64,11 +64,15 @@ public:
   bool VisitUsingDecl(UsingDecl *D);
 
 private:
+  typedef llvm::SmallPtrSet<void *, 20> LocPtrSet;
+
   void renameTemplateName(TemplateName TmplName, SourceLocation LocStart);
 
   bool getNewName(const CXXRecordDecl *CXXRD, std::string &NewName);
 
   bool getNewNameByName(const std::string &Name, std::string &NewName);
+
+  LocPtrSet VisitedLocs;
 
   Rewriter *TheRewriter;
 
@@ -276,6 +280,13 @@ bool CommonRenameClassRewriteVisitor<T>::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 
   std::string Name;
   if (getNewName(RD, Name)) {
+    // Avoid duplicated rewrites to Decls from the same DeclGroup, e.g.,
+    // struct S s1, s2
+    SourceLocation LocStart = RTLoc.getLocStart();
+    void *LocPtr = LocStart.getPtrEncoding();
+    if (VisitedLocs.count(LocPtr))
+      return true;
+    VisitedLocs.insert(LocPtr);
     RewriteHelper->replaceRecordType(RTLoc, Name);
   }
   return true;
