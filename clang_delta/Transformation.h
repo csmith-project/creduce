@@ -179,7 +179,7 @@ protected:
 
   unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
 
-  const std::string &Name;
+  const std::string Name;
 
   int TransformationCounter;
 
