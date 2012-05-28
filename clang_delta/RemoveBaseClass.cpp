@@ -115,7 +115,7 @@ unsigned RemoveBaseClass::getValidNumDecls(const CXXRecordDecl *CXXRD)
   const DeclContext *Ctx = dyn_cast<DeclContext>(CXXRD);
   TransAssert(Ctx && "Invalid DeclContext!");
 
-  unsigned Num;
+  unsigned Num = 0;
   for (DeclContext::decl_iterator I = Ctx->decls_begin(),
        E = Ctx->decls_end(); I != E; ++I) {
     if (!(*I)->isImplicit())
