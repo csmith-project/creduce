@@ -411,6 +411,9 @@ bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 bool PointerLevelRewriteVisitor::VisitCXXDependentScopeMemberExpr(
        CXXDependentScopeMemberExpr *ME)
 {
+  if (ME->isImplicitAccess())
+    return true;
+
   const Expr *Base = ME->getBase()->IgnoreParenCasts();
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base)) {
     const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(DRE->getDecl());
