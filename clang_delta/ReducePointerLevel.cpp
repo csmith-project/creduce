@@ -713,6 +713,17 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
     return;
   }
 
+  // it could happen if E is call to a static method of a class
+  case Expr::CallExprClass: {
+    const CallExpr *CE = dyn_cast<CallExpr>(E);
+    const FunctionDecl *FD = CE->getDirectCallee();
+    TransAssert(FD && "Invalid Function Decl!");
+    const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FD); (void)MDecl;
+    TransAssert(MDecl->isStatic() && "Non static CXXMethodDecl!");
+    InitStr = "";
+    return;
+  }
+
   default:
     TransAssert(0 && "Uncatched initializer!");
   }
