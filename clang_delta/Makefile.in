@@ -62,6 +62,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-CombineGlobalVarDecl.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
 	clang_delta-CopyPropagation.$(OBJEXT) \
+	clang_delta-EmptyStructToInt.$(OBJEXT) \
 	clang_delta-LiftAssignmentExpr.$(OBJEXT) \
 	clang_delta-LocalToGlobal.$(OBJEXT) \
 	clang_delta-MoveFunctionBody.$(OBJEXT) \
@@ -72,8 +73,12 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReduceArraySize.$(OBJEXT) \
 	clang_delta-ReduceClassTemplateParameter.$(OBJEXT) \
 	clang_delta-ReducePointerLevel.$(OBJEXT) \
+	clang_delta-RemoveBaseClass.$(OBJEXT) \
+	clang_delta-RemoveCtorInitializer.$(OBJEXT) \
 	clang_delta-RemoveNamespace.$(OBJEXT) \
 	clang_delta-RemoveNestedFunction.$(OBJEXT) \
+	clang_delta-RemoveTrivialBaseTemplate.$(OBJEXT) \
+	clang_delta-RemoveUnresolvedBase.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
 	clang_delta-RemoveUnusedStructField.$(OBJEXT) \
 	clang_delta-RemoveUnusedVar.$(OBJEXT) \
@@ -82,6 +87,8 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RenameParam.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
 	clang_delta-ReplaceCallExpr.$(OBJEXT) \
+	clang_delta-ReplaceDerivedClass.$(OBJEXT) \
+	clang_delta-ReplaceSimpleTypedef.$(OBJEXT) \
 	clang_delta-ReturnVoid.$(OBJEXT) \
 	clang_delta-RewriteUtils.$(OBJEXT) \
 	clang_delta-SimpleInliner.$(OBJEXT) \
@@ -305,9 +312,12 @@ clang_delta_SOURCES = \
 	CombineLocalVarDecl.cpp \
 	CombineLocalVarDecl.h \
 	CommonParameterRewriteVisitor.h \
+	CommonRenameClassRewriteVisitor.h \
 	CommonStatementVisitor.h \
 	CopyPropagation.cpp \
 	CopyPropagation.h \
+	EmptyStructToInt.cpp \
+	EmptyStructToInt.h \
 	LiftAssignmentExpr.cpp \
 	LiftAssignmentExpr.h \
 	LocalToGlobal.cpp \
@@ -328,10 +338,18 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveBaseClass.cpp \
+	RemoveBaseClass.h \
+	RemoveCtorInitializer.cpp \
+	RemoveCtorInitializer.h \
 	RemoveNamespace.cpp \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
+	RemoveTrivialBaseTemplate.cpp \
+	RemoveTrivialBaseTemplate.h \
+	RemoveUnresolvedBase.cpp \
+	RemoveUnresolvedBase.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
@@ -348,6 +366,10 @@ clang_delta_SOURCES = \
 	RenameVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
+	ReplaceDerivedClass.cpp \
+	ReplaceDerivedClass.h \
+	ReplaceSimpleTypedef.cpp \
+	ReplaceSimpleTypedef.h \
 	ReturnVoid.cpp \
 	ReturnVoid.h \
 	RewriteUtils.cpp \
@@ -473,6 +495,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineGlobalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CopyPropagation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-EmptyStructToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-LiftAssignmentExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-LocalToGlobal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-MoveFunctionBody.Po@am__quote@
@@ -483,8 +506,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArraySize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerLevel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveBaseClass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveCtorInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNestedFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedStructField.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedVar.Po@am__quote@
@@ -493,6 +520,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameParam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceCallExpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDerivedClass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReturnVoid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RewriteUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimpleInliner.Po@am__quote@
@@ -639,6 +668,20 @@ clang_delta-CopyPropagation.obj: CopyPropagation.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-CopyPropagation.obj `if test -f 'CopyPropagation.cpp'; then $(CYGPATH_W) 'CopyPropagation.cpp'; else $(CYGPATH_W) '$(srcdir)/CopyPropagation.cpp'; fi`
 
+clang_delta-EmptyStructToInt.o: EmptyStructToInt.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-EmptyStructToInt.o -MD -MP -MF $(DEPDIR)/clang_delta-EmptyStructToInt.Tpo -c -o clang_delta-EmptyStructToInt.o `test -f 'EmptyStructToInt.cpp' || echo '$(srcdir)/'`EmptyStructToInt.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-EmptyStructToInt.Tpo $(DEPDIR)/clang_delta-EmptyStructToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='EmptyStructToInt.cpp' object='clang_delta-EmptyStructToInt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-EmptyStructToInt.o `test -f 'EmptyStructToInt.cpp' || echo '$(srcdir)/'`EmptyStructToInt.cpp
+
+clang_delta-EmptyStructToInt.obj: EmptyStructToInt.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-EmptyStructToInt.obj -MD -MP -MF $(DEPDIR)/clang_delta-EmptyStructToInt.Tpo -c -o clang_delta-EmptyStructToInt.obj `if test -f 'EmptyStructToInt.cpp'; then $(CYGPATH_W) 'EmptyStructToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/EmptyStructToInt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-EmptyStructToInt.Tpo $(DEPDIR)/clang_delta-EmptyStructToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='EmptyStructToInt.cpp' object='clang_delta-EmptyStructToInt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-EmptyStructToInt.obj `if test -f 'EmptyStructToInt.cpp'; then $(CYGPATH_W) 'EmptyStructToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/EmptyStructToInt.cpp'; fi`
+
 clang_delta-LiftAssignmentExpr.o: LiftAssignmentExpr.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-LiftAssignmentExpr.o -MD -MP -MF $(DEPDIR)/clang_delta-LiftAssignmentExpr.Tpo -c -o clang_delta-LiftAssignmentExpr.o `test -f 'LiftAssignmentExpr.cpp' || echo '$(srcdir)/'`LiftAssignmentExpr.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-LiftAssignmentExpr.Tpo $(DEPDIR)/clang_delta-LiftAssignmentExpr.Po
@@ -779,6 +822,34 @@ clang_delta-ReducePointerLevel.obj: ReducePointerLevel.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerLevel.obj `if test -f 'ReducePointerLevel.cpp'; then $(CYGPATH_W) 'ReducePointerLevel.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerLevel.cpp'; fi`
 
+clang_delta-RemoveBaseClass.o: RemoveBaseClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveBaseClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo -c -o clang_delta-RemoveBaseClass.o `test -f 'RemoveBaseClass.cpp' || echo '$(srcdir)/'`RemoveBaseClass.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo $(DEPDIR)/clang_delta-RemoveBaseClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveBaseClass.cpp' object='clang_delta-RemoveBaseClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveBaseClass.o `test -f 'RemoveBaseClass.cpp' || echo '$(srcdir)/'`RemoveBaseClass.cpp
+
+clang_delta-RemoveBaseClass.obj: RemoveBaseClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveBaseClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo -c -o clang_delta-RemoveBaseClass.obj `if test -f 'RemoveBaseClass.cpp'; then $(CYGPATH_W) 'RemoveBaseClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveBaseClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo $(DEPDIR)/clang_delta-RemoveBaseClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveBaseClass.cpp' object='clang_delta-RemoveBaseClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveBaseClass.obj `if test -f 'RemoveBaseClass.cpp'; then $(CYGPATH_W) 'RemoveBaseClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveBaseClass.cpp'; fi`
+
+clang_delta-RemoveCtorInitializer.o: RemoveCtorInitializer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveCtorInitializer.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveCtorInitializer.Tpo -c -o clang_delta-RemoveCtorInitializer.o `test -f 'RemoveCtorInitializer.cpp' || echo '$(srcdir)/'`RemoveCtorInitializer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveCtorInitializer.Tpo $(DEPDIR)/clang_delta-RemoveCtorInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveCtorInitializer.cpp' object='clang_delta-RemoveCtorInitializer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveCtorInitializer.o `test -f 'RemoveCtorInitializer.cpp' || echo '$(srcdir)/'`RemoveCtorInitializer.cpp
+
+clang_delta-RemoveCtorInitializer.obj: RemoveCtorInitializer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveCtorInitializer.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveCtorInitializer.Tpo -c -o clang_delta-RemoveCtorInitializer.obj `if test -f 'RemoveCtorInitializer.cpp'; then $(CYGPATH_W) 'RemoveCtorInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveCtorInitializer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveCtorInitializer.Tpo $(DEPDIR)/clang_delta-RemoveCtorInitializer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveCtorInitializer.cpp' object='clang_delta-RemoveCtorInitializer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveCtorInitializer.obj `if test -f 'RemoveCtorInitializer.cpp'; then $(CYGPATH_W) 'RemoveCtorInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveCtorInitializer.cpp'; fi`
+
 clang_delta-RemoveNamespace.o: RemoveNamespace.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveNamespace.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveNamespace.Tpo -c -o clang_delta-RemoveNamespace.o `test -f 'RemoveNamespace.cpp' || echo '$(srcdir)/'`RemoveNamespace.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveNamespace.Tpo $(DEPDIR)/clang_delta-RemoveNamespace.Po
@@ -806,6 +877,34 @@ clang_delta-RemoveNestedFunction.obj: RemoveNestedFunction.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveNestedFunction.cpp' object='clang_delta-RemoveNestedFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveNestedFunction.obj `if test -f 'RemoveNestedFunction.cpp'; then $(CYGPATH_W) 'RemoveNestedFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveNestedFunction.cpp'; fi`
+
+clang_delta-RemoveTrivialBaseTemplate.o: RemoveTrivialBaseTemplate.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveTrivialBaseTemplate.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Tpo -c -o clang_delta-RemoveTrivialBaseTemplate.o `test -f 'RemoveTrivialBaseTemplate.cpp' || echo '$(srcdir)/'`RemoveTrivialBaseTemplate.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Tpo $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveTrivialBaseTemplate.cpp' object='clang_delta-RemoveTrivialBaseTemplate.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveTrivialBaseTemplate.o `test -f 'RemoveTrivialBaseTemplate.cpp' || echo '$(srcdir)/'`RemoveTrivialBaseTemplate.cpp
+
+clang_delta-RemoveTrivialBaseTemplate.obj: RemoveTrivialBaseTemplate.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveTrivialBaseTemplate.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Tpo -c -o clang_delta-RemoveTrivialBaseTemplate.obj `if test -f 'RemoveTrivialBaseTemplate.cpp'; then $(CYGPATH_W) 'RemoveTrivialBaseTemplate.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveTrivialBaseTemplate.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Tpo $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveTrivialBaseTemplate.cpp' object='clang_delta-RemoveTrivialBaseTemplate.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveTrivialBaseTemplate.obj `if test -f 'RemoveTrivialBaseTemplate.cpp'; then $(CYGPATH_W) 'RemoveTrivialBaseTemplate.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveTrivialBaseTemplate.cpp'; fi`
+
+clang_delta-RemoveUnresolvedBase.o: RemoveUnresolvedBase.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnresolvedBase.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Tpo -c -o clang_delta-RemoveUnresolvedBase.o `test -f 'RemoveUnresolvedBase.cpp' || echo '$(srcdir)/'`RemoveUnresolvedBase.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Tpo $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnresolvedBase.cpp' object='clang_delta-RemoveUnresolvedBase.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnresolvedBase.o `test -f 'RemoveUnresolvedBase.cpp' || echo '$(srcdir)/'`RemoveUnresolvedBase.cpp
+
+clang_delta-RemoveUnresolvedBase.obj: RemoveUnresolvedBase.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnresolvedBase.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Tpo -c -o clang_delta-RemoveUnresolvedBase.obj `if test -f 'RemoveUnresolvedBase.cpp'; then $(CYGPATH_W) 'RemoveUnresolvedBase.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnresolvedBase.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Tpo $(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnresolvedBase.cpp' object='clang_delta-RemoveUnresolvedBase.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnresolvedBase.obj `if test -f 'RemoveUnresolvedBase.cpp'; then $(CYGPATH_W) 'RemoveUnresolvedBase.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnresolvedBase.cpp'; fi`
 
 clang_delta-RemoveUnusedFunction.o: RemoveUnusedFunction.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedFunction.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedFunction.Tpo -c -o clang_delta-RemoveUnusedFunction.o `test -f 'RemoveUnusedFunction.cpp' || echo '$(srcdir)/'`RemoveUnusedFunction.cpp
@@ -918,6 +1017,34 @@ clang_delta-ReplaceCallExpr.obj: ReplaceCallExpr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceCallExpr.cpp' object='clang_delta-ReplaceCallExpr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceCallExpr.obj `if test -f 'ReplaceCallExpr.cpp'; then $(CYGPATH_W) 'ReplaceCallExpr.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceCallExpr.cpp'; fi`
+
+clang_delta-ReplaceDerivedClass.o: ReplaceDerivedClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceDerivedClass.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceDerivedClass.Tpo -c -o clang_delta-ReplaceDerivedClass.o `test -f 'ReplaceDerivedClass.cpp' || echo '$(srcdir)/'`ReplaceDerivedClass.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceDerivedClass.Tpo $(DEPDIR)/clang_delta-ReplaceDerivedClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceDerivedClass.cpp' object='clang_delta-ReplaceDerivedClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceDerivedClass.o `test -f 'ReplaceDerivedClass.cpp' || echo '$(srcdir)/'`ReplaceDerivedClass.cpp
+
+clang_delta-ReplaceDerivedClass.obj: ReplaceDerivedClass.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceDerivedClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceDerivedClass.Tpo -c -o clang_delta-ReplaceDerivedClass.obj `if test -f 'ReplaceDerivedClass.cpp'; then $(CYGPATH_W) 'ReplaceDerivedClass.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceDerivedClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceDerivedClass.Tpo $(DEPDIR)/clang_delta-ReplaceDerivedClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceDerivedClass.cpp' object='clang_delta-ReplaceDerivedClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceDerivedClass.obj `if test -f 'ReplaceDerivedClass.cpp'; then $(CYGPATH_W) 'ReplaceDerivedClass.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceDerivedClass.cpp'; fi`
+
+clang_delta-ReplaceSimpleTypedef.o: ReplaceSimpleTypedef.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceSimpleTypedef.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Tpo -c -o clang_delta-ReplaceSimpleTypedef.o `test -f 'ReplaceSimpleTypedef.cpp' || echo '$(srcdir)/'`ReplaceSimpleTypedef.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Tpo $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceSimpleTypedef.cpp' object='clang_delta-ReplaceSimpleTypedef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceSimpleTypedef.o `test -f 'ReplaceSimpleTypedef.cpp' || echo '$(srcdir)/'`ReplaceSimpleTypedef.cpp
+
+clang_delta-ReplaceSimpleTypedef.obj: ReplaceSimpleTypedef.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceSimpleTypedef.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Tpo -c -o clang_delta-ReplaceSimpleTypedef.obj `if test -f 'ReplaceSimpleTypedef.cpp'; then $(CYGPATH_W) 'ReplaceSimpleTypedef.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceSimpleTypedef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Tpo $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceSimpleTypedef.cpp' object='clang_delta-ReplaceSimpleTypedef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceSimpleTypedef.obj `if test -f 'ReplaceSimpleTypedef.cpp'; then $(CYGPATH_W) 'ReplaceSimpleTypedef.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceSimpleTypedef.cpp'; fi`
 
 clang_delta-ReturnVoid.o: ReturnVoid.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReturnVoid.o -MD -MP -MF $(DEPDIR)/clang_delta-ReturnVoid.Tpo -c -o clang_delta-ReturnVoid.o `test -f 'ReturnVoid.cpp' || echo '$(srcdir)/'`ReturnVoid.cpp

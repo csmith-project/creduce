@@ -1542,3 +1542,43 @@ bool RewriteUtils::removeCXXCtorInitializer(const CXXCtorInitializer *Init,
   }
 }
 
+bool RewriteUtils::removeClassDecls(const CXXRecordDecl *CXXRD)
+{
+  for (CXXRecordDecl::redecl_iterator I = CXXRD->redecls_begin(),
+      E = CXXRD->redecls_end(); I != E; ++I) {
+    SourceRange Range = (*I)->getSourceRange();
+    SourceLocation LocEnd;
+    if ((*I)->isThisDeclarationADefinition()) {
+      LocEnd = (*I)->getRBraceLoc();
+      LocEnd = getLocationUntil(LocEnd, ';');
+    }
+    else {
+      LocEnd = getEndLocationUntil(Range, ';');
+    }
+    TheRewriter->RemoveText(SourceRange(Range.getBegin(), LocEnd));
+  }
+  return true;
+}
+
+bool RewriteUtils::removeClassTemplateDecls(const ClassTemplateDecl *TmplD)
+{
+  for (ClassTemplateDecl::redecl_iterator I = TmplD->redecls_begin(),
+      E = TmplD->redecls_end(); I != E; ++I) {
+    const CXXRecordDecl *CXXRD = 
+      dyn_cast<CXXRecordDecl>((*I)->getTemplatedDecl());
+    TransAssert(CXXRD && "Invalid class template!");
+
+    SourceRange Range = (*I)->getSourceRange();
+    SourceLocation LocEnd;
+    if (CXXRD->isThisDeclarationADefinition()) {
+      LocEnd = CXXRD->getRBraceLoc();
+      LocEnd = getLocationUntil(LocEnd, ';');
+    }
+    else {
+      LocEnd = getEndLocationUntil(Range, ';');
+    }
+    TheRewriter->RemoveText(SourceRange(Range.getBegin(), LocEnd));
+  }
+  return true;
+}
+

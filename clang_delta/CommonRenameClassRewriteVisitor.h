@@ -11,8 +11,8 @@
 #ifndef COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 #define COMMON_RENAME_CLASS_REWRITE_VISITOR_H
 
+#include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
-#include "clang/Lex/Lexer.h"
 
 namespace clang_delta_common_visitor {
 
@@ -48,6 +48,8 @@ public:
   bool VisitTemplateSpecializationTypeLoc(
          TemplateSpecializationTypeLoc TSPLoc);
 
+  bool TraverseTemplateArgumentLoc(const TemplateArgumentLoc &ArgLoc);
+
   bool VisitDependentTemplateSpecializationTypeLoc(
          DependentTemplateSpecializationTypeLoc DTSLoc);
 
@@ -62,9 +64,15 @@ public:
   bool VisitUsingDecl(UsingDecl *D);
 
 private:
+  typedef llvm::SmallPtrSet<void *, 20> LocPtrSet;
+
+  void renameTemplateName(TemplateName TmplName, SourceLocation LocStart);
+
   bool getNewName(const CXXRecordDecl *CXXRD, std::string &NewName);
 
   bool getNewNameByName(const std::string &Name, std::string &NewName);
+
+  LocPtrSet VisitedLocs;
 
   Rewriter *TheRewriter;
 
@@ -272,6 +280,13 @@ bool CommonRenameClassRewriteVisitor<T>::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 
   std::string Name;
   if (getNewName(RD, Name)) {
+    // Avoid duplicated rewrites to Decls from the same DeclGroup, e.g.,
+    // struct S s1, s2
+    SourceLocation LocStart = RTLoc.getLocStart();
+    void *LocPtr = LocStart.getPtrEncoding();
+    if (VisitedLocs.count(LocPtr))
+      return true;
+    VisitedLocs.insert(LocPtr);
     RewriteHelper->replaceRecordType(RTLoc, Name);
   }
   return true;
@@ -298,18 +313,12 @@ template<typename T> bool CommonRenameClassRewriteVisitor<T>::
 }
 
 template<typename T>
-bool CommonRenameClassRewriteVisitor<T>::VisitTemplateSpecializationTypeLoc(
-       TemplateSpecializationTypeLoc TSPLoc)
+void CommonRenameClassRewriteVisitor<T>::renameTemplateName(
+       TemplateName TmplName, SourceLocation LocStart)
 {
-  const Type *Ty = TSPLoc.getTypePtr();
-  const TemplateSpecializationType *TST = 
-    dyn_cast<TemplateSpecializationType>(Ty);
-  TransAssert(TST && "Bad TemplateSpecializationType!");
-
-  TemplateName TplName = TST->getTemplateName();
-  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-  TransAssert(TplD && "Invalid TemplateDecl!");
-  NamedDecl *ND = TplD->getTemplatedDecl();
+  const TemplateDecl *TmplD = TmplName.getAsTemplateDecl();
+  TransAssert(TmplD && "Invalid TemplateDecl!");
+  NamedDecl *ND = TmplD->getTemplatedDecl();
   // in some cases, ND could be NULL, e.g., the 
   // template template parameter code below:
   // template<template<class> class BBB>
@@ -321,17 +330,76 @@ bool CommonRenameClassRewriteVisitor<T>::VisitTemplateSpecializationTypeLoc(
   // };
   // where we don't know BBB
   if (!ND)
-    return true;
+    return;
 
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
   if (!CXXRD)
-    return true;
+    return;
 
   std::string Name;
   if (getNewName(CXXRD, Name)) {
-    SourceLocation LocStart = TSPLoc.getTemplateNameLoc();
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
   }
+}
+
+// ISSUE: we don't have loc info for TemplateName, so we have to
+//        overload RecursiveASTVisitor TraverseTemplateArgumentLoc
+//        function, or else we will omit arguments for template template
+//        parameters
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::TraverseTemplateArgumentLoc(
+       const TemplateArgumentLoc &ArgLoc) 
+{
+  const TemplateArgument &Arg = ArgLoc.getArgument();
+
+  switch (Arg.getKind()) {
+  case TemplateArgument::Null:
+  case TemplateArgument::Declaration:
+  case TemplateArgument::Integral:
+    return true;
+
+  case TemplateArgument::Type: {
+    if (TypeSourceInfo *TSI = ArgLoc.getTypeSourceInfo())
+      return getDerived().TraverseTypeLoc(TSI->getTypeLoc());
+    else
+      return getDerived().TraverseType(Arg.getAsType());
+  }
+
+  case TemplateArgument::Template:
+  case TemplateArgument::TemplateExpansion: {
+    if (ArgLoc.getTemplateQualifierLoc()) {
+      getDerived().TraverseNestedNameSpecifierLoc(
+                                            ArgLoc.getTemplateQualifierLoc());
+    }
+
+    TemplateName TmplName = Arg.getAsTemplateOrTemplatePattern();
+    getDerived().TraverseTemplateName(Arg.getAsTemplateOrTemplatePattern());
+    renameTemplateName(TmplName, ArgLoc.getLocation());
+    return true;
+  }
+
+  case TemplateArgument::Expression:
+    return getDerived().TraverseStmt(ArgLoc.getSourceExpression());
+
+  case TemplateArgument::Pack:
+    return getDerived().TraverseTemplateArguments(Arg.pack_begin(),
+                                                  Arg.pack_size());
+  }
+
+  return true;
+}
+
+template<typename T>
+bool CommonRenameClassRewriteVisitor<T>::VisitTemplateSpecializationTypeLoc(
+       TemplateSpecializationTypeLoc TSPLoc)
+{
+  const Type *Ty = TSPLoc.getTypePtr();
+  const TemplateSpecializationType *TST = 
+    dyn_cast<TemplateSpecializationType>(Ty);
+  TransAssert(TST && "Bad TemplateSpecializationType!");
+
+  TemplateName TmplName = TST->getTemplateName();
+  renameTemplateName(TmplName, TSPLoc.getTemplateNameLoc());
   return true;
 }
 

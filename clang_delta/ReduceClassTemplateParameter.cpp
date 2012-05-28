@@ -139,8 +139,14 @@ bool ReduceClassTemplateParameterRewriteVisitor::
     return true;
 
   unsigned NumArgs = Loc.getNumArgs();
-  if ((ConsumerInstance->TheParameterIndex >= NumArgs) && 
-      ConsumerInstance->hasDefaultArg)
+  // I would put a stronger assert here, i.e., 
+  // " (ConsumerInstance->TheParameterIndex >= NumArgs) && 
+  // ConsumerInstance->hasDefaultArg "
+  // but sometimes ill-formed input could yield incomplete
+  // info, e.g., for two template decls which refer to the same
+  // template def, one decl could have a non-null default arg,
+  // while another decl's default arg field could be null. 
+  if (ConsumerInstance->TheParameterIndex >= NumArgs)
     return true;
 
   TransAssert((ConsumerInstance->TheParameterIndex < NumArgs) &&

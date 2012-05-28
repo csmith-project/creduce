@@ -40,10 +40,10 @@ sub transform ($$$) {
 	} else {
             my $tmpfile2 = $tmpfile;
             $tmpfile2 =~ s/\//_/g;
-            $tmpfile2 = "clang_delta_crash${tmpfile2}";
+            $tmpfile2 = "clang_delta_crash${tmpfile2}.c";
 	    system "cp $cfile $tmpfile2";
 	    open TMPF, ">>$tmpfile2";
-	    print TMPF "\n\n$cmd\n";
+	    print TMPF "\n\n\/\/ $cmd\n";
 	    close TMPF;
 	    print "\n\n=======================================\n\n";
 	    print "OOPS: clang_delta crashed; please consider\n";

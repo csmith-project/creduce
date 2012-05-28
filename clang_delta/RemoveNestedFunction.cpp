@@ -80,7 +80,7 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
   if (const CXXOperatorCallExpr *OpE = dyn_cast<CXXOperatorCallExpr>(CallE)) {
-    if (ConsumerInstance->isInvalidOperator(OpE));
+    if (ConsumerInstance->isInvalidOperator(OpE))
       return true;
   }
 

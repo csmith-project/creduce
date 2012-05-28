@@ -101,6 +101,8 @@ clang_delta_SOURCES = \
 	RemoveNestedFunction.h \
 	RemoveTrivialBaseTemplate.cpp \
 	RemoveTrivialBaseTemplate.h \
+	RemoveUnresolvedBase.cpp \
+	RemoveUnresolvedBase.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
@@ -117,6 +119,8 @@ clang_delta_SOURCES = \
 	RenameVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
+	ReplaceDerivedClass.cpp \
+	ReplaceDerivedClass.h \
 	ReplaceSimpleTypedef.cpp \
 	ReplaceSimpleTypedef.h \
 	ReturnVoid.cpp \

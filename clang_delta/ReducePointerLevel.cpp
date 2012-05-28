@@ -415,6 +415,9 @@ bool PointerLevelRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 bool PointerLevelRewriteVisitor::VisitCXXDependentScopeMemberExpr(
        CXXDependentScopeMemberExpr *ME)
 {
+  if (ME->isImplicitAccess())
+    return true;
+
   const Expr *Base = ME->getBase()->IgnoreParenCasts();
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Base)) {
     const DeclaratorDecl *DD = dyn_cast<DeclaratorDecl>(DRE->getDecl());
@@ -711,6 +714,17 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
   case Expr::DeclRefExprClass: {
     const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
     copyInitStr(DRE, InitStr);
+    return;
+  }
+
+  // it could happen if E is call to a static method of a class
+  case Expr::CallExprClass: {
+    const CallExpr *CE = dyn_cast<CallExpr>(E);
+    const FunctionDecl *FD = CE->getDirectCallee();
+    TransAssert(FD && "Invalid Function Decl!");
+    const CXXMethodDecl *MDecl = dyn_cast<CXXMethodDecl>(FD); (void)MDecl;
+    TransAssert(MDecl->isStatic() && "Non static CXXMethodDecl!");
+    InitStr = "";
     return;
   }
 
