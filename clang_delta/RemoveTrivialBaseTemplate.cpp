@@ -8,6 +8,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "RemoveTrivialBaseTemplate.h"
 
 #include "clang/Basic/SourceManager.h"
