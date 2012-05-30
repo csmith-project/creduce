@@ -5,8 +5,12 @@ use File::Temp qw/ tempfile tempdir /;
 use Cwd;
 
 my @tests = (
-    { "name" => "test1",
+    { "name" => "test0",
       "unreduced" => "file1.c",
+      "test_script" => "test0.sh",
+    },
+    { "name" => "test1",
+      "unreduced" => "file2.c",
       "test_script" => "test1.sh",
     },
     { "name" => "test2",
@@ -26,16 +30,12 @@ my @tests = (
       "test_script" => "test5.sh",
     },
     { "name" => "test6",
-      "unreduced" => "file2.c",
+      "unreduced" => "file3.c",
       "test_script" => "test6.sh",
     },
     { "name" => "test7",
       "unreduced" => "file3.c",
       "test_script" => "test7.sh",
-    },
-    { "name" => "test8",
-      "unreduced" => "file3.c",
-      "test_script" => "test8.sh",
     },
     );
 
@@ -72,7 +72,7 @@ if (scalar(@ARGV)>0) {
 	run_test ($i);
     }
 } else {
-    for (my $i=1; $i<=scalar(@tests); $i++) {
+    for (my $i=0; $i<scalar(@tests); $i++) {
 	run_test ($i);
     }
 }
