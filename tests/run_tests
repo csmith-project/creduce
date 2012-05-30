@@ -72,7 +72,7 @@ if (scalar(@ARGV)>0) {
 	run_test ($i);
     }
 } else {
-    for (my $i=0; $i<scalar(@tests); $i++) {
+    for (my $i=1; $i<=scalar(@tests); $i++) {
 	run_test ($i);
     }
 }
