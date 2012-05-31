@@ -24,6 +24,21 @@ dist_noinst_DATA = \
 	file2.c \
 	file3.c
 
+###
+
+# The following rules are for the convenience of people who want to run tests
+# in a separate build tree.
+#
+all-local:
+	for f in $(dist_noinst_SCRIPTS) $(dist_noinst_DATA); do \
+	  test -e "$$f" || ln -s "$(srcdir)/$$f" "$$f"; \
+	done
+
+clean-local:
+	for f in $(dist_noinst_SCRIPTS) $(dist_noinst_DATA); do \
+	  test \! -L "$$f" || rm -f "$$f"; \
+	done
+
 ###############################################################################
 
 ## End of file.
