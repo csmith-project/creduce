@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+## -*- mode: Perl -*-
 
 package pass_indent;
 

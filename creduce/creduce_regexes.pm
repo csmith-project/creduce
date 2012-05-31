@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+## -*- mode: Perl -*-
 
 package creduce_regexes;
 

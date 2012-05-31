@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+## -*- mode: Perl -*-
 
 # this pass is really dumb, but it does a lot of work and is hard to
 # replace...
