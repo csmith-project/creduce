@@ -664,6 +664,9 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+TOPFORMFLAT
+INDENT
+ASTYLE
 PERL
 MAINT
 MAINTAINER_MODE_FALSE
@@ -2942,8 +2945,149 @@ if test "x$PERL" = "xno"; then :
   as_fn_error $? "a Perl interpreter was not found" "$LINENO" 5
 fi
 
-# In the future, check for other prerequisites: Berkeley Delta, Perl modules,
-# and so on.  Maybe only warn if they are not found?
+# Check for the run-time prerequisites of C-Reduce passes.  We only warn the
+# user when these are not found at configure time.  Let the user install the
+# dependencies later.
+#
+missing_runtime_prereq=no
+#
+# creduce/pass_indent.pm
+# Extract the first word of "astyle", so it can be a program name with args.
+set dummy astyle; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ASTYLE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ASTYLE in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ASTYLE="$ASTYLE" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_ASTYLE="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_ASTYLE" && ac_cv_path_ASTYLE="no"
+  ;;
+esac
+fi
+ASTYLE=$ac_cv_path_ASTYLE
+if test -n "$ASTYLE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ASTYLE" >&5
+$as_echo "$ASTYLE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$ASTYLE" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+# Extract the first word of "indent", so it can be a program name with args.
+set dummy indent; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_INDENT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $INDENT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_INDENT="$INDENT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_INDENT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_INDENT" && ac_cv_path_INDENT="no"
+  ;;
+esac
+fi
+INDENT=$ac_cv_path_INDENT
+if test -n "$INDENT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $INDENT" >&5
+$as_echo "$INDENT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$INDENT" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+#
+# creduce/pass_lines.pm
+# Extract the first word of "topformflat", so it can be a program name with args.
+set dummy topformflat; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_TOPFORMFLAT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $TOPFORMFLAT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TOPFORMFLAT="$TOPFORMFLAT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_TOPFORMFLAT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_TOPFORMFLAT" && ac_cv_path_TOPFORMFLAT="no"
+  ;;
+esac
+fi
+TOPFORMFLAT=$ac_cv_path_TOPFORMFLAT
+if test -n "$TOPFORMFLAT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TOPFORMFLAT" >&5
+$as_echo "$TOPFORMFLAT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$TOPFORMFLAT" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+#
+# In the future, check for other prerequisites: Perl modules.
 
 ###############################################################################
 ## clang_delta
@@ -17922,6 +18066,41 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+###############################################################################
+
+# Warn about things that will be needed at run time, but which we did not find
+# at configure time.
+#
+if test "$missing_runtime_prereq" = "yes"; then :
+  $as_echo "## ------------------------------------------------------------------------ ##
+## WARNING: You cannot run C-Reduce until you install missing dependencies! ##
+## ------------------------------------------------------------------------ ##"
+fi
+
+if test "x$ASTYLE" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Artistic Style before running C-Reduce" >&5
+$as_echo "$as_me: WARNING: You must install Artistic Style before running C-Reduce" >&2;}
+
+fi
+if test "x$INDENT" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install GNU Indent before running C-Reduce" >&5
+$as_echo "$as_me: WARNING: You must install GNU Indent before running C-Reduce" >&2;}
+
+fi
+if test "x$TOPFORMFLAT" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Berkeley Delta before running C-Reduce" >&5
+$as_echo "$as_me: WARNING: You must install Berkeley Delta before running C-Reduce" >&2;}
+
+fi
+
+if test "$missing_runtime_prereq" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Read the INSTALL file for info about C-Reduce dependencies" >&5
+$as_echo "$as_me: WARNING: Read the INSTALL file for info about C-Reduce dependencies" >&2;}
+fi
 
 ###############################################################################
 

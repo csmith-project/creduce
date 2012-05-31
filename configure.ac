@@ -36,8 +36,23 @@ AC_PATH_PROG([PERL], [perl], [no])
 AS_IF([test "x$PERL" = "xno"],
       [AC_MSG_ERROR([a Perl interpreter was not found])])
 
-# In the future, check for other prerequisites: Berkeley Delta, Perl modules,
-# and so on.  Maybe only warn if they are not found?
+# Check for the run-time prerequisites of C-Reduce passes.  We only warn the
+# user when these are not found at configure time.  Let the user install the
+# dependencies later.
+#
+missing_runtime_prereq=no
+#
+# creduce/pass_indent.pm
+AC_PATH_PROG([ASTYLE], [astyle], [no])
+AS_IF([test "x$ASTYLE" = "xno"], [missing_runtime_prereq=yes])
+AC_PATH_PROG([INDENT], [indent], [no])
+AS_IF([test "x$INDENT" = "xno"], [missing_runtime_prereq=yes])
+#
+# creduce/pass_lines.pm
+AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
+AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_runtime_prereq=yes])
+#
+# In the future, check for other prerequisites: Perl modules.
 
 ###############################################################################
 ## clang_delta
@@ -79,6 +94,30 @@ AC_OUTPUT(
   scripts/Makefile
   tests/Makefile
 )
+
+###############################################################################
+
+# Warn about things that will be needed at run time, but which we did not find
+# at configure time.
+#
+AS_IF([test "$missing_runtime_prereq" = "yes"],
+  AS_BOX([WARNING: You cannot run C-Reduce until you install missing dependencies!]))
+
+AS_IF([test "x$ASTYLE" = "xno"],
+  [
+    AC_MSG_WARN([You must install Artistic Style before running C-Reduce])
+  ])
+AS_IF([test "x$INDENT" = "xno"],
+  [
+    AC_MSG_WARN([You must install GNU Indent before running C-Reduce])
+  ])
+AS_IF([test "x$TOPFORMFLAT" = "xno"],
+  [
+    AC_MSG_WARN([You must install Berkeley Delta before running C-Reduce])
+  ])
+
+AS_IF([test "$missing_runtime_prereq" = "yes"],
+  AC_MSG_WARN([Read the INSTALL file for info about C-Reduce dependencies]))
 
 ###############################################################################
 
