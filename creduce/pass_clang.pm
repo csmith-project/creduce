@@ -1,10 +1,12 @@
-#!/usr/bin/perl -w
+## -*- mode: Perl -*-
 
 package pass_clang;
 
+use strict;
+use warnings;
+
 use POSIX;
 use File::Which;
-use strict;
 
 use creduce_regexes;
 use creduce_utils;

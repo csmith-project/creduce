@@ -21,6 +21,10 @@ factor timeout out of test script: creduce can supply a timeout
 
 support testcase obfuscation better
 
+try to find passes that need to try a little harder-- run them in
+isolation and see how long it takes to reach a fixpoint; adjust them
+to back up a bit after each successful transformation, perhaps
+
 --------------------------------------------------------------------
 
 clang_delta TODO list:

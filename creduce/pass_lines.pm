@@ -1,10 +1,12 @@
-#!/usr/bin/perl -w
+## -*- mode: Perl -*-
 
 package pass_lines;
 
+use strict;
+use warnings;
+
 use POSIX;
 use File::Which;
-use strict;
 use creduce_utils;
 
 my $BACKWARD = 0;

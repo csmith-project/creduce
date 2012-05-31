@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+## -*- mode: Perl -*-
 
 package pass_crc;
 
 use strict;
+use warnings;
 
 use creduce_regexes;
 use creduce_utils;

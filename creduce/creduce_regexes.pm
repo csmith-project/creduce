@@ -1,6 +1,8 @@
-#!/usr/bin/perl -w
+## -*- mode: Perl -*-
 
 package creduce_regexes;
+
+use warnings;
 
 use Regexp::Common;
 use re 'eval';

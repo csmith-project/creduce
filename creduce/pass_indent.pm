@@ -1,8 +1,10 @@
-#!/usr/bin/perl -w
+## -*- mode: Perl -*-
 
 package pass_indent;
 
 use strict;
+use warnings;
+
 use creduce_utils;
 
 my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";

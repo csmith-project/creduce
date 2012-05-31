@@ -1,6 +1,6 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 ##
-## Copyright (c) 2011 The University of Utah
+## Copyright (c) 2011, 2012 The University of Utah
 ## All rights reserved.
 ##
 ## This file is part of `csmith', a random generator of C programs.
@@ -28,6 +28,7 @@
 ## POSSIBILITY OF SUCH DAMAGE.
 
 use strict;
+use warnings;
 
 my @l = ("safe_unary_minus_func_int8_t_s",
 	 "safe_add_func_int8_t_s_s",
