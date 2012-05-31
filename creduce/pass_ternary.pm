@@ -1,11 +1,12 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 package pass_ternary;
 
+use strict;
+use warnings;
+
 use Regexp::Common;
 use re 'eval';
-
-use strict;
 
 use creduce_regexes;
 use creduce_utils;

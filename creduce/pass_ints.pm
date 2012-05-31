@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 package pass_ints;
 
 use strict;
+use warnings;
 
 use creduce_regexes;
 use creduce_utils;

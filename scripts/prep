@@ -1,9 +1,10 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 ### this script preps a testcase for reduction and calls the result
 ### small.c; it takes the same arguments as Csmith
 
 use strict;
+use warnings;
 
 my $CSMITH_HOME = $ENV{"CSMITH_HOME"};
 die if (!defined($CSMITH_HOME));

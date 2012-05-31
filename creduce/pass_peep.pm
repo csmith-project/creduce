@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 # this pass is really dumb, but it does a lot of work and is hard to
 # replace...
@@ -6,6 +6,7 @@
 package pass_peep;
 
 use strict;
+use warnings;
 
 use creduce_regexes;
 use creduce_utils;

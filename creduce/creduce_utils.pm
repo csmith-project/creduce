@@ -1,6 +1,8 @@
-#!/usr/bin/perl -w
+#!/usr/bin/env perl
 
 package creduce_utils;
+
+use warnings;
 
 use Exporter::Lite;
 
