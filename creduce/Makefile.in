@@ -81,11 +81,12 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)" \
+	"$(DESTDIR)$(perllibdir)"
 SCRIPTS = $(nodist_bin_SCRIPTS)
 SOURCES =
 DIST_SOURCES =
-DATA = $(dist_perllib_DATA)
+DATA = $(dist_perllib_DATA) $(nodist_perllib_DATA)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -223,9 +224,6 @@ top_srcdir = @top_srcdir@
 nodist_bin_SCRIPTS = \
 	creduce
 
-EXTRA_DIST = \
-	creduce.in
-
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
 	creduce_regexes.pm \
@@ -239,20 +237,42 @@ dist_perllib_DATA = \
 	pass_peep.pm \
 	pass_ternary.pm
 
+nodist_perllib_DATA = \
+	creduce_config.pm
+
+EXTRA_DIST = \
+	creduce.in \
+	creduce_config.pm.in
+
 
 ###############################################################################
+GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 
 # Follow the recipe described in the Autoconf manual for inserting Autoconf
 # variables into scripts.  Notably, do *not* use AC_CONFIG_FILES in the root
 # `configure.ac' file to do the substitution.  See the Autoconf manual section
 # about "Installation Directory Variables" for details.
-edit = sed \
+creduce_edit = sed \
 	-e 's|@PERL[@]|$(PERL)|g' \
 	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
 
+
+###
+creduce_config_edit = sed \
+	-e 's|@bindir[@]|$(bindir)|g' \
+	-e 's|@libexecdir[@]|$(libexecdir)|g' \
+	-e 's|@PACKAGE_BUGREPORT[@]|$(PACKAGE_BUGREPORT)|g' \
+	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' \
+	-e 's|@PACKAGE_STRING[@]|$(PACKAGE_STRING)|g' \
+	-e 's|@PACKAGE_URL[@]|$(PACKAGE_URL)|g' \
+	-e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
+	-e 's|@VERSION[@]|$(VERSION)|g' \
+	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g'
+
 CLEANFILES = \
-	creduce
+	creduce \
+	creduce_config.pm
 
 all: all-am
 
@@ -343,6 +363,24 @@ uninstall-dist_perllibDATA:
 	@list='$(dist_perllib_DATA)'; test -n "$(perllibdir)" || list=; \
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(perllibdir)'; $(am__uninstall_files_from_dir)
+install-nodist_perllibDATA: $(nodist_perllib_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(perllibdir)" || $(MKDIR_P) "$(DESTDIR)$(perllibdir)"
+	@list='$(nodist_perllib_DATA)'; test -n "$(perllibdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(perllibdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(perllibdir)" || exit $$?; \
+	done
+
+uninstall-nodist_perllibDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(nodist_perllib_DATA)'; test -n "$(perllibdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(perllibdir)'; $(am__uninstall_files_from_dir)
 tags: TAGS
 TAGS:
 
@@ -384,7 +422,7 @@ check-am: all-am
 check: check-am
 all-am: Makefile $(SCRIPTS) $(DATA) all-local
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(perllibdir)" "$(DESTDIR)$(perllibdir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -438,7 +476,7 @@ info: info-am
 
 info-am:
 
-install-data-am: install-dist_perllibDATA
+install-data-am: install-dist_perllibDATA install-nodist_perllibDATA
 
 install-dvi: install-dvi-am
 
@@ -482,7 +520,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
+uninstall-am: uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS \
+	uninstall-nodist_perllibDATA
 
 .MAKE: install-am install-strip
 
@@ -493,23 +532,33 @@ uninstall-am: uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
 	install-dist_perllibDATA install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
 	install-info install-info-am install-man \
-	install-nodist_binSCRIPTS install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am uninstall uninstall-am \
-	uninstall-dist_perllibDATA uninstall-nodist_binSCRIPTS
+	install-nodist_binSCRIPTS install-nodist_perllibDATA \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	uninstall uninstall-am uninstall-dist_perllibDATA \
+	uninstall-nodist_binSCRIPTS uninstall-nodist_perllibDATA
 
 
 creduce: Makefile
 	rm -f $@ $@.tmp
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
-	  $(edit) $${srcdir}$@.in > $@.tmp
+	  $(creduce_edit) $${srcdir}$@.in > $@.tmp
 	chmod +x $@.tmp
 	mv $@.tmp $@
 
 creduce: creduce.in
+
+creduce_config.pm: Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(creduce_config_edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
+
+creduce_config.pm: creduce_config.pm.in
 
 ###
 

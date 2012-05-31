@@ -13,8 +13,6 @@
 #
 nodist_bin_SCRIPTS = \
 	creduce
-EXTRA_DIST = \
-	creduce.in
 
 perllibdir = $(pkgdatadir)/perl
 dist_perllib_DATA = \
@@ -28,15 +26,23 @@ dist_perllib_DATA = \
 	pass_lines.pm \
 	pass_peep.pm \
 	pass_ternary.pm
+nodist_perllib_DATA = \
+	creduce_config.pm
+
+EXTRA_DIST = \
+	creduce.in \
+	creduce_config.pm.in
 
 ###############################################################################
+
+GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 
 # Follow the recipe described in the Autoconf manual for inserting Autoconf
 # variables into scripts.  Notably, do *not* use AC_CONFIG_FILES in the root
 # `configure.ac' file to do the substitution.  See the Autoconf manual section
 # about "Installation Directory Variables" for details.
 
-edit = sed \
+creduce_edit = sed \
 	-e 's|@PERL[@]|$(PERL)|g' \
 	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
@@ -45,14 +51,37 @@ creduce: Makefile
 	rm -f $@ $@.tmp
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
-	  $(edit) $${srcdir}$@.in > $@.tmp
+	  $(creduce_edit) $${srcdir}$@.in > $@.tmp
 	chmod +x $@.tmp
 	mv $@.tmp $@
 
 creduce: creduce.in
 
+###
+
+creduce_config_edit = sed \
+	-e 's|@bindir[@]|$(bindir)|g' \
+	-e 's|@libexecdir[@]|$(libexecdir)|g' \
+	-e 's|@PACKAGE_BUGREPORT[@]|$(PACKAGE_BUGREPORT)|g' \
+	-e 's|@PACKAGE_NAME[@]|$(PACKAGE_NAME)|g' \
+	-e 's|@PACKAGE_STRING[@]|$(PACKAGE_STRING)|g' \
+	-e 's|@PACKAGE_URL[@]|$(PACKAGE_URL)|g' \
+	-e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
+	-e 's|@VERSION[@]|$(VERSION)|g' \
+	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g'
+
+creduce_config.pm: Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(creduce_config_edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
+
+creduce_config.pm: creduce_config.pm.in
+
 CLEANFILES = \
-	creduce
+	creduce \
+	creduce_config.pm
 
 ###
 
