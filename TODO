@@ -46,20 +46,12 @@ rename enumerate types
 typedef expansion
 
 - add supports to C++ specific features
- * simplify class names
- 
- * remove namespace
-
- * simplify template stuff
-
  * rename class member functions to m_fn1 ...
 
  * rename class member variables to m_a, m_b ...
 
  * seems simple-inliner doesn't work with class member functions,
    need to fix it or add a CXX-specific inlining pass
-
- * reduce the level of class inheritance
 
 - (low priority) format string reductions:
 
