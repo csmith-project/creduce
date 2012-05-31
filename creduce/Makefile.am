@@ -37,6 +37,7 @@ dist_perllib_DATA = \
 # about "Installation Directory Variables" for details.
 
 edit = sed \
+	-e 's|@PERL[@]|$(PERL)|g' \
 	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
 
