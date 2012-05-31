@@ -62,7 +62,7 @@ sub run_test ($) {
     chdir $temp_dir or die;
 
     system "cp ../$unreduced small.c";
-    system "creduce ../${test_script} small.c";
+    system "../../creduce/creduce ../${test_script} small.c";
     
     chdir $test_dir or die;
 }
