@@ -34,25 +34,41 @@ AC_DEFUN([AC_DATAROOTDIR_CHECKED])
 
 AC_PATH_PROG([PERL], [perl], [no])
 AS_IF([test "x$PERL" = "xno"],
-      [AC_MSG_ERROR([a Perl interpreter was not found])])
+  AC_MSG_ERROR([a Perl interpreter was not found]))
 
-# Check for the run-time prerequisites of C-Reduce passes.  We only warn the
-# user when these are not found at configure time.  Let the user install the
-# dependencies later.
+# Check for the run-time prerequisites of C-Reduce.  We only warn the user when
+# these are not found at configure time.  Let the user install the dependencies
+# later.
 #
 missing_runtime_prereq=no
 #
+# creduce/creduce.in
+#
+AX_PROG_PERL_MODULES(
+  [
+    Exporter::Lite
+    File::Which
+    Regexp::Common
+  ],
+  [
+    PERL_MODULES=yes
+  ],
+  [
+    PERL_MODULES=no
+    missing_runtime_prereq=yes
+  ])
+#
 # creduce/pass_indent.pm
+#
 AC_PATH_PROG([ASTYLE], [astyle], [no])
 AS_IF([test "x$ASTYLE" = "xno"], [missing_runtime_prereq=yes])
 AC_PATH_PROG([INDENT], [indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_runtime_prereq=yes])
 #
 # creduce/pass_lines.pm
+#
 AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
 AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_runtime_prereq=yes])
-#
-# In the future, check for other prerequisites: Perl modules.
 
 ###############################################################################
 ## clang_delta
@@ -103,6 +119,10 @@ AC_OUTPUT(
 AS_IF([test "$missing_runtime_prereq" = "yes"],
   AS_BOX([WARNING: You cannot run C-Reduce until you install missing dependencies!]))
 
+AS_IF([test "$PERL_MODULES" = "no"],
+  [
+    AC_MSG_WARN([You must install Perl modules required by C-Reduce])
+  ])
 AS_IF([test "x$ASTYLE" = "xno"],
   [
     AC_MSG_WARN([You must install Artistic Style before running C-Reduce])
