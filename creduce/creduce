@@ -11,6 +11,10 @@
 use strict;
 use FindBin;
 use lib $FindBin::Bin;
+use Exporter::Lite;
+use File::Which;
+use POSIX;
+use Regexp::Common;
 
 use creduce_utils;
 
