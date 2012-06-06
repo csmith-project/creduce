@@ -888,7 +888,7 @@ void ReducePointerLevel::replaceArrowWithDot(const Expr *E)
   RewriteHelper->getExprString(E, ES);
   SourceLocation LocStart = E->getLocStart();
   
-  unsigned ArrowPos = ES.find("->");
+  size_t ArrowPos = ES.find("->");
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");
   LocStart = LocStart.getLocWithOffset(ArrowPos);
   TheRewriter.ReplaceText(LocStart, 2, ".");

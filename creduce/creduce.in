@@ -61,7 +61,7 @@ my $test;
 my $trial_num = 0;   
 
 sub run_test () {
-    my $res = runit "./$test >/dev/null 2>&1";
+    my $res = runit "$test >/dev/null 2>&1";
     return ($res == 0);
 }
 

@@ -846,7 +846,7 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
               "Cannot rename CXXDestructorName here!");
 
   std::string FDName = FD->getNameAsString();
-  unsigned FDNameLen = FD->getNameAsString().length();
+  size_t FDNameLen = FD->getNameAsString().length();
   if (K == DeclarationName::CXXConstructorName) {
     const Type *Ty = DeclName.getCXXNameType().getTypePtr();
     if (Ty->getTypeClass() == Type::InjectedClassName) {
@@ -883,7 +883,7 @@ bool RewriteUtils::replaceCXXDestructorDeclName(
   DeclarationNameInfo NameInfo = DtorDecl->getNameInfo();
   DeclarationName DeclName = NameInfo.getName();
   const Type *Ty = DeclName.getCXXNameType().getTypePtr();
-  unsigned NameLen;
+  size_t NameLen;
   if (Ty->getTypeClass() == Type::InjectedClassName) {
     const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
     std::string RDName = CXXRD->getNameAsString();
