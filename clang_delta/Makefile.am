@@ -149,7 +149,6 @@ clang_delta_SOURCES = \
 	UnionToStruct.h
 
 EXTRA_DIST = \
-	LICENSE.TXT \
 	README.txt \
 	test_transformation
 
