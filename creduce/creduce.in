@@ -1,4 +1,11 @@
-#!/usr/bin/env perl
+#!@PERL@
+## -*- mode: Perl -*-
+##
+## Copyright (c) 2012 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
 
 ######################################################################
 #
@@ -12,12 +19,13 @@ use strict;
 use warnings;
 
 use FindBin;
-use lib $FindBin::Bin;
+use lib $FindBin::Bin, '@perllibdir@';
 use Exporter::Lite;
 use File::Which;
 use POSIX;
 use Regexp::Common;
 
+use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
 ######################################################################

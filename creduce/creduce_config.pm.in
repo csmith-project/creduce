@@ -1,0 +1,51 @@
+## -*- mode: Perl -*-
+##
+## Copyright (c) 2012 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
+
+package creduce_config;
+
+use strict;
+use warnings;
+
+use base 'Exporter';
+
+use constant {
+    bindir		=> q{@bindir@},
+    libexecdir		=> q{@libexecdir@},
+
+    PACKAGE_BUGREPORT	=> q{@PACKAGE_BUGREPORT@},
+    PACKAGE_NAME	=> q{@PACKAGE_NAME@},
+    PACKAGE_STRING	=> q{@PACKAGE_STRING@},
+    PACKAGE_URL		=> q{@PACKAGE_URL@},
+    PACKAGE_VERSION	=> q{@PACKAGE_VERSION@},
+
+    VERSION		=> q{@VERSION@},
+
+    GIT_HASH		=> q{@GIT_HASH@},
+};
+
+our @EXPORT = qw();
+our @EXPORT_OK = qw(
+    bindir
+    libexecdir
+    PACKAGE_BUGREPORT
+    PACKAGE_NAME
+    PACKAGE_STRING
+    PACKAGE_URL
+    PACKAGE_VERSION
+    VERSION
+    GIT_HASH
+    );
+our %EXPORT_TAGS = qw();
+
+###############################################################################
+
+1;
+
+## End of file.

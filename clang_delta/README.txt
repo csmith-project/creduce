@@ -8,8 +8,8 @@ invoke it manually:
 For detailed options:
 ./clang_delta --help
 
-test_transformation.pl is designed to test clang_delta
-"test_transformation.pl -help" gives detailed information.
+`test_transformation' is designed to test clang_delta
+`test_transformation -help' gives detailed information.
 
 --------------------------------------------------------------------
 

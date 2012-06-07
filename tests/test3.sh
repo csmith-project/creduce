@@ -1,4 +1,12 @@
 #!/bin/bash
+##
+## Copyright (c) 2012 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
 
 rm -f out*.txt
 

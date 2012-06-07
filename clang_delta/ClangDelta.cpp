@@ -4,9 +4,13 @@
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
-// License.  See LICENSE.TXT for details.
+// License.  See the file COPYING for details.
 //
 //===----------------------------------------------------------------------===//
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include <string>
 #include <sstream>
@@ -17,8 +21,19 @@
 
 static TransformationManager *TransMgr;
 
+static void PrintVersion(void)
+{
+  llvm::outs() << "clang_delta " << PACKAGE_VERSION << "\n";
+#ifdef GIT_VERSION
+  llvm::outs() << "Git version: " << GIT_VERSION << "\n";
+#endif
+  // XXX print copyright, contact info, etc.?
+}
+
 static void PrintHelpMessage(void)
 {
+  PrintVersion();
+  llvm::outs() << "\n";
   llvm::outs() << "Usage: \n";
   llvm::outs() << "  clang_delta ";
   llvm::outs() << "--transformation=<name> ";
@@ -30,6 +45,8 @@ static void PrintHelpMessage(void)
 
   llvm::outs() << "  --help: ";
   llvm::outs() << "print this message\n";
+  llvm::outs() << "  --version: ";
+  llvm::outs() << "print the program version number\n";
 
   llvm::outs() << "  --verbose-transformations: ";
   llvm::outs() << "print verbose description messages for all transformations\n";
@@ -112,6 +129,10 @@ static void HandleOneNoneValueArg(const std::string &ArgStr)
 {
   if (!ArgStr.compare("help")) {
     PrintHelpMessage();
+    exit(0);
+  }
+  else if (!ArgStr.compare("version")) {
+    PrintVersion();
     exit(0);
   }
   else if (!ArgStr.compare("transformations")) {

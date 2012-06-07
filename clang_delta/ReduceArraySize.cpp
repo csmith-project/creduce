@@ -4,9 +4,13 @@
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
-// License.  See LICENSE.TXT for details.
+// License.  See the file COPYING for details.
 //
 //===----------------------------------------------------------------------===//
+
+#if HAVE_CONFIG_H
+#  include <config.h>
+#endif
 
 #include "ReduceArraySize.h"
 

@@ -1,0 +1,5 @@
+# Additions to the patterns specified in the root `.gitignore' file.
+
+# Files made by compilation.
+creduce
+creduce_config.pm
