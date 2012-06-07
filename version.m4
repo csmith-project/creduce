@@ -4,13 +4,13 @@
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
-## License.  See LICENSE for details.
+## License.  See the file COPYING for details.
 
 ###############################################################################
 
 m4_define([CREDUCE_VERSION],   [2.0.0])
-m4_define([CREDUCE_BUGREPORT], [csmith-bugs@flux.utah.edu])
-m4_define([CREDUCE_URL],       [http://embed.cs.utah.edu/csmith/])
+m4_define([CREDUCE_BUGREPORT], [creduce-bugs@flux.utah.edu])
+m4_define([CREDUCE_URL],       [http://embed.cs.utah.edu/creduce/])
 
 ###############################################################################
 
