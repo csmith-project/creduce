@@ -266,12 +266,12 @@ void RemoveBaseClass::removeBaseSpecifier(void)
   TransAssert(0 && "Unreachable code!");
 }
 
-void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
+void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl *Ctor)
 {
   unsigned Idx = 0;
   const CXXCtorInitializer *Init = NULL;
-  for (CXXConstructorDecl::init_const_iterator I = Ctor.init_begin(),
-       E = Ctor.init_end(); I != E; ++I) {
+  for (CXXConstructorDecl::init_const_iterator I = Ctor->init_begin(),
+       E = Ctor->init_end(); I != E; ++I) {
     if (!(*I)->isWritten())
       continue;
 
@@ -288,7 +288,7 @@ void RemoveBaseClass::rewriteOneCtor(const CXXConstructorDecl &Ctor)
   }
   if (Init) {
     RewriteHelper->removeCXXCtorInitializer(Init, Idx,
-                     getNumCtorWrittenInitializers(Ctor));
+                     getNumCtorWrittenInitializers(*Ctor));
   }
 }
 
@@ -296,7 +296,7 @@ void RemoveBaseClass::removeBaseInitializer(void)
 {
   for (CXXRecordDecl::ctor_iterator I = TheDerivedClass->ctor_begin(),
        E = TheDerivedClass->ctor_end(); I != E; ++I) {
-    if ((*I).isThisDeclarationADefinition() && !(*I).isImplicitlyDefined())
+    if ((*I)->isThisDeclarationADefinition() && !(*I)->isImplicitlyDefined())
       rewriteOneCtor(*I);
   }
 }

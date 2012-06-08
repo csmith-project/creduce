@@ -56,7 +56,7 @@ private:
 
   void removeBaseInitializer(void);
 
-  void rewriteOneCtor(const clang::CXXConstructorDecl &Ctor);
+  void rewriteOneCtor(const clang::CXXConstructorDecl *Ctor);
 
   bool isDirectlyDerivedFrom(const clang::CXXRecordDecl *SubC, 
                              const clang::CXXRecordDecl *Base);
