@@ -4,6 +4,10 @@
 
 C-Reduce TODO list:
 
+implement suggestion from Joerg Sonnenberger:
+  do transformations in chunks, like the line-reducer pass already does
+  requires a good model of when this will be profitable
+
 make a distribution using CDE
   http://www.stanford.edu/~pgbovine/cde.html
 
