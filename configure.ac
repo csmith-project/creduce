@@ -92,13 +92,15 @@ AS_IF([test "x$enable_trans_assert" = "xyes"],
 # If we are using g++ or clang++, set the default `CXXFLAGS' to something more
 # pedantic.  (Both g++ and clang++ cause `GXX' to be set.)
 #
+# `-fno-strict-aliasing' quiets many warnings about LLVM headers and possibly
+#   improves our chances at working code.
 # `-Wno-unused-parameter' quiets many warnings about LLVM headers.
 #
 if test "$ac_test_CXXFLAGS" = set; then
   # The user specified `CXXFLAGS', so do nothing.
   CXXFLAGS="$CXXFLAGS"
 elif test "$GXX" = yes; then 
-  CXXFLAGS="-g -O3 -Wall -Wextra -Wno-long-long -Wno-unused-parameter"
+  CXXFLAGS="-g -O3 -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter"
 fi
 
 ###############################################################################
