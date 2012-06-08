@@ -57,13 +57,20 @@ AC_DEFUN([AX_LLVM],
   LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
   LLVM_LIBS=`$LLVM_CONFIG --libs $1`
 
+  # The output of `llvm-config --ldflags' often contains library directives
+  # that must come *after* all the LLVM libraries on the link line: e.g.,
+  # "-lpthread -lffi -ldl -lm".  To ensure this, we insert LLVM_LDFLAGS into
+  # LIBS, *not* into LDFLAGS.
+
   AC_REQUIRE([AC_PROG_CXX])
   CPPFLAGS_SAVED="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
   LDFLAGS_SAVED="$LDFLAGS"
-  LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
+  LDFLAGS="$LDFLAGS"
+  # LDFLAGS="$LDFLAGS $LLVM_LDFLAGS" --- see comment above.
   LIBS_SAVED="$LIBS"
-  LIBS="$LIBS $LLVM_LIBS"
+  LIBS="$LIBS $LLVM_LIBS $LLVM_LDFLAGS"
+  # LIBS="$LIBS $LLVM_LIBS" --- see comment above.
 
   AC_CACHE_CHECK(can compile with and link with LLVM([$1]),
     ax_cv_llvm,

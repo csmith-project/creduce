@@ -15457,13 +15457,20 @@ See \`config.log' for more details" "$LINENO" 5; }
   LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
+  # The output of `llvm-config --ldflags' often contains library directives
+  # that must come *after* all the LLVM libraries on the link line: e.g.,
+  # "-lpthread -lffi -ldl -lm".  To ensure this, we insert LLVM_LDFLAGS into
+  # LIBS, *not* into LDFLAGS.
+
 
   CPPFLAGS_SAVED="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LLVM_CPPFLAGS"
   LDFLAGS_SAVED="$LDFLAGS"
-  LDFLAGS="$LDFLAGS $LLVM_LDFLAGS"
+  LDFLAGS="$LDFLAGS"
+  # LDFLAGS="$LDFLAGS $LLVM_LDFLAGS" --- see comment above.
   LIBS_SAVED="$LIBS"
-  LIBS="$LIBS $LLVM_LIBS"
+  LIBS="$LIBS $LLVM_LIBS $LLVM_LDFLAGS"
+  # LIBS="$LIBS $LLVM_LIBS" --- see comment above.
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking can compile with and link with LLVM(engine)" >&5
 $as_echo_n "checking can compile with and link with LLVM(engine)... " >&6; }
