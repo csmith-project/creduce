@@ -38,6 +38,16 @@ For example, (perhaps as root):
 --------------------------------------------------------------------
 Building and installing C-Reduce and the clang_delta plugin
 
+0. If you do not want to build C-Reduce and clang_delta yourself,
+check the C-Reduce website to see if a suitable clang_delta binary is
+available for you.
+
+  http://embed.cs.utah.edu/creduce/
+
+The C-Reduce authors plan to provide precompiled distributions of
+C-Reduce and/or clang_delta as demand warrants and time permits.
+
+
 1. Download, build, and install the correct version of LLVM/Clang from
 their repository:
 
@@ -60,6 +70,7 @@ specify the revision number:
   svn co -r158227 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
 
 Compile the LLVM tree as described at the URL mentioned above.
+
 
 2. Build the C-Reduce software distribution:
 
