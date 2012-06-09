@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-m4_define([CREDUCE_VERSION],   [2.0.1])
+m4_define([CREDUCE_VERSION],   [2.0.2])
 m4_define([CREDUCE_BUGREPORT], [creduce-bugs@flux.utah.edu])
 m4_define([CREDUCE_URL],       [http://embed.cs.utah.edu/creduce/])
 
