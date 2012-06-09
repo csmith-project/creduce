@@ -38,14 +38,28 @@ For example, (perhaps as root):
 --------------------------------------------------------------------
 Building and installing C-Reduce and the clang_delta plugin
 
-1. Download, build, and install the latest LLVM/Clang from their
-repository:
+1. Download, build, and install the correct version of LLVM/Clang from
+their repository:
 
   http://llvm.org/docs/GettingStarted.html#checkout
+  http://clang.llvm.org/get_started.html
 
-Note: If you're having trouble with their trunk, you can use
-LLVM/Clang 3.0 instead, but in that case you'll have to grab an older
-C-Reduce tagged "creduce-1.0.0".
+This release of C-Reduce is designed to work with *DEVELOPMENT*
+versions of LLVM, Clang, and Compiler-RT: revision 158227.
+(That is the "tip of the trunk" (ToT) revision as of this writing.)
+
+Grab the correct versions of LLVM, Clang, and Compiler-RT by following
+the instructions at <http://clang.llvm.org/get_started.html>, but
+specify the revision number:
+
+  ...
+  svn co -r158227 http://llvm.org/svn/llvm-project/llvm/trunk llvm
+  ...
+  svn co -r158227 http://llvm.org/svn/llvm-project/cfe/trunk clang
+  ...
+  svn co -r158227 http://llvm.org/svn/llvm-project/compiler-rt/trunk compiler-rt
+
+Compile the LLVM tree as described at the URL mentioned above.
 
 2. Build the C-Reduce software distribution:
 
