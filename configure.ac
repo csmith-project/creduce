@@ -84,7 +84,9 @@ AX_LLVM([engine])
 #
 AC_ARG_ENABLE([trans-assert],
   AS_HELP_STRING([--enable-trans-assert],
-    [use assert() in clang_delta transformations]))
+    [use assert() in clang_delta transformations [default=yes]]),
+  [],
+  [enable_trans_assert=yes])
 AS_IF([test "x$enable_trans_assert" = "xyes"],
   AC_DEFINE([ENABLE_TRANS_ASSERT], [1],
             [Use assert() in clang_delta transformations.]))
