@@ -8,10 +8,15 @@
 
 ###############################################################################
 
+if [ $# -ne 1 ]; then
+  echo "usage: $0 <file.c>" 1>&2
+  exit 1
+fi
+
 rm -f out*.txt
 
 if 
-  clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
+  clang -pedantic -Wall -O0 "$1" >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
   ! grep 'eliding middle term' out.txt &&\
@@ -26,7 +31,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -c -Wall -Wextra -O small.c  >outa.txt 2>&1 &&\
+  gcc -c -Wall -Wextra -O "$1" >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
@@ -41,7 +46,7 @@ if
   ! grep 'incompatible implicit' outa.txt &&\
   ! grep 'excess elements in struct initializer' outa.txt &&\
   ! grep 'comparison between pointer and integer' outa.txt &&\
-  icc -w -S small.c &&\
+  icc -w -S -o small.s "$1" &&\
   grep xmm small.s
 then
   exit 0
@@ -49,6 +54,6 @@ else
   exit 1
 fi
 
-#  clang --analyze small.c > out_analyze.txt 2>&1 &&\
+#  clang --analyze "$1" > out_analyze.txt 2>&1 &&\
 #  ! grep garbage out_analyze.txt &&\
 #  ! grep undefined out_analyze.txt &&\

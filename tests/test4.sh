@@ -8,13 +8,18 @@
 
 ###############################################################################
 
+if [ $# -ne 1 ]; then
+  echo "usage: $0 <file.c>" 1>&2
+  exit 1
+fi
+
 rm -f out*.txt
 
 ulimit -t 15
 ulimit -v 2000000
 
 if 
-  clang -pedantic -Wall -O0 small.c  >out.txt 2>&1 &&\
+  clang -pedantic -Wall -O0 "$1" >out.txt 2>&1 &&\
   ! grep 'conversions than data arguments' out.txt &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
@@ -27,7 +32,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -Wall -Wextra -O small.c -o smallz >outa.txt 2>&1 &&\
+  gcc -Wall -Wextra -O "$1" -o smallz >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
@@ -47,7 +52,7 @@ if
   ! grep 'comparison between pointer and integer' outa.txt &&\
   ./smallz >out1.txt 2>&1 &&\
   grep 'checksum = e' out1.txt &&\
-  frama-c -cpp-command "gcc -C -Dvolatile= -E -I." -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions small.c > out_framac.txt 2>&1 &&\
+  frama-c -cpp-command "gcc -C -Dvolatile= -E -I." -val-signed-overflow-alarms -val -stop-at-first-alarm -no-val-show-progress -machdep x86_64 -obviously-terminates -precise-unions "$1" > out_framac.txt 2>&1 &&\
   ! egrep -i '(user error|assert)' out_framac.txt >/dev/null 2>&1
 then
   exit 0
