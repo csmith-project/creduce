@@ -15,6 +15,9 @@ fi
 
 rm -f out*.txt
 
+# Note: This test script works only with GCC 4.6+.
+# `-Ofast' was introduced in GCC 4.6.
+
 if 
   clang -pedantic -Wall -O0 "$1" >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\
