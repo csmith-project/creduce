@@ -24,7 +24,7 @@ my @tests = (
       "test_script" => "test1.sh",
     },
     { "name" => "test2",
-      "unreduced" => "file2.c",
+      "unreduced" => "file1.c",
       "test_script" => "test2.sh",
     },
     { "name" => "test3",
