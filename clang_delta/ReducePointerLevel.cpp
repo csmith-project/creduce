@@ -609,6 +609,11 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
   case Expr::DeclRefExprClass: {
     const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
     const ValueDecl *OrigDecl = DRE->getDecl();
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl)) {
+      InitStr = "0";
+      return;
+    }
+
     const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
     TransAssert(VD && "Bad VarDecl!");
     const Expr *InitE = VD->getAnyInitializer();
