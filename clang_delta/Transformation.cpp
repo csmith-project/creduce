@@ -448,6 +448,51 @@ const Type* Transformation::getBaseType(const Type *T)
   return T;
 }
 
+// Lookup a function decl from a top-level DeclContext
+// It's slow...
+const FunctionDecl *Transformation::lookupFunctionDeclInGlobal(
+        DeclarationName &DName, const DeclContext *Ctx)
+{
+  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
+  for (DeclContext::lookup_const_iterator I = Result.first, E = Result.second;
+       I != E; ++I) {
+    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
+      return FD;
+    }
+
+    const FunctionTemplateDecl *TD = NULL;
+    if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
+      TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
+    }
+    else { 
+      TD = dyn_cast<FunctionTemplateDecl>(*I);
+    }
+    if (TD)
+      return TD->getTemplatedDecl();
+  }
+
+  for (DeclContext::decl_iterator I = Ctx->decls_begin(),
+       E = Ctx->decls_end(); I != E; ++I) {
+    if (const ClassTemplateDecl *ClassTemplate = 
+        dyn_cast<ClassTemplateDecl>(*I)) {
+      const CXXRecordDecl *CXXRD = ClassTemplate->getTemplatedDecl();
+      if (const FunctionDecl *FD = lookupFunctionDeclInGlobal(DName, CXXRD)) {
+        return FD;
+      }
+    }
+
+    const DeclContext *SubCtx = dyn_cast<DeclContext>(*I);
+    if (!SubCtx || dyn_cast<LinkageSpecDecl>(SubCtx))
+      continue;
+    
+    if (const FunctionDecl *FD = lookupFunctionDeclInGlobal(DName, SubCtx)) {
+      return FD;
+    }
+  }
+
+  return NULL;
+}
+
 const FunctionDecl *Transformation::lookupFunctionDecl(
         DeclarationName &DName, const DeclContext *Ctx)
 {
@@ -606,6 +651,11 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     // };
     return NULL;
   }
+
+  case Type::Builtin: {
+    return NULL;
+  }
+
   default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");

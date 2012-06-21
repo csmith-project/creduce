@@ -165,6 +165,9 @@ protected:
   const clang::FunctionDecl *lookupFunctionDecl(
           clang::DeclarationName &DName, const clang::DeclContext *Ctx);
 
+  const clang::FunctionDecl *lookupFunctionDeclInGlobal(
+          clang::DeclarationName &DName, const clang::DeclContext *Ctx);
+
   const clang::DeclContext *getDeclContextFromSpecifier(
           const clang::NestedNameSpecifier *NNS);
 
