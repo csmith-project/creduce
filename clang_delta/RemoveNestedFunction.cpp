@@ -61,6 +61,8 @@ public:
 
   bool VisitCallExpr(CallExpr *CallE);
 
+  bool VisitStmtExpr(StmtExpr *SE);
+
 private:
   RemoveNestedFunction *ConsumerInstance;
 
@@ -75,6 +77,24 @@ bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
   ConsumerInstance->StmtVisitor->TraverseDecl(FD);
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);
   return true;
+}
+
+bool RNFStatementVisitor::VisitStmtExpr(StmtExpr *SE)
+{
+  CompoundStmt *CS = SE->getSubStmt();
+  if (ConsumerInstance->CallExprQueue.empty()) {
+      TraverseStmt(CS);
+      return false;
+  }
+
+  CallExpr *CallE = ConsumerInstance->CallExprQueue.back();
+  CurrentStmt = CallE;
+  
+  for (clang::CompoundStmt::body_iterator I = CS->body_begin(),
+       E = CS->body_end(); I != E; ++I) {
+    TraverseStmt(*I);
+  }
+  return false;
 }
 
 bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
