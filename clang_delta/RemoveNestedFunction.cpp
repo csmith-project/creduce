@@ -148,7 +148,7 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
 
   NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
 
-  addNewTmpVariable();
+  addNewTmpVariable(Ctx);
   addNewAssignStmt();
   replaceCallExpr();
 
@@ -157,7 +157,45 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-bool RemoveNestedFunction::addNewTmpVariable(void)
+void RemoveNestedFunction::getVarStrForTemplateSpecialization(
+       std::string &VarStr,
+       const TemplateSpecializationType *TST)
+{
+  unsigned NumArgs = TST->getNumArgs();
+  if (NumArgs == 0) {
+    VarStr += ";";
+    return;
+  }
+
+  std::string ArgStr;
+  llvm::raw_string_ostream Stream(ArgStr);
+  TST->getArg(0).print(Context->getPrintingPolicy(), Stream);
+
+  for (unsigned I = 1; I < NumArgs; ++I) {
+    const TemplateArgument &Arg = TST->getArg(I);
+    Stream << ", ";
+    Arg.print(Context->getPrintingPolicy(), Stream);
+  }
+  size_t BeginPos = VarStr.find_first_of('<');
+  size_t EndPos = VarStr.find_last_of('>');
+  TransAssert((BeginPos != std::string::npos) && "Cannot find < !");
+  TransAssert((EndPos != std::string::npos) && "Cannot find > !");
+  TransAssert((EndPos > BeginPos) && "Invalid <> pair!");
+  VarStr.replace(BeginPos + 1, (EndPos - BeginPos - 1), Stream.str());
+  VarStr += ";";
+}
+
+bool RemoveNestedFunction::writeNewTmpVariable(const QualType &QT,
+                                               std::string &VarStr)
+{
+  QT.getAsStringInternal(VarStr,
+                         Context->getPrintingPolicy());
+
+  VarStr += ";";
+  return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+}
+
+bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 {
   std::string VarStr;
   std::stringstream SS;
@@ -193,9 +231,19 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
       FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
+    return writeNewTmpVariable(QT, VarStr);
   }
-  else if (const CXXDependentScopeMemberExpr *ME = 
+
+  if (const CXXDependentScopeMemberExpr *ME = 
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
+
+    DeclarationName DName = ME->getMember();
+    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+                "Not an indentifier!");
+    const Expr *E = ME->getBase();
+    TransAssert(E && "NULL Base Expr!");
+    const Expr *BaseE = E->IgnoreParens();
+
     // handle cases where base expr or member name is dependent, e.g.,
     // template<typename T>
     // class S {
@@ -209,25 +257,89 @@ bool RemoveNestedFunction::addNewTmpVariable(void)
     //   f1(this->f2(1));
     // }
     // where this->f2(1) is a CXXDependentScopeMemberExpr
+    if (dyn_cast<CXXThisExpr>(BaseE)) {
+      const DeclContext *Ctx = TheFuncDecl->getLookupParent();
+      TransAssert(Ctx && "Bad DeclContext!");
+      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx);
+      TransAssert(FD && "Cannot resolve DName!");
+      QT = FD->getResultType();
+      return writeNewTmpVariable(QT, VarStr);
+    }
     
-    DeclarationName DName = ME->getMember();
-    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
-                "Not an indentifier!");
+    // handle other cases where lookupDeclContext is different from 
+    // the current CXXRecord, e.g.,
+    const Type *Ty = ME->getBaseType().getTypePtr();
+    if (const DeclContext *Ctx = getBaseDeclFromType(Ty)) {
+      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx);
+      TransAssert(FD && "Cannot resolve DName!");
+      QT = FD->getResultType();
+      const Type *RVTy = QT.getTypePtr();
+      if (RVTy->getAs<InjectedClassNameType>()) {
+        // handle cases like:
+        // template <typename> struct D {
+        //   D f();
+        // };
+        // template <typename T> void foo(D<T>);
+        // template <typename T > void bar () {
+        //   D<T> G;
+        //   foo(G.f());
+        // }
+        // in this case, seems it's hard to retrieve the instantiated type
+        // of f's return type, because `D<T> G' is dependent. I tried
+        // findSpecialization from ClassTemplateDecl, but it didn't work. 
+        // So use a really ugly way, i.e., manipulating strings...
+        const TemplateSpecializationType *TST = 
+          Ty->getAs<TemplateSpecializationType>();
+        TransAssert(TST && "Invalid TemplateSpecialization Type!");
 
-    const FunctionDecl *FD = 
-      lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
-    TransAssert(FD && "Cannot resolve DName!");
-    QT = FD->getResultType();
+        QT.getAsStringInternal(VarStr,
+                               Context->getPrintingPolicy());
+        getVarStrForTemplateSpecialization(VarStr, TST);
+        return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+      }
+      else {
+        // other cases:
+        // template <typename> struct D {
+        //   int f();
+        // };
+        // void foo(int);
+        // template <typename T > void bar () {
+        //   D<T> G;
+        //   foo(G.f());
+        // }
+        return writeNewTmpVariable(QT, VarStr);
+      }
+    }
+    else {
+      // template <typename> struct D { 
+      // D f();
+      // D operator[] (int);
+      // };
+      // template <typename T> void foo(D<T>);
+      // template <typename T > void bar () {
+      //   D<T> G;
+      //   foo(G[0].f());
+      // }
+      // In this case, G[0] is of BuiltinType.
+      // But why does clang represent a dependent type as BuiltinType here?
+      TransAssert(Ty->getAs<BuiltinType>() && "Non-BuiltinType!");
+      // FIXME: This is incorrect!
+      // a couple of questions
+      //  - how can we find a correct DeclContext where we could lookup f?
+      //  - can we obtain the dependent template argument from BuiltinType?
+      // Probably we cannot do these? Comments from lib/AST/ASTContext.cpp:
+      // 
+      // Placeholder type for type-dependent expressions whose type is
+      // completely unknown. No code should ever check a type against
+      // DependentTy and users should never see it; however, it is here to
+      // help diagnose failures to properly check for type-dependent
+      // expressions.
+      return writeNewTmpVariable(QT, VarStr);
+    }
   }
-  else {
-    QT = TheCallExpr->getCallReturnType();
-  }
 
-  QT.getAsStringInternal(VarStr,
-                         Context->getPrintingPolicy());
-
-  VarStr += ";";
-  return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+  QT = TheCallExpr->getCallReturnType();
+  return writeNewTmpVariable(QT, VarStr);
 }
 
 bool RemoveNestedFunction::addNewAssignStmt(void)

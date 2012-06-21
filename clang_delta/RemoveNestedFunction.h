@@ -25,6 +25,7 @@ namespace clang {
   class DeclContext;
   class NestedNameSpecifier;
   class CXXOperatorCallExpr;
+  class QualType;
 }
 
 class RNFCollectionVisitor;
@@ -57,7 +58,7 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  bool addNewTmpVariable(void);
+  bool addNewTmpVariable(clang::ASTContext &ASTCtx);
 
   bool addNewAssignStmt(void);
 
@@ -72,6 +73,12 @@ private:
   std::string getTmpVarName(void) {
     return TmpVarName;
   }
+
+  void getVarStrForTemplateSpecialization(
+         std::string &VarStr,
+         const clang::TemplateSpecializationType *TST);
+
+  bool writeNewTmpVariable(const clang::QualType &QT, std::string &VarStr);
 
   clang::SmallVector<clang::CallExpr *, 5> CallExprQueue;
 
