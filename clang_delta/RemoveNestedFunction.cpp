@@ -228,7 +228,6 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
   QualType QT;
   const Expr *E = TheCallExpr->getCallee();
 
-  // ISSUE: also handle UnresolvedMemberExpr? 
   if (const UnresolvedLookupExpr *UE = dyn_cast<UnresolvedLookupExpr>(E)) {
     // clang doesn't always resolve CallExpr's callee. For example:
     //   template<typename T> int foo1(int p) {return p;}
@@ -251,6 +250,17 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
+    return writeNewTmpVariable(QT, VarStr);
+  }
+
+  if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
+    DeclarationName DName = UM->getMemberName();
+    std::string NM = DName.getAsString();
+    CXXRecordDecl *CXXRD = UM->getNamingClass();
+    const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD);
+    // FIXME: try to resolve FD here
+    if (FD)
+      QT = FD->getResultType();
     return writeNewTmpVariable(QT, VarStr);
   }
 
