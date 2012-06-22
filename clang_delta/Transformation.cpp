@@ -230,6 +230,9 @@ const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
 
   if (!InitE)
     return NULL;
+  // We don't have routine for CXXConstructExpr
+  if (dyn_cast<CXXConstructExpr>(InitE))
+    return NULL;
 
   const InitListExpr *ILE = dyn_cast<InitListExpr>(InitE);
   TransAssert(ILE && "Bad InitListExpr!");
