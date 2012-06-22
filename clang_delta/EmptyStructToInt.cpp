@@ -101,14 +101,6 @@ bool EmptyStructToIntASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 
 bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 {
-  const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
-  // handle a special case -
-  // struct S1 {
-  //   struct { } S;
-  // };
-  if (!TypeId)
-    return true;
-
   const RecordDecl *RD = RTLoc.getDecl();
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
     SourceLocation LocStart = RTLoc.getLocStart();
@@ -116,6 +108,14 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
     if (ConsumerInstance->VisitedLocs.count(LocPtr))
       return true;
     ConsumerInstance->VisitedLocs.insert(LocPtr);
+
+    // handle a special case -
+    // struct S1 {
+    //   struct { } S;
+    // };
+    const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
+    if (!TypeId)
+      return true;
     ConsumerInstance->RewriteHelper->replaceRecordType(RTLoc, "int");
   }
   return true;
@@ -153,8 +153,13 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   //  struct <anonymous struct ...> S;
   // the last declaration is injected by clang.
   // We need to omit it.
-  if (StartBuf > EndBuf)
+  if (StartBuf > EndBuf) {
+    SourceLocation KeywordLoc = Loc.getElaboratedKeywordLoc();
+    const char *Keyword = TypeWithKeyword::getKeywordName(ETy->getKeyword());
+    ConsumerInstance->TheRewriter.ReplaceText(KeywordLoc, 
+                                              strlen(Keyword), "int");
     return true;
+  }
   
   ConsumerInstance->TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
   return true;
