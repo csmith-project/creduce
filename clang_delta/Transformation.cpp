@@ -515,6 +515,16 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
     }
     if (TD)
       return TD->getTemplatedDecl();
+
+    if (const UnresolvedUsingValueDecl *UUD = 
+        dyn_cast<UnresolvedUsingValueDecl>(*I)) {
+      const NestedNameSpecifier *NNS = UUD->getQualifier();
+      const DeclContext *Ctx = getDeclContextFromSpecifier(NNS);
+      if (!Ctx)
+        continue;
+      if (const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx))
+        return FD;
+    }
   }
 
   for (DeclContext::udir_iterator I = Ctx->using_directives_begin(),
@@ -550,6 +560,16 @@ const DeclContext *Transformation::getDeclContextFromSpecifier(
         const Type *Ty = NNS->getAsType();
         if (const RecordType *RT = Ty->getAs<RecordType>())
           return RT->getDecl();
+        if (const TypedefType *TT = Ty->getAs<TypedefType>()) {
+          const TypedefNameDecl *TypeDecl = TT->getDecl();
+          const Type *UnderlyingTy = TypeDecl->getUnderlyingType().getTypePtr();
+          if (const RecordType *RT = UnderlyingTy->getAs<RecordType>())
+            return RT->getDecl();
+          if (const TemplateSpecializationType *TST =
+              UnderlyingTy->getAs<TemplateSpecializationType>()) {
+            return getBaseDeclFromTemplateSpecializationType(TST);
+          }
+        }
         break;
       }
       default:
