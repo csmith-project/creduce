@@ -101,6 +101,14 @@ bool EmptyStructToIntASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 
 bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 {
+  const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
+  // handle a special case -
+  // struct S1 {
+  //   struct { } S;
+  // };
+  if (!TypeId)
+    return true;
+
   const RecordDecl *RD = RTLoc.getDecl();
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
     SourceLocation LocStart = RTLoc.getLocStart();
@@ -132,6 +140,22 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   TypeLoc TyLoc = Loc.getNamedTypeLoc();
   SourceLocation EndLoc = TyLoc.getLocStart();
   EndLoc = EndLoc.getLocWithOffset(-1);
+  const char *StartBuf = 
+    ConsumerInstance->SrcManager->getCharacterData(StartLoc);
+  const char *EndBuf = ConsumerInstance->SrcManager->getCharacterData(EndLoc);
+  // It's possible, e.g., 
+  // struct S1 {
+  //   struct { } S;
+  // };
+  // Clang will translate struct { } S to
+  // struct {
+  // };
+  //  struct <anonymous struct ...> S;
+  // the last declaration is injected by clang.
+  // We need to omit it.
+  if (StartBuf > EndBuf)
+    return true;
+  
   ConsumerInstance->TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
   return true;
 }
@@ -180,6 +204,15 @@ void EmptyStructToInt::doAnalysis(void)
   }
 }
 
+// ISSUE: we will have bad transformation for the case below:
+// typedef struct S;
+// S *s;
+// ==>
+// typedef
+// int *s;
+// This is bad because we don't catch the implicit declaration of struct S.
+// But hopefully peephole pass will remove the keyword typedef,
+// then we will be fine.
 void EmptyStructToInt::removeRecordDecls(void)
 {
   for (RecordDecl::redecl_iterator I = TheRecordDecl->redecls_begin(),
