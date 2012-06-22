@@ -529,6 +529,9 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
 {
   const Expr *E = ignoreSubscriptExprParenCasts(Exp);
 
+  if (dyn_cast<CXXThisExpr>(E))
+    return NULL;
+
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E))
     return getCanonicalDeclaratorDecl(DRE);
 
@@ -609,7 +612,7 @@ void ReducePointerLevel::copyInitStr(const Expr *Exp,
   case Expr::DeclRefExprClass: {
     const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
     const ValueDecl *OrigDecl = DRE->getDecl();
-    if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl)) {
+    if (dyn_cast<FunctionDecl>(OrigDecl)) {
       InitStr = "0";
       return;
     }
