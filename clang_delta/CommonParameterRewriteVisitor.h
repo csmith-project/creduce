@@ -114,7 +114,8 @@ bool CommonParameterRewriteVisitor<T, Trans>::VisitCallExpr(
     if (!CalleeDecl)
       CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, 
                      ConsumerInstance->TheFuncDecl->getLookupParent());
-    TransAssert(CalleeDecl && "NULL CalleeDecl!");
+    if (!CalleeDecl)
+      return true;
   }
   else {
     CalleeDecl = CallE->getDirectCallee();
