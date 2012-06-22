@@ -299,6 +299,9 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
     return true;
 
   const Expr *Lhs = BO->getLHS();
+  // Lhs could be CallExpr
+  if (dyn_cast<CallExpr>(Lhs))
+    return true;
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
   TransAssert(DD && "NULL DD!");
   if (DD != ConsumerInstance->TheDecl)
