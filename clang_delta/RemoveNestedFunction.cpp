@@ -255,7 +255,6 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 
   if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
     DeclarationName DName = UM->getMemberName();
-    std::string NM = DName.getAsString();
     CXXRecordDecl *CXXRD = UM->getNamingClass();
     const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD);
     // FIXME: try to resolve FD here
