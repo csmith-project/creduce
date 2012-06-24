@@ -83,8 +83,8 @@ bool RNFStatementVisitor::VisitStmtExpr(StmtExpr *SE)
 {
   CompoundStmt *CS = SE->getSubStmt();
   if (ConsumerInstance->CallExprQueue.empty()) {
-      TraverseStmt(CS);
-      return false;
+    TraverseStmt(CS);
+    return false;
   }
 
   CallExpr *CallE = ConsumerInstance->CallExprQueue.back();
@@ -125,7 +125,7 @@ bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
 
   for (CallExpr::arg_iterator I = CallE->arg_begin(),
        E = CallE->arg_end(); I != E; ++I) {
-      TraverseStmt(*I);
+    TraverseStmt(*I);
   }
 
   ConsumerInstance->CallExprQueue.pop_back();
@@ -351,7 +351,9 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       // }
       // In this case, G[0] is of BuiltinType.
       // But why does clang represent a dependent type as BuiltinType here?
-      TransAssert(Ty->getAs<BuiltinType>() && "Non-BuiltinType!");
+
+      TransAssert((Ty->getAs<BuiltinType>() || Ty->getAs<TemplateTypeParmType>())
+                  && "Uncaught Type");
       // FIXME: This is incorrect!
       // a couple of questions
       //  - how can we find a correct DeclContext where we could lookup f?
