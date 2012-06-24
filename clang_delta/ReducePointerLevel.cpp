@@ -171,11 +171,8 @@ bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
       !dyn_cast<ArraySubscriptExpr>(SubE))
     return true;
 
-  const DeclaratorDecl *DD = 
-    ConsumerInstance->getRefDecl(SubE);
-  TransAssert(DD && "NULL DD!");
-
-  ConsumerInstance->AddrTakenDecls.insert(DD);
+  if (const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(SubE))
+    ConsumerInstance->AddrTakenDecls.insert(DD);
   return true;
 }
 
@@ -300,7 +297,8 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
 
   const Expr *Lhs = BO->getLHS();
   // Lhs could be CallExpr
-  if (dyn_cast<CallExpr>(Lhs))
+  if (dyn_cast<CallExpr>(Lhs) || dyn_cast<CXXConstructExpr>(Lhs) ||
+      dyn_cast<CXXUnresolvedConstructExpr>(Lhs))
     return true;
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
   TransAssert(DD && "NULL DD!");
@@ -542,7 +540,11 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
     return getCanonicalDeclaratorDecl(ME);
 
   const UnaryOperator *UO = dyn_cast<UnaryOperator>(E);
-  TransAssert(UO && "Bad UnaryOperator!");
+  // In some case, E could not be of UO if the program under transformation 
+  // is invalid.
+  if (!UO)
+    return NULL;
+
   UnaryOperator::Opcode Op = UO->getOpcode();
   (void)Op;
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
@@ -811,6 +813,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
   }
 
   case Expr::MemberExprClass: // Fall-through
+  case Expr::BinaryOperatorClass: 
   case Expr::ArraySubscriptExprClass: {
     RewriteHelper->getExprString(E, InitStr);
     InitStr = "*(" + InitStr + ")";
@@ -823,8 +826,9 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
                           &ReducePointerLevel::getNewLocalInitStr);
     return; 
   }
+
   default:
-    TransAssert(0 && "Uncatched initializer!");
+    TransAssert(0 && "Uncaught initializer!");
   }
 
   TransAssert(0 && "Unreachable code!");
