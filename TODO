@@ -4,9 +4,11 @@
 
 C-Reduce TODO list:
 
-Konstantin suggestion: deal with un-preprocessed code in a smart way,
-  for example by incrementally preprocessing files from inside
-  c-reduce
+add command line control over passes
+
+Konstantin suggestion:
+  - deal with un-preprocessed code in a smart way, for example by
+  incrementally preprocessing files from inside c-reduce
 
 Markus suggestion: run delta with larger topformflat arguments when
   initial testcase is big
