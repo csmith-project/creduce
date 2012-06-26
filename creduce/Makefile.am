@@ -42,7 +42,10 @@ GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 # `configure.ac' file to do the substitution.  See the Autoconf manual section
 # about "Installation Directory Variables" for details.
 
+# Note: the `perl' substitution is special so that we can use it on the
+# script's shebang line.  See `man perlrun' for details.
 creduce_edit = sed \
+	-e 's|@perl[@]|$(PERL)|g' \
 	-e 's|@PERL[@]|$(PERL)|g' \
 	-e 's|@perllibdir[@]|$(perllibdir)|g' \
 	-e 's|@prefix[@]|$(prefix)|g'
