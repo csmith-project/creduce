@@ -315,6 +315,7 @@ sub has_last_pass_pri {
 }
 
 @all_methods = (
+    { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 1001, },
     { "name" => "pass_lines",    "arg" => "8",                      "pri" => 411,  },
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
