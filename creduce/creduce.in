@@ -1,4 +1,4 @@
-#!@PERL@
+#!@PERL@ # -*- perl -*-
 ## -*- mode: Perl -*-
 ##
 ## Copyright (c) 2012 The University of Utah
