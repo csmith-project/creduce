@@ -321,9 +321,9 @@ sub has_last_pass_pri {
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
-    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  25, },
-    { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  26, },
-    { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  27, },
+    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  30, },
+    { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  31, },
+    { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  32, },
     { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 113,  },
     { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 114,  },
     { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
@@ -349,7 +349,7 @@ sub has_last_pass_pri {
     { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 217,  "first_pass_pri" => 49, },
     { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 218,  "first_pass_pri" => 50, },
     { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 219,  "first_pass_pri" => 51, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 52, },
+    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 25, },
     { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 221,  "first_pass_pri" => 53, },
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 222,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 223,  },
@@ -450,6 +450,13 @@ $orig_file_size = $file_size;
 # confusing when the initial test fails
 sanity_check();
 
+# SUPER HACK DO THIS BETTER
+if ((-s $cfile) >= 200000) {
+    push @all_methods, { "name" => "pass_lines",    "arg" => "1",  "first_pass_pri" =>  21, };
+    push @all_methods, { "name" => "pass_lines",    "arg" => "2",  "first_pass_pri" =>  22, };
+    push @all_methods, { "name" => "pass_lines",    "arg" => "10",  "first_pass_pri" =>  23, };
+}
+
 # some passes we run first since they often make good headway quickly
 print "INITIAL PASS\n" if $VERBOSE;
 foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_methods)) {
@@ -459,15 +466,6 @@ foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_method
 # iterate to global fixpoint
 print "MAIN PASSES\n" if $VERBOSE;
 $file_size = -s $cfile;
-
-
-# SUPER HACK DO THIS BETTER
-if ($file_size >= 200000) {
-    push @all_methods, { "name" => "pass_lines",    "arg" => "1",  "first_pass_pri" =>  21, };
-    push @all_methods, { "name" => "pass_lines",    "arg" => "2",  "first_pass_pri" =>  22, };
-    push @all_methods, { "name" => "pass_lines",    "arg" => "10",  "first_pass_pri" =>  23, };
-}
-
 
 while (1) {
     foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
