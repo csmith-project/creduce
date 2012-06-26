@@ -35,10 +35,8 @@ sub check_prereqs () {
 
 sub new ($$) {
     (my $cfile, my $arg) = @_;
-    my $tmpfile = POSIX::tmpnam();
-    system "topformflat $arg < $cfile > $tmpfile";
-    system "mv $tmpfile $cfile";	
     my %sh;
+    $sh{"flatten"} = 1;
     if ($BACKWARD) {
 	$sh{"chunk"} = count_lines($cfile);
 	$sh{"index"} = $sh{"chunk"};
@@ -68,6 +66,14 @@ sub round ($) {
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my %sh = %{$state};
+
+    if (defined $sh{"flatten"}) {
+	delete $sh{"flatten"};
+	my $tmpfile = POSIX::tmpnam();
+	system "topformflat $arg < $cfile > $tmpfile";
+	system "mv $tmpfile $cfile";	
+	return ($OK, \%sh);
+    }
 
     my $n=0;
     my $did_something=0;
