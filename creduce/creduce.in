@@ -459,6 +459,16 @@ foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_method
 # iterate to global fixpoint
 print "MAIN PASSES\n" if $VERBOSE;
 $file_size = -s $cfile;
+
+
+# SUPER HACK DO THIS BETTER
+if ($file_size >= 200000) {
+    push @all_methods, { "name" => "pass_lines",    "arg" => "1",  "first_pass_pri" =>  21, };
+    push @all_methods, { "name" => "pass_lines",    "arg" => "2",  "first_pass_pri" =>  22, };
+    push @all_methods, { "name" => "pass_lines",    "arg" => "10",  "first_pass_pri" =>  23, };
+}
+
+
 while (1) {
     foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
 	delta_pass ($method);
