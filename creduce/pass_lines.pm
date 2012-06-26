@@ -17,7 +17,7 @@ use POSIX;
 use File::Which;
 use creduce_utils;
 
-my $BACKWARD = 0;
+my $BACKWARD = 1;
 
 sub count_lines ($) {
     (my $cfile) = @_;
