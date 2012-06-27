@@ -14,7 +14,8 @@ implement suggestion from Joerg Sonnenberger:
 
 make it again possible to run just selected passes
 
-optionally, keep stats about fast vs. slow tests
+optionally, keep stats about fast vs. slow tests and
+  successful vs. unsuccessful xforms
 
 exploit early-exit from delta test to speed this up
   keep per-pass statistic on the probability of requiring the slow test
@@ -29,6 +30,13 @@ support testcase obfuscation better
 try to find passes that need to try a little harder-- run them in
 isolation and see how long it takes to reach a fixpoint; adjust them
 to back up a bit after each successful transformation, perhaps
+
+parallelize
+  across SMP
+  across cluster
+  possible strategies:
+    randomize transformations, merge periodically
+    parallel A*
 
 --------------------------------------------------------------------
 
@@ -59,15 +67,24 @@ typedef expansion
    need to fix it or add a CXX-specific inlining pass
 
 - From Konstantin Tokarev
-As you may know, there is a clang-based tool "Include What You Use" [1]. I think similar approach could be useful in C-Reduce to remove whole header files instead of separate lines. Though I'm not sure it's feasible without non-preprocessed source file and compilation command line available.
+
+As you may know, there is a clang-based tool "Include What You Use"
+[1]. I think similar approach could be useful in C-Reduce to remove
+whole header files instead of separate lines. Though I'm not sure it's
+feasible without non-preprocessed source file and compilation command
+line available.
 
 I can imagine the next algorithm of reduction:
 
-1. Reduce only the last section of translation unit corresponding to original source file without #includes using all available passes.
+1. Reduce only the last section of translation unit corresponding to
+original source file without #includes using all available passes.
 2. Try to remove sections corresponding to "unused" headers
 3. Move to section N-1 and proceed.
 
-Assuming that "interesting" fragment of code is located in sections with big numbers (source file and local headers) while first sections contain library headers, this approach might be more efficient than traditional line-based reduction.
+Assuming that "interesting" fragment of code is located in sections
+with big numbers (source file and local headers) while first sections
+contain library headers, this approach might be more efficient than
+traditional line-based reduction.
 
 [1] http://code.google.com/p/include-what-you-use
 
