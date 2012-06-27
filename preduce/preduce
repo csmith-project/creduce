@@ -26,10 +26,9 @@ use File::Which;
 use POSIX;
 use Regexp::Common;
 
-use creduce_config qw(PACKAGE_STRING);
-use creduce_utils;
-
 ######################################################################
+
+my $VERBOSE = 1;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -53,6 +52,9 @@ my $CACHE = 1;
 
 ######################################################################
 
+my $OK = 999999;
+my $STOP = 111333;
+
 my $orig_file_size;
 
 sub print_pct ($) {
@@ -70,16 +72,28 @@ my $cfile_base;
 my $cfile_bak;
 my $cfile_orig;
 
+sub runit ($) {
+    (my $cmd) = @_;
+    if ((system "$cmd") != 0) {
+        my $res = $? >> 8;
+        if ($res == 255) {
+            return -1;
+        }
+        else {
+            return -2;
+        }
+    }
+    return ($? >> 8);
+}
+
 sub run_test () {
     my $res = runit "$test $cfile >/dev/null 2>&1";
     return ($res == 0);
 }
 
-my $good_cnt;
-my $bad_cnt;
+my $good_cnt = 0;
+my $bad_cnt = 0;
 my $pass_num = 0;
-my %method_worked = ();
-my %method_failed = ();
 my $old_size = 1000000000;
 
 sub sanity_check () {
@@ -106,14 +120,38 @@ sub spinner() {
     $cur_key++;
 }
 
+sub read_file ($) {
+    (my $cfile) = @_;
+    open INF, "<$cfile" or die;
+    my $prog = "";
+    while (my $line = <INF>) {
+	$prog .= $line;
+    }
+    close INF;
+    if (substr($prog, 0, 1) ne " ") {
+	$prog = " $prog";
+    }
+    if (substr ($prog, -1, 1) ne " ") {
+	$prog = "$prog ";
+    }
+    return $prog;
+}
+
+sub write_file ($$) {
+    (my $cfile, my $prog) = @_;
+    open OUTF, ">$cfile" or die;
+    print OUTF $prog;
+    close OUTF;
+}
+
 # global invariant: the delta test always succeeds for $cfile_bak
 
-sub delta_test ($$$) {
-    (my $method, my $arg, my $state) = @_;
+sub delta_test ($$) {
+    (my $arg, my $state) = @_;
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
-    print "[$pass_num $method :: $arg s:$good_cnt f:$bad_cnt] " 
+    print "[$pass_num lines :: $arg s:$good_cnt f:$bad_cnt] " 
 	if $VERBOSE;
 
     if ($SPINNER) {
@@ -155,7 +193,6 @@ sub delta_test ($$$) {
 	print_pct(-s $cfile);
 	system "cp $cfile $cfile_bak";
 	$good_cnt++;
-	$method_worked{$method}{$arg}++;
 	my $size = length ($prog);
 	if ($CACHE && ($size < $old_size)) {
 	    foreach my $k (keys %cache) {
@@ -176,225 +213,124 @@ sub delta_test ($$$) {
 	print "failure\n" if $VERBOSE;
 	system "cp $cfile_bak $cfile";
 	$bad_cnt++;
-	$method_failed{$method}{$arg}++;
 	$ret = 0;
     }
 
     return $ret;
 }
 
-sub call_prereq_check ($) {
-    (my $method) = @_;
-    my $str = $method."::check_prereqs";
-    no strict "refs";
-    if (!(&${str}())) {
-	die "prereqs not found for pass $method";
+sub count_lines ($) {
+    (my $cfile) = @_;
+    open INF, "<$cfile" or die;
+    my $n=0;
+    $n++ while (<INF>);
+    close INF;
+    return $n;
+}
+
+sub new ($$) {
+    (my $cfile, my $arg) = @_;
+    my %sh;
+    $sh{"flatten"} = 1;
+    return \%sh;
+}
+
+sub advance ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my %sh = %{$state};
+
+    return \%sh if defined($sh{"start"});
+    $sh{"index"} += $sh{"chunk"};
+    my $foo = $sh{"index"};
+    # print "advanced index to $foo\n";
+    return \%sh;
+}
+
+sub round ($) {
+    (my $n) = @_;
+    return int ($n+0.5);
+}
+
+sub transform ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my %sh = %{$state};
+
+    if (defined $sh{"flatten"}) {
+	delete $sh{"flatten"};
+	$sh{"start"} = 1;
+	my $tmpfile = POSIX::tmpnam();
+	system "topformflat $arg < $cfile > $tmpfile";
+	system "mv $tmpfile $cfile";	
+	return ($OK, \%sh);
     }
-    print "successfully checked prereqs for $method\n" if $VERBOSE;
-}
 
-sub call_new ($$$) {
-    (my $method,my $fn,my $arg) = @_;    
-    my $str = $method."::new";
-    no strict "refs";
-    return &${str}($fn,$arg);
-}
+    if (defined($sh{"start"})) {
+	delete $sh{"start"};
+	my $chunk = count_lines($cfile);
+	$sh{"chunk"} = $chunk;
+	print "initial granularity = $chunk\n" if $VERBOSE;
+	$sh{"index"} = 0;
+    }
 
-sub call_advance ($$$$) {
-    (my $method,my $fn,my $arg,my $state) = @_;    
-    my $str = $method."::advance";
-    no strict "refs";
-    return &${str}($fn,$arg,$state);
-}
+    my $n=0;
+    my $did_something=0;
+    my $tmpfile = POSIX::tmpnam();
+    open INF, "<$cfile" or die;
+    open OUTF, ">$tmpfile" or die;
+    while (my $line = <INF>) {
+	if ($n >= ($sh{"index"} + $sh{"chunk"}) ||
+	    $n < $sh{"index"}) {
+	    print OUTF $line;
+	} else {
+	    $did_something++;
+	}
+	$n++;
+    }
+    close INF;
+    close OUTF;
+    
+    if ($did_something) {
+	system "mv $tmpfile $cfile";
+    } else {
+	system "rm $tmpfile";
+	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
+	my $newchunk = round ($sh{"chunk"} / 2.0);
+	$sh{"chunk"} = $newchunk;
+	print "granularity = $newchunk\n" if $VERBOSE;
+	$sh{"index"} = 0;
+    }
 
-sub call_method ($$$$) {
-    (my $method,my $fn,my $arg,my $state) = @_;    
-    my $str = $method."::transform";
-    no strict "refs";
-    return &${str}($fn,$arg,$state);
+    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
+
+    return ($OK, \%sh);
 }
 
 sub delta_pass ($) {
-    (my $mref) = @_;    
-    my $delta_method = ${$mref}{"name"};
-    my $delta_arg = ${$mref}{"arg"};
-    $good_cnt = 0;
-    $bad_cnt = 0;
-
-    print "\n" if $VERBOSE;
-    print "===< $delta_method :: $delta_arg >===\n";
+    (my $delta_arg) = @_;    
 
     if ($SANITY) {
 	sanity_check();
     }
 
-    my $state = call_new ($delta_method,$cfile,$delta_arg);
+    my $state = new ($cfile,$delta_arg);
 
     while (1) {
-
-	(my $res, $state) = call_method ($delta_method,$cfile,$delta_arg,$state);
+	(my $res, $state) = transform ($cfile,$delta_arg,$state);
 	return if ($res == $STOP);
 	die unless ($res == $OK);
 	system "diff $cfile_bak $cfile" if $DIFFS;
-	$state = call_advance ($delta_method,$cfile,$delta_arg,$state) 
-	    unless delta_test ($delta_method, $delta_arg, $state);
+	$state = advance ($cfile,$delta_arg,$state) 
+	    unless delta_test ($delta_arg,$state);
     }
 }
 
 sub usage() {
-    print "usage: creduce test_script.sh file.c\n";
+    print "usage:reduce test_script.sh file.c\n";
     die;
 }
 
-my @all_methods = ();
-
-sub by_first_pass_pri {
-    my $pa;
-    my $pb;
-    foreach my $mref (@all_methods) {
-	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"first_pass_pri"};
-	}
-	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"first_pass_pri"};
-	}
-    }
-    die unless defined ($pa);
-    die unless defined ($pb);
-    return $pa <=> $pb;
-}
-
-sub by_pri {
-    my $pa;
-    my $pb;
-
-    foreach my $mref (@all_methods) {
-	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"pri"};
-	}
-	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"pri"};
-	}
-    }
-    die unless defined ($pa);
-    die unless defined ($pb);
-    return $pa <=> $pb;
-}
-
-sub by_last_pass_pri {
-    my $pa;
-    my $pb;
-    foreach my $mref (@all_methods) {
-	my %m = %{$mref};
-	if (${$a}{"name"} eq $m{"name"} && ${$a}{"arg"} eq $m{"arg"}) {
-	    $pa = $m{"last_pass_pri"};
-	}
-	if (${$b}{"name"} eq $m{"name"} && ${$b}{"arg"} eq $m{"arg"}) {
-	    $pb = $m{"last_pass_pri"};
-	}
-    }
-    die unless defined ($pa);
-    die unless defined ($pb);
-    return $pa <=> $pb;
-}
-
-sub has_pri { 
-    return defined(${$_}{"pri"});
-}
-
-sub has_first_pass_pri { 
-    return defined(${$_}{"first_pass_pri"});
-}
-
-sub has_last_pass_pri { 
-    return defined(${$_}{"last_pass_pri"});
-}
-
-@all_methods = (
-    { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
-    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 1001, },
-    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  21, },
-    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  22, },
-    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
-    { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
-    { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
-    { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
-    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  30, },
-    { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  31, },
-    { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  32, },
-    { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 113,  },
-    { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 114,  },
-    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
-    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
-    { "name" => "pass_clang",    "arg" => "remove-namespace",       "pri" => 200,  },
-    { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 201,  },
-   #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
-    { "name" => "pass_clang",    "arg" => "local-to-global",        "pri" => 202,  },
-    { "name" => "pass_clang",    "arg" => "param-to-global",        "pri" => 203,  },
-    { "name" => "pass_clang",    "arg" => "param-to-local",         "pri" => 204,  },
-    { "name" => "pass_clang",    "arg" => "remove-nested-function", "pri" => 205,  },
-    { "name" => "pass_clang",    "arg" => "rename-fun",                            "last_pass_pri" => 207,  },
-    { "name" => "pass_clang",    "arg" => "union-to-struct",        "pri" => 208,  },
-    { "name" => "pass_clang",    "arg" => "rename-param",                          "last_pass_pri" => 209,  },
-    { "name" => "pass_clang",    "arg" => "rename-var",                            "last_pass_pri" => 210,  },
-    { "name" => "pass_clang",    "arg" => "rename-class",                          "last_pass_pri" => 211,  },
-    { "name" => "pass_clang",    "arg" => "return-void",            "pri" => 212,  },
-    { "name" => "pass_clang",    "arg" => "simple-inliner",         "pri" => 213,  },
-    { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "pri" => 214,  },
-    { "name" => "pass_clang",    "arg" => "lift-assignment-expr",   "pri" => 215,  },
-    { "name" => "pass_clang",    "arg" => "copy-propagation",       "pri" => 216,  },
-    { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 217,  "first_pass_pri" => 49, },
-    { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 218,  "first_pass_pri" => 50, },
-    { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 219,  "first_pass_pri" => 51, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 25, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 221,  "first_pass_pri" => 53, },
-    { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 222,  },
-    { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 223,  },
-    { "name" => "pass_clang",    "arg" => "reduce-array-size",      "pri" => 224,  },
-    { "name" => "pass_clang",    "arg" => "move-function-body",     "pri" => 225,  },
-    { "name" => "pass_clang",    "arg" => "simplify-comma-expr",    "pri" => 226,  },
-    { "name" => "pass_clang",    "arg" => "simplify-dependent-typedef",   "pri" => 227,  },
-    { "name" => "pass_clang",    "arg" => "replace-simple-typedef", "pri" => 228,  },
-    { "name" => "pass_clang",    "arg" => "remove-unused-field",    "pri" => 229,  },
-    { "name" => "pass_clang",    "arg" => "reduce-class-template-param",  "pri" => 230,  },
-    { "name" => "pass_clang",    "arg" => "remove-trivial-base-template", "pri" => 231,  },
-    { "name" => "pass_clang",    "arg" => "class-template-to-class",      "pri" => 232,  },
-    { "name" => "pass_clang",    "arg" => "remove-base-class",      "pri" => 233,  },
-    { "name" => "pass_clang",    "arg" => "replace-derived-class",  "pri" => 234,  },
-    { "name" => "pass_clang",    "arg" => "remove-unresolved-base", "pri" => 235,  },
-    { "name" => "pass_clang",    "arg" => "remove-ctor-initializer","pri" => 236,  },
-    { "name" => "pass_clang",    "arg" => "empty-struct-to-int",    "pri" => 237,  },
-    { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
-    { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
-    { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
-    { "name" => "pass_clang",    "arg" => "move-global-var",                       "last_pass_pri" => 993, },
-    { "name" => "pass_clang",    "arg" => "unify-function-decl",                   "last_pass_pri" => 994, },
-    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 500,  },
-    { "name" => "pass_peep",     "arg" => "b",                      "pri" => 501,  },
-    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 600,  },
-    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 601,  },
-    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 602,  },
-    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 603,  },
-    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 603,  },
-    { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
-    { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 1000, },
-    );
-
 ############################### main #################################
 
-my %prereqs_checked;
-foreach my $mref (@all_methods) {
-    my %method = %{$mref};
-    my $mname = $method{"name"};
-    die unless defined ($mname);
-    next if defined ($prereqs_checked{$mname});
-    $prereqs_checked{$mname} = 1;
-    eval "require $mname";
-    call_prereq_check($mname);
-}
 print "\n" if $VERBOSE;
 
 $test = shift @ARGV;
@@ -450,46 +386,16 @@ $orig_file_size = $file_size;
 # confusing when the initial test fails
 sanity_check();
 
-# some passes we run first since they often make good headway quickly
-print "INITIAL PASS\n" if $VERBOSE;
-foreach my $method (sort by_first_pass_pri grep (has_first_pass_pri, @all_methods)) {
-    delta_pass ($method);
-}
-
 # iterate to global fixpoint
 print "MAIN PASSES\n" if $VERBOSE;
 $file_size = -s $cfile;
 
-while (1) {
-    foreach my $method (sort by_pri grep (has_pri, @all_methods)) {
-	delta_pass ($method);
-    }
-    $pass_num++;
-    my $s = -s $cfile;
-    print "Termination check: size was $file_size; now $s\n";
-    last if ($s >= $file_size);
-    $file_size = $s;
-}
-
-# some passes we run last since they work best as cleanup
-print "CLEANUP PASS\n" if $VERBOSE;
-foreach my $method (sort by_last_pass_pri grep (has_last_pass_pri, @all_methods)) {
-    delta_pass ($method);
-}
+delta_pass (0);
+delta_pass (1);
+delta_pass (2);
+delta_pass (10);
 
 print "===================== done ====================\n";
-
-print "\n";
-print "pass statistics:\n";
-foreach my $mref (sort @all_methods) {
-    my $method = ${$mref}{"name"};
-    my $arg = ${$mref}{"arg"};
-    my $w = $method_worked{$method}{$arg};
-    $w=0 unless defined($w);
-    my $f = $method_failed{$method}{$arg};
-    $f=0 unless defined($f);
-    print "  method $method :: $arg worked $w times and failed $f times\n";
-}
 
 print "\n";
 
