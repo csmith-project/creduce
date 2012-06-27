@@ -34,21 +34,35 @@ sub advance ($$$) {
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my $index = ${$state};
-    return ($STOP, \$index) unless ($index == 0);
 
-    open INF, "<$cfile" or die;
-    my $tmpfile = POSIX::tmpnam();
-    open OUTF, ">$tmpfile" or die;
-    while (my $line = <INF>) {
-	next if ($line =~ /^#/);
-	next if ($line =~ /^\s*$/);
-	print OUTF $line;
+    return ($STOP, \$index) unless ($index < 2);
+
+    if ($index == 0) {
+	open INF, "<$cfile" or die;
+	my $tmpfile = POSIX::tmpnam();
+	open OUTF, ">$tmpfile" or die;
+	while (my $line = <INF>) {
+	    next if ($line =~ /^\s*$/);
+	    print OUTF $line;
+	}
+	close INF;
+	close OUTF;    
+	system "mv $tmpfile $cfile";
     }
-    close INF;
-    close OUTF;    
-    system "mv $tmpfile $cfile";
-    
 
+    if ($index == 1) {
+	open INF, "<$cfile" or die;
+	my $tmpfile = POSIX::tmpnam();
+	open OUTF, ">$tmpfile" or die;
+	while (my $line = <INF>) {
+	    next if ($line =~ /^#/);
+	    print OUTF $line;
+	}
+	close INF;
+	close OUTF;    
+	system "mv $tmpfile $cfile";
+    }
+    
     $index++;
     return ($OK, \$index);
 }

@@ -34,8 +34,6 @@ use creduce_utils;
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
 
-my $VERBOSE = 0;
-
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening
 my $SPINNER = 0;

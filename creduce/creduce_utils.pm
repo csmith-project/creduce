@@ -14,11 +14,13 @@ use warnings;
 
 use Exporter::Lite;
 
-@EXPORT      = qw(read_file write_file $OK $STOP
+@EXPORT      = qw(read_file write_file $OK $STOP $VERBOSE
                   $replace_cont replace_aux runit $matched);
 
 $OK = 999999;
 $STOP = 111333;
+
+$VERBOSE = 0;
 
 sub runit ($) {
     (my $cmd) = @_;

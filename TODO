@@ -4,22 +4,15 @@
 
 C-Reduce TODO list:
 
-add command line control over passes
-
 Konstantin suggestion:
-  - deal with un-preprocessed code in a smart way, for example by
+  deal with un-preprocessed code in a smart way, for example by
   incrementally preprocessing files from inside c-reduce
 
 implement suggestion from Joerg Sonnenberger:
   do transformations in chunks, like the line-reducer pass already does
   requires a good model of when this will be profitable
 
-make a distribution using CDE
-  http://www.stanford.edu/~pgbovine/cde.html
-
 make it again possible to run just selected passes
-
-add regression tests
 
 optionally, keep stats about fast vs. slow tests
 

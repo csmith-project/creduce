@@ -17,7 +17,7 @@ use POSIX;
 use File::Which;
 use creduce_utils;
 
-my $BACKWARD = 1;
+my $BACKWARD = 0;
 
 sub count_lines ($) {
     (my $cfile) = @_;
@@ -37,13 +37,6 @@ sub new ($$) {
     (my $cfile, my $arg) = @_;
     my %sh;
     $sh{"flatten"} = 1;
-    if ($BACKWARD) {
-	$sh{"chunk"} = count_lines($cfile);
-	$sh{"index"} = $sh{"chunk"};
-    } else {
-	$sh{"chunk"} = count_lines($cfile);
-	$sh{"index"} = 0;
-    }
     return \%sh;
 }
 
@@ -55,6 +48,8 @@ sub advance ($$$) {
     } else {
 	$sh{"index"} += $sh{"chunk"};
     }
+    my $foo = $sh{"index"};
+    # print "advanced index to $foo\n";
     return \%sh;
 }
 
@@ -72,6 +67,16 @@ sub transform ($$$) {
 	my $tmpfile = POSIX::tmpnam();
 	system "topformflat $arg < $cfile > $tmpfile";
 	system "mv $tmpfile $cfile";	
+
+	my $chunk = count_lines($cfile);
+	$sh{"chunk"} = $chunk;
+	print "initial granularity = $chunk\n" if $VERBOSE;
+	if ($BACKWARD) {
+	    $sh{"index"} = $chunk;
+	} else {
+	    $sh{"index"} = 0;
+	}
+
 	return ($OK, \%sh);
     }
 
@@ -98,20 +103,22 @@ sub transform ($$$) {
     close INF;
     close OUTF;
     
-    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
-
     if ($did_something) {
 	system "mv $tmpfile $cfile";
     } else {
 	system "rm $tmpfile";
 	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
-	$sh{"chunk"} = round ($sh{"chunk"} / 2.0);
+	my $newchunk = round ($sh{"chunk"} / 2.0);
+	$sh{"chunk"} = $newchunk;
+	print "granularity = $newchunk\n" if $VERBOSE;
 	if ($BACKWARD) {
 	    $sh{"index"} = count_lines($cfile);
 	} else {
 	    $sh{"index"} = 0;
 	}
     }
+
+    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
 
     return ($OK, \%sh);
 }
