@@ -43,6 +43,9 @@ sub new ($$) {
 sub advance ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my %sh = %{$state};
+
+    return \%sh if defined($sh{"start"});
+
     if ($BACKWARD) {
 	$sh{"index"} -= $sh{"chunk"};
     } else {
@@ -64,10 +67,15 @@ sub transform ($$$) {
 
     if (defined $sh{"flatten"}) {
 	delete $sh{"flatten"};
+	$sh{"start"} = 1;
 	my $tmpfile = POSIX::tmpnam();
 	system "topformflat $arg < $cfile > $tmpfile";
 	system "mv $tmpfile $cfile";	
+	return ($OK, \%sh);
+    }
 
+    if (defined($sh{"start"})) {
+	delete $sh{"start"};
 	my $chunk = count_lines($cfile);
 	$sh{"chunk"} = $chunk;
 	print "initial granularity = $chunk\n" if $VERBOSE;
@@ -76,8 +84,6 @@ sub transform ($$$) {
 	} else {
 	    $sh{"index"} = 0;
 	}
-
-	return ($OK, \%sh);
     }
 
     my $n=0;

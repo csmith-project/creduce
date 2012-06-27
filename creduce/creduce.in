@@ -315,7 +315,9 @@ sub has_last_pass_pri {
 @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 1001, },
-    { "name" => "pass_lines",    "arg" => "8",                      "pri" => 411,  },
+    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  21, },
+    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  22, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
@@ -447,13 +449,6 @@ $orig_file_size = $file_size;
 # unconditionally do this just once since otherwise output is
 # confusing when the initial test fails
 sanity_check();
-
-# SUPER HACK DO THIS BETTER
-if ((-s $cfile) >= 200000) {
-    push @all_methods, { "name" => "pass_lines",    "arg" => "1",  "first_pass_pri" =>  21, };
-    push @all_methods, { "name" => "pass_lines",    "arg" => "2",  "first_pass_pri" =>  22, };
-    push @all_methods, { "name" => "pass_lines",    "arg" => "10",  "first_pass_pri" =>  23, };
-}
 
 # some passes we run first since they often make good headway quickly
 print "INITIAL PASS\n" if $VERBOSE;
