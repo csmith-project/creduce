@@ -12,9 +12,15 @@ C-Reduce TODO list:
   tricky to update current slave positions when master copy is changed
   when merging fails, just take the smallest un-merged variant
   line numbers must have a unique meaning, so...
-    never try to parallelize across calls to topformflat
+    don't try to parallelize across calls to topformflat
+    don't try to parallelize across changes of granularity
     never try to parallelize across changes to the master's current version
-  the main question is when to merge
+  should slaves work on different parts of the file?
+    maybe not, at first... just keep the current linear scan
+  merge when...
+    reach end of current scan
+    X successful variants have been found
+    Y unsuccessful variants have been found
 
 Konstantin suggestion:
   deal with un-preprocessed code in a smart way, for example by
