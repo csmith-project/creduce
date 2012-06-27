@@ -4,6 +4,18 @@
 
 C-Reduce TODO list:
 
+"P-Reduce"-- parallel line-delta
+  master process tells slave to delete some lines and evaluate that version;
+    returns true or false
+  periodically master merges successful variants (by taking union of deleted
+    lines) and this becomes the new master copy
+  tricky to update current slave positions when master copy is changed
+  when merging fails, just take the smallest un-merged variant
+  line numbers must have a unique meaning, so...
+    never try to parallelize across calls to topformflat
+    never try to parallelize across changes to the master's current version
+  the main question is when to merge
+
 Konstantin suggestion:
   deal with un-preprocessed code in a smart way, for example by
   incrementally preprocessing files from inside c-reduce
