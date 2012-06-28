@@ -41,13 +41,6 @@ my $SPINNER = 0;
 # if set, show what each transformation did
 my $DIFFS = 0;
 
-# slow -- but may detect non-deterministic test and bugs in cache
-# logic
-my $PARANOID = 0;
-
-# save all variants
-my $SAVE_COPIES = 0;
-
 # if set, cache results (recommended)
 my $CACHE = 1;
 
@@ -62,15 +55,23 @@ sub print_pct ($) {
 }
 
 # these are set at startup time and never change
-my $cfile;
 my $test;
 my $trial_num = 0;   
 
-my $cfile_base;
-my $cfile_bak;
 my $cfile_orig;
+my $cfile_base;
+my $dir_base;
+my $suffix;
 
-sub run_test () {
+# global invariant: the delta test always succeeds for $cfile_bak
+my $cfile_bak;
+
+######################################################################
+
+my @suffixes = (".c", ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx");
+
+sub run_test ($) {
+    (my $cfile) = @_;
     my $res = runit "$test $cfile >/dev/null 2>&1";
     return ($res == 0);
 }
@@ -82,9 +83,10 @@ my %method_worked = ();
 my %method_failed = ();
 my $old_size = 1000000000;
 
-sub sanity_check () {
+sub sanity_check ($) {
+    (my $cfile) = @_;
     print "sanity check... " if $VERBOSE;
-    my $res = run_test ();
+    my $res = run_test ($cfile);
     if (!$res) {
 	die "test (and sanity check) fails";
     }
@@ -106,10 +108,8 @@ sub spinner() {
     $cur_key++;
 }
 
-# global invariant: the delta test always succeeds for $cfile_bak
-
-sub delta_test ($$$) {
-    (my $method, my $arg, my $state) = @_;
+sub delta_test ($$$$) {
+    (my $method, my $arg, my $state, my $cfile) = @_;
     my $prog = read_file($cfile);
     my $len = length ($prog);
 
@@ -128,32 +128,18 @@ sub delta_test ($$$) {
     if (defined($result)) {
 	$cache_hits++;
     } else {    
-	$result = run_test ();
+	$result = run_test ($cfile);
 	if ($CACHE) {
 	    $cache{$len}{$prog} = $result;
 	}
     }
 
-    if ($PARANOID) {
-	for (my $i=0; $i<5; $i++) {
-	    my $result2 = run_test ();
-	    die "paranoid failure" unless ($result == $result2);
-	}
-    }
-
     $test_cnt++;
-    my $ret;
     
     if ($result) {
 	print "\b" if $SPINNER;
-	if ($SAVE_COPIES) {
-	    my $FN = "${cfile_base}-paranoid-${test_cnt}-good";
-	    print "saving paranoid file $FN\n" if $VERBOSE;
-	    system "cp $cfile $FN";	 
-	}
 	print "success " if $VERBOSE;
 	print_pct(-s $cfile);
-	system "cp $cfile $cfile_bak";
 	$good_cnt++;
 	$method_worked{$method}{$arg}++;
 	my $size = length ($prog);
@@ -165,22 +151,14 @@ sub delta_test ($$$) {
 	    }
 	}
 	$old_size = $size;
-	$ret = 1;
+	return 1;
     } else {
 	print "\b" if $SPINNER;
-	if ($SAVE_COPIES) {
-	    my $FN = "$cfile-paranoid-${test_cnt}-bad";
-	    print "saving paranoid file $FN\n" if $VERBOSE;
-	    system "cp $cfile $FN";	 
-	}
 	print "failure\n" if $VERBOSE;
-	system "cp $cfile_bak $cfile";
 	$bad_cnt++;
 	$method_failed{$method}{$arg}++;
-	$ret = 0;
+	return 0;
     }
-
-    return $ret;
 }
 
 sub call_prereq_check ($) {
@@ -214,6 +192,8 @@ sub call_method ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
+# invariant: parallel execution does not escape this function
+
 sub delta_pass ($) {
     (my $mref) = @_;    
     my $delta_method = ${$mref}{"name"};
@@ -224,20 +204,26 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    if ($SANITY) {
-	sanity_check();
-    }
-
+    my $cfile = POSIX::tmpnam() . $suffix;   
+    system "cp $cfile_bak $cfile";
     my $state = call_new ($delta_method,$cfile,$delta_arg);
 
-    while (1) {
+    if ($SANITY) {
+	sanity_check($cfile);
+    }
 
+    while (1) {
+	system "cp $cfile_bak $cfile";
 	(my $res, $state) = call_method ($delta_method,$cfile,$delta_arg,$state);
 	return if ($res == $STOP);
 	die unless ($res == $OK);
 	system "diff $cfile_bak $cfile" if $DIFFS;
-	$state = call_advance ($delta_method,$cfile,$delta_arg,$state) 
-	    unless delta_test ($delta_method, $delta_arg, $state);
+	if (delta_test ($delta_method,$delta_arg,$state,$cfile)) {
+	    system "cp $cfile $cfile_bak";
+	} else {
+	    system "cp $cfile_bak $cfile";
+	    $state = call_advance ($delta_method,$cfile,$delta_arg,$state);
+	}
     }
 }
 
@@ -314,7 +300,7 @@ sub has_last_pass_pri {
 
 @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
-    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 1001, },
+    { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
     { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
@@ -416,7 +402,7 @@ if (!(-x $test)) {
     usage();
 }
 
-$cfile = shift @ARGV;
+my $cfile = shift @ARGV;
 usage unless defined($cfile);
 if (!(-e $cfile)) {
     print "'$cfile' file not found\n";
@@ -436,7 +422,10 @@ if (!(-w $cfile)) {
 }
 
 # Put scratch files ($cfile_bak, $cfile_orig) in the current working directory.
-$cfile_base = fileparse($cfile);
+($cfile_base, $dir_base, $suffix) = fileparse($cfile,@suffixes);
+
+print "cfile base = ${cfile_base}, suffix = $suffix\n";
+
 $cfile_bak  = "$cfile_base.bak";
 $cfile_orig = "$cfile_base.orig";
 
@@ -448,7 +437,7 @@ $orig_file_size = $file_size;
 
 # unconditionally do this just once since otherwise output is
 # confusing when the initial test fails
-sanity_check();
+sanity_check($cfile);
 
 # some passes we run first since they often make good headway quickly
 print "INITIAL PASS\n" if $VERBOSE;
@@ -465,7 +454,7 @@ while (1) {
 	delta_pass ($method);
     }
     $pass_num++;
-    my $s = -s $cfile;
+    my $s = -s $cfile_bak;
     print "Termination check: size was $file_size; now $s\n";
     last if ($s >= $file_size);
     $file_size = $s;
