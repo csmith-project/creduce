@@ -86,6 +86,8 @@ sub transform ($$$) {
 	}
     }
 
+  AGAIN:
+
     my $n=0;
     my $did_something=0;
     my $tmpfile = POSIX::tmpnam();
@@ -108,6 +110,15 @@ sub transform ($$$) {
     }
     close INF;
     close OUTF;
+
+    # OI, STUPID HACK
+    if ($BACKWARD &&
+	!$did_something &&
+	$sh{"index"} >= 0) {
+	my $newsh = advance ($cfile, 0, \%sh);
+	%sh = %{$newsh};
+	goto AGAIN;
+    }
     
     if ($did_something) {
 	system "mv $tmpfile $cfile";
