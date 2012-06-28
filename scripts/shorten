@@ -104,11 +104,7 @@ foreach my $s (@l) {
 my $prog = "";
 
 while (my $line = <STDIN>) { 
-    chomp $line;
-    if ($line ne "" &&
-	!($line =~ /^#/)) {
-	$prog .= "$line\n"; 
-    }
+    $prog .= $line;
 }
 
 foreach my $s (@l) {

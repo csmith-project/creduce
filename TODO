@@ -4,6 +4,11 @@
 
 C-Reduce TODO list:
 
+eliminate the spurious passing delta test when line delta changes
+granularity
+
+support predicates written as perl modules
+
 Konstantin suggestion:
   deal with un-preprocessed code in a smart way, for example by
   incrementally preprocessing files from inside c-reduce
@@ -30,13 +35,6 @@ support testcase obfuscation better
 try to find passes that need to try a little harder-- run them in
 isolation and see how long it takes to reach a fixpoint; adjust them
 to back up a bit after each successful transformation, perhaps
-
-parallelize
-  across SMP
-  across cluster
-  possible strategies:
-    randomize transformations, merge periodically
-    parallel A*
 
 --------------------------------------------------------------------
 
