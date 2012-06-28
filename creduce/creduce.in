@@ -480,6 +480,8 @@ foreach my $mref (sort @all_methods) {
 
 print "\n";
 
+system "cp $cfile_bak $cfile";
+
 print "reduced test case:\n\n";
 system "cat $cfile";
 

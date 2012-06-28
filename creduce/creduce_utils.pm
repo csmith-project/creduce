@@ -17,7 +17,7 @@ use Exporter::Lite;
 @EXPORT      = qw(read_file write_file $OK $STOP $VERBOSE
                   $replace_cont replace_aux runit $matched);
 
-$VERBOSE = 0;
+$VERBOSE = 1;
 
 $OK = 999999;
 $STOP = 111333;
