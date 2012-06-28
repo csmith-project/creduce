@@ -61,12 +61,13 @@ sub print_pct ($) {
 my $test;
 my $trial_num = 0;   
 
+my $toreduce;
 my $toreduce_orig;
 my $toreduce_base;
 my $dir_base;
 my $suffix;
 
-my $DIR;
+my $ORIG_DIR;
 
 # global invariant: this filename always points to the best delta
 # variant we've seen so far
@@ -89,14 +90,20 @@ my %method_worked = ();
 my %method_failed = ();
 my $old_size = 1000000000;
 
-sub sanity_check ($) {
-    (my $fn) = @_;
+sub sanity_check () {
     print "sanity check... " if $VERBOSE;
-    my $res = run_test ($fn);
+
+    my $dir = File::Temp::tempdir( CLEANUP => 1);
+    chdir $dir or die;
+    system "cp $toreduce_bak $toreduce";
+
+    my $res = run_test ($toreduce);
     if (!$res) {
 	die "test (and sanity check) fails";
     }
     print "successful\n" if $VERBOSE;
+    chdir $ORIG_DIR or die;
+    File::Path::rmtree($dir);
 }
 
 my %cache = ();
@@ -210,17 +217,16 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    my $tmpfn = "tmp".$suffix; 
+    my $tmpfn = $toreduce;
     system "cp $toreduce_bak $tmpfn";
     my $state = call_new ($delta_method,$tmpfn,$delta_arg);
 
     if ($SANITY) {
-	sanity_check($tmpfn);
+	sanity_check();
     }
 
     while (1) {
-
-	my $dir = File::Temp::tempdir( CLEANUP => 1);
+	my $dir = File::Temp::tempdir();
 	chdir $dir or die;
 	system "cp $toreduce_bak $tmpfn";
 
@@ -234,8 +240,8 @@ sub delta_pass ($) {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
 
-	chdir $DIR or die;
-
+	chdir $ORIG_DIR or die;
+	File::Path::rmtree ($dir);
     }
 }
 
@@ -417,7 +423,7 @@ if (!(-x $test)) {
     usage();
 }
 
-my $toreduce = shift @ARGV;
+$toreduce = shift @ARGV;
 usage unless defined($toreduce);
 if (!(-e $toreduce)) {
     print "'$toreduce' file not found\n";
@@ -440,7 +446,7 @@ if (!(-w $toreduce)) {
 # working directory.
 ($toreduce_base, $dir_base, $suffix) = fileparse($toreduce,@suffixes);
 
-$DIR = getcwd();
+$ORIG_DIR = getcwd();
 
 # absolute path so we can refer to this file from temporary working
 # dirs
@@ -455,7 +461,7 @@ $orig_file_size = $file_size;
 
 # unconditionally do this just once since otherwise output is
 # confusing when the initial test fails
-sanity_check($toreduce);
+sanity_check();
 
 # some passes we run first since they often make good headway quickly
 print "INITIAL PASS\n" if $VERBOSE;
