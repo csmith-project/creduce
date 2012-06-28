@@ -304,8 +304,10 @@ sub transform ($$$) {
 	$sh{"index"} = 0;
     }
 
+  AGAIN:
     my $n=0;
     my $did_something=0;
+    my $did_something_real=0;
     my $tmpfile = POSIX::tmpnam();
     open INF, "<$cfile" or die;
     open OUTF, ">$tmpfile" or die;
@@ -316,6 +318,9 @@ sub transform ($$$) {
 	} else {
 	    print OUTF "\n";
 	    $did_something++;
+	    if (!($line =~ /^$/)) {
+		$did_something_real++;
+	    }
 	}
 	$n++;
     }
@@ -325,6 +330,10 @@ sub transform ($$$) {
     if ($did_something) {
 	my $newsh = advance ($cfile, $arg, \%sh);
 	%sh = %{$newsh};
+	if (!$did_something_real) {
+	    print "skipping over blanks\n" if $VERBOSE;
+	    goto AGAIN;
+	}
 	system "mv $tmpfile $cfile";
     } else {
 	system "rm $tmpfile";

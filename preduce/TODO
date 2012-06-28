@@ -1,5 +1,3 @@
-add blank deletion and # deletion back in...
-
 super simplification: make lines blank instead of deleting them;
   now, line numbers are only invalidated at pass boundaries
 
