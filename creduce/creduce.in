@@ -26,6 +26,8 @@ use File::Which;
 use POSIX;
 use Regexp::Common;
 use Benchmark::Timer;
+use Cwd;
+use File::Temp;
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
@@ -64,7 +66,10 @@ my $toreduce_base;
 my $dir_base;
 my $suffix;
 
-# global invariant: the delta test always succeeds for $toreduce_bak
+my $DIR;
+
+# global invariant: this filename always points to the best delta
+# variant we've seen so far
 my $toreduce_bak;
 
 ######################################################################
@@ -205,26 +210,32 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    my $fn = POSIX::tmpnam() . $suffix;   
-    system "cp $toreduce_bak $fn";
-    my $state = call_new ($delta_method,$fn,$delta_arg);
+    my $tmpfn = "tmp".$suffix; 
+    system "cp $toreduce_bak $tmpfn";
+    my $state = call_new ($delta_method,$tmpfn,$delta_arg);
 
     if ($SANITY) {
-	sanity_check($fn);
+	sanity_check($tmpfn);
     }
 
     while (1) {
-	system "cp $toreduce_bak $fn";
-	(my $res, $state) = call_method ($delta_method,$fn,$delta_arg,$state);
+
+	my $dir = File::Temp::tempdir( CLEANUP => 1);
+	chdir $dir or die;
+	system "cp $toreduce_bak $tmpfn";
+
+	(my $res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
 	return if ($res == $STOP);
 	die unless ($res == $OK);
-	system "diff $toreduce_bak $fn" if $DIFFS;
-	if (delta_test ($delta_method,$delta_arg,$state,$fn)) {
-	    system "cp $fn $toreduce_bak";
+	system "diff $toreduce_bak $tmpfn" if $DIFFS;
+	if (delta_test ($delta_method,$delta_arg,$state,$tmpfn)) {
+	    system "cp $tmpfn $toreduce_bak";
 	} else {
-	    system "cp $toreduce_bak $fn";
-	    $state = call_advance ($delta_method,$fn,$delta_arg,$state);
+	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
+
+	chdir $DIR or die;
+
     }
 }
 
@@ -387,7 +398,7 @@ foreach my $mref (@all_methods) {
 }
 print "\n" if $VERBOSE;
 
-$test = shift @ARGV;
+$test = Cwd::abs_path(shift @ARGV);
 usage unless defined($test);
 if (!(-e $test)) {
     print "test script '$test' not found\n";
@@ -425,10 +436,15 @@ if (!(-w $toreduce)) {
     usage();
 }
 
-# Put scratch files ($toreduce_bak, $toreduce_orig) in the current working directory.
+# Put scratch files ($toreduce_bak, $toreduce_orig) in the current
+# working directory.
 ($toreduce_base, $dir_base, $suffix) = fileparse($toreduce,@suffixes);
 
-$toreduce_bak  = "$toreduce_base.bak";
+$DIR = getcwd();
+
+# absolute path so we can refer to this file from temporary working
+# dirs
+$toreduce_bak  = Cwd::abs_path("$toreduce_base.bak");
 $toreduce_orig = "$toreduce_base.orig";
 
 system "cp $toreduce $toreduce_orig";
