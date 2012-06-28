@@ -424,8 +424,6 @@ if (!(-w $cfile)) {
 # Put scratch files ($cfile_bak, $cfile_orig) in the current working directory.
 ($cfile_base, $dir_base, $suffix) = fileparse($cfile,@suffixes);
 
-print "cfile base = ${cfile_base}, suffix = $suffix\n";
-
 $cfile_bak  = "$cfile_base.bak";
 $cfile_orig = "$cfile_base.orig";
 

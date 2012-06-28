@@ -71,7 +71,7 @@ sub transform ($$$) {
 	my $tmpfile = POSIX::tmpnam();
 	system "topformflat $arg < $cfile > $tmpfile";
 	system "mv $tmpfile $cfile";	
-	print "ran topformflat $arg\n";
+	# print "ran topformflat $arg\n";
 	return ($OK, \%sh);
     }
 
