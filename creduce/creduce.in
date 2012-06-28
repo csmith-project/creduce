@@ -492,7 +492,7 @@ system "cat $toreduce";
 
 print "\n";
 $timer->stop();
-my $time = $timer->result();
-print "elapsed time: $time\n";
+my $time = int($timer->result());
+print "elapsed time: $time seconds\n";
 
 ######################################################################

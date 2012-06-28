@@ -134,6 +134,7 @@ sub transform ($$$) {
 	} else {
 	    $sh{"index"} = 0;
 	}
+	goto AGAIN;
     }
 
     # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
