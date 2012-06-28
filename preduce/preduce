@@ -231,7 +231,7 @@ sub count_lines ($) {
 sub new ($$) {
     (my $cfile, my $arg) = @_;
     my %sh;
-    $sh{"flatten"} = 1;
+    $sh{"blanks"} = 1;
     return \%sh;
 }
 
@@ -254,6 +254,38 @@ sub round ($) {
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my %sh = %{$state};
+
+    if (defined $sh{"blanks"}) {
+	delete $sh{"blanks"};
+	$sh{"prep"} = 1;
+	open INF, "<$cfile" or die;
+	my $tmpfile = POSIX::tmpnam();
+	open OUTF, ">$tmpfile" or die;
+	while (my $line = <INF>) {
+	    next if ($line =~ /^\s*$/);
+	    print OUTF $line;
+	}
+	close INF;
+	close OUTF;    
+	system "mv $tmpfile $cfile";
+	return ($OK, \%sh);
+    }
+
+    if (defined $sh{"prep"}) {
+	delete $sh{"prep"};
+	$sh{"flatten"} = 1;
+	open INF, "<$cfile" or die;
+	my $tmpfile = POSIX::tmpnam();
+	open OUTF, ">$tmpfile" or die;
+	while (my $line = <INF>) {
+	    next if ($line =~ /^#/);
+	    print OUTF $line;
+	}
+	close INF;
+	close OUTF;    
+	system "mv $tmpfile $cfile";
+	return ($OK, \%sh);
+    }
 
     if (defined $sh{"flatten"}) {
 	delete $sh{"flatten"};
@@ -282,6 +314,7 @@ sub transform ($$$) {
 	    $n < $sh{"index"}) {
 	    print OUTF $line;
 	} else {
+	    print OUTF "\n";
 	    $did_something++;
 	}
 	$n++;
@@ -290,6 +323,8 @@ sub transform ($$$) {
     close OUTF;
     
     if ($did_something) {
+	my $newsh = advance ($cfile, $arg, \%sh);
+	%sh = %{$newsh};
 	system "mv $tmpfile $cfile";
     } else {
 	system "rm $tmpfile";
@@ -319,8 +354,7 @@ sub delta_pass ($) {
 	return if ($res == $STOP);
 	die unless ($res == $OK);
 	system "diff $cfile_bak $cfile" if $DIFFS;
-	$state = advance ($cfile,$delta_arg,$state) 
-	    unless delta_test ($delta_arg,$state);
+	delta_test ($delta_arg,$state);
     }
 }
 
@@ -387,7 +421,6 @@ $orig_file_size = $file_size;
 sanity_check();
 
 # iterate to global fixpoint
-print "MAIN PASSES\n" if $VERBOSE;
 $file_size = -s $cfile;
 
 delta_pass (0);
