@@ -25,6 +25,7 @@ use File::Basename;
 use File::Which;
 use POSIX;
 use Regexp::Common;
+use Benchmark::Timer;
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
@@ -371,6 +372,9 @@ sub has_last_pass_pri {
 
 ############################### main #################################
 
+my $timer = Benchmark::Timer->new();
+$timer->start();
+
 my %prereqs_checked;
 foreach my $mref (@all_methods) {
     my %method = %{$mref};
@@ -485,5 +489,10 @@ system "cp $toreduce_bak $toreduce";
 
 print "reduced test case:\n\n";
 system "cat $toreduce";
+
+print "\n";
+$timer->stop();
+my $time = $timer->result();
+print "elapsed time: $time\n";
 
 ######################################################################
