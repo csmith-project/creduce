@@ -34,6 +34,8 @@ use creduce_utils;
 
 ######################################################################
 
+my $USE_TMP_DIRS = 0;
+
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
 
@@ -226,8 +228,11 @@ sub delta_pass ($) {
     }
 
     while (1) {
-	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
-	chdir $tmpdir or die;
+	my $tmpdir;
+	if ($USE_TMP_DIRS) {
+	    $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+	    chdir $tmpdir or die;
+	}
 	system "cp $toreduce_best $tmpfn";
 
 	(my $res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
@@ -239,11 +244,16 @@ sub delta_pass ($) {
 	    # best version
 	    system "cp $tmpfn $toreduce_best";
 	} else {
+	    if (!$USE_TMP_DIRS) {
+		system "cp $toreduce_best $tmpfn";
+	    }
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
 
-	chdir $ORIG_DIR or die;
-	File::Path::rmtree ($tmpdir);
+	if ($USE_TMP_DIRS) {
+	    chdir $ORIG_DIR or die;
+	    File::Path::rmtree ($tmpdir);
+	}
     }
 }
 
@@ -321,8 +331,8 @@ sub has_last_pass_pri {
 @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
-    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
-    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
+    #{ "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
+    #{ "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
@@ -452,7 +462,7 @@ $ORIG_DIR = getcwd();
 
 # absolute path so we can refer to this file from temporary working
 # dirs
-$toreduce_best  = Cwd::abs_path("$toreduce_base.bak");
+$toreduce_best  = Cwd::abs_path("$toreduce_base.best");
 $toreduce_orig = "$toreduce_base.orig";
 
 system "cp $toreduce $toreduce_orig";
