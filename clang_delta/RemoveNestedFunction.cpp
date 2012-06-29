@@ -300,7 +300,9 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     const Type *Ty = ME->getBaseType().getTypePtr();
     if (const DeclContext *Ctx = getBaseDeclFromType(Ty)) {
       const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx);
-      TransAssert(FD && "Cannot resolve DName!");
+      if (!FD) {
+        return writeNewTmpVariable(QT, VarStr);
+      }
       QT = FD->getResultType();
       const Type *RVTy = QT.getTypePtr();
       if (RVTy->getAs<InjectedClassNameType>()) {
