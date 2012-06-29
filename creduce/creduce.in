@@ -71,7 +71,7 @@ my $ORIG_DIR;
 
 # global invariant: this filename always points to the best delta
 # variant we've seen so far
-my $toreduce_bak;
+my $toreduce_best;
 
 ######################################################################
 
@@ -95,7 +95,7 @@ sub sanity_check () {
 
     my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
     chdir $tmpdir or die;
-    system "cp $toreduce_bak $toreduce";
+    system "cp $toreduce_best $toreduce";
 
     my $res = run_test ($toreduce);
     if (!$res) {
@@ -218,7 +218,7 @@ sub delta_pass ($) {
     print "===< $delta_method :: $delta_arg >===\n";
 
     my $tmpfn = $toreduce;
-    system "cp $toreduce_bak $tmpfn";
+    system "cp $toreduce_best $tmpfn";
     my $state = call_new ($delta_method,$tmpfn,$delta_arg);
 
     if ($SANITY) {
@@ -228,16 +228,16 @@ sub delta_pass ($) {
     while (1) {
 	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
 	chdir $tmpdir or die;
-	system "cp $toreduce_bak $tmpfn";
+	system "cp $toreduce_best $tmpfn";
 
 	(my $res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
 	return if ($res == $STOP);
 	die unless ($res == $OK);
-	system "diff $toreduce_bak $tmpfn" if $DIFFS;
+	system "diff $toreduce_best $tmpfn" if $DIFFS;
 	if (delta_test ($delta_method,$delta_arg,$state,$tmpfn)) {
 	    # now that the delta test succeeded, this becomes our new
 	    # best version
-	    system "cp $tmpfn $toreduce_bak";
+	    system "cp $tmpfn $toreduce_best";
 	} else {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
@@ -444,7 +444,7 @@ if (!(-w $toreduce)) {
     usage();
 }
 
-# Put scratch files ($toreduce_bak, $toreduce_orig) in the current
+# Put scratch files ($toreduce_best, $toreduce_orig) in the current
 # working directory.
 ($toreduce_base, $dir_base, $suffix) = fileparse($toreduce,@suffixes);
 
@@ -452,11 +452,11 @@ $ORIG_DIR = getcwd();
 
 # absolute path so we can refer to this file from temporary working
 # dirs
-$toreduce_bak  = Cwd::abs_path("$toreduce_base.bak");
+$toreduce_best  = Cwd::abs_path("$toreduce_base.bak");
 $toreduce_orig = "$toreduce_base.orig";
 
 system "cp $toreduce $toreduce_orig";
-system "cp $toreduce $toreduce_bak";
+system "cp $toreduce $toreduce_best";
 
 my $file_size = -s $toreduce;
 $orig_file_size = $file_size;
@@ -480,7 +480,7 @@ while (1) {
 	delta_pass ($method);
     }
     $pass_num++;
-    my $s = -s $toreduce_bak;
+    my $s = -s $toreduce_best;
     print "Termination check: size was $file_size; now $s\n";
     last if ($s >= $file_size);
     $file_size = $s;
@@ -509,7 +509,7 @@ foreach my $mref (sort @all_methods) {
 print "\n";
 
 # this should be the only time we touch the original file
-system "cp $toreduce_bak $toreduce";
+system "cp $toreduce_best $toreduce";
 
 print "reduced test case:\n\n";
 system "cat $toreduce";
