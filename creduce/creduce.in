@@ -93,8 +93,8 @@ my $old_size = 1000000000;
 sub sanity_check () {
     print "sanity check... " if $VERBOSE;
 
-    my $dir = File::Temp::tempdir( CLEANUP => 1);
-    chdir $dir or die;
+    my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+    chdir $tmpdir or die;
     system "cp $toreduce_bak $toreduce";
 
     my $res = run_test ($toreduce);
@@ -103,7 +103,7 @@ sub sanity_check () {
     }
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
-    File::Path::rmtree($dir);
+    File::Path::rmtree($tmpdir);
 }
 
 my %cache = ();
@@ -226,8 +226,8 @@ sub delta_pass ($) {
     }
 
     while (1) {
-	my $dir = File::Temp::tempdir();
-	chdir $dir or die;
+	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+	chdir $tmpdir or die;
 	system "cp $toreduce_bak $tmpfn";
 
 	(my $res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
@@ -235,13 +235,15 @@ sub delta_pass ($) {
 	die unless ($res == $OK);
 	system "diff $toreduce_bak $tmpfn" if $DIFFS;
 	if (delta_test ($delta_method,$delta_arg,$state,$tmpfn)) {
+	    # now that the delta test succeeded, this becomes our new
+	    # best version
 	    system "cp $tmpfn $toreduce_bak";
 	} else {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
 
 	chdir $ORIG_DIR or die;
-	File::Path::rmtree ($dir);
+	File::Path::rmtree ($tmpdir);
     }
 }
 
