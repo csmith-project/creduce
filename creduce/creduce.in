@@ -34,7 +34,7 @@ use creduce_utils;
 
 ######################################################################
 
-my $USE_TMP_DIRS = 0;
+my $NPROCS = 1;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -42,9 +42,6 @@ my $SANITY = 0;
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening
 my $SPINNER = 0;
-
-# if set, show what each transformation did
-my $DIFFS = 0;
 
 # if set, cache results (recommended)
 my $CACHE = 1;
@@ -207,8 +204,12 @@ sub call_method ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
-# invariant: parallel execution does not escape this function
+my @kids = ();
 
+sub kill_and_wait () {
+}
+
+# invariant: parallel execution does not escape this function
 sub delta_pass ($) {
     (my $mref) = @_;    
     my $delta_method = ${$mref}{"name"};
@@ -227,34 +228,62 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
-    while (1) {
-	my $tmpdir;
-	if ($USE_TMP_DIRS) {
-	    $tmpdir = File::Temp::tempdir( CLEANUP => 1);
-	    chdir $tmpdir or die;
-	}
+  AGAIN:
+    print "AGAIN!\n";
+    my $delta_res;
+    if (1) {
+	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+	chdir $tmpdir or die;
 	system "cp $toreduce_best $tmpfn";
+	($delta_res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
+	die unless ($delta_res == $OK || $delta_res == $STOP);
+	
+	# conditions under which it is permissible to fork a speculative process
+	if ($delta_res != $STOP && scalar(@kids) < $NPROCS) {
+	    my $pid = fork();
+	    die unless ($pid >= 0);
+	    my @l = ($pid, $state, $tmpdir);
+	    push @kids, \@l;
+	    my $delta_result;
+	    if ($pid==0) {
+		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
+		exit ($delta_result);
+	    }
+	    print "just forked $pid\n";
+	    chdir $ORIG_DIR or die;
+	    goto AGAIN;
+	}
+	chdir $ORIG_DIR or die;
+	File::Path::rmtree ($tmpdir);	
+    }
 
-	(my $res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
-	return if ($res == $STOP);
-	die unless ($res == $OK);
-	system "diff $toreduce_best $tmpfn" if $DIFFS;
-	if (delta_test ($delta_method,$delta_arg,$state,$tmpfn)) {
+    # done
+    return if ($delta_res == $STOP && scalar(@kids)==0);
+
+    # gotta wait if either of these is true
+    if ($delta_res == $STOP || scalar (@kids) == $NPROCS) {
+	
+	my $kidref = shift @kids;
+	(my $pid, my $newsh, my $tmpdir) = @{$kidref};
+	print "waiting for $pid\n";
+	my $res = waitpid ($pid, 0);
+	die if ($res==-1);
+	my $ret = $?;
+	my $delta_result = $ret >> 8;	    
+	print "subprocess $pid returned $ret (${delta_result})\n";	    
+	
+	if ($delta_result){ 
 	    # now that the delta test succeeded, this becomes our new
-	    # best version
+	    # best version--this has to be done in the parent process
 	    system "cp $tmpfn $toreduce_best";
 	} else {
-	    if (!$USE_TMP_DIRS) {
-		system "cp $toreduce_best $tmpfn";
-	    }
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	}
-
-	if ($USE_TMP_DIRS) {
-	    chdir $ORIG_DIR or die;
-	    File::Path::rmtree ($tmpdir);
-	}
+	
+	File::Path::rmtree ($tmpdir);
     }
+
+    goto AGAIN;
 }
 
 sub usage() {
@@ -331,8 +360,8 @@ sub has_last_pass_pri {
 @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
-    #{ "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
-    #{ "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
+    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
+    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },

@@ -28,6 +28,7 @@ Perl modules
   Exporter::Lite
   File::Which
   Regexp::Common
+  Benchmark::Timer
 
 For example, (perhaps as root):
 
