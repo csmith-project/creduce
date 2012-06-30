@@ -9,8 +9,8 @@ Prereqs:
 
 On Ubuntu, all non-standard prerequisites can be installed like this:
 
-  sudo apt-get install libfile-which-perl libregexp-common-perl \
-    indent astyle delta libexporter-lite-perl libbenchmark-timer-perl
+  sudo apt-get install indent astyle delta libbenchmark-timer-perl \
+    libexporter-lite-perl libfile-which-perl libregexp-common-perl
 
 On other systems, install these packages either manually or using the
 package manager:
@@ -25,17 +25,17 @@ Berkeley delta:
   http://delta.tigris.org/
 
 Perl modules
+  Benchmark::Timer
   Exporter::Lite
   File::Which
   Regexp::Common
-  Benchmark::Timer
 
 For example, (perhaps as root):
 
+  cpan -i 'Benchmark::Timer'
   cpan -i 'Exporter::Lite'
   cpan -i 'File::Which'
   cpan -i 'Regexp::Common'
-  cpan -i 'Benchmark::Timer'
 
 --------------------------------------------------------------------
 Building and installing C-Reduce and the clang_delta plugin

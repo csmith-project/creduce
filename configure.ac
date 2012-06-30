@@ -35,6 +35,9 @@ AC_DEFUN([AC_DATAROOTDIR_CHECKED])
 AC_PATH_PROG([PERL], [perl], [no])
 AS_IF([test "x$PERL" = "xno"],
   AC_MSG_ERROR([a Perl interpreter was not found]))
+AX_PROG_PERL_VERSION([5.10.0],
+  [],
+  AC_MSG_ERROR([C-Reduce requires Perl 5.10.0 or later]))
 
 # Check for the run-time prerequisites of C-Reduce.  We only warn the user when
 # these are not found at configure time.  Let the user install the dependencies
@@ -46,6 +49,7 @@ missing_runtime_prereq=no
 #
 AX_PROG_PERL_MODULES(
   [
+    Benchmark::Timer
     Exporter::Lite
     File::Which
     Regexp::Common
