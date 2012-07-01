@@ -17,7 +17,7 @@
 
 use strict;
 use warnings;
-require 5.10;
+require 5.10.0;
 
 use FindBin;
 use lib $FindBin::Bin, '@perllibdir@';
