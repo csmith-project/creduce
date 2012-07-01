@@ -4,9 +4,6 @@
 
 C-Reduce TODO list:
 
-eliminate the spurious passing delta test when line delta changes
-granularity
-
 support predicates written as perl modules
 
 Konstantin suggestion:

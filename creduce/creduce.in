@@ -230,7 +230,7 @@ sub delta_pass ($) {
     }
 
   AGAIN:
-    print "AGAIN!\n";
+    print "top of loop\n";
     my $delta_res;
     if (1) {
 	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
