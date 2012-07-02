@@ -4,6 +4,9 @@
 
 C-Reduce TODO list:
 
+documentation about creating a c-reduce pass
+  side effects, directory restrictions, etc.
+
 support predicates written as perl modules
 
 Konstantin suggestion:
