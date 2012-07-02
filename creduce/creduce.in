@@ -206,6 +206,8 @@ my @kids = ();
 sub kill_and_wait () {
 }
 
+# FIXME: cache integration?
+
 # invariant: parallel execution does not escape this function
 sub delta_pass ($) {
     (my $mref) = @_;    
@@ -227,6 +229,12 @@ sub delta_pass ($) {
 
   AGAIN:
     print "top of loop\n";
+    
+    # is the stopped variable needed?
+    # TODO on success:
+    # unstop
+    # kill speculative processes
+    # restore the method state
 
     my $stopped = 0;
 
@@ -261,6 +269,7 @@ sub delta_pass ($) {
     }
   OUT:
 
+    # at this point wait if there's anyone to wait for
     if (scalar(@kids)>0) {	
 	my $kidref = shift @kids;
 	die unless (scalar(@{$kidref})==4);
@@ -287,6 +296,7 @@ sub delta_pass ($) {
 	File::Path::rmtree ($tmpdir);
 
     }
+
     # pass termination condition
     return if ($stopped && scalar(@kids)==0);
 
