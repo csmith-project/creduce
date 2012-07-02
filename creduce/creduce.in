@@ -200,7 +200,7 @@ sub killem () {
 	return if (scalar(@kids) == 0);
 	my $kidref = shift @kids;
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
-	kill (9, $pid);
+	kill ('TERM', $pid);
 	waitpid ($pid, 0);	
 	File::Path::rmtree ($tmpdir);	
     }
