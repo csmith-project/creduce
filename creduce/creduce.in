@@ -35,7 +35,7 @@ use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = 1;
+my $NPROCS = 5;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -203,7 +203,15 @@ sub call_method ($$$$) {
 
 my @kids = ();
 
-sub kill_and_wait () {
+sub killem () {
+    while (1) {
+	return if (scalar(@kids) == 0);
+	my $kidref = shift @kids;
+	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
+	kill (9, $pid);
+	waitpid ($pid, 0);	
+	File::Path::rmtree ($tmpdir);	
+    }
 }
 
 # FIXME: cache integration?
@@ -283,9 +291,11 @@ sub delta_pass ($) {
 	if ($delta_result){ 
 	    # now that the delta test succeeded, this becomes our new
 	    # best version--this has to be done in the parent process
+	    killem ();
 	    $good_cnt++;
 	    $method_worked{$delta_method}{$delta_arg}++;
 	    $state = $newsh;
+	    $stopped = 0;
 	    system "cp $tmpfn $toreduce_best";
 	} else {
 	    $bad_cnt++;
