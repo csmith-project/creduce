@@ -35,7 +35,7 @@ use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = 5;
+my $NPROCS = 4;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -126,9 +126,6 @@ sub delta_test ($$$$) {
     my $prog = read_file($fn);
     my $len = length ($prog);
 
-    print "[$pass_num $method :: $arg s:$good_cnt f:$bad_cnt] " 
-	if $VERBOSE;
-
     if ($SPINNER) {
 	spinner();
     }
@@ -150,9 +147,6 @@ sub delta_test ($$$$) {
     $test_cnt++;
     
     if ($result) {
-	print "\b" if $SPINNER;
-	print "success " if $VERBOSE;
-	print_pct(-s $fn);
 	my $size = length ($prog);
 	if ($CACHE && ($size < $old_size)) {
 	    foreach my $k (keys %cache) {
@@ -164,8 +158,6 @@ sub delta_test ($$$$) {
 	$old_size = $size;
 	return 1;
     } else {
-	print "\b" if $SPINNER;
-	print "failure\n" if $VERBOSE;
 	return 0;
     }
 }
@@ -236,12 +228,6 @@ sub delta_pass ($) {
     }
 
   AGAIN:
-    # is the stopped variable needed?
-    # TODO on success:
-    # unstop
-    # kill speculative processes
-    # restore the method state
-
     my $stopped = 0;
 
     # create child processes until either we've created enough or we get a STOP
@@ -266,6 +252,7 @@ sub delta_pass ($) {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    push @kids, \@l;
 	    my $delta_result;
+	    # print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
 		exit ($delta_result);
@@ -286,7 +273,7 @@ sub delta_pass ($) {
 	die if ($res==-1);
 	my $ret = $?;
 	my $delta_result = $ret >> 8;	    
-	print "subprocess $pid returned $ret (${delta_result})\n";	    
+	# print "subprocess $pid returned $ret (${delta_result})\n";	    
 	
 	if ($delta_result){ 
 	    # now that the delta test succeeded, this becomes our new
@@ -297,7 +284,12 @@ sub delta_pass ($) {
 	    $state = $newsh;
 	    $stopped = 0;
 	    system "cp $tmpfn $toreduce_best";
+	    print "\b" if $SPINNER;
+	    print "success " if $VERBOSE;
+	    print_pct(-s $toreduce_best);
 	} else {
+	    print "\b" if $SPINNER;
+	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
