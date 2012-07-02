@@ -35,7 +35,7 @@ use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = 4;
+my $NPROCS = 8;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -378,15 +378,25 @@ sub has_last_pass_pri {
 @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
-    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
-    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
-    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  23, },
+    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  23, },
+    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  26, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  29, },
+
+    { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
+    { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  22, },
+    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  24, },
+    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  25, },
+    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  27, },
+    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  28, },
+    { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  30, },
+    { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  31, },
+
     { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 105,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
-    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  30, },
-    { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  31, },
-    { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  32, },
+    { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  35, },
+    { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  36, },
+    { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  37, },
     { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 113,  },
     { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 114,  },
     { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
