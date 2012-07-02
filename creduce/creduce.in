@@ -228,8 +228,6 @@ sub delta_pass ($) {
     }
 
   AGAIN:
-    print "top of loop\n";
-    
     # is the stopped variable needed?
     # TODO on success:
     # unstop
@@ -257,6 +255,7 @@ sub delta_pass ($) {
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);
+	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    push @kids, \@l;
 	    my $delta_result;
 	    if ($pid==0) {
@@ -286,9 +285,9 @@ sub delta_pass ($) {
 	    # best version--this has to be done in the parent process
 	    $good_cnt++;
 	    $method_worked{$delta_method}{$delta_arg}++;
+	    $state = $newsh;
 	    system "cp $tmpfn $toreduce_best";
 	} else {
-	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    $bad_cnt++;
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
