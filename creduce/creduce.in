@@ -153,8 +153,6 @@ sub delta_test ($$$$) {
 	print "\b" if $SPINNER;
 	print "success " if $VERBOSE;
 	print_pct(-s $fn);
-	$good_cnt++;
-	$method_worked{$method}{$arg}++;
 	my $size = length ($prog);
 	if ($CACHE && ($size < $old_size)) {
 	    foreach my $k (keys %cache) {
@@ -168,8 +166,6 @@ sub delta_test ($$$$) {
     } else {
 	print "\b" if $SPINNER;
 	print "failure\n" if $VERBOSE;
-	$bad_cnt++;
-	$method_failed{$method}{$arg}++;
 	return 0;
     }
 }
@@ -221,9 +217,9 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    my $tmpfn = $toreduce;
-    system "cp $toreduce_best $tmpfn";
-    my $state = call_new ($delta_method,$tmpfn,$delta_arg);
+    my $orig_tmpfn = $toreduce;
+    system "cp $toreduce_best $orig_tmpfn";
+    my $state = call_new ($delta_method,$orig_tmpfn,$delta_arg);
 
     if ($SANITY) {
 	sanity_check();
@@ -231,42 +227,45 @@ sub delta_pass ($) {
 
   AGAIN:
     print "top of loop\n";
-    my $delta_res;
-    if (1) {
+
+    my $stopped = 0;
+
+    # create child processes until either we've created enough or we get a STOP
+    while (scalar(@kids) < $NPROCS) {
 	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
 	chdir $tmpdir or die;
+	my $tmpfn = Cwd::abs_path($orig_tmpfn);
+	#print "best: ${toreduce_best}\n";
+	#print "tmpfn: ${tmpfn}\n";
 	system "cp $toreduce_best $tmpfn";
-	($delta_res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
+	(my $delta_res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
 	die unless ($delta_res == $OK || $delta_res == $STOP);
-	
-	# conditions under which it is permissible to fork a speculative process
-	if ($delta_res != $STOP && scalar(@kids) < $NPROCS) {
+	if ($delta_res == $STOP) {
+	    chdir $ORIG_DIR or die;
+	    File::Path::rmtree ($tmpdir);	
+	    $stopped = 1;
+	    goto OUT;
+	} else {
 	    my $pid = fork();
 	    die unless ($pid >= 0);
-	    my @l = ($pid, $state, $tmpdir);
+	    my @l = ($pid, $state, $tmpdir, $tmpfn);
 	    push @kids, \@l;
 	    my $delta_result;
 	    if ($pid==0) {
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
 		exit ($delta_result);
 	    }
-	    print "just forked $pid\n";
+	    #print "just forked $pid\n";
 	    chdir $ORIG_DIR or die;
-	    goto AGAIN;
 	}
-	chdir $ORIG_DIR or die;
-	File::Path::rmtree ($tmpdir);	
     }
+  OUT:
 
-    # done
-    return if ($delta_res == $STOP && scalar(@kids)==0);
-
-    # gotta wait if either of these is true
-    if ($delta_res == $STOP || scalar (@kids) == $NPROCS) {
-	
+    if (scalar(@kids)>0) {	
 	my $kidref = shift @kids;
-	(my $pid, my $newsh, my $tmpdir) = @{$kidref};
-	print "waiting for $pid\n";
+	die unless (scalar(@{$kidref})==4);
+	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
+	#print "waiting for $pid\n";
 	my $res = waitpid ($pid, 0);
 	die if ($res==-1);
 	my $ret = $?;
@@ -276,13 +275,20 @@ sub delta_pass ($) {
 	if ($delta_result){ 
 	    # now that the delta test succeeded, this becomes our new
 	    # best version--this has to be done in the parent process
+	    $good_cnt++;
+	    $method_worked{$delta_method}{$delta_arg}++;
 	    system "cp $tmpfn $toreduce_best";
 	} else {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+	    $bad_cnt++;
+	    $method_failed{$delta_method}{$delta_arg}++;
 	}
 	
 	File::Path::rmtree ($tmpdir);
+
     }
+    # pass termination condition
+    return if ($stopped && scalar(@kids)==0);
 
     goto AGAIN;
 }
