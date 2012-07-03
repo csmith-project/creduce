@@ -4,6 +4,11 @@
 
 C-Reduce TODO list:
 
+ways to speculate:
+  all pessimistic
+  all optimisitc
+  mix...
+
 documentation about creating a c-reduce pass
   side effects, directory restrictions, etc.
 

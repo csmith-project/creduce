@@ -253,6 +253,9 @@ sub delta_pass ($) {
 	    File::Path::rmtree ($tmpdir);	
 	    $stopped = 1;
 	} else {
+
+	    # FIXME check the cache here
+
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);
@@ -292,6 +295,8 @@ sub delta_pass ($) {
 	    }
 	}
 	die unless $found;
+
+	# FIXME update the cache here
 
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
