@@ -29,23 +29,24 @@ use Regexp::Common;
 use Benchmark::Timer;
 use Cwd;
 use File::Temp;
+use File::Copy;
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = 8;
+my $NPROCS = 6;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
 
 # if set, show a nice ascii spinner that tells us how quickly failing
-# delta tests are happening
+# delta tests are happening (FIXME: currently not working)
 my $SPINNER = 0;
 
-# if set, cache results (recommended)
-my $CACHE = 1;
+# if set, cache results (FIXME: currently not working)
+my $CACHE = 0;
 
 ######################################################################
 
@@ -75,6 +76,19 @@ my $toreduce_best;
 
 ######################################################################
 
+my $dircounter=0;
+sub make_tmpdir () {
+    if (1) {
+	return File::Temp::tempdir( CLEANUP => 1);
+    } else {
+	$dircounter++;
+	my $dir = "/tmp/_tmp_".getpid()."_".$dircounter;
+	mkdir($dir);
+	return $dir;
+    }
+}
+
+
 my @suffixes = (".c", ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx");
 
 sub run_test ($) {
@@ -93,9 +107,9 @@ my $old_size = 1000000000;
 sub sanity_check () {
     print "sanity check... " if $VERBOSE;
 
-    my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+    my $tmpdir = make_tmpdir();
     chdir $tmpdir or die;
-    system "cp $toreduce_best $toreduce";
+    File::Copy::copy($toreduce_best,$toreduce) or die;
 
     my $res = run_test ($toreduce);
     if (!$res) {
@@ -125,10 +139,6 @@ sub delta_test ($$$$) {
     (my $method, my $arg, my $state, my $fn) = @_;
     my $prog = read_file($fn);
     my $len = length ($prog);
-
-    if ($SPINNER) {
-	spinner();
-    }
 
     my $result;
     if ($CACHE) {
@@ -186,7 +196,7 @@ sub call_advance ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
-sub call_method ($$$$) {
+sub call_transform ($$$$) {
     (my $method,my $fn,my $arg,my $state) = @_;    
     my $str = $method."::transform";
     no strict "refs";
@@ -206,8 +216,6 @@ sub killem () {
     }
 }
 
-# FIXME: cache integration?
-
 # invariant: parallel execution does not escape this function
 sub delta_pass ($) {
     (my $mref) = @_;    
@@ -222,31 +230,28 @@ sub delta_pass ($) {
     print "===< $delta_method :: $delta_arg >===\n";
 
     my $orig_tmpfn = $toreduce;
-    system "cp $toreduce_best $orig_tmpfn";
+    File::Copy::copy($toreduce_best,$orig_tmpfn) or die;
     my $state = call_new ($delta_method,$orig_tmpfn,$delta_arg);
 
     if ($SANITY) {
 	sanity_check();
     }
 
-  AGAIN:
     my $stopped = 0;
+  AGAIN:
 
     # create child processes until either we've created enough or we get a STOP
-    while (scalar(@kids) < $NPROCS) {
-	my $tmpdir = File::Temp::tempdir( CLEANUP => 1);
+    while (!$stopped && scalar(@kids) < $NPROCS) {
+	my $tmpdir = make_tmpdir();
 	chdir $tmpdir or die;
 	my $tmpfn = Cwd::abs_path($orig_tmpfn);
-	#print "best: ${toreduce_best}\n";
-	#print "tmpfn: ${tmpfn}\n";
-	system "cp $toreduce_best $tmpfn";
-	(my $delta_res, $state) = call_method ($delta_method,$tmpfn,$delta_arg,$state);
+	File::Copy::copy($toreduce_best,$tmpfn) or die;
+	(my $delta_res, $state) = call_transform ($delta_method,$tmpfn,$delta_arg,$state);
 	die unless ($delta_res == $OK || $delta_res == $STOP);
 	if ($delta_res == $STOP) {
 	    chdir $ORIG_DIR or die;
 	    File::Path::rmtree ($tmpdir);	
 	    $stopped = 1;
-	    goto OUT;
 	} else {
 	    my $pid = fork();
 	    die unless ($pid >= 0);
@@ -263,7 +268,6 @@ sub delta_pass ($) {
 	    chdir $ORIG_DIR or die;
 	}
     }
-  OUT:
 
     # at this point wait if there's anyone to wait for
     if (scalar(@kids)>0) {	
@@ -277,7 +281,7 @@ sub delta_pass ($) {
 	my $delta_result = $ret >> 8;	    
 	# print "subprocess $pid returned $ret (${delta_result})\n";	    
 	
-	if ($delta_result){ 
+	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
 	    # best version--this has to be done in the parent process
 	    killem ();
@@ -285,12 +289,10 @@ sub delta_pass ($) {
 	    $method_worked{$delta_method}{$delta_arg}++;
 	    $state = $newsh;
 	    $stopped = 0;
-	    system "cp $tmpfn $toreduce_best";
-	    print "\b" if $SPINNER;
+	    File::Copy::copy($tmpfn,$toreduce_best) or die;
 	    print "success " if $VERBOSE;
 	    print_pct(-s $toreduce_best);
 	} else {
-	    print "\b" if $SPINNER;
 	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
 	    $method_failed{$delta_method}{$delta_arg}++;
@@ -489,8 +491,8 @@ $ORIG_DIR = getcwd();
 $toreduce_best  = Cwd::abs_path("$toreduce_base.best");
 $toreduce_orig = "$toreduce_base.orig";
 
-system "cp $toreduce $toreduce_orig";
-system "cp $toreduce $toreduce_best";
+File::Copy::copy($toreduce,$toreduce_orig) or die;
+File::Copy::copy($toreduce,$toreduce_best) or die;
 
 my $file_size = -s $toreduce;
 $orig_file_size = $file_size;
@@ -550,12 +552,16 @@ foreach my $mref (sort @all_methods) {
 print "\n";
 
 # this should be the only time we touch the original file
-system "cp $toreduce_best $toreduce";
+File::Copy::copy($toreduce_best,$toreduce) or die;
 
 print "reduced test case:\n\n";
-system "cat $toreduce";
-
+open INF, "<$toreduce" or die;
+while (<INF>) {
+    print;
+}
+close INF;
 print "\n";
+
 $timer->stop();
 my $time = int($timer->result());
 print "elapsed time: $time seconds\n";
