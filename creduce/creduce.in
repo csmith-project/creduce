@@ -27,6 +27,8 @@
 # autodetect number of processors but permit over-riding from command
 # line
 
+# add back in the deterministic mode based on waitpid
+
 use strict;
 use warnings;
 require 5.10.0;
