@@ -15,6 +15,18 @@
 #
 ####################################################################
 
+## TODO: 
+
+# rig each pass so that it can speculate optimistically,
+# pessimistically, or not at all
+
+# or there may be better ways to combine these...
+
+# turn off parallel execution when interestingness test gets fast
+
+# autodetect number of processors but permit over-riding from command
+# line
+
 use strict;
 use warnings;
 require 5.10.0;
