@@ -84,11 +84,16 @@ unsigned RewriteUtils::getOffsetBetweenLocations(SourceLocation StartLoc,
 
 SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range)
 {
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation EndLoc = Range.getEnd();
+  if (StartLoc.isInvalid())
+    return StartLoc;
+  if (EndLoc.isInvalid())
+    return EndLoc;
+
   int LocRangeSize = TheRewriter->getRangeSize(Range);
   if (LocRangeSize == -1)
     return Range.getEnd();
-
-  SourceLocation StartLoc = Range.getBegin();
 
   return StartLoc.getLocWithOffset(LocRangeSize);
 }
@@ -121,6 +126,8 @@ SourceLocation RewriteUtils::getEndLocationUntil(SourceRange Range,
                                                  char Symbol)
 {
   SourceLocation EndLoc = getEndLocationFromBegin(Range);
+  if (EndLoc.isInvalid())
+    return EndLoc;
     
   const char *EndBuf = SrcManager->getCharacterData(EndLoc);
   int Offset = getOffsetUntil(EndBuf, Symbol);
@@ -139,6 +146,8 @@ SourceLocation RewriteUtils::getEndLocationAfter(SourceRange Range,
                                                 char Symbol)
 {
   SourceLocation EndLoc = getEndLocationFromBegin(Range);
+  if (EndLoc.isInvalid())
+    return EndLoc;
     
   const char *EndBuf = SrcManager->getCharacterData(EndLoc);
   int Offset = getOffsetUntil(EndBuf, Symbol);
@@ -493,6 +502,7 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 
   SourceRange TypeLocRange = VarTypeLoc.getSourceRange();
   SourceLocation EndLoc = getEndLocationFromBegin(TypeLocRange);
+  TransAssert(EndLoc.isValid() && "Invalid EndLoc!");
 
   const Type *Ty = VarTypeLoc.getTypePtr();
 
@@ -697,6 +707,7 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
     SourceRange StmtRange = BeforeStmt->getSourceRange();
     SourceLocation LocEnd = 
       RewriteUtils::getEndLocationFromBegin(StmtRange);
+    TransAssert(LocEnd.isValid() && "Invalid LocEnd!");
 
     std::string PostStr = "\n" + IndentStr + "}";
     if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
@@ -750,6 +761,7 @@ bool RewriteUtils::addStringBeforeStmt(Stmt *BeforeStmt,
     SourceRange StmtRange = BeforeStmt->getSourceRange();
     SourceLocation LocEnd = 
       RewriteUtils::getEndLocationFromBegin(StmtRange);
+    TransAssert(LocEnd.isValid() && "Invalid LocEnd!");
 
     std::string PostStr = "\n" + IndentStr + "}";
     if (TheRewriter->InsertTextAfterToken(LocEnd, PostStr))
@@ -782,6 +794,7 @@ bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt,
   SourceRange StmtRange = AfterStmt->getSourceRange();
   SourceLocation LocEnd = 
     RewriteUtils::getEndLocationFromBegin(StmtRange);
+  TransAssert(LocEnd.isValid() && "Invalid LocEnd!");
   
   return !(TheRewriter->InsertText(LocEnd, NewStr));
 }
@@ -1045,7 +1058,9 @@ SourceLocation RewriteUtils::getDeclGroupRefEndLoc(DeclGroupRef DGR)
 
   // The LastD could be a RecordDecl
   SourceRange Range = LastD->getSourceRange();
-  return getEndLocationFromBegin(Range);
+  SourceLocation EndLoc = getEndLocationFromBegin(Range);
+  TransAssert(EndLoc.isValid() && "Invalid EndLoc!");
+  return EndLoc;
 }
 
 SourceLocation RewriteUtils::getDeclStmtEndLoc(DeclStmt *DS)
@@ -1134,6 +1149,10 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
   if (DGR.isSingleDecl()) {
     SourceLocation StartLoc = VarRange.getBegin();
     SourceLocation EndLoc = getEndLocationUntil(VarRange, ';');
+    // in case the previous EndLoc is invalid, for example,
+    // VarRange could have bad EndLoc value
+    if (EndLoc.isInvalid())
+      EndLoc = getLocationUntil(StartLoc, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
   }
 
