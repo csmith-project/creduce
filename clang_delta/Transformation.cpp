@@ -200,10 +200,8 @@ const Expr *Transformation::getArrayBaseExprAndIdxs(
     unsigned int Idx = 0;
     llvm::APSInt Result;
     if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
-      std::string IntStr = Result.toString(10);
-      std::stringstream TmpSS(IntStr);
-      if (!(TmpSS >> Idx))
-        TransAssert(0 && "Non-integer value!");
+      // this will truncate a possible uint64 value to uint32 value
+      Idx = (unsigned int)(*Result.getRawData());
     }
     BaseE = ASE->getBase()->IgnoreParenCasts();
     ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
@@ -426,11 +424,7 @@ int Transformation::getIndexAsInteger(const Expr *E)
   if (!E->EvaluateAsInt(Result, *Context))
     TransAssert(0 && "Failed to Evaluate index!");
 
-  std::string IntStr = Result.toString(10);
-  std::stringstream TmpSS(IntStr);
-  if (!(TmpSS >> Idx))
-    TransAssert(0 && "Non-integer value!");
-
+  Idx = (int)(*Result.getRawData());
   return Idx;
 }
 
