@@ -44,13 +44,14 @@ use Benchmark::Timer;
 use Cwd;
 use File::Temp;
 use File::Copy;
+use Sys::CPU;
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = 4;
+my $NPROCS = Sys::CPU::cpu_count();    
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -510,6 +511,15 @@ if (!(-w $toreduce)) {
     print "'$toreduce' is not writable\n";
     usage();
 }
+
+while (my $arg = shift @ARGV) {
+    if ($arg eq "-n") {
+	$NPROCS = shift @ARGV;
+	die unless defined $NPROCS;
+    }
+}
+
+print "running $NPROCS interestingness tests in parallel\n";
 
 # Put scratch files ($toreduce_best, $toreduce_orig) in the current
 # working directory.

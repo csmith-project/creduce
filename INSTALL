@@ -10,7 +10,8 @@ Prereqs:
 On Ubuntu, all non-standard prerequisites can be installed like this:
 
   sudo apt-get install indent astyle delta libbenchmark-timer-perl \
-    libexporter-lite-perl libfile-which-perl libregexp-common-perl
+    libexporter-lite-perl libfile-which-perl libregexp-common-perl \
+    libsys-cpu-perl
 
 On other systems, install these packages either manually or using the
 package manager:
@@ -36,6 +37,7 @@ For example, (perhaps as root):
   cpan -i 'Exporter::Lite'
   cpan -i 'File::Which'
   cpan -i 'Regexp::Common'
+  cpan -i 'Sys::CPU'
 
 --------------------------------------------------------------------
 Building and installing C-Reduce and the clang_delta plugin
