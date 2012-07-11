@@ -391,6 +391,9 @@ void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
   if (!T->isUnionType())
     return;
 
+  if (T->getTypeClass() == Type::Typedef)
+    return;
+
   const RecordType *RDTy = T->getAsUnionType();
   TransAssert(RDTy && "Bad RecordType!");
 
