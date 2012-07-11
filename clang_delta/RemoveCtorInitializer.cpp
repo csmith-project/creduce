@@ -16,6 +16,7 @@
 
 #include "clang/Basic/SourceManager.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/AST/ASTContext.h"
 
 #include "TransformationManager.h"
 

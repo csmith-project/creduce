@@ -18,6 +18,7 @@
 
 #include "clang/Lex/Lexer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/AST/ASTContext.h"
 #include "TransformationManager.h"
 
 using namespace clang;

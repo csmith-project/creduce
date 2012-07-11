@@ -16,6 +16,7 @@
 
 #include "llvm/ADT/DenseMap.h"
 #include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"

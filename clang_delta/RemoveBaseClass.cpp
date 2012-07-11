@@ -14,6 +14,7 @@
 
 #include "RemoveBaseClass.h"
 
+#include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
 #include "CommonRenameClassRewriteVisitor.h"
 
