@@ -93,13 +93,13 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
   if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
-    Invocation.setLangDefaults(IK_C);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_C);
   }
   else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g., 
     // It results an empty AST for the caller. 
-    Invocation.setLangDefaults(IK_CXX);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_CXX);
   }
   else {
     ErrorMsg = "Unsupported file type!";
