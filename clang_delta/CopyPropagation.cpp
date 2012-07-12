@@ -380,10 +380,20 @@ bool CopyPropagation::isRefToTheSameVar(const Expr *CopyE,
   return (CopyVD == DominatedVD);
 }
 
+bool CopyPropagation::hasSameStringRep(const Expr *CopyE,
+                                       const Expr *DominatedE)
+{
+  std::string CopyStr, DominatedStr;
+  RewriteHelper->getExprString(CopyE, CopyStr);
+  RewriteHelper->getExprString(DominatedE, DominatedStr);
+  return (CopyStr == DominatedStr);
+}
+
 void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
                                           const Expr *DominatedE)
 {
-  if ((CopyE == DominatedE) || isRefToTheSameVar(CopyE, DominatedE))
+  if ((CopyE == DominatedE) || isRefToTheSameVar(CopyE, DominatedE) ||
+      hasSameStringRep(CopyE, DominatedE))
     return;
 
   ExprSet *ESet = DominatedMap[CopyE];

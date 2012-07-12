@@ -76,6 +76,9 @@ private:
   bool isRefToTheSameVar(const clang::Expr *CopyE,
                          const clang::Expr *DominatedE);
 
+  bool hasSameStringRep(const clang::Expr *CopyE,
+                        const clang::Expr *DominatedE);
+
   void doCopyPropagation(void);
 
   bool isConstantExpr(const clang::Expr *Exp);
