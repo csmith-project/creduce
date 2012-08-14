@@ -15598,7 +15598,7 @@ See \`config.log' for more details" "$LINENO" 5; }
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
   LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
   LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
-  LLVM_LIBS=`$LLVM_CONFIG --libs engine`
+  LLVM_LIBS=`$LLVM_CONFIG --libs`
 
   # The output of `llvm-config --ldflags' often contains library directives
   # that must come *after* all the LLVM libraries on the link line: e.g.,
@@ -15615,8 +15615,8 @@ See \`config.log' for more details" "$LINENO" 5; }
   LIBS="$LIBS $LLVM_LIBS $LLVM_LDFLAGS"
   # LIBS="$LIBS $LLVM_LIBS" --- see comment above.
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking can compile with and link with LLVM(engine)" >&5
-$as_echo_n "checking can compile with and link with LLVM(engine)... " >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking can compile with and link with LLVM" >&5
+$as_echo_n "checking can compile with and link with LLVM... " >&6; }
 if ${ax_cv_llvm+:} false; then :
   $as_echo_n "(cached) " >&6
 else

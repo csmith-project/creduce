@@ -277,7 +277,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 LLVMCXXFLAGS := $(shell "$(LLVM_CONFIG)" --cxxflags)
 LLVMLDFLAGS := $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR := $(shell "$(LLVM_CONFIG)" --includedir)
-LLVMLIBS := $(shell "$(LLVM_CONFIG)" \--libs engine)
+LLVMLIBS := $(shell "$(LLVM_CONFIG)" \--libs)
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
 	-I"$(LLVMINCLUDEDIR)/clang"
