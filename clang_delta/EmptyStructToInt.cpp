@@ -17,6 +17,7 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "clang/Lex/Lexer.h"
+#include "clang/AST/RecordLayout.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "TransformationManager.h"
@@ -30,7 +31,8 @@ it: \
   * does not have any field; \n\
   * does not have any base class; \n\
   * is not a base class of another class; \n\
-  * is not described by any template; \n";
+  * is not described by any template; \n\
+  * has only one unreferenced field\n";
 
 static RegisterTransformation<EmptyStructToInt>
          Trans("empty-struct-to-int", DescriptionMsg);
@@ -256,10 +258,24 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD);
   if (!CXXRD) {
     const RecordDecl *Def = RD->getDefinition();
-    if (!Def)
+    if (!Def) {
       return true;
-    else 
-      return Def->field_empty();
+    }
+    else if (Def->field_empty()) {
+      return true;
+    }
+    else {
+      // handle another special case where a struct has an unreferenced
+      // field. In some cases, we cannot simply remove this field
+      // because an empty struct would make a bug disappear.
+      const ASTRecordLayout &Info = Context->getASTRecordLayout(Def);
+      unsigned Count = Info.getFieldCount();
+      if (Count != 1)
+        return false;
+      const FieldDecl *FD = *(Def->field_begin());
+      TransAssert(FD && "Invalid FieldDecl");
+      return !FD->isReferenced();
+    }
   }
 
   if (dyn_cast<ClassTemplateSpecializationDecl>(CXXRD) ||
