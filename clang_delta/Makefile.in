@@ -76,10 +76,13 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReduceArraySize.$(OBJEXT) \
 	clang_delta-ReduceClassTemplateParameter.$(OBJEXT) \
 	clang_delta-ReducePointerLevel.$(OBJEXT) \
+	clang_delta-RemoveAddrTaken.$(OBJEXT) \
+	clang_delta-RemoveArray.$(OBJEXT) \
 	clang_delta-RemoveBaseClass.$(OBJEXT) \
 	clang_delta-RemoveCtorInitializer.$(OBJEXT) \
 	clang_delta-RemoveNamespace.$(OBJEXT) \
 	clang_delta-RemoveNestedFunction.$(OBJEXT) \
+	clang_delta-RemovePointer.$(OBJEXT) \
 	clang_delta-RemoveTrivialBaseTemplate.$(OBJEXT) \
 	clang_delta-RemoveUnresolvedBase.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
@@ -354,6 +357,10 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveAddrTaken.cpp \
+	RemoveAddrTaken.h \
+	RemoveArray.cpp \
+	RemoveArray.h \
 	RemoveBaseClass.cpp \
 	RemoveBaseClass.h \
 	RemoveCtorInitializer.cpp \
@@ -362,6 +369,8 @@ clang_delta_SOURCES = \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
+	RemovePointer.cpp \
+	RemovePointer.h \
 	RemoveTrivialBaseTemplate.cpp \
 	RemoveTrivialBaseTemplate.h \
 	RemoveUnresolvedBase.cpp \
@@ -521,10 +530,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArraySize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerLevel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveAddrTaken.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveArray.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveBaseClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveCtorInitializer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNestedFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemovePointer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedFunction.Po@am__quote@
@@ -837,6 +849,34 @@ clang_delta-ReducePointerLevel.obj: ReducePointerLevel.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerLevel.obj `if test -f 'ReducePointerLevel.cpp'; then $(CYGPATH_W) 'ReducePointerLevel.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerLevel.cpp'; fi`
 
+clang_delta-RemoveAddrTaken.o: RemoveAddrTaken.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveAddrTaken.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveAddrTaken.Tpo -c -o clang_delta-RemoveAddrTaken.o `test -f 'RemoveAddrTaken.cpp' || echo '$(srcdir)/'`RemoveAddrTaken.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveAddrTaken.Tpo $(DEPDIR)/clang_delta-RemoveAddrTaken.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveAddrTaken.cpp' object='clang_delta-RemoveAddrTaken.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveAddrTaken.o `test -f 'RemoveAddrTaken.cpp' || echo '$(srcdir)/'`RemoveAddrTaken.cpp
+
+clang_delta-RemoveAddrTaken.obj: RemoveAddrTaken.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveAddrTaken.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveAddrTaken.Tpo -c -o clang_delta-RemoveAddrTaken.obj `if test -f 'RemoveAddrTaken.cpp'; then $(CYGPATH_W) 'RemoveAddrTaken.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveAddrTaken.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveAddrTaken.Tpo $(DEPDIR)/clang_delta-RemoveAddrTaken.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveAddrTaken.cpp' object='clang_delta-RemoveAddrTaken.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveAddrTaken.obj `if test -f 'RemoveAddrTaken.cpp'; then $(CYGPATH_W) 'RemoveAddrTaken.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveAddrTaken'; fi`
+
+clang_delta-RemoveArray.o: RemoveArray.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveArray.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveArray.Tpo -c -o clang_delta-RemoveArray.o `test -f 'RemoveArray.cpp' || echo '$(srcdir)/'`RemoveArray.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveArray.Tpo $(DEPDIR)/clang_delta-RemoveArray.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveArray.cpp' object='clang_delta-RemoveArray.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveArray.o `test -f 'RemoveArray.cpp' || echo '$(srcdir)/'`RemoveArray.cpp
+
+clang_delta-RemoveArray.obj: RemoveArray.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveArray.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveArray.Tpo -c -o clang_delta-RemoveArray.obj `if test -f 'RemoveArray.cpp'; then $(CYGPATH_W) 'RemoveArray.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveArray.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveArray.Tpo $(DEPDIR)/clang_delta-RemoveArray.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveArray.cpp' object='clang_delta-RemoveArray.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveArray.obj `if test -f 'RemoveArray.cpp'; then $(CYGPATH_W) 'RemoveArray.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveArray'; fi`
+
 clang_delta-RemoveBaseClass.o: RemoveBaseClass.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveBaseClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo -c -o clang_delta-RemoveBaseClass.o `test -f 'RemoveBaseClass.cpp' || echo '$(srcdir)/'`RemoveBaseClass.cpp
 @am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveBaseClass.Tpo $(DEPDIR)/clang_delta-RemoveBaseClass.Po
@@ -892,6 +932,20 @@ clang_delta-RemoveNestedFunction.obj: RemoveNestedFunction.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveNestedFunction.cpp' object='clang_delta-RemoveNestedFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveNestedFunction.obj `if test -f 'RemoveNestedFunction.cpp'; then $(CYGPATH_W) 'RemoveNestedFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveNestedFunction.cpp'; fi`
+
+clang_delta-RemovePointer.o: RemovePointer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemovePointer.o -MD -MP -MF $(DEPDIR)/clang_delta-RemovePointer.Tpo -c -o clang_delta-RemovePointer.o `test -f 'RemovePointer.cpp' || echo '$(srcdir)/'`RemovePointer.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemovePointer.Tpo $(DEPDIR)/clang_delta-RemovePointer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemovePointer.cpp' object='clang_delta-RemovePointer.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemovePointer.o `test -f 'RemovePointer.cpp' || echo '$(srcdir)/'`RemovePointer.cpp
+
+clang_delta-RemovePointer.obj: RemovePointer.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemovePointer.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemovePointer.Tpo -c -o clang_delta-RemovePointer.obj `if test -f 'RemovePointer.cpp'; then $(CYGPATH_W) 'RemovePointer.cpp'; else $(CYGPATH_W) '$(srcdir)/RemovePointer.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemovePointer.Tpo $(DEPDIR)/clang_delta-RemovePointer.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemovePointer.cpp' object='clang_delta-RemovePointer.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemovePointer.obj `if test -f 'RemovePointer.cpp'; then $(CYGPATH_W) 'RemovePointer.cpp'; else $(CYGPATH_W) '$(srcdir)/RemovePointer'; fi`
 
 clang_delta-RemoveTrivialBaseTemplate.o: RemoveTrivialBaseTemplate.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveTrivialBaseTemplate.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Tpo -c -o clang_delta-RemoveTrivialBaseTemplate.o `test -f 'RemoveTrivialBaseTemplate.cpp' || echo '$(srcdir)/'`RemoveTrivialBaseTemplate.cpp
