@@ -175,14 +175,18 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   SourceRange FuncDefRange = FD->getSourceRange();
   SourceLocation FuncStartLoc = FuncDefRange.getBegin();
   
-  const char *NameInfoStartBuf =
-      ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
-  while (*(NameInfoStartBuf--) == '(') {
-    ;
-  }
   const char *FuncStartBuf =
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
+  const char *NameInfoStartBuf =
+      ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
   int Offset = NameInfoStartBuf - FuncStartBuf;
+
+  NameInfoStartBuf--;
+  while ((*NameInfoStartBuf == '(') || (*NameInfoStartBuf == ' ') ||
+         (*NameInfoStartBuf == '\t') || (*NameInfoStartBuf == '\n')) {
+    Offset--;
+    NameInfoStartBuf--;
+  }
 
   TransAssert(Offset >= 0);
 
