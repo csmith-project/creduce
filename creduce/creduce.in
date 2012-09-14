@@ -51,7 +51,8 @@ use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = Sys::CPU::cpu_count();    
+#my $NPROCS = Sys::CPU::cpu_count();    
+my $NPROCS = 1;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -108,7 +109,8 @@ my @suffixes = (".c", ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx");
 
 sub run_test ($) {
     (my $fn) = @_;
-    my $res = runit "$test $fn >/dev/null 2>&1";
+    # my $res = runit "$test $fn >/dev/null 2>&1";
+    my $res = runit "$test $fn";
     return ($res == 0);
 }
 
@@ -392,8 +394,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "callexpr-to-value",      "pri" => 217,  "first_pass_pri" => 49, },
     { "name" => "pass_clang",    "arg" => "replace-callexpr",       "pri" => 218,  "first_pass_pri" => 50, },
     { "name" => "pass_clang",    "arg" => "simplify-callexpr",      "pri" => 219,  "first_pass_pri" => 51, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 26, },
-    { "name" => "pass_clang",    "arg" => "remove-unused-function",                "first_pass_pri" => 33, },
+    { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 33, },
     { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 221,  "first_pass_pri" => 53, },
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 222,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 223,  },
