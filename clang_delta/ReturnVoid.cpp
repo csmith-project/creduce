@@ -175,11 +175,18 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   SourceRange FuncDefRange = FD->getSourceRange();
   SourceLocation FuncStartLoc = FuncDefRange.getBegin();
   
-  const char *NameInfoStartBuf =
-      ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
   const char *FuncStartBuf =
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
+  const char *NameInfoStartBuf =
+      ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
   int Offset = NameInfoStartBuf - FuncStartBuf;
+
+  NameInfoStartBuf--;
+  while ((*NameInfoStartBuf == '(') || (*NameInfoStartBuf == ' ') ||
+         (*NameInfoStartBuf == '\t') || (*NameInfoStartBuf == '\n')) {
+    Offset--;
+    NameInfoStartBuf--;
+  }
 
   TransAssert(Offset >= 0);
 
@@ -189,9 +196,16 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
 
 bool RVASTVisitor::rewriteReturnStmt(ReturnStmt *RS)
 {
-  SourceRange RSRange = RS->getSourceRange();
+  // SourceRange RSRange = RS->getSourceRange();
 
-  return !(ConsumerInstance->TheRewriter.ReplaceText(RSRange, "return"));
+  // return !(ConsumerInstance->TheRewriter.ReplaceText(RSRange, "return"));
+
+  // Instead of replace an entire ReturnStmt with return, let's keep Ret Expr.
+  // The reason is that RetExpr could have side-effects and these side-effects
+  // could cause bugs. But we still could remove "return" keyword
+
+  SourceLocation Loc = RS->getReturnLoc();
+  return !(ConsumerInstance->TheRewriter.RemoveText(Loc, 6));
 }
 
 bool RVASTVisitor::VisitFunctionDecl(FunctionDecl *FD)

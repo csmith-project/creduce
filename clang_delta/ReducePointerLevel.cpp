@@ -191,7 +191,8 @@ bool PointerLevelCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
   if (dyn_cast<DeclRefExpr>(Rhs) || 
       dyn_cast<UnaryOperator>(Rhs) ||
       dyn_cast<ArraySubscriptExpr>(Rhs) ||
-      dyn_cast<MemberExpr>(Rhs))
+      dyn_cast<MemberExpr>(Rhs) ||
+      dyn_cast<IntegerLiteral>(Rhs))
     return true;
 
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);

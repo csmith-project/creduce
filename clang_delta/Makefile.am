@@ -99,6 +99,10 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	RemoveAddrTaken.cpp \
+	RemoveAddrTaken.h \
+	RemoveArray.cpp \
+	RemoveArray.h \
 	RemoveBaseClass.cpp \
 	RemoveBaseClass.h \
 	RemoveCtorInitializer.cpp \
@@ -107,6 +111,8 @@ clang_delta_SOURCES = \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
 	RemoveNestedFunction.h \
+	RemovePointer.cpp \
+	RemovePointer.h \
 	RemoveTrivialBaseTemplate.cpp \
 	RemoveTrivialBaseTemplate.h \
 	RemoveUnresolvedBase.cpp \
