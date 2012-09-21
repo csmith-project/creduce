@@ -51,8 +51,8 @@ use creduce_utils;
 
 ######################################################################
 
-#my $NPROCS = Sys::CPU::cpu_count();    
-my $NPROCS = 1;
+my $NPROCS = Sys::CPU::cpu_count();    
+#my $NPROCS = 1;
 
 # if set, ensure the delta test succeeds before starting each pass
 my $SANITY = 0;
@@ -109,8 +109,8 @@ my @suffixes = (".c", ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx");
 
 sub run_test ($) {
     (my $fn) = @_;
-    # my $res = runit "$test $fn >/dev/null 2>&1";
-    my $res = runit "$test $fn";
+    my $res = runit "$test $fn >/dev/null 2>&1";
+    # my $res = runit "$test $fn";
     return ($res == 0);
 }
 
