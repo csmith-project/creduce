@@ -1328,6 +1328,18 @@ bool RewriteUtils::removeFieldDecl(const FieldDecl *FD)
   SourceRange Range = FD->getSourceRange();
   SourceLocation StartLoc = Range.getBegin();
   SourceLocation EndLoc = getEndLocationUntil(Range, ';');
+  SourceLocation CurlyEndLoc = getEndLocationUntil(Range, '}');
+
+  // handle cases like:
+  // struct {
+  //   int f <- no semicolon here
+  // };
+  const char *SemiPos = SrcManager->getCharacterData(EndLoc);
+  const char *CurlyPos = SrcManager->getCharacterData(CurlyEndLoc);
+  if (SemiPos > CurlyPos) {
+    EndLoc = CurlyEndLoc.getLocWithOffset(-1);
+  }
+
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
 }
 
