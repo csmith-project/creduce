@@ -12,6 +12,7 @@
 #define REMOVE_ADDR_TAKEN_H
 
 #include "Transformation.h"
+#include "llvm/ADT/SmallPtrSet.h"
 
 namespace clang {
   class DeclGroupRef;
@@ -35,6 +36,8 @@ public:
 
 private:
 
+  typedef llvm::SmallPtrSet<const clang::UnaryOperator *, 10> UnaryOperatorSet;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
@@ -42,6 +45,8 @@ private:
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   void rewriteAddrTakenOp(const clang::UnaryOperator *UO);
+
+  UnaryOperatorSet VisitedAddrTakenOps;
 
   RemoveAddrTakenCollectionVisitor *CollectionVisitor;
 

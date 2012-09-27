@@ -27,7 +27,10 @@ static const char *DescriptionMsg =
 "Remove an addr-taken operator if \n\
    * the subexpr is type of pointer, or \n\
    * the subexpr is type of integer and the addr-taken operator is \
-an operand of a comparison operator. \n";
+an operand of a comparison operator, or \n\
+   * the entire addr-taken expr is an argument of a function, \
+and the argument doesn't have a correponding parameter in function's \
+declaration.\n";
 
 static RegisterTransformation<RemoveAddrTaken>
          Trans("remove-addr-taken", DescriptionMsg);
@@ -45,13 +48,30 @@ public:
 
   bool VisitBinaryOperator(BinaryOperator *BO);
 
+  bool VisitCallExpr(CallExpr *CE);
+
 private:
+
+  void handleOneAddrTakenOp(const UnaryOperator *UO);
 
   void handleOneOperand(const Expr *E);
 
   RemoveAddrTaken *ConsumerInstance;
 
 };
+
+void RemoveAddrTakenCollectionVisitor::handleOneAddrTakenOp(
+       const UnaryOperator *UO)
+{
+  if (ConsumerInstance->VisitedAddrTakenOps.count(UO))
+    return;
+
+  ConsumerInstance->VisitedAddrTakenOps.insert(UO);
+  ConsumerInstance->ValidInstanceNum++;
+  if (ConsumerInstance->TransformationCounter == 
+      ConsumerInstance->ValidInstanceNum)
+    ConsumerInstance->TheUO = UO; 
+}
 
 bool RemoveAddrTakenCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
 {
@@ -63,10 +83,7 @@ bool RemoveAddrTakenCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
   if (!Ty->isPointerType())
     return true;
 
-  ConsumerInstance->ValidInstanceNum++;
-  if (ConsumerInstance->TransformationCounter == 
-      ConsumerInstance->ValidInstanceNum)
-    ConsumerInstance->TheUO = UO; 
+  handleOneAddrTakenOp(UO);
   return true;
 }
 
@@ -84,10 +101,7 @@ void RemoveAddrTakenCollectionVisitor::handleOneOperand(const Expr *E)
   if (!Ty->isIntegerType())
     return;
 
-  ConsumerInstance->ValidInstanceNum++;
-  if (ConsumerInstance->TransformationCounter == 
-      ConsumerInstance->ValidInstanceNum)
-    ConsumerInstance->TheUO = UO; 
+  handleOneAddrTakenOp(UO);
 }
 
 bool RemoveAddrTakenCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
@@ -97,6 +111,32 @@ bool RemoveAddrTakenCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
 
   handleOneOperand(BO->getLHS());
   handleOneOperand(BO->getRHS());
+  return true;
+}
+
+// handle special cases like
+// void f1();
+// void f2(void) {
+//   f1(xxx);
+// }
+bool RemoveAddrTakenCollectionVisitor::VisitCallExpr(CallExpr *CE)
+{
+  const FunctionDecl *FD = CE->getDirectCallee();
+  if (!FD)
+    return true;
+
+  unsigned NumParams = FD->getNumParams();
+  if (NumParams != 0)
+    return true;
+
+  for (CallExpr::arg_iterator I = CE->arg_begin(),
+       E = CE->arg_end(); I != E; ++I) {
+    const Expr *Arg = (*I);
+    const UnaryOperator *UO = dyn_cast<UnaryOperator>(Arg);
+    if (!UO || (UO->getOpcode() != UO_AddrOf))
+      continue;
+    handleOneAddrTakenOp(UO);
+  }
   return true;
 }
 
