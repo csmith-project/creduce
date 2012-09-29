@@ -17,7 +17,7 @@
 #include <cctype>
 #include <sstream>
 #include "clang/Basic/SourceManager.h"
-#include "clang/Rewrite/Rewriter.h"
+#include "clang/Rewrite/Core/Rewriter.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclCXX.h"
 #include "clang/AST/DeclTemplate.h"
