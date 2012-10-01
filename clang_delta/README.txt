@@ -15,7 +15,7 @@ For detailed options:
 
 Known bugs: 
 
-  * bad transformation on functions invovled with function pointers
+  * bad transformation on functions involved with function pointers
 
 --------------------------------------------------------------------
 
