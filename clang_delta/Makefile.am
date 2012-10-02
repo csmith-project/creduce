@@ -151,6 +151,8 @@ clang_delta_SOURCES = \
 	SimplifyDependentTypedef.h \
 	SimplifyIf.cpp \
 	SimplifyIf.h \
+	SimplifyStruct.cpp \
+	SimplifyStruct.h \
 	SimplifyStructUnionDecl.cpp \
 	SimplifyStructUnionDecl.h \
 	Transformation.cpp \
