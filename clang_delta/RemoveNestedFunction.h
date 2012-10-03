@@ -40,6 +40,7 @@ public:
   RemoveNestedFunction(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       NestedInvocationVisitor(NULL),
+      StmtVisitor(NULL),
       NameQueryWrap(NULL),
       TheFuncDecl(NULL),
       TheStmt(NULL),
