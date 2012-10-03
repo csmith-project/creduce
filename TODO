@@ -66,9 +66,6 @@ typedef expansion
 
  * rename class member variables to m_a, m_b ...
 
- * seems simple-inliner doesn't work with class member functions,
-   need to fix it or add a CXX-specific inlining pass
-
 - From Konstantin Tokarev
 
 As you may know, there is a clang-based tool "Include What You Use"
