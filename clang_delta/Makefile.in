@@ -76,6 +76,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReduceArraySize.$(OBJEXT) \
 	clang_delta-ReduceClassTemplateParameter.$(OBJEXT) \
 	clang_delta-ReducePointerLevel.$(OBJEXT) \
+	clang_delta-ReducePointerPairs.$(OBJEXT) \
 	clang_delta-RemoveAddrTaken.$(OBJEXT) \
 	clang_delta-RemoveArray.$(OBJEXT) \
 	clang_delta-RemoveBaseClass.$(OBJEXT) \
@@ -358,6 +359,8 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	ReducePointerPairs.cpp \
+	ReducePointerPairs.h \
 	RemoveAddrTaken.cpp \
 	RemoveAddrTaken.h \
 	RemoveArray.cpp \
@@ -533,6 +536,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceArraySize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReduceClassTemplateParameter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerLevel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReducePointerPairs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveAddrTaken.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveArray.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveBaseClass.Po@am__quote@
@@ -852,6 +856,20 @@ clang_delta-ReducePointerLevel.obj: ReducePointerLevel.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReducePointerLevel.cpp' object='clang_delta-ReducePointerLevel.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerLevel.obj `if test -f 'ReducePointerLevel.cpp'; then $(CYGPATH_W) 'ReducePointerLevel.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerLevel.cpp'; fi`
+
+clang_delta-ReducePointerPairs.o: ReducePointerPairs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReducePointerPairs.o -MD -MP -MF $(DEPDIR)/clang_delta-ReducePointerPairs.Tpo -c -o clang_delta-ReducePointerPairs.o `test -f 'ReducePointerPairs.cpp' || echo '$(srcdir)/'`ReducePointerPairs.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReducePointerPairs.Tpo $(DEPDIR)/clang_delta-ReducePointerPairs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReducePointerPairs.cpp' object='clang_delta-ReducePointerPairs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerPairs.o `test -f 'ReducePointerPairs.cpp' || echo '$(srcdir)/'`ReducePointerPairs.cpp
+
+clang_delta-ReducePointerPairs.obj: ReducePointerPairs.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReducePointerPairs.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReducePointerPairs.Tpo -c -o clang_delta-ReducePointerPairs.obj `if test -f 'ReducePointerPairs.cpp'; then $(CYGPATH_W) 'ReducePointerPairs.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerPairs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReducePointerPairs.Tpo $(DEPDIR)/clang_delta-ReducePointerPairs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReducePointerPairs.cpp' object='clang_delta-ReducePointerPairs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReducePointerPairs.obj `if test -f 'ReducePointerPairs.cpp'; then $(CYGPATH_W) 'ReducePointerPairs.cpp'; else $(CYGPATH_W) '$(srcdir)/ReducePointerPairs.cpp'; fi`
 
 clang_delta-RemoveAddrTaken.o: RemoveAddrTaken.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveAddrTaken.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveAddrTaken.Tpo -c -o clang_delta-RemoveAddrTaken.o `test -f 'RemoveAddrTaken.cpp' || echo '$(srcdir)/'`RemoveAddrTaken.cpp

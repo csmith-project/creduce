@@ -99,6 +99,8 @@ clang_delta_SOURCES = \
 	ReduceClassTemplateParameter.h \
 	ReducePointerLevel.cpp \
 	ReducePointerLevel.h \
+	ReducePointerPairs.cpp \
+	ReducePointerPairs.h \
 	RemoveAddrTaken.cpp \
 	RemoveAddrTaken.h \
 	RemoveArray.cpp \
