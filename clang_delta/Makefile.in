@@ -96,6 +96,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReplaceCallExpr.$(OBJEXT) \
 	clang_delta-ReplaceDerivedClass.$(OBJEXT) \
 	clang_delta-ReplaceSimpleTypedef.$(OBJEXT) \
+	clang_delta-ReplaceUndefinedFunction.$(OBJEXT) \
 	clang_delta-ReturnVoid.$(OBJEXT) \
 	clang_delta-RewriteUtils.$(OBJEXT) \
 	clang_delta-SimpleInliner.$(OBJEXT) \
@@ -399,6 +400,8 @@ clang_delta_SOURCES = \
 	ReplaceDerivedClass.h \
 	ReplaceSimpleTypedef.cpp \
 	ReplaceSimpleTypedef.h \
+	ReplaceUndefinedFunction.cpp \
+	ReplaceUndefinedFunction.h \
 	ReturnVoid.cpp \
 	ReturnVoid.h \
 	RewriteUtils.cpp \
@@ -556,6 +559,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceCallExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDerivedClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReturnVoid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RewriteUtils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimpleInliner.Po@am__quote@
@@ -1136,6 +1140,20 @@ clang_delta-ReplaceSimpleTypedef.obj: ReplaceSimpleTypedef.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceSimpleTypedef.cpp' object='clang_delta-ReplaceSimpleTypedef.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceSimpleTypedef.obj `if test -f 'ReplaceSimpleTypedef.cpp'; then $(CYGPATH_W) 'ReplaceSimpleTypedef.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceSimpleTypedef.cpp'; fi`
+
+clang_delta-ReplaceUndefinedFunction.o: ReplaceUndefinedFunction.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceUndefinedFunction.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Tpo -c -o clang_delta-ReplaceUndefinedFunction.o `test -f 'ReplaceUndefinedFunction.cpp' || echo '$(srcdir)/'`ReplaceUndefinedFunction.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Tpo $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceUndefinedFunction.cpp' object='clang_delta-ReplaceUndefinedFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceUndefinedFunction.o `test -f 'ReplaceUndefinedFunction.cpp' || echo '$(srcdir)/'`ReplaceUndefinedFunction.cpp
+
+clang_delta-ReplaceUndefinedFunction.obj: ReplaceUndefinedFunction.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceUndefinedFunction.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Tpo -c -o clang_delta-ReplaceUndefinedFunction.obj `if test -f 'ReplaceUndefinedFunction.cpp'; then $(CYGPATH_W) 'ReplaceUndefinedFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceUndefinedFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Tpo $(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceUndefinedFunction.cpp' object='clang_delta-ReplaceUndefinedFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceUndefinedFunction.obj `if test -f 'ReplaceUndefinedFunction.cpp'; then $(CYGPATH_W) 'ReplaceUndefinedFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceUndefinedFunction.cpp'; fi`
 
 clang_delta-ReturnVoid.o: ReturnVoid.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReturnVoid.o -MD -MP -MF $(DEPDIR)/clang_delta-ReturnVoid.Tpo -c -o clang_delta-ReturnVoid.o `test -f 'ReturnVoid.cpp' || echo '$(srcdir)/'`ReturnVoid.cpp
