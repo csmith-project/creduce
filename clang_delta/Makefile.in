@@ -93,6 +93,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RenameFun.$(OBJEXT) \
 	clang_delta-RenameParam.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
+	clang_delta-ReplaceArrayIndexVar.$(OBJEXT) \
 	clang_delta-ReplaceCallExpr.$(OBJEXT) \
 	clang_delta-ReplaceDerivedClass.$(OBJEXT) \
 	clang_delta-ReplaceSimpleTypedef.$(OBJEXT) \
@@ -394,6 +395,8 @@ clang_delta_SOURCES = \
 	RenameParam.h \
 	RenameVar.cpp \
 	RenameVar.h \
+	ReplaceArrayIndexVar.cpp \
+	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
 	ReplaceDerivedClass.cpp \
@@ -556,6 +559,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameFun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameParam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameVar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceCallExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDerivedClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po@am__quote@
@@ -1098,6 +1102,20 @@ clang_delta-RenameVar.obj: RenameVar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RenameVar.cpp' object='clang_delta-RenameVar.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameVar.obj `if test -f 'RenameVar.cpp'; then $(CYGPATH_W) 'RenameVar.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameVar.cpp'; fi`
+
+clang_delta-ReplaceArrayIndexVar.o: ReplaceArrayIndexVar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceArrayIndexVar.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Tpo -c -o clang_delta-ReplaceArrayIndexVar.o `test -f 'ReplaceArrayIndexVar.cpp' || echo '$(srcdir)/'`ReplaceArrayIndexVar.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Tpo $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceArrayIndexVar.cpp' object='clang_delta-ReplaceArrayIndexVar.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceArrayIndexVar.o `test -f 'ReplaceArrayIndexVar.cpp' || echo '$(srcdir)/'`ReplaceArrayIndexVar.cpp
+
+clang_delta-ReplaceArrayIndexVar.obj: ReplaceArrayIndexVar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceArrayIndexVar.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Tpo -c -o clang_delta-ReplaceArrayIndexVar.obj `if test -f 'ReplaceArrayIndexVar.cpp'; then $(CYGPATH_W) 'ReplaceArrayIndexVar.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceArrayIndexVar.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Tpo $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='ReplaceArrayIndexVar.cpp' object='clang_delta-ReplaceArrayIndexVar.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceArrayIndexVar.obj `if test -f 'ReplaceArrayIndexVar.cpp'; then $(CYGPATH_W) 'ReplaceArrayIndexVar.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceArrayIndexVar.cpp'; fi`
 
 clang_delta-ReplaceCallExpr.o: ReplaceCallExpr.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceCallExpr.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceCallExpr.Tpo -c -o clang_delta-ReplaceCallExpr.o `test -f 'ReplaceCallExpr.cpp' || echo '$(srcdir)/'`ReplaceCallExpr.cpp

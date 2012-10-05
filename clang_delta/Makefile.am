@@ -133,6 +133,8 @@ clang_delta_SOURCES = \
 	RenameParam.h \
 	RenameVar.cpp \
 	RenameVar.h \
+	ReplaceArrayIndexVar.cpp \
+	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
 	ReplaceDerivedClass.cpp \
