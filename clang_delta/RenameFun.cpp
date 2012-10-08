@@ -60,7 +60,7 @@ public:
 
   bool VisitFunctionDecl(FunctionDecl *FD);
 
-  bool VisitCallExpr(CallExpr *CE);
+  bool VisitDeclRefExpr(DeclRefExpr *DRE);
 
 private:
 
@@ -117,9 +117,10 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
            replaceFunctionDeclName(FD, (*I).second);
 }
 
-bool RenameFunVisitor::VisitCallExpr(CallExpr *CE)
+bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
-  FunctionDecl *FD = CE->getDirectCallee();
+  ValueDecl *OrigDecl = DRE->getDecl();
+  FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl);
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
     return true;
 
@@ -129,8 +130,9 @@ bool RenameFunVisitor::VisitCallExpr(CallExpr *CE)
 
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
               "Cannot find FunctionDecl!");
-  return !ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(), 
-            FD->getNameAsString().size(), (*I).second);
+  ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(), 
+    FD->getNameAsString().size(), (*I).second);
+  return true;
 }
 
 void RenameFun::Initialize(ASTContext &context) 
