@@ -106,7 +106,7 @@ void UnifyFunctionDecl::doAnalysis(void)
       FDDecl = FirstFD;
     }
     else {
-      TransAssert(0 && "No Function Definition!");
+      continue;
     }
 
     if (!hasStaticKeyword(FDDecl) || hasStaticKeyword(FDDef))
