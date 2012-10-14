@@ -186,6 +186,9 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
   for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
        PE = FD->param_end(); PI != PE; ++PI) {
+    if ((*PI)->isImplicit())
+      continue;
+
     ValidInstanceNum++;
 
     if (ValidInstanceNum == TransformationCounter) {
