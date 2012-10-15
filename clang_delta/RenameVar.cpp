@@ -15,6 +15,7 @@
 #include "RenameVar.h"
 
 #include <algorithm>
+#include <sstream>
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
@@ -80,14 +81,13 @@ bool RNVCollectionVisitor::VisitVarDecl(VarDecl *VD)
 bool RenameVarVisitor::VisitVarDecl(VarDecl *VD)
 {
   VarDecl *CanonicalDecl = VD->getCanonicalDecl();
-  llvm::DenseMap<VarDecl *, char>::iterator I = 
+  llvm::DenseMap<VarDecl *, std::string>::iterator I = 
     ConsumerInstance->VarToNameMap.find(CanonicalDecl);
 
   if (I == ConsumerInstance->VarToNameMap.end())
     return true;
 
-  std::string Name(1, (*I).second);
-  return ConsumerInstance->RewriteHelper->replaceVarDeclName(VD, Name);
+  return ConsumerInstance->RewriteHelper->replaceVarDeclName(VD, (*I).second);
 }
 
 bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
@@ -98,14 +98,13 @@ bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
 
   VarDecl *CanonicalDecl = VD->getCanonicalDecl();
-  llvm::DenseMap<VarDecl *, char>::iterator I = 
+  llvm::DenseMap<VarDecl *, std::string>::iterator I = 
     ConsumerInstance->VarToNameMap.find(CanonicalDecl);
 
   if (I == ConsumerInstance->VarToNameMap.end())
     return true;
 
-  std::string Name(1, (*I).second);
-  return ConsumerInstance->RewriteHelper->replaceExpr(DRE, Name);
+  return ConsumerInstance->RewriteHelper->replaceExpr(DRE, (*I).second);
 }
 
 void RenameVar::Initialize(ASTContext &context) 
@@ -134,8 +133,19 @@ void RenameVar::HandleTranslationUnit(ASTContext &Ctx)
   unsigned int NumNames = AvailableNames.size();
   unsigned int NumVars = ValidVars.size();
 
-  if ((NumVars == 0) || (NumVars > NumNames))
+  if (NumVars == 0) {
     ValidInstanceNum = 0;
+  }
+  else if (NumVars > NumNames) {
+    // TEMP: currently not to rename vars in C++ files if there are
+    //       more than 26 global or local vars
+    if (TransformationManager::isCXXLangOpt()) {
+      ValidInstanceNum = 0;
+    }
+    else {
+      NumNames = NumVars;
+    }
+  }
 
   if (QueryInstanceOnly) {
     return;
@@ -190,12 +200,21 @@ void RenameVar::addVar(VarDecl *VD)
 
 void RenameVar::collectVars(void)
 {
+  unsigned Count = 1;
   for (std::vector<VarDecl*>::iterator I = ValidVars.begin(),
        E = ValidVars.end(); I != E; ++I) {
     VarDecl *VD = (*I);
-    char Name = AvailableNames.back();
-    AvailableNames.pop_back();
-    VarToNameMap[VD] = Name;
+    if (AvailableNames.size()) {
+      char Name = AvailableNames.back();
+      AvailableNames.pop_back();
+      VarToNameMap[VD] = std::string(1, Name);
+    }
+    else {
+      std::stringstream TmpSS;
+      TmpSS << RenamePrefix << Count;
+      VarToNameMap[VD] = TmpSS.str();
+      Count++;
+    }
   }
 }
 

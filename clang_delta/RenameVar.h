@@ -35,7 +35,8 @@ public:
   RenameVar(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       VarCollectionVisitor(NULL),
-      RenameVisitor(NULL)
+      RenameVisitor(NULL),
+      RenamePrefix('t')
   { }
 
   ~RenameVar(void);
@@ -60,11 +61,13 @@ private:
 
   RenameVarVisitor *RenameVisitor;
 
+  char RenamePrefix;
+
   std::vector<clang::VarDecl *> ValidVars;
 
   llvm::SmallVector<char, 26> AvailableNames;
 
-  llvm::DenseMap<clang::VarDecl *, char> VarToNameMap;
+  llvm::DenseMap<clang::VarDecl *, std::string> VarToNameMap;
 
   // Unimplemented
   RenameVar(void);
