@@ -397,6 +397,7 @@ bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
   //        omit it for now.
   switch (K) {
   case OO_Equal:
+  case OO_EqualEqual:
   case OO_PlusEqual:
   case OO_MinusEqual:
   case OO_StarEqual:
