@@ -139,7 +139,7 @@ void RenameVar::HandleTranslationUnit(ASTContext &Ctx)
   else if (NumVars > NumNames) {
     // TEMP: currently not to rename vars in C++ files if there are
     //       more than 26 global or local vars
-    if (TransformationManager::isCXXLangOpt()) {
+    if (TransformationManager::isCXXLangOpt() || allValidNames()) {
       ValidInstanceNum = 0;
     }
     else {
@@ -196,6 +196,27 @@ void RenameVar::addVar(VarDecl *VD)
     return;    
 
   AvailableNames.erase(I);
+}
+
+bool RenameVar::allValidNames(void)
+{
+  for (std::vector<VarDecl*>::iterator I = ValidVars.begin(),
+       E = ValidVars.end(); I != E; ++I) {
+    VarDecl *VD = (*I);
+    std::string Name = VD->getNameAsString();
+    if (Name.size() == 1) {
+      char C = Name[0];
+      if ((C < 'a') || (C > 'z'))
+        return false;
+    }
+    else {
+      std::stringstream TmpSS(Name.substr(1));
+      unsigned int Value;
+      if (!(TmpSS >> Value))
+        return false;
+    }
+  }
+  return true;
 }
 
 void RenameVar::collectVars(void)

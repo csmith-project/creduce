@@ -55,6 +55,8 @@ private:
 
   void addVar(clang::VarDecl *VD);
 
+  bool allValidNames();
+
   void collectVars(void);
 
   RNVCollectionVisitor *VarCollectionVisitor;
