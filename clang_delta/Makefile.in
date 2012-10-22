@@ -86,6 +86,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RemovePointer.$(OBJEXT) \
 	clang_delta-RemoveTrivialBaseTemplate.$(OBJEXT) \
 	clang_delta-RemoveUnresolvedBase.$(OBJEXT) \
+	clang_delta-RemoveUnusedEnumMember.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
 	clang_delta-RemoveUnusedStructField.$(OBJEXT) \
 	clang_delta-RemoveUnusedVar.$(OBJEXT) \
@@ -381,6 +382,8 @@ clang_delta_SOURCES = \
 	RemoveTrivialBaseTemplate.h \
 	RemoveUnresolvedBase.cpp \
 	RemoveUnresolvedBase.h \
+	RemoveUnusedEnumMember.cpp \
+	RemoveUnusedEnumMember.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
@@ -1004,6 +1007,20 @@ clang_delta-RemoveUnresolvedBase.obj: RemoveUnresolvedBase.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnresolvedBase.cpp' object='clang_delta-RemoveUnresolvedBase.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnresolvedBase.obj `if test -f 'RemoveUnresolvedBase.cpp'; then $(CYGPATH_W) 'RemoveUnresolvedBase.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnresolvedBase.cpp'; fi`
+
+clang_delta-RemoveUnusedEnumMember.o: RemoveUnusedEnumMember.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedEnumMember.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Tpo -c -o clang_delta-RemoveUnusedEnumMember.o `test -f 'RemoveUnusedEnumMember.cpp' || echo '$(srcdir)/'`RemoveUnusedEnumMember.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Tpo $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnusedEnumMember.cpp' object='clang_delta-RemoveUnusedEnumMember.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedEnumMember.o `test -f 'RemoveUnusedEnumMember.cpp' || echo '$(srcdir)/'`RemoveUnusedEnumMember.cpp
+
+clang_delta-RemoveUnusedEnumMember.obj: RemoveUnusedEnumMember.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedEnumMember.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Tpo -c -o clang_delta-RemoveUnusedEnumMember.obj `if test -f 'RemoveUnusedEnumMember.cpp'; then $(CYGPATH_W) 'RemoveUnusedEnumMember.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedEnumMember.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Tpo $(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveUnusedEnumMember.cpp' object='clang_delta-RemoveUnusedEnumMember.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedEnumMember.obj `if test -f 'RemoveUnusedEnumMember.cpp'; then $(CYGPATH_W) 'RemoveUnusedEnumMember.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedEnumMember.cpp'; fi`
 
 clang_delta-RemoveUnusedFunction.o: RemoveUnusedFunction.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedFunction.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedFunction.Tpo -c -o clang_delta-RemoveUnusedFunction.o `test -f 'RemoveUnusedFunction.cpp' || echo '$(srcdir)/'`RemoveUnusedFunction.cpp

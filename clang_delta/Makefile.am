@@ -119,6 +119,8 @@ clang_delta_SOURCES = \
 	RemoveTrivialBaseTemplate.h \
 	RemoveUnresolvedBase.cpp \
 	RemoveUnresolvedBase.h \
+	RemoveUnusedEnumMember.cpp \
+	RemoveUnusedEnumMember.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
