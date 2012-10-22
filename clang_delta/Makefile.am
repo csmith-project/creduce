@@ -48,7 +48,7 @@ clang_delta_CXXFLAGS = \
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-	-lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
+	-lclangRewriteCore -lclangAST -lclangLex -lclangBasic -lclangEdit \
 	$(LLVMLIBS) \
 	$(LLVMLDFLAGS)
 
