@@ -48,7 +48,7 @@ clang_delta_CXXFLAGS = \
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-	-lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
+	-lclangRewriteCore -lclangAST -lclangLex -lclangBasic -lclangEdit \
 	$(LLVMLIBS) \
 	$(LLVMLDFLAGS)
 
@@ -119,6 +119,8 @@ clang_delta_SOURCES = \
 	RemoveTrivialBaseTemplate.h \
 	RemoveUnresolvedBase.cpp \
 	RemoveUnresolvedBase.h \
+	RemoveUnusedEnumMember.cpp \
+	RemoveUnusedEnumMember.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
 	RemoveUnusedStructField.cpp \
