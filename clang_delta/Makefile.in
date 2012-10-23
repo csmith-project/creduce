@@ -81,6 +81,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RemoveArray.$(OBJEXT) \
 	clang_delta-RemoveBaseClass.$(OBJEXT) \
 	clang_delta-RemoveCtorInitializer.$(OBJEXT) \
+	clang_delta-RemoveEnumMemberValue.$(OBJEXT) \
 	clang_delta-RemoveNamespace.$(OBJEXT) \
 	clang_delta-RemoveNestedFunction.$(OBJEXT) \
 	clang_delta-RemovePointer.$(OBJEXT) \
@@ -372,6 +373,8 @@ clang_delta_SOURCES = \
 	RemoveBaseClass.h \
 	RemoveCtorInitializer.cpp \
 	RemoveCtorInitializer.h \
+	RemoveEnumMemberValue.cpp \
+	RemoveEnumMemberValue.h \
 	RemoveNamespace.cpp \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
@@ -550,11 +553,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveArray.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveBaseClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveCtorInitializer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveEnumMemberValue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNamespace.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveNestedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemovePointer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveTrivialBaseTemplate.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedStructField.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedVar.Po@am__quote@
@@ -937,6 +942,20 @@ clang_delta-RemoveCtorInitializer.obj: RemoveCtorInitializer.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveCtorInitializer.cpp' object='clang_delta-RemoveCtorInitializer.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveCtorInitializer.obj `if test -f 'RemoveCtorInitializer.cpp'; then $(CYGPATH_W) 'RemoveCtorInitializer.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveCtorInitializer.cpp'; fi`
+
+clang_delta-RemoveEnumMemberValue.o: RemoveEnumMemberValue.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveEnumMemberValue.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Tpo -c -o clang_delta-RemoveEnumMemberValue.o `test -f 'RemoveEnumMemberValue.cpp' || echo '$(srcdir)/'`RemoveEnumMemberValue.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Tpo $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveEnumMemberValue.cpp' object='clang_delta-RemoveEnumMemberValue.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveEnumMemberValue.o `test -f 'RemoveEnumMemberValue.cpp' || echo '$(srcdir)/'`RemoveEnumMemberValue.cpp
+
+clang_delta-RemoveEnumMemberValue.obj: RemoveEnumMemberValue.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveEnumMemberValue.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Tpo -c -o clang_delta-RemoveEnumMemberValue.obj `if test -f 'RemoveEnumMemberValue.cpp'; then $(CYGPATH_W) 'RemoveEnumMemberValue.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveEnumMemberValue.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Tpo $(DEPDIR)/clang_delta-RemoveEnumMemberValue.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='RemoveEnumMemberValue.cpp' object='clang_delta-RemoveEnumMemberValue.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveEnumMemberValue.obj `if test -f 'RemoveEnumMemberValue.cpp'; then $(CYGPATH_W) 'RemoveEnumMemberValue.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveEnumMemberValue.cpp'; fi`
 
 clang_delta-RemoveNamespace.o: RemoveNamespace.cpp
 @am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveNamespace.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveNamespace.Tpo -c -o clang_delta-RemoveNamespace.o `test -f 'RemoveNamespace.cpp' || echo '$(srcdir)/'`RemoveNamespace.cpp
