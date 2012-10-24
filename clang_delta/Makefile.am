@@ -109,6 +109,8 @@ clang_delta_SOURCES = \
 	RemoveBaseClass.h \
 	RemoveCtorInitializer.cpp \
 	RemoveCtorInitializer.h \
+	RemoveEnumMemberValue.cpp \
+	RemoveEnumMemberValue.h \
 	RemoveNamespace.cpp \
 	RemoveNamespace.h \
 	RemoveNestedFunction.cpp \
