@@ -87,6 +87,8 @@ void RemoveUnusedEnumMember::HandleTranslationUnit(ASTContext &Ctx)
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
+  TransAssert(TheEnumDecl && "NULL TheEnumDecl!");
+
   removeEnumConstantDecl();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
