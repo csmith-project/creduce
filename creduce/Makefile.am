@@ -19,6 +19,7 @@ dist_perllib_DATA = \
 	creduce_regexes.pm \
 	creduce_utils.pm \
 	pass_balanced.pm \
+	pass_blank.pm \
 	pass_clang.pm \
 	pass_crc.pm \
 	pass_indent.pm \

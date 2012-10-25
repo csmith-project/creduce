@@ -11,8 +11,8 @@
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = \
-	creduce \
 	clang_delta \
+	creduce \
 	scripts \
 	tests
 
