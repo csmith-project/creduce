@@ -18,7 +18,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class TypedefDecl;
-};
+}
 
 class ReplaceSimpleTypedefCollectionVisitor;
 class ReplaceSimpleTypedefRewriteVisitor;
