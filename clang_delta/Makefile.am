@@ -19,7 +19,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags)
+LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags) -fno-rtti -fno-exceptions
 LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
 LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs)
@@ -48,7 +48,7 @@ clang_delta_CXXFLAGS = \
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-	-lclangRewrite -lclangAST -lclangLex -lclangBasic -lclangEdit \
+	-lclangRewriteCore -lclangAST -lclangLex -lclangBasic -lclangEdit \
 	$(LLVMLIBS) \
 	$(LLVMLDFLAGS)
 
