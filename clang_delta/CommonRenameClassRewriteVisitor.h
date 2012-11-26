@@ -353,6 +353,7 @@ bool CommonRenameClassRewriteVisitor<T>::TraverseTemplateArgumentLoc(
   const TemplateArgument &Arg = ArgLoc.getArgument();
 
   switch (Arg.getKind()) {
+  case TemplateArgument::NullPtr:
   case TemplateArgument::Null:
   case TemplateArgument::Declaration:
   case TemplateArgument::Integral:
