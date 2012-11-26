@@ -18,7 +18,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class CXXRecordDecl;
-};
+}
 
 class ReplaceDerivedClassASTVisitor;
 class ReplaceDerivedClassRewriteVisitor;
