@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cassert>
 #include "clang/AST/ASTConsumer.h"
-#include "clang/Rewrite/Rewriter.h"
+#include "clang/Rewrite/Core/Rewriter.h"
 #include "RewriteUtils.h"
 
 namespace clang {
