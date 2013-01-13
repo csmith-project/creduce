@@ -87,7 +87,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance = new CompilerInstance();
   assert(ClangInstance);
   
-  ClangInstance->createDiagnostics(0, NULL);
+  ClangInstance->createDiagnostics();
 
   CompilerInvocation &Invocation = ClangInstance->getInvocation();
   InputKind IK = FrontendOptions::getInputKindForExtension(
@@ -110,7 +110,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
     TargetInfo::CreateTargetInfo(ClangInstance->getDiagnostics(),
-                                 TargetOpts);
+                                 &TargetOpts);
   ClangInstance->setTarget(Target);
   ClangInstance->createFileManager();
   ClangInstance->createSourceManager(ClangInstance->getFileManager());

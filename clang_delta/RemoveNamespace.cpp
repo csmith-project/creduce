@@ -732,7 +732,7 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
 
   DeclarationName Name = ND->getDeclName();
   DeclContextLookupConstResult Result = ParentCtx->lookup(Name);
-  return (Result.first != Result.second);
+  return !Result.empty();
 }
 
 // We always prepend the Prefix string to EnumConstantDecl if ParentCtx
