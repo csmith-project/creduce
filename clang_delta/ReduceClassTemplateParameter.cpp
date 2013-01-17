@@ -288,7 +288,8 @@ void ReduceClassTemplateParameter::removeParameterFromDecl(void)
 {
   unsigned NumParams = TheClassTemplateDecl->getTemplateParameters()->size();
   
-  TransAssert((NumParams > 1) && "Bad size of TheClassTemplateDecl!");
+  TransAssert((NumParams > 1) && "Bad size of TheClassTemplateDecl!"); 
+  (void)NumParams;
 
   for (ClassTemplateDecl::redecl_iterator 
          I = TheClassTemplateDecl->redecls_begin(), 
@@ -327,6 +328,7 @@ void ReduceClassTemplateParameter::removeOneParameterByArgExpression(
 
   unsigned NumParams = TPList->size();
   TransAssert((Idx < NumParams) && "Cannot find valid TemplateParameter!");
+  (void)NumParams;
   SourceRange Range = ParmD->getSourceRange();
   removeParameterByRange(Range, TPList, Idx);
 }
@@ -432,6 +434,7 @@ void ReduceClassTemplateParameter::removeOneParameterByArgTemplate(
 
   unsigned NumParams = TPList->size();
   TransAssert((Idx < NumParams) && "Cannot find valid TemplateParameter!");
+  (void)NumParams;
   SourceRange Range = TmplD->getSourceRange();
   removeParameterByRange(Range, TPList, Idx);
   
