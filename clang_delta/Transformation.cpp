@@ -587,6 +587,14 @@ const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
   TransAssert(TplD && "Invalid TemplateDecl!");
   NamedDecl *ND = TplD->getTemplatedDecl();
   TransAssert(ND && "Invalid NamedDecl!");
+
+  if (TypedefNameDecl *TdefD = dyn_cast<TypedefNameDecl>(ND)) {
+    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
+    const CXXRecordDecl *CXXRD = getBaseDeclFromType(UnderlyingTy);
+    TransAssert(CXXRD && "Invalid CXXRD from TypedefNameDecl!");
+    return CXXRD;
+  }
+
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
   TransAssert(CXXRD && "Invalid CXXRD!");
   if (CXXRD->hasDefinition())
