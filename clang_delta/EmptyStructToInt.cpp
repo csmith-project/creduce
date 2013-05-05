@@ -305,9 +305,7 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
 
 EmptyStructToInt::~EmptyStructToInt(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

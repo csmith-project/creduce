@@ -422,8 +422,7 @@ void CopyPropagation::doCopyPropagation(void)
 
 CopyPropagation::~CopyPropagation(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 
   for (ExprToExprsMap::iterator I = DominatedMap.begin(),
        E = DominatedMap.end(); I != E; ++I) {

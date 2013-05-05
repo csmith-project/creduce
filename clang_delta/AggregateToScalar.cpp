@@ -327,8 +327,7 @@ void AggregateToScalar::addOneExpr(const Expr *Exp)
 
 AggregateToScalar::~AggregateToScalar(void)
 {
-  if (AggregateAccessVisitor)
-    delete AggregateAccessVisitor;
+  delete AggregateAccessVisitor;
 
   for (VarToIdx::iterator I = ValidVars.begin(),
        E = ValidVars.end(); I != E; ++I) {

@@ -161,12 +161,9 @@ void LocalToGlobal::setNewName(FunctionDecl *FD,
 
 LocalToGlobal::~LocalToGlobal(void)
 {
-  if (FunctionVisitor)
-    delete FunctionVisitor;
-  if (LocalVarCollectionVisitor)
-    delete LocalVarCollectionVisitor;
-  if (TransformationASTVisitor)
-    delete TransformationASTVisitor;
+  delete FunctionVisitor;
+  delete LocalVarCollectionVisitor;
+  delete TransformationASTVisitor;
 }
 
 bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD,

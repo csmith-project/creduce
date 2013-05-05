@@ -201,10 +201,7 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToGlobal::~ParamToGlobal(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

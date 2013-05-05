@@ -204,10 +204,7 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
 ParamToLocal::~ParamToLocal(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

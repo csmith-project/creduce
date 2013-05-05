@@ -687,11 +687,8 @@ bool ReduceClassTemplateParameter::referToTheTemplateDecl(
 
 ReduceClassTemplateParameter::~ReduceClassTemplateParameter(void)
 {
-  if (TheTemplateName)
-    delete TheTemplateName;
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (ArgRewriteVisitor)
-    delete ArgRewriteVisitor;
+  delete TheTemplateName;
+  delete CollectionVisitor;
+  delete ArgRewriteVisitor;
 }
 

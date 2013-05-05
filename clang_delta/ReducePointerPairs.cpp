@@ -371,9 +371,7 @@ bool ReducePointerPairs::invalidatePairedVarDecl(const VarDecl *VD)
 
 ReducePointerPairs::~ReducePointerPairs(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (InvalidatingVisitor)
-    delete InvalidatingVisitor;
+  delete CollectionVisitor;
+  delete InvalidatingVisitor;
 }
 

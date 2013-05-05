@@ -943,10 +943,8 @@ void ReducePointerLevel::rewriteArrayInit(const RecordDecl *RD,
 
 ReducePointerLevel::~ReducePointerLevel(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 
   for (LevelToDeclMap::iterator I = AllPtrDecls.begin(), 
        E = AllPtrDecls.end(); I != E; ++I) {
