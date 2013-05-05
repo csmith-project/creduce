@@ -343,11 +343,8 @@ bool ClassTemplateToClass::referToTheTemplateDecl(TemplateName TmplName)
 
 ClassTemplateToClass::~ClassTemplateToClass(void)
 {
-  if (TheTemplateName)
-    delete TheTemplateName;
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete TheTemplateName;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

@@ -190,7 +190,6 @@ void RemoveAddrTaken::rewriteAddrTakenOp(const UnaryOperator *UO)
 
 RemoveAddrTaken::~RemoveAddrTaken(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

@@ -141,9 +141,7 @@ void CallExprToValue::replaceCallExpr(void)
 
 CallExprToValue::~CallExprToValue(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (NameQueryWrap)
-    delete NameQueryWrap;
+  delete CollectionVisitor;
+  delete NameQueryWrap;
 }
 

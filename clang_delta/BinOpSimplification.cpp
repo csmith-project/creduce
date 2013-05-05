@@ -189,12 +189,7 @@ bool BinOpSimplification::replaceBinOp(void)
 
 BinOpSimplification::~BinOpSimplification(void)
 {
-  if (BinOpCollectionVisitor)
-    delete BinOpCollectionVisitor;
-
-  if (StmtVisitor)
-    delete StmtVisitor;
-
-  if (NameQueryWrap)
-    delete NameQueryWrap;
+  delete BinOpCollectionVisitor;
+  delete StmtVisitor;
+  delete NameQueryWrap;
 }

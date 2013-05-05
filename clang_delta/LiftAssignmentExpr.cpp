@@ -265,9 +265,6 @@ bool LiftAssignmentExpr::replaceAssignExpr(void)
 
 LiftAssignmentExpr::~LiftAssignmentExpr(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-
-  if (StmtVisitor)
-    delete StmtVisitor;
+  delete CollectionVisitor;
+  delete StmtVisitor;
 }

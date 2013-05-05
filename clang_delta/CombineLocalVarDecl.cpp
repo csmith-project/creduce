@@ -167,7 +167,6 @@ void CombineLocalVarDecl::doCombination(void)
 
 CombineLocalVarDecl::~CombineLocalVarDecl(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 
