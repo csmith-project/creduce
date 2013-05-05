@@ -221,9 +221,7 @@ void SimplifyDependentTypedef::handleOneTypedefDecl(const TypedefDecl *D)
 
 SimplifyDependentTypedef::~SimplifyDependentTypedef(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (TemplateTypeParmTypeVisitor)
-    delete TemplateTypeParmTypeVisitor;
+  delete CollectionVisitor;
+  delete TemplateTypeParmTypeVisitor;
 }
 

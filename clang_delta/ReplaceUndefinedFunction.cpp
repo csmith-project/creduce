@@ -168,10 +168,8 @@ void ReplaceUndefinedFunction::handleOneFunctionDecl(const FunctionDecl *FD)
 
 ReplaceUndefinedFunction::~ReplaceUndefinedFunction(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 
   for (FunctionSetMap::iterator I = ReplaceableFunctions.begin(),
        E = ReplaceableFunctions.end(); I != E; ++I) {

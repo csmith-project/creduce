@@ -304,9 +304,7 @@ void RemoveBaseClass::removeBaseInitializer(void)
 
 RemoveBaseClass::~RemoveBaseClass(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

@@ -228,10 +228,7 @@ bool RVASTVisitor::VisitReturnStmt(ReturnStmt *RS)
 
 ReturnVoid::~ReturnVoid(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-
-  if (TransformationASTVisitor)
-    delete TransformationASTVisitor;
+  delete CollectionVisitor;
+  delete TransformationASTVisitor;
 }
 

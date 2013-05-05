@@ -118,7 +118,6 @@ void RemoveUnusedEnumMember::removeEnumConstantDecl()
 
 RemoveUnusedEnumMember::~RemoveUnusedEnumMember()
 {
-  if (AnalysisVisitor)
-    delete AnalysisVisitor;
+  delete AnalysisVisitor;
 }
 

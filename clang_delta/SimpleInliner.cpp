@@ -537,15 +537,10 @@ void SimpleInliner::replaceCallExpr(void)
 
 SimpleInliner::~SimpleInliner(void)
 {
-  if (NameQueryWrap)
-    delete NameQueryWrap;
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (FunctionVisitor)
-    delete FunctionVisitor;
-  if (FunctionStmtVisitor)
-    delete FunctionStmtVisitor;
-  if (StmtVisitor)
-    delete StmtVisitor;
+  delete NameQueryWrap;
+  delete CollectionVisitor;
+  delete FunctionVisitor;
+  delete FunctionStmtVisitor;
+  delete StmtVisitor;
 }
 

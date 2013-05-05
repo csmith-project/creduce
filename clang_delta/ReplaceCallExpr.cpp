@@ -592,8 +592,7 @@ void ReplaceCallExpr::replaceCallExpr(void)
 
 ReplaceCallExpr::~ReplaceCallExpr(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 
   for (DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator 
        I = FuncToReturnStmts.begin(), E = FuncToReturnStmts.end();

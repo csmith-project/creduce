@@ -259,9 +259,7 @@ RenameClass::~RenameClass(void)
     delete (*I).second;
   }
 
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

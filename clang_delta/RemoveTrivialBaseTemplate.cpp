@@ -153,7 +153,6 @@ void RemoveTrivialBaseTemplate::removeBaseSpecifier(void)
 
 RemoveTrivialBaseTemplate::~RemoveTrivialBaseTemplate(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

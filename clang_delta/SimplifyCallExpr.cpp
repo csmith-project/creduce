@@ -176,7 +176,6 @@ void SimplifyCallExpr::replaceCallExpr(void)
 
 SimplifyCallExpr::~SimplifyCallExpr(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

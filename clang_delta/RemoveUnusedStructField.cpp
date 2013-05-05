@@ -349,10 +349,8 @@ void RemoveUnusedStructField::removeFieldDecl(void)
 
 RemoveUnusedStructField::~RemoveUnusedStructField(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 
   for (RecordDeclToFieldIdxVectorMap::iterator I = RecordDeclToField.begin(),
        E = RecordDeclToField.end(); I != E; ++I) {

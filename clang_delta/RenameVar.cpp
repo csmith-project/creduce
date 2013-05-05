@@ -241,9 +241,7 @@ void RenameVar::collectVars(void)
 
 RenameVar::~RenameVar(void)
 {
-  if (VarCollectionVisitor)
-    delete VarCollectionVisitor;
-  if (RenameVisitor)
-    delete RenameVisitor;
+  delete VarCollectionVisitor;
+  delete RenameVisitor;
 }
 

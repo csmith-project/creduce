@@ -268,9 +268,7 @@ void ReplaceArrayIndexVar::doRewrite(void)
 
 ReplaceArrayIndexVar::~ReplaceArrayIndexVar(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (TheASESet)
-    delete TheASESet;
+  delete CollectionVisitor;
+  delete TheASESet;
 }
 

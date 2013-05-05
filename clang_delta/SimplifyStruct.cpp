@@ -324,9 +324,7 @@ void SimplifyStruct::setQualifierFlags(const FieldDecl *FD)
 
 SimplifyStruct::~SimplifyStruct(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

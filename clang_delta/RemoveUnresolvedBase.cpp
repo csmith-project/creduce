@@ -141,7 +141,6 @@ void RemoveUnresolvedBase::removeBaseSpecifier(void)
 
 RemoveUnresolvedBase::~RemoveUnresolvedBase(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

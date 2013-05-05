@@ -185,7 +185,6 @@ void RemovePointer::handleOneVarDecl(const VarDecl *VD)
 
 RemovePointer::~RemovePointer(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

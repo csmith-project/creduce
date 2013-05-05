@@ -419,13 +419,8 @@ bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
 
 RemoveNestedFunction::~RemoveNestedFunction(void)
 {
-  if (NestedInvocationVisitor)
-    delete NestedInvocationVisitor;
-
-  if (StmtVisitor)
-    delete StmtVisitor;
-
-  if (NameQueryWrap)
-    delete NameQueryWrap;
+  delete NestedInvocationVisitor;
+  delete StmtVisitor;
+  delete NameQueryWrap;
 }
 

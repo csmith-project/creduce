@@ -236,7 +236,6 @@ bool SimplifyStructUnionDecl::handleOneDeclarator(const Type *Ty)
 
 SimplifyStructUnionDecl::~SimplifyStructUnionDecl(void)
 {
-  if (AnalysisVisitor)
-    delete AnalysisVisitor;
+  delete AnalysisVisitor;
 }
 

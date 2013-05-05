@@ -1143,9 +1143,7 @@ void RemoveNamespace::removeLastNamespaceFromUsingDecl(
 
 RemoveNamespace::~RemoveNamespace(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

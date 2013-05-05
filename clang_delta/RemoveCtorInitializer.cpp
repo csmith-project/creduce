@@ -131,7 +131,6 @@ bool RemoveCtorInitializer::isValidType(const Type *Ty)
 
 RemoveCtorInitializer::~RemoveCtorInitializer(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 }
 

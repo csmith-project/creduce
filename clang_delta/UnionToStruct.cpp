@@ -421,8 +421,7 @@ void UnionToStruct::addOneRecord(const RecordDecl *RD)
 
 UnionToStruct::~UnionToStruct(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 
   for (RecordDeclToDeclaratorDeclMap::iterator I = RecordToDeclarator.begin(),
        E = RecordToDeclarator.end(); I != E; ++I) {

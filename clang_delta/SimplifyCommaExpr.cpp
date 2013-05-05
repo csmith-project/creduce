@@ -194,9 +194,7 @@ void SimplifyCommaExpr::simplifyCommaExpr(void)
 
 SimplifyCommaExpr::~SimplifyCommaExpr(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (StmtVisitor)
-    delete StmtVisitor;
+  delete CollectionVisitor;
+  delete StmtVisitor;
 }
 

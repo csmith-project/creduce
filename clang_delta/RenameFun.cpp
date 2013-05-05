@@ -259,9 +259,7 @@ void RenameFun::addFun(FunctionDecl *FD)
 
 RenameFun::~RenameFun(void)
 {
-  if (FunCollectionVisitor)
-    delete FunCollectionVisitor;
-  if (RenameVisitor)
-    delete RenameVisitor;
+  delete FunCollectionVisitor;
+  delete RenameVisitor;
 }
 

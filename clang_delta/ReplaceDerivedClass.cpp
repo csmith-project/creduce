@@ -179,9 +179,7 @@ void ReplaceDerivedClass::doRewrite(void)
 
 ReplaceDerivedClass::~ReplaceDerivedClass(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

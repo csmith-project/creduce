@@ -92,7 +92,6 @@ void RemoveUnusedFunction::removeFunctionDecl(void)
 
 RemoveUnusedFunction::~RemoveUnusedFunction(void)
 {
-  if (AnalysisVisitor)
-    delete AnalysisVisitor;
+  delete AnalysisVisitor;
 }
 

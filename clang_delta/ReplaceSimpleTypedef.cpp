@@ -210,9 +210,7 @@ void ReplaceSimpleTypedef::handleOneTypedefDecl(const TypedefDecl *CanonicalD)
 
 ReplaceSimpleTypedef::~ReplaceSimpleTypedef(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-  if (RewriteVisitor)
-    delete RewriteVisitor;
+  delete CollectionVisitor;
+  delete RewriteVisitor;
 }
 

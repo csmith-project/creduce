@@ -157,7 +157,6 @@ void RemoveUnusedVar::removeVarDecl(void)
 
 RemoveUnusedVar::~RemoveUnusedVar(void)
 {
-  if (AnalysisVisitor)
-    delete AnalysisVisitor;
+  delete AnalysisVisitor;
 }
 

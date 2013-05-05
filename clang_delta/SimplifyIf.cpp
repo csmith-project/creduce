@@ -205,10 +205,7 @@ void SimplifyIf::simplifyIfStmt(void)
 
 SimplifyIf::~SimplifyIf(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
-
-  if (StmtVisitor)
-    delete StmtVisitor;
+  delete CollectionVisitor;
+  delete StmtVisitor;
 }
 

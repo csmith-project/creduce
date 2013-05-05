@@ -111,7 +111,6 @@ void RemoveEnumMemberValue::removeEnumValue()
 
 RemoveEnumMemberValue::~RemoveEnumMemberValue()
 {
-  if (AnalysisVisitor)
-    delete AnalysisVisitor;
+  delete AnalysisVisitor;
 }
 
