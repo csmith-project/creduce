@@ -10,8 +10,8 @@ Prereqs:
 On Ubuntu, all non-standard prerequisites can be installed like this:
 
   sudo apt-get install indent astyle delta libbenchmark-timer-perl \
-    libexporter-lite-perl libfile-which-perl libregexp-common-perl \
-    libsys-cpu-perl
+    libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
+    libregexp-common-perl libsys-cpu-perl
 
 On other systems, install these packages either manually or using the
 package manager:
@@ -29,13 +29,16 @@ Perl modules
   Benchmark::Timer
   Exporter::Lite
   File::Which
+  Getopt::Tabular
   Regexp::Common
+  Sys::CPU
 
 For example, (perhaps as root):
 
   cpan -i 'Benchmark::Timer'
   cpan -i 'Exporter::Lite'
   cpan -i 'File::Which'
+  cpan -i 'Getopt::Tabular'
   cpan -i 'Regexp::Common'
   cpan -i 'Sys::CPU'
 

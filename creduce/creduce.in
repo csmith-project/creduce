@@ -24,9 +24,6 @@
 
 # turn off parallel execution when interestingness test gets fast
 
-# autodetect number of processors but permit over-riding from command
-# line
-
 # add back in the deterministic mode based on waitpid
 
 use strict;
@@ -38,6 +35,7 @@ use lib $FindBin::Bin, '@perllibdir@';
 use Exporter::Lite;
 use File::Basename;
 use File::Which;
+use Getopt::Tabular;
 use POSIX;
 use Regexp::Common;
 use Benchmark::Timer;
@@ -51,11 +49,28 @@ use creduce_utils;
 
 ######################################################################
 
-my $NPROCS = Sys::CPU::cpu_count();    
-#my $NPROCS = 1;
+my $NPROCS = Sys::CPU::cpu_count();
+my $SKIP_FIRST;
+my $SANITY;
+my $VERBOSE;
 
-# if set, ensure the delta test succeeds before starting each pass
-my $SANITY = 0;
+my @options = (
+    ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
+    ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
+    ["--verbose",             "const",   1, \$VERBOSE, "Print debug information"]
+);
+
+my $help = creduce_config::PACKAGE_STRING . " - C and C++ program reducer";
+my $usage_text = <<USAGE;
+usage: creduce [options] test_script.sh file.c
+       creduce --help to list options
+USAGE
+
+Getopt::Tabular::SetHelp ($help, $usage_text);
+Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
+Getopt::Tabular::SetHelpOption("--help");
+GetOptions(\@options, \@ARGV) or exit 1;
 
 # if set, show a nice ascii spinner that tells us how quickly failing
 # delta tests are happening (FIXME: currently not working)
@@ -343,7 +358,7 @@ sub delta_pass ($) {
 }
 
 sub usage() {
-    print "usage: creduce test_script.sh file.c\n";
+    print $usage_text;
     die;
 }
 
@@ -522,13 +537,6 @@ if (!(-w $toreduce)) {
     usage();
 }
 
-while (my $arg = shift @ARGV) {
-    if ($arg eq "-n") {
-	$NPROCS = shift @ARGV;
-	die unless defined $NPROCS;
-    }
-}
-
 print "running $NPROCS interestingness tests in parallel\n";
 
 # Put scratch files ($toreduce_best, $toreduce_orig) in the current
@@ -552,12 +560,12 @@ $orig_file_size = $file_size;
 # confusing when the initial test fails
 sanity_check();
 
-# some passes we run first since they often make good headway quickly
-print "INITIAL PASS\n" if $VERBOSE;
-{
+# some passes we run first since they often make good headway quickliy
+if (not $SKIP_FIRST) {
+    print "INITIAL PASSES\n" if $VERBOSE;
     my $next = pass_iterator("first_pass_pri");
     while (my $item = $next->()) {
-	delta_pass ($item);
+        delta_pass ($item);
     }
 }
 
