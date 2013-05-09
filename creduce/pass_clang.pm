@@ -15,6 +15,9 @@ use warnings;
 
 use POSIX;
 
+use File::Copy;
+use File::Spec;
+
 use creduce_config qw(bindir libexecdir);
 use creduce_regexes;
 use creduce_utils;
@@ -22,7 +25,10 @@ use creduce_utils;
 # `$clang_delta' is initialized by `check_prereqs()'.
 my $clang_delta = "clang_delta";
 
+my $ORIG_DIR;
+
 sub check_prereqs () {
+    $ORIG_DIR = getcwd();
     my $path;
     if ($FindBin::Bin eq bindir) {
 	# This script is in the installation directory.
@@ -64,16 +70,18 @@ sub transform ($$$) {
     } else {
 	if ($res == -1) {
 	} else {
-            my $tmpfile2 = $tmpfile;
-            $tmpfile2 =~ s/\//_/g;
-            $tmpfile2 = "clang_delta_crash${tmpfile2}.c";
-	    system "cp $cfile $tmpfile2";
-	    open TMPF, ">>$tmpfile2";
+        my $crashfile = $tmpfile;
+        $crashfile =~ s/\//_/g;
+        my ($suffix) = $cfile =~ /(\.[^.]+)$/;
+        $crashfile = "clang_delta_crash" . $crashfile . $suffix;
+        my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
+        File::Copy::copy($cfile, $crashfile_path);
+	    open TMPF, ">>$crashfile_path";
 	    print TMPF "\n\n\/\/ $cmd\n";
 	    close TMPF;
 	    print "\n\n=======================================\n\n";
 	    print "OOPS: clang_delta crashed; please consider\n";
-	    print "mailing ${tmpfile2} to creduce-bugs\@flux.utah.edu\n";
+	    print "mailing ${crashfile} to creduce-bugs\@flux.utah.edu\n";
 	    print "and we will try to fix the bug\n";
 	    print "\n=======================================\n\n";
 	}
