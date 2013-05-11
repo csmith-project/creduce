@@ -77,12 +77,15 @@ sub transform ($$$) {
 	    my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
 	    File::Copy::copy($cfile, $crashfile_path);
 	    open TMPF, ">>$crashfile_path";
-	    print TMPF "\n\n\/\/ $cmd\n";
+	    print TMPF "\n\n";
+	    print TMPF "\/\/ this should reproduce the crash:\n";
+	    print TMPF "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile_path\n";
 	    close TMPF;
 	    print "\n\n=======================================\n\n";
-	    print "OOPS: clang_delta crashed; please consider\n";
-	    print "mailing ${crashfile} to creduce-bugs\@flux.utah.edu\n";
-	    print "and we will try to fix the bug\n";
+	    print "OOPS: clang_delta crashed; please consider mailing\n";
+	    print "${crashfile}\n";
+	    print "to creduce-bugs\@flux.utah.edu and we will try to fix the bug\n";
+	    print "please also let us know what version of C-Reduce you are using\n";
 	    print "\n=======================================\n\n";
 	}
 	system "rm $tmpfile";
