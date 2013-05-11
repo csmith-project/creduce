@@ -120,8 +120,6 @@ sub make_tmpdir () {
 }
 
 
-my @suffixes = (".c", ".C", ".cc", ".cpp", ".CPP", ".c++", ".cp", ".cxx");
-
 sub run_test ($) {
     (my $fn) = @_;
     my $res = runit "$test $fn >/dev/null 2>&1";
@@ -541,7 +539,7 @@ print "running $NPROCS interestingness tests in parallel\n";
 
 # Put scratch files ($toreduce_best, $toreduce_orig) in the current
 # working directory.
-($toreduce_base, $dir_base, $suffix) = fileparse($toreduce,@suffixes);
+($toreduce_base, $dir_base, $suffix) = fileparse($toreduce, '\.[^.]*');
 
 $ORIG_DIR = getcwd();
 
