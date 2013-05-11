@@ -50,14 +50,16 @@ use creduce_utils;
 ######################################################################
 
 my $NPROCS = Sys::CPU::cpu_count();
-my $SKIP_FIRST;
+my $SANITIZE;
 my $SANITY;
+my $SKIP_FIRST;
 my $VERBOSE;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
+    ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
+    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
     ["--verbose",             "const",   1, \$VERBOSE, "Print debug information"]
 );
 
