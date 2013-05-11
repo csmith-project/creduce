@@ -537,7 +537,7 @@ if (!(-w $toreduce)) {
     usage();
 }
 
-print "running $NPROCS interestingness tests in parallel\n";
+print "running $NPROCS interestingness test(s) in parallel\n";
 
 # Put scratch files ($toreduce_best, $toreduce_orig) in the current
 # working directory.
