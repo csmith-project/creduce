@@ -70,12 +70,12 @@ sub transform ($$$) {
     } else {
 	if ($res == -1) {
 	} else {
-        my $crashfile = $tmpfile;
-        $crashfile =~ s/\//_/g;
-        my ($suffix) = $cfile =~ /(\.[^.]+)$/;
-        $crashfile = "clang_delta_crash" . $crashfile . $suffix;
-        my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
-        File::Copy::copy($cfile, $crashfile_path);
+	    my $crashfile = $tmpfile;
+	    $crashfile =~ s/\//_/g;
+	    my ($suffix) = $cfile =~ /(\.[^.]+)$/;
+	    $crashfile = "clang_delta_crash" . $crashfile . $suffix;
+	    my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
+	    File::Copy::copy($cfile, $crashfile_path);
 	    open TMPF, ">>$crashfile_path";
 	    print TMPF "\n\n\/\/ $cmd\n";
 	    close TMPF;
