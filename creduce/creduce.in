@@ -143,10 +143,8 @@ sub sanity_check () {
     chdir $tmpdir or die;
     File::Copy::copy($toreduce_best,$toreduce) or die;
 
-    my $res = run_test ($toreduce);
-    if (!$res) {
-	die "test (and sanity check) fails";
-    }
+    run_test($toreduce) or die "test (and sanity check) fails";
+
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
     File::Path::rmtree($tmpdir);
@@ -208,9 +206,7 @@ sub call_prereq_check ($) {
     (my $method) = @_;
     my $str = $method."::check_prereqs";
     no strict "refs";
-    if (!(&${str}())) {
-	die "prereqs not found for pass $method";
-    }
+    &${str}() or die "prereqs not found for pass $method";
     print "successfully checked prereqs for $method\n" if $VERBOSE;
 }
 
