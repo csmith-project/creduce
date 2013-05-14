@@ -478,6 +478,24 @@ sub pass_iterator ($) {
     };
 }
 
+my %file_attr_to_error = (
+    e => "not found",
+    f => "is not a plain file",
+    r => "is not readable",
+    w => "is not writable",
+    x => "is not executable",
+);
+
+sub check_file_attributes($$$) {
+    my ($prefix, $file, $attrs) = @_;
+    for my $attr (split //, $attrs) {
+        if (eval '! -' . $attr . ' $file') {
+            print "$prefix '$file' $file_attr_to_error{$attr}\n";
+            usage();
+        }
+    }
+}
+
 ############################### main #################################
 
 my $timer = Benchmark::Timer->new();
@@ -497,41 +515,11 @@ print "\n" if $VERBOSE;
 
 $test = Cwd::abs_path(shift @ARGV);
 usage unless defined($test);
-if (!(-e $test)) {
-    print "test script '$test' not found\n";
-    usage();
-}
-if (!(-f $test)) {
-    print "test script '$test' is not a plain file\n";
-    usage();
-}
-if (!(-r $test)) {
-    print "test script '$test' is not readable\n";
-    usage();
-}
-if (!(-x $test)) {
-    print "test script '$test' is not executable\n";
-    usage();
-}
+check_file_attributes("test script", $test, "efrx");
 
 $toreduce = shift @ARGV;
 usage unless defined($toreduce);
-if (!(-e $toreduce)) {
-    print "'$toreduce' file not found\n";
-    usage();
-}
-if (!(-f $toreduce)) {
-    print "'$toreduce' is not a plain file\n";
-    usage();
-}
-if (!(-r $toreduce)) {
-    print "'$toreduce' is not readable\n";
-    usage();
-}
-if (!(-w $toreduce)) {
-    print "'$toreduce' is not writable\n";
-    usage();
-}
+check_file_attributes("file", $toreduce, "efrw");
 
 print "running $NPROCS interestingness test(s) in parallel\n";
 
