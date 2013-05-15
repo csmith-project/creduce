@@ -112,7 +112,7 @@ my $toreduce_best;
 my $dircounter=0;
 sub make_tmpdir () {
     if (1) {
-	return File::Temp::tempdir( CLEANUP => 1);
+	return File::Temp::tempdir("creduce-XXXXXX", CLEANUP => 1, DIR => File::Spec->tmpdir);
     } else {
 	$dircounter++;
 	my $dir = "/tmp/_tmp_".getpid()."_".$dircounter;
@@ -292,6 +292,9 @@ sub delta_pass ($) {
 	    my $delta_result;
 	    # print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
+		# undo sigtrap for children
+		my @normal_signals = qw(TERM INT HUP PIPE);
+		@SIG{@normal_signals} = ('DEFAULT') x @normal_signals;
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
 		exit ($delta_result);
 	    }
@@ -496,7 +499,16 @@ sub check_file_attributes($$$) {
     }
 }
 
+sub termination_handler($) {
+    my ($sigName) = @_;
+    chdir $ORIG_DIR;
+    killem();
+    die "$sigName caught, terminating $$\n";
+}
+
 ############################### main #################################
+
+use sigtrap 'handler', \&termination_handler, 'normal-signals';
 
 my $timer = Benchmark::Timer->new();
 $timer->start();
@@ -521,6 +533,7 @@ $toreduce = shift @ARGV;
 usage unless defined($toreduce);
 check_file_attributes("file", $toreduce, "efrw");
 
+print "===< $$ >===\n";
 print "running $NPROCS interestingness test(s) in parallel\n";
 
 # Put scratch files ($toreduce_best, $toreduce_orig) in the current
