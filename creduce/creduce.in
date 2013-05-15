@@ -109,16 +109,8 @@ my $toreduce_best;
 
 ######################################################################
 
-my $dircounter=0;
 sub make_tmpdir () {
-    if (1) {
-	return File::Temp::tempdir("creduce-XXXXXX", CLEANUP => 1, DIR => File::Spec->tmpdir);
-    } else {
-	$dircounter++;
-	my $dir = "/tmp/_tmp_".getpid()."_".$dircounter;
-	mkdir($dir);
-	return $dir;
-    }
+    return File::Temp::tempdir("creduce-XXXXXX", CLEANUP => 1, DIR => File::Spec->tmpdir);
 }
 
 
