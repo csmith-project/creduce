@@ -116,8 +116,12 @@ sub make_tmpdir () {
 
 sub run_test ($) {
     (my $fn) = @_;
-    my $res = runit "$test $fn >/dev/null 2>&1";
-    # my $res = runit "$test $fn";
+    my $res;
+    if ($VERBOSE) {
+	$res = runit "$test $fn";
+    } else {
+	$res = runit "$test $fn >/dev/null 2>&1";
+    }
     return ($res == 0);
 }
 
