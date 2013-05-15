@@ -134,13 +134,10 @@ my $old_size = 1000000000;
 
 sub sanity_check () {
     print "sanity check... " if $VERBOSE;
-
     my $tmpdir = make_tmpdir();
     chdir $tmpdir or die;
     File::Copy::copy($toreduce_best,$toreduce) or die;
-
     run_test($toreduce) or die "test (and sanity check) fails";
-
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
     File::Path::rmtree($tmpdir);
