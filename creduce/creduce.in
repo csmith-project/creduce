@@ -74,10 +74,6 @@ Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
 
-# if set, show a nice ascii spinner that tells us how quickly failing
-# delta tests are happening (FIXME: currently not working)
-my $SPINNER = 0;
-
 # if set, cache results (FIXME: currently not working)
 my $CACHE = 0;
 
@@ -146,17 +142,6 @@ sub sanity_check () {
 my %cache = ();
 my $cache_hits = 0;
 my $test_cnt = 0;
-
-my $cur_key = 0;
-sub spinner() {
-    my @chars = ("-", "\\", "|", "/");
-    my $backsp = "\b";
-    if ($cur_key == @chars) {
-	$cur_key = 0;
-    }
-    print $backsp . $chars[$cur_key];
-    $cur_key++;
-}
 
 sub delta_test ($$$$) {
     (my $method, my $arg, my $state, my $fn) = @_;
