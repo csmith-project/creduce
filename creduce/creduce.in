@@ -479,7 +479,7 @@ sub termination_handler($) {
     my ($sigName) = @_;
     chdir $ORIG_DIR;
     killem();
-    die "$sigName caught, terminating $$\n";
+    exit;
 }
 
 ############################### main #################################
