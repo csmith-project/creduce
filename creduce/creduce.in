@@ -54,11 +54,13 @@ my $SANITIZE;
 my $SANITY;
 my $SKIP_FIRST;
 my $VERBOSE;
+my $SAVE_TEMPS;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
     ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
+    ["--save-temps",          "const",   1, \$SAVE_TEMPS, "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
     ["--verbose",             "const",   1, \$VERBOSE, "Print debug information"]
 );
@@ -106,7 +108,9 @@ my $toreduce_best;
 ######################################################################
 
 sub make_tmpdir () {
-    return File::Temp::tempdir("creduce-XXXXXX", CLEANUP => 1, DIR => File::Spec->tmpdir);
+    return File::Temp::tempdir("creduce-XXXXXX", 
+			       $SAVE_TEMPS ? (CLEANUP => 0) : (CLEANUP => 1), 
+			       DIR => File::Spec->tmpdir);
 }
 
 
