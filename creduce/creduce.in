@@ -241,6 +241,9 @@ sub killem () {
 }
 
 # invariant: parallel execution does not escape this function
+#
+# the parallelization strategy is described here:
+#   http://blog.regehr.org/archives/749
 sub delta_pass ($) {
     (my $mref) = @_;    
     my $delta_method = ${$mref}{"name"};
