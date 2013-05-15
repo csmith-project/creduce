@@ -41,9 +41,9 @@ sub transform ($$$) {
     return ($STOP, \$index) unless ($index == 0);
     if (0) {
     } elsif ($arg eq "regular") {
-	system "indent $INDENT_OPTS $cfile";
+	system "indent $INDENT_OPTS $cfile >/dev/null 2>&1";
     } elsif ($arg eq "final") {
-	system "indent $cfile";
+	system "indent $cfile >/dev/null 2>&1";
 	system "astyle $cfile >/dev/null 2>&1";
     } else {
 	die;
