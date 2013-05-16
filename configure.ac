@@ -51,8 +51,8 @@ AX_PROG_PERL_MODULES(
   [
     Benchmark::Timer
     Exporter::Lite
-    Getopt::Tabular
     File::Which
+    Getopt::Tabular
     Regexp::Common
     Sys::CPU
   ],
