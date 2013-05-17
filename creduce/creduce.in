@@ -107,12 +107,22 @@ my $toreduce_best;
 
 ######################################################################
 
+my @tmpdirs;
+
 sub make_tmpdir () {
-    return File::Temp::tempdir("creduce-XXXXXX", 
-			       $SAVE_TEMPS ? (CLEANUP => 0) : (CLEANUP => 1), 
-			       DIR => File::Spec->tmpdir);
+    my $dir = File::Temp::tempdir("creduce-XXXXXX", 
+				  $SAVE_TEMPS ? (CLEANUP => 0) : (CLEANUP => 1), 
+				  DIR => File::Spec->tmpdir);
+    push @tmpdirs, $dir;
+    return $dir;
 }
 
+sub remove_tmpdirs () {
+    return if $SAVE_TEMPS;
+    while (my $dir = shift(@tmpdirs)) {
+	File::Path::rmtree ($dir, 0, 0);	
+    }
+}
 
 sub run_test ($) {
     (my $fn) = @_;
@@ -140,6 +150,7 @@ sub sanity_check () {
     run_test($toreduce) or die "test (and sanity check) fails";
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
+    remove_tmpdirs();
 }
 
 my %cache = ();
@@ -331,7 +342,10 @@ sub delta_pass ($) {
     }
 
     # pass termination condition
-    return if ($stopped && scalar(@kids)==0);
+    if ($stopped && scalar(@kids)==0) {
+	remove_tmpdirs();
+	return;
+    }
 
     goto AGAIN;
 }
