@@ -287,6 +287,7 @@ void SimplifyStruct::HandleTranslationUnit(ASTContext &Ctx)
   // ISSUE: not well tested on CXX code, so currently disable this pass for CXX
   if (TransformationManager::isCXXLangOpt()) {
     ValidInstanceNum = 0;
+    TransError = TransMaxInstanceError;
     return;
   }
 
