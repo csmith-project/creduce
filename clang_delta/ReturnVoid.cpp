@@ -100,6 +100,10 @@ bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
     return false;
 
   QualType RVType = FD->getResultType();
+  TypeLoc TLoc = FD->getTypeSourceInfo()->getTypeLoc();
+  SourceLocation SLoc = TLoc.getBeginLoc();
+  if (SLoc.isInvalid())
+    return false;
   return !(RVType.getTypePtr()->isVoidType());
 }
 
