@@ -70,11 +70,12 @@ private:
 
 bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  // renaming CXXMethodDecl will be in a seperate pass
-  if (dyn_cast<CXXMethodDecl>(FD))
+  // renaming CXXMethodDecl is handled in a seperate pass
+  if (dyn_cast<CXXMethodDecl>(FD)) {
     return true;
+  }
 
-  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+  const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   ConsumerInstance->addFun(CanonicalFD);
   if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
     ConsumerInstance->HasValidFuns = true;
@@ -88,7 +89,7 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
     return true;
 
-  FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+  const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
   // This case is handled by VisitFunctionDecl
   if (CanonicalFD->isDefined())
@@ -107,7 +108,7 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
     return true;
 
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
-  llvm::DenseMap<FunctionDecl *, std::string>::iterator I = 
+  llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
 
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
@@ -125,7 +126,7 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
     return true;
 
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
-  llvm::DenseMap<FunctionDecl *, std::string>::iterator I = 
+  llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
 
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
@@ -236,7 +237,8 @@ bool RenameFun::hasValidPostfix(const std::string &Name)
   AllValidNumbers.insert(Value);
   return true;
 }
-void RenameFun::addFun(FunctionDecl *FD)
+
+void RenameFun::addFun(const FunctionDecl *FD)
 {
   std::string Name = FD->getNameAsString();
   // Skip special functions

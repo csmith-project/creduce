@@ -56,7 +56,7 @@ private:
 
   bool hasValidPostfix(const std::string &Name);
 
-  void addFun(clang::FunctionDecl *FD);
+  void addFun(const clang::FunctionDecl *FD);
 
   bool isConsecutiveNumbersFromOne(void);
 
@@ -68,7 +68,7 @@ private:
 
   RenameFunVisitor *RenameVisitor;
 
-  llvm::DenseMap<clang::FunctionDecl *, std::string> FunToNameMap;
+  llvm::DenseMap<const clang::FunctionDecl *, std::string> FunToNameMap;
 
   std::set<unsigned int> AllValidNumbers;
 
