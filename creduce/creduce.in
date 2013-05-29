@@ -46,7 +46,6 @@ my $NPROCS = Sys::CPU::cpu_count();
 my $SANITIZE;
 my $SANITY;
 my $SKIP_FIRST;
-my $VERBOSE;
 my $SAVE_TEMPS;
 
 my @options = (
