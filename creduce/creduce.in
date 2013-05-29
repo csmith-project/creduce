@@ -17,7 +17,7 @@
 
 ## TODO: 
 # use IPC::Run3 instead of system?
-# fix signal handling bug
+# test against LLVM 3.3 when it comes out
 
 use strict;
 use warnings;
