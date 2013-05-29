@@ -218,8 +218,7 @@ sub call_transform ($$$$) {
 my @kids = ();
 
 sub killem () {
-    while (1) {
-	return if (scalar(@kids) == 0);
+    while (scalar(@kids) > 0) {
 	my $kidref = shift @kids;
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
 	kill ('TERM', $pid);
@@ -277,9 +276,6 @@ sub delta_pass ($) {
 	    my $delta_result;
 	    # print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
-		# undo sigtrap for children
-		my @normal_signals = qw(TERM INT HUP PIPE);
-		@SIG{@normal_signals} = ('DEFAULT') x @normal_signals;
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
 		exit ($delta_result);
 	    }
@@ -485,16 +481,7 @@ sub check_file_attributes($$$) {
     }
 }
 
-sub termination_handler($) {
-    my ($sigName) = @_;
-    chdir $ORIG_DIR;
-    killem();
-    die "$sigName caught, terminating $$\n";
-}
-
 ############################### main #################################
-
-use sigtrap 'handler', \&termination_handler, 'normal-signals';
 
 my $timer = Benchmark::Timer->new();
 $timer->start();
