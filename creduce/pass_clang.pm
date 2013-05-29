@@ -63,6 +63,7 @@ sub transform ($$$) {
     my $index = ${$state};
     my $tmpfile = POSIX::tmpnam();
     my $cmd = "$clang_delta --transformation=$which --counter=$index $cfile";
+    print "$cmd\n" if $VERBOSE;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {
 	system "mv $tmpfile $cfile";
