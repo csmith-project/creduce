@@ -7,17 +7,14 @@ C-Reduce
 --------------------------------------------------------------------
 Prereqs:
 
-On Ubuntu, all non-standard prerequisites can be installed like this:
+On Ubuntu, prerequisites other than LLVM can be installed like this:
 
   sudo apt-get install indent astyle delta libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
-    libregexp-common-perl libsys-cpu-perl
+    libregexp-common-perl libsys-cpu-perl flex build-essential
 
-On other systems, install these packages either manually or using the
-package manager:
-
-GNU Indent
-  http://www.gnu.org/software/indent/
+Otherwise, install these packages either manually or using the package
+manager:
 
 astyle: 
   http://astyle.sourceforge.net/
@@ -25,7 +22,20 @@ astyle:
 Berkeley delta:
   http://delta.tigris.org/
 
-Perl modules
+Flex:
+  http://flex.sourceforge.net/
+
+GNU Indent
+  http://www.gnu.org/software/indent/
+
+LLVM/Clang 3.2:
+  http://llvm.org/releases/download.html#3.2
+  (no need to compile it, any of the "Clang binaries" packages should
+  work fine)
+  (Ubuntu 13.04 appears to have a package for LLVM/Clang 3.2 but we
+   have not tested it)
+
+Perl modules:
   Benchmark::Timer
   Exporter::Lite
   File::Which
@@ -34,7 +44,6 @@ Perl modules
   Sys::CPU
 
 For example, (perhaps as root):
-
   cpan -i 'Benchmark::Timer'
   cpan -i 'Exporter::Lite'
   cpan -i 'File::Which'
@@ -43,16 +52,11 @@ For example, (perhaps as root):
   cpan -i 'Sys::CPU'
 
 --------------------------------------------------------------------
-Building and installing C-Reduce and the clang_delta plugin
+Building and installing C-Reduce:
 
-1. Download, build, and install LLVM/Clang 3.2 from: 
+From either the source directory or a build directory:
 
-  http://llvm.org/releases/download.html#3.2
-
-2. Build the C-Reduce software distribution:
-
-  # cd to where you want to build the package, then:
-  configure
+  [source-path/]configure [options]
   make
   make install
 
