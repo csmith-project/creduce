@@ -1,6 +1,6 @@
 ## -*- mode: Autoconf -*-
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2013 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -112,11 +112,17 @@ elif test "$GXX" = yes; then
 fi
 
 ###############################################################################
+## clex
+
+AM_PROG_LEX
+
+###############################################################################
 
 AC_OUTPUT(
   Makefile
-  creduce/Makefile
   clang_delta/Makefile
+  clex/Makefile
+  creduce/Makefile
   scripts/Makefile
   tests/Makefile
 )

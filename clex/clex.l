@@ -12,7 +12,6 @@ IS			(u|U|l|L)*
 #include <assert.h>
 
 void doit (void);
-
 %}
 
 %%
@@ -129,7 +128,7 @@ L?\"(\\.|[^\\"])*\"	{ doit(); }
      
                          if ( c == EOF )
                              {
-                             error( "EOF in comment" );
+                             fprintf(stderr, "EOF in comment" );
 			     assert (0);
                              }
                     }
@@ -137,7 +136,7 @@ L?\"(\\.|[^\\"])*\"	{ doit(); }
 
 [ \t\v\n\f]		{  }
 
-.			{ error ("didn't expect to see '%s'\n", yytext); 
+.			{ fprintf (stderr, "didn't expect to see '%s'\n", yytext); 
                           assert (0); }
 
 %%

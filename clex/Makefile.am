@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2013 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -8,17 +8,16 @@
 
 ###############################################################################
 
-ACLOCAL_AMFLAGS = -I m4
+libexec_PROGRAMS = clex
 
-SUBDIRS = \
-	clang_delta \
-	clex \
-	creduce \
-	scripts \
-	tests
+GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
+GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
-EXTRA_DIST = \
-	git-hash.sh
+clex_CPPFLAGS = \
+	$(GIT_FLAG)
+
+clex_SOURCES = \
+	clex.l
 
 ###############################################################################
 
