@@ -16,15 +16,8 @@
 ####################################################################
 
 ## TODO: 
-
-# rig each pass so that it can speculate optimistically,
-# pessimistically, or not at all
-
-# or there may be better ways to combine these...
-
-# turn off parallel execution when interestingness test gets fast
-
-# add back in the deterministic mode based on waitpid
+# use IPC::Run3 instead of system?
+# fix signal handling bug
 
 use strict;
 use warnings;
