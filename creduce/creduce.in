@@ -16,8 +16,10 @@
 ####################################################################
 
 ## TODO: 
+# fix the caching code and also benchmark to see if it's doing any good
 # use IPC::Run3 instead of system?
 # test against LLVM 3.3 when it comes out
+# try again to make tmp dir deletion more aggressive; do it only after the wait
 
 use strict;
 use warnings;
@@ -263,7 +265,7 @@ sub delta_pass ($) {
 	    $stopped = 1;
 	} else {
 
-	    # FIXME check the cache here
+	    # FIXME check the cache here, before forking, instead of in the delta test
 
 	    my $pid = fork();
 	    die unless ($pid >= 0);
@@ -589,6 +591,6 @@ print "\n";
 
 $timer->stop();
 my $time = int($timer->result());
-print "elapsed time: $time seconds\n";
+print "elapsed time: $time seconds; there were ${cache_hits} cache hits\n";
 
 ######################################################################
