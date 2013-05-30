@@ -17,7 +17,8 @@ clex_CPPFLAGS = \
 	$(GIT_FLAG)
 
 clex_SOURCES = \
-	clex.l
+	clex.l \
+	driver.c
 
 # SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that
 # `clex.c' is out of date.  This is achieved by a sinful Automake hack.
