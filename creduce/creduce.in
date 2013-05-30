@@ -19,7 +19,6 @@
 # benchmark the caching code on some large reductions
 # use IPC::Run3 instead of system?
 # test against LLVM 3.3 when it comes out
-# try again to make tmp dir deletion more aggressive; do it only after the wait
 
 use strict;
 use warnings;
