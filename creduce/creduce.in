@@ -204,8 +204,10 @@ sub killem () {
     while (scalar(@kids) > 0) {
 	my $kidref = shift @kids;
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
-	kill ('TERM', $pid);
+	# kill the whole group
+	kill ('TERM', -$pid); 
 	waitpid ($pid, 0);	
+	File::Path::rmtree ($tmpdir, 0, 0);	
     }
 }
 
@@ -262,7 +264,9 @@ sub delta_pass ($) {
 	    my $delta_result;
 	    # print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
-		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
+		# put this process (the child) into a process group named by its pid
+		setpgrp();
+		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
 		exit ($delta_result);
 	    }
 	    chdir $ORIG_DIR or die;
