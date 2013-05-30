@@ -48,8 +48,15 @@ my $SANITIZE;
 my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
+# if set, cache results of the delta test
+#
+# FIXME: the caching strategy is not super great since we fork a child
+# process before even looking into the cache, but looking first is a
+# more invasive change
+my $CACHE = 0;
 
 my @options = (
+    ["--cache",               "const",   1, \$CACHE, "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
     ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
@@ -68,13 +75,6 @@ Getopt::Tabular::SetHelp ($help, $usage_text);
 Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
-
-# if set, cache results of the delta test
-#
-# FIXME: the caching strategy is not super great since we fork a child
-# process before even looking into the cache, but looking first is a
-# more invasive change
-my $CACHE = 1;
 
 # delete cached results for program sizes this much larger than the
 # current size; this heuristic is designed to save RAM while also
@@ -154,17 +154,16 @@ my %cache = ();
 
 sub delta_test ($$$$) {
     (my $method, my $arg, my $state, my $fn) = @_;
-    my $prog = read_file($fn);
-
     my $result;
-    $result = $cache{length($prog)}{$prog} if $CACHE;
-
+    if ($CACHE) {
+	my $prog = read_file($fn);
+	$result = $cache{-s $fn}{$prog};
+    }
     if (defined($result)) {
 	print "(hit= $result)";
     } else {    
 	$result = run_test ($fn);
     }
-
     return $result ? 1 : 0;
 }
 
@@ -261,9 +260,11 @@ sub delta_pass ($) {
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    push @kids, \@l;
 	    my $delta_result;
-	    # print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
+	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
-		# put this process (the child) into a process group named by its pid
+		# put this process (the child) into a process group
+		# named by its pid so that we'll be able to kill its
+		# entire subtree at once later
 		setpgrp();
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
 		exit ($delta_result);
@@ -298,8 +299,8 @@ sub delta_pass ($) {
 
 	if ($CACHE) {
 	    my $prog = read_file($tmpfn);
-	    my $len = length ($prog);
-	    $cache{length($prog)}{$prog} = $delta_result;
+	    my $len = -s $tmpfn;
+	    $cache{$len}{$prog} = $delta_result;
 	    if ($len < $old_len) {
 		foreach my $k (keys %cache) {
 		    if ($k > ($len + $CACHE_PRUNE_SIZE)) {
