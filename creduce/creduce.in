@@ -147,7 +147,6 @@ sub sanity_check () {
 
 my %cache = ();
 my $cache_hits = 0;
-my $test_cnt = 0;
 
 sub delta_test ($$$$) {
     (my $method, my $arg, my $state, my $fn) = @_;
@@ -168,8 +167,6 @@ sub delta_test ($$$$) {
 	}
     }
 
-    $test_cnt++;
-    
     if ($result) {
 	my $size = length ($prog);
 	if ($CACHE && ($size < $old_size)) {
@@ -279,7 +276,6 @@ sub delta_pass ($) {
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
 		exit ($delta_result);
 	    }
-	    #print "just forked $pid\n";
 	    chdir $ORIG_DIR or die;
 	}
     }
