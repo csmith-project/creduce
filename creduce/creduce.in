@@ -70,8 +70,8 @@ Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
 
-# if set, cache results (FIXME: currently not working)
-my $CACHE = 0;
+# if set, cache results of the delta test
+my $CACHE = 1;
 
 ######################################################################
 
@@ -129,13 +129,6 @@ sub run_test ($) {
     return ($res == 0);
 }
 
-my $good_cnt;
-my $bad_cnt;
-my $pass_num = 0;
-my %method_worked = ();
-my %method_failed = ();
-my $old_size = 1000000000;
-
 sub sanity_check () {
     print "sanity check... " if $VERBOSE;
     my $tmpdir = make_tmpdir();
@@ -147,6 +140,7 @@ sub sanity_check () {
     remove_tmpdirs();
 }
 
+my $old_size = 1000000000;
 my %cache = ();
 my $cache_hits = 0;
 
@@ -224,6 +218,12 @@ sub killem () {
 	waitpid ($pid, 0);	
     }
 }
+
+my $good_cnt;
+my $bad_cnt;
+my $pass_num = 0;
+my %method_worked = ();
+my %method_failed = ();
 
 # invariant: parallel execution does not escape this function
 #
