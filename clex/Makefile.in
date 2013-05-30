@@ -102,7 +102,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am_clex_OBJECTS = clex-clex.$(OBJEXT)
+am_clex_OBJECTS = clex-clex.$(OBJEXT) clex-driver.$(OBJEXT)
 clex_OBJECTS = $(am_clex_OBJECTS)
 clex_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -319,7 +319,8 @@ clex_CPPFLAGS = \
 	$(GIT_FLAG)
 
 clex_SOURCES = \
-	clex.l
+	clex.l \
+	driver.c
 
 
 # SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that
@@ -421,6 +422,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-clex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-driver.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -456,6 +458,20 @@ clex-clex.obj: clex.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='clex.c' object='clex-clex.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-clex.obj `if test -f 'clex.c'; then $(CYGPATH_W) 'clex.c'; else $(CYGPATH_W) '$(srcdir)/clex.c'; fi`
+
+clex-driver.o: driver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-driver.o -MD -MP -MF $(DEPDIR)/clex-driver.Tpo -c -o clex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-driver.Tpo $(DEPDIR)/clex-driver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='clex-driver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
+
+clex-driver.obj: driver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-driver.obj -MD -MP -MF $(DEPDIR)/clex-driver.Tpo -c -o clex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-driver.Tpo $(DEPDIR)/clex-driver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='clex-driver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
