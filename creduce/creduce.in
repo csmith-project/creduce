@@ -71,7 +71,17 @@ Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
 
 # if set, cache results of the delta test
+#
+# FIXME: the caching strategy is not super great since we fork a child
+# process before even looking into the cache, but looking first is a
+# more invasive change
 my $CACHE = 1;
+
+# delete cached results for program sizes this much larger than the
+# current size; this heuristic is designed to save RAM while also
+# permitting caching of larger results which is useful for some of the
+# passes that make (temporary) backwards progress
+my $CACHE_PRUNE_SIZE = 5000;
 
 ######################################################################
 
@@ -140,43 +150,23 @@ sub sanity_check () {
     remove_tmpdirs();
 }
 
-my $old_size = 1000000000;
+my $old_len = 1000000000;
 my %cache = ();
-my $cache_hits = 0;
 
 sub delta_test ($$$$) {
     (my $method, my $arg, my $state, my $fn) = @_;
     my $prog = read_file($fn);
-    my $len = length ($prog);
 
     my $result;
-    if ($CACHE) {
-	$result = $cache{$len}{$prog};
-    }
+    $result = $cache{length($prog)}{$prog} if $CACHE;
 
     if (defined($result)) {
-	$cache_hits++;
+	print "(hit= $result)";
     } else {    
 	$result = run_test ($fn);
-	if ($CACHE) {
-	    $cache{$len}{$prog} = $result;
-	}
     }
 
-    if ($result) {
-	my $size = length ($prog);
-	if ($CACHE && ($size < $old_size)) {
-	    foreach my $k (keys %cache) {
-		if ($k > ($size + 5000)) {
-		    $cache{$k} = ();
-		}
-	    }
-	}
-	$old_size = $size;
-	return 1;
-    } else {
-	return 0;
-    }
+    return $result ? 1 : 0;
 }
 
 sub call_prereq_check ($) {
@@ -264,9 +254,6 @@ sub delta_pass ($) {
 	    chdir $ORIG_DIR or die;
 	    $stopped = 1;
 	} else {
-
-	    # FIXME check the cache here, before forking, instead of in the delta test
-
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);
@@ -306,7 +293,19 @@ sub delta_pass ($) {
 	}
 	die unless $found;
 
-	# FIXME update the cache here
+	if ($CACHE) {
+	    my $prog = read_file($tmpfn);
+	    my $len = length ($prog);
+	    $cache{length($prog)}{$prog} = $delta_result;
+	    if ($len < $old_len) {
+		foreach my $k (keys %cache) {
+		    if ($k > ($len + $CACHE_PRUNE_SIZE)) {
+			$cache{$k} = ();
+		    }
+		}
+	    }
+	    $old_len = $len;
+	}
 
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
@@ -591,6 +590,6 @@ print "\n";
 
 $timer->stop();
 my $time = int($timer->result());
-print "elapsed time: $time seconds; there were ${cache_hits} cache hits\n";
+print "elapsed time: $time seconds\n";
 
 ######################################################################
