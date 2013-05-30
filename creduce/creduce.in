@@ -16,7 +16,7 @@
 ####################################################################
 
 ## TODO: 
-# fix the caching code and also benchmark to see if it's doing any good
+# benchmark the caching code on some large reductions
 # use IPC::Run3 instead of system?
 # test against LLVM 3.3 when it comes out
 # try again to make tmp dir deletion more aggressive; do it only after the wait
@@ -324,6 +324,7 @@ sub delta_pass ($) {
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
 
+	File::Path::rmtree ($tmpdir, 0, 0);	
     }
 
     # pass termination condition
