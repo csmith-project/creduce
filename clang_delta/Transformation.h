@@ -165,6 +165,12 @@ protected:
   const clang::FunctionDecl *lookupFunctionDecl(
           clang::DeclarationName &DName, const clang::DeclContext *Ctx);
 
+  const clang::FunctionDecl *lookupFunctionDeclFromCtx(
+          clang::DeclarationName &DName, const clang::DeclContext *Ctx);
+
+  const clang::FunctionDecl *lookupFunctionDeclFromBases(
+          clang::DeclarationName &DName, const clang::CXXRecordDecl *CXXRD);
+
   const clang::FunctionDecl *lookupFunctionDeclInGlobal(
           clang::DeclarationName &DName, const clang::DeclContext *Ctx);
 
@@ -176,7 +182,7 @@ protected:
   const clang::CXXRecordDecl *getBaseDeclFromType(const clang::Type *Ty);
 
   const clang::CXXRecordDecl *getBaseDeclFromTemplateSpecializationType(
-        const clang::TemplateSpecializationType *TSTy);
+          const clang::TemplateSpecializationType *TSTy);
 
   bool isParameterPack(const clang::NamedDecl *ND);
 

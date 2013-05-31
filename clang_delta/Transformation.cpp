@@ -461,7 +461,7 @@ const FunctionDecl *Transformation::lookupFunctionDeclInGlobal(
     if (const UsingShadowDecl *USD = dyn_cast<UsingShadowDecl>(*I)) {
       TD = dyn_cast<FunctionTemplateDecl>(USD->getTargetDecl());
     }
-    else { 
+    else {
       TD = dyn_cast<FunctionTemplateDecl>(*I);
     }
     if (TD)
@@ -490,7 +490,26 @@ const FunctionDecl *Transformation::lookupFunctionDeclInGlobal(
   return NULL;
 }
 
-const FunctionDecl *Transformation::lookupFunctionDecl(
+const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
+        DeclarationName &DName, const CXXRecordDecl *CXXRD)
+{
+  for (CXXRecordDecl::base_class_const_iterator I =
+       CXXRD->bases_begin(), E = CXXRD->bases_end(); I != E; ++I) {
+
+    const CXXBaseSpecifier *BS = I;
+    const Type *Ty = BS->getType().getTypePtr();
+    const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+    TransAssert(Base && "NULL Base!");
+    const CXXRecordDecl *BaseDef = Base->getDefinition();
+    if (!BaseDef)
+      continue;
+    if (const FunctionDecl *FD = lookupFunctionDecl(DName, BaseDef))
+      return FD;
+  }
+  return NULL;
+}
+
+const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
         DeclarationName &DName, const DeclContext *Ctx)
 {
   DeclContext::lookup_const_result Result = Ctx->lookup(DName);
@@ -520,10 +539,33 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
         return FD;
     }
   }
+  return NULL;
+}
+
+const FunctionDecl *Transformation::lookupFunctionDecl(
+        DeclarationName &DName, const DeclContext *Ctx)
+{
+  if (const FunctionDecl *FD = lookupFunctionDeclFromCtx(DName, Ctx))
+    return FD;
+ 
+  // lookup base classes:
+  // this would be slow and may re-visit some Ctx. 
+  // Probably we should cache those Ctx(s) which have been visited
+  // to speedup lookup
+  if (Ctx->isRecord()) {
+    const RecordDecl *RD = dyn_cast<RecordDecl>(Ctx);
+    if (const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD)) {
+      if (const FunctionDecl *FD = lookupFunctionDeclFromBases(DName, CXXRD))
+        return FD;
+    }
+  }
 
   for (DeclContext::udir_iterator I = Ctx->using_directives_begin(),
        E = Ctx->using_directives_end(); I != E; ++I) {
     const NamespaceDecl *ND = (*I)->getNominatedNamespace();
+    // avoid infinite recursion
+    if (ND->getLookupParent() == Ctx)
+      return NULL;
     if (const FunctionDecl *FD = lookupFunctionDecl(DName, ND))
       return FD;
   }
@@ -583,7 +625,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
         const TemplateSpecializationType *TSTy)
 {
   TemplateName TplName = TSTy->getTemplateName();
-  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+  TemplateDecl *TplD = TplName.getAsTemplateDecl();
   TransAssert(TplD && "Invalid TemplateDecl!");
   NamedDecl *ND = TplD->getTemplatedDecl();
   TransAssert(ND && "Invalid NamedDecl!");
@@ -656,9 +698,13 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
     const TypedefNameDecl *TdefD = TdefTy->getDecl();
     const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
-    if ( const TemplateSpecializationType *TSTy = 
+    if (const TemplateSpecializationType *TSTy = 
          dyn_cast<TemplateSpecializationType>(UnderlyingTy) ) {
       Base = getBaseDeclFromTemplateSpecializationType(TSTy);
+    }
+    else if (const ElaboratedType *ETy = 
+             dyn_cast<ElaboratedType>(UnderlyingTy)) {
+      Base = getBaseDeclFromType(ETy);
     }
     else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
       return NULL;
