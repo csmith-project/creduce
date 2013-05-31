@@ -131,6 +131,8 @@ clang_delta_SOURCES = \
 	RemoveUnusedVar.h \
 	RenameClass.cpp \
 	RenameClass.h \
+	RenameCXXMethod.cpp \
+	RenameCXXMethod.h \
 	RenameFun.cpp \
 	RenameFun.h \
 	RenameParam.cpp \
