@@ -46,6 +46,8 @@ namespace clang {
   class CXXCtorInitializer;
   class CXXRecordDecl;
   class ClassTemplateDecl;
+  class CXXMethodDecl;
+  class NestedNameSpecifierLoc;
 }
 
 class RewriteUtils {
@@ -228,6 +230,11 @@ public:
   bool removeClassDecls(const clang::CXXRecordDecl *CXXRD);
 
   bool removeClassTemplateDecls(const clang::ClassTemplateDecl *TmplD);
+
+  bool replaceCXXMethodNameAfterQualifier(
+         const clang::NestedNameSpecifierLoc *QualLoc,
+         const clang::CXXMethodDecl *MD,
+         const std::string &NewName);
 
 private:
 

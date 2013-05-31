@@ -1613,3 +1613,20 @@ bool RewriteUtils::removeClassTemplateDecls(const ClassTemplateDecl *TmplD)
   return true;
 }
 
+bool RewriteUtils::replaceCXXMethodNameAfterQualifier(
+       const NestedNameSpecifierLoc *QualLoc,
+       const CXXMethodDecl *MD,
+       const std::string &NewName)
+{
+  SourceLocation EndLoc = QualLoc->getEndLoc();
+  const char *EndBuf = SrcManager->getCharacterData(EndLoc);
+  unsigned int Offset = 0;
+  while (isspace(*EndBuf) || (*EndBuf == ':')) {
+    EndBuf++;
+    Offset++;
+  }
+  EndLoc = EndLoc.getLocWithOffset(Offset);
+  TheRewriter->ReplaceText(EndLoc, MD->getNameAsString().size(), NewName);
+  return true;
+}
+
