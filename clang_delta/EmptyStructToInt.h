@@ -33,7 +33,8 @@ public:
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       RewriteVisitor(NULL),
-      TheRecordDecl(NULL)
+      TheRecordDecl(NULL),
+      Rewritten(false)
   { }
 
   ~EmptyStructToInt(void);
@@ -67,6 +68,8 @@ private:
   EmptyStructToIntRewriteVisitor *RewriteVisitor;
 
   const clang::RecordDecl *TheRecordDecl;
+
+  bool Rewritten;
 
   // Unimplemented
   EmptyStructToInt(void);

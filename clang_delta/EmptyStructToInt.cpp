@@ -120,6 +120,7 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
     if (!TypeId)
       return true;
     ConsumerInstance->RewriteHelper->replaceRecordType(RTLoc, "int");
+    ConsumerInstance->Rewritten = true;
   }
   return true;
 }
@@ -146,6 +147,7 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   const char *StartBuf = 
     ConsumerInstance->SrcManager->getCharacterData(StartLoc);
   const char *EndBuf = ConsumerInstance->SrcManager->getCharacterData(EndLoc);
+  ConsumerInstance->Rewritten = true;
   // It's possible, e.g., 
   // struct S1 {
   //   struct { } S;
@@ -192,6 +194,13 @@ void EmptyStructToInt::HandleTranslationUnit(ASTContext &Ctx)
   removeRecordDecls();
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   
+  // sanity check that we actually
+  // have done some text modifications. 
+  // It could be false due to invalid code being transformed.
+  if (!Rewritten) {
+    TransError = TransNoTextModificationError;
+    return;
+  }
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
@@ -245,10 +254,12 @@ void EmptyStructToInt::removeRecordDecls(void)
         return;
       RewriteHelper->removeTextFromLeftAt(SourceRange(RBLoc, RBLoc),
                                           '{', RBLoc);
+      Rewritten = true;
     }
     else {
       LocEnd = RewriteHelper->getEndLocationUntil(Range, ';');
       TheRewriter.RemoveText(SourceRange(Range.getBegin(), LocEnd));
+      Rewritten = true;
     }
   }
 }

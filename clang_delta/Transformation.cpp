@@ -137,6 +137,9 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   else if (TransError == TransNoValidParamsError) {
     ErrorMsg = "No valid parameters declarations exist!";
   }
+  else if (TransError == TransNoTextModificationError) {
+    ErrorMsg = "No modification to the transformed program!";
+  }
   else {
     TransAssert(0 && "Unknown transformation error!");
   }
