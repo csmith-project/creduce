@@ -384,6 +384,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "rename-param",                          "last_pass_pri" => 209,  },
     { "name" => "pass_clang",    "arg" => "rename-var",                            "last_pass_pri" => 210,  },
     { "name" => "pass_clang",    "arg" => "rename-class",                          "last_pass_pri" => 211,  },
+    { "name" => "pass_clang",    "arg" => "rename-cxx-method",                     "last_pass_pri" => 212,  },
     { "name" => "pass_clang",    "arg" => "return-void",            "pri" => 212,  },
     { "name" => "pass_clang",    "arg" => "simple-inliner",         "pri" => 213,  },
     { "name" => "pass_clang",    "arg" => "reduce-pointer-level",   "pri" => 214,  },
