@@ -88,6 +88,7 @@ bool ReplaceSimpleTypedefRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc Loc)
       ConsumerInstance->TheTypedefDecl) {
     SourceRange Range = Loc.getSourceRange();
     ConsumerInstance->TheRewriter.ReplaceText(Range, ConsumerInstance->TyName);
+    ConsumerInstance->Rewritten = true;
   }
   return true;
 }
@@ -116,6 +117,7 @@ bool ReplaceSimpleTypedefRewriteVisitor::VisitElaboratedTypeLoc(
   NestedNameSpecifierLoc QualifierLoc = Loc.getQualifierLoc();
   if (QualifierLoc && ConsumerInstance->IsScalarType) {
     ConsumerInstance->TheRewriter.RemoveText(QualifierLoc.getSourceRange());
+    ConsumerInstance->Rewritten = true;
   }
   return true;
 }
@@ -144,6 +146,10 @@ void ReplaceSimpleTypedef::HandleTranslationUnit(ASTContext &Ctx)
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   removeTypedefs();
 
+  if (!Rewritten) {
+    TransError = TransNoTextModificationError;
+    return;
+  }
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
@@ -153,7 +159,11 @@ void ReplaceSimpleTypedef::removeTypedefs(void)
 {
   for (TypedefDecl::redecl_iterator I = TheTypedefDecl->redecls_begin(),
        E = TheTypedefDecl->redecls_end(); I != E; ++I) {
-    RewriteHelper->removeTextUntil((*I)->getSourceRange(), ';');
+    SourceRange Range = (*I)->getSourceRange();
+    if (Range.isValid()) {
+      RewriteHelper->removeTextUntil(Range, ';');
+      Rewritten = true;
+    }
   }
 }
 
