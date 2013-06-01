@@ -166,6 +166,10 @@ void ReturnVoid::HandleTranslationUnit(ASTContext &Ctx)
 
   TransformationASTVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
+  if (!Rewritten) {
+    TransError = TransNoTextModificationError;
+    return;
+  }
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
@@ -183,6 +187,9 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
   const char *NameInfoStartBuf =
       ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
+  if (FuncStartBuf == NameInfoStartBuf)
+    return true;
+
   int Offset = NameInfoStartBuf - FuncStartBuf;
 
   NameInfoStartBuf--;
@@ -193,7 +200,7 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
   }
 
   TransAssert(Offset >= 0);
-
+  ConsumerInstance->Rewritten = true;
   return !(ConsumerInstance->TheRewriter.ReplaceText(FuncStartLoc, 
                  Offset, "void "));
 }
@@ -208,6 +215,7 @@ bool RVASTVisitor::rewriteReturnStmt(ReturnStmt *RS)
   // The reason is that RetExpr could have side-effects and these side-effects
   // could cause bugs. But we still could remove "return" keyword
 
+  ConsumerInstance->Rewritten = true;
   SourceLocation Loc = RS->getReturnLoc();
   return !(ConsumerInstance->TheRewriter.RemoveText(Loc, 6));
 }
