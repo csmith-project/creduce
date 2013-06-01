@@ -63,7 +63,8 @@ public:
       SrcManager(NULL),
       TransError(TransSuccess),
       DescriptionString(Desc),
-      RewriteHelper(NULL)
+      RewriteHelper(NULL),
+      Rewritten(false)
   {
     // Nothing to do
   }
@@ -208,6 +209,8 @@ protected:
   std::string DescriptionString;
 
   RewriteUtils *RewriteHelper;
+
+  bool Rewritten;
 };
 
 class TransNameQueryVisitor;
