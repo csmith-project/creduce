@@ -144,9 +144,3 @@ L?\"(\\.|[^\\"])*\"	{ doit(); }
 
 int count = 0;
 
-void doit (void)
-{
-  // printf ("%s\n", yytext);
-  count++;
-}
-
