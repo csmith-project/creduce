@@ -7,6 +7,7 @@
 
 struct tok_t {
   char *str;
+  enum tok_kind kind;
 };
 
 struct tok_t *tok_list;
@@ -14,7 +15,7 @@ int toks;
 int max_toks;
 const int initial_length = 1;
 
-void add_tok (char *str)
+void add_tok (char *str, enum tok_kind kind)
 {
   if (toks >= max_toks) {
     max_toks *= 2;
@@ -22,13 +23,14 @@ void add_tok (char *str)
     assert (tok_list);
   }
   tok_list[toks].str = strdup (str);
+  tok_list[toks].kind = kind;
   assert (tok_list[toks].str);
   toks++;
 }
 
 void doit (enum tok_kind kind)
 {
-  add_tok (yytext);
+  add_tok (yytext, kind);
   count++;
 }
 

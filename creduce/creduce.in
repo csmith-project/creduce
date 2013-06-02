@@ -19,6 +19,7 @@
 # benchmark the caching code on some large reductions
 # use IPC::Run3 instead of system?
 # test against LLVM 3.3 when it comes out
+# use clang-format after we update to 3.3
 
 use strict;
 use warnings;
