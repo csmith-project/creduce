@@ -3,18 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * Stuff defined for us by the lex/flex-generated code.
- */
-extern FILE *yyin;
-extern int yylex(void);
-extern char *yytext;
-
-/*
- * Stuff that we define within the lex/flex-generated code.
- */
-extern int count;
-extern void doit(void);
+#include "stuff.h"
 
 struct tok_t {
   char *str;
@@ -37,7 +26,7 @@ void add_tok (char *str)
   toks++;
 }
 
-void doit (void)
+void doit (enum tok_kind kind)
 {
   add_tok (yytext);
   count++;

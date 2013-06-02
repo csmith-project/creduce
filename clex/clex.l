@@ -8,109 +8,107 @@ IS			(u|U|l|L)*
 %option noyywrap
 
 %{
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
 
-void doit (void);
+#include <stuff.h>
+
 %}
 
 %%
 
-"auto"			{ doit(); }
-"break"			{ doit(); }
-"case"			{ doit(); }
-"char"			{ doit(); }
-"const"			{ doit(); }
-"continue"		{ doit(); }
-"default"		{ doit(); }
-"do"			{ doit(); }
-"double"		{ doit(); }
-"else"			{ doit(); }
-"enum"			{ doit(); }
-"extern"		{ doit(); }
-"float"			{ doit(); }
-"for"			{ doit(); }
-"goto"			{ doit(); }
-"if"			{ doit(); }
-"int"			{ doit(); }
-"long"			{ doit(); }
-"register"		{ doit(); }
-"return"		{ doit(); }
-"short"			{ doit(); }
-"signed"		{ doit(); }
-"sizeof"		{ doit(); }
-"static"		{ doit(); }
-"struct"		{ doit(); }
-"switch"		{ doit(); }
-"typedef"		{ doit(); }
-"union"			{ doit(); }
-"unsigned"		{ doit(); }
-"void"			{ doit(); }
-"volatile"		{ doit(); }
-"while"			{ doit(); }
+"auto"			{ doit(TOK_KEYWORD); }
+"break"			{ doit(TOK_KEYWORD); }
+"case"			{ doit(TOK_KEYWORD); }
+"char"			{ doit(TOK_KEYWORD); }
+"const"			{ doit(TOK_KEYWORD); }
+"continue"		{ doit(TOK_KEYWORD); }
+"default"		{ doit(TOK_KEYWORD); }
+"do"			{ doit(TOK_KEYWORD); }
+"double"		{ doit(TOK_KEYWORD); }
+"else"			{ doit(TOK_KEYWORD); }
+"enum"			{ doit(TOK_KEYWORD); }
+"extern"		{ doit(TOK_KEYWORD); }
+"float"			{ doit(TOK_KEYWORD); }
+"for"			{ doit(TOK_KEYWORD); }
+"goto"			{ doit(TOK_KEYWORD); }
+"if"			{ doit(TOK_KEYWORD); }
+"int"			{ doit(TOK_KEYWORD); }
+"long"			{ doit(TOK_KEYWORD); }
+"register"		{ doit(TOK_KEYWORD); }
+"return"		{ doit(TOK_KEYWORD); }
+"short"			{ doit(TOK_KEYWORD); }
+"signed"		{ doit(TOK_KEYWORD); }
+"sizeof"		{ doit(TOK_KEYWORD); }
+"static"		{ doit(TOK_KEYWORD); }
+"struct"		{ doit(TOK_KEYWORD); }
+"switch"		{ doit(TOK_KEYWORD); }
+"typedef"		{ doit(TOK_KEYWORD); }
+"union"			{ doit(TOK_KEYWORD); }
+"unsigned"		{ doit(TOK_KEYWORD); }
+"void"			{ doit(TOK_KEYWORD); }
+"volatile"		{ doit(TOK_KEYWORD); }
+"while"			{ doit(TOK_KEYWORD); }
 
-{L}({L}|{D})*		{ doit(); }
+{L}({L}|{D})*		{ doit(TOK_IDENT); }
 
-0[xX]{H}+{IS}?		{ doit(); }
-0{D}+{IS}?		{ doit(); }
-{D}+{IS}?		{ doit(); }
-L?'(\\.|[^\\'])+'	{ doit(); }
+0[xX]{H}+{IS}?		{ doit(TOK_NUMBER); }
+0{D}+{IS}?		{ doit(TOK_NUMBER); }
+{D}+{IS}?		{ doit(TOK_NUMBER); }
+L?'(\\.|[^\\'])+'	{ doit(TOK_OTHER); }
 
-{D}+{E}{FS}?		{ doit(); }
-{D}*"."{D}+({E})?{FS}?	{ doit(); }
-{D}+"."{D}*({E})?{FS}?	{ doit(); }
+{D}+{E}{FS}?		{ doit(TOK_NUMBER); }
+{D}*"."{D}+({E})?{FS}?	{ doit(TOK_NUMBER); }
+{D}+"."{D}*({E})?{FS}?	{ doit(TOK_NUMBER); }
 
-L?\"(\\.|[^\\"])*\"	{ doit(); }
+L?\"(\\.|[^\\"])*\"	{ doit(TOK_OTHER); }
 
-"..."			{ doit(); }
-">>="			{ doit(); }
-"<<="			{ doit(); }
-"+="			{ doit(); }
-"-="			{ doit(); }
-"*="			{ doit(); }
-"/="			{ doit(); }
-"%="			{ doit(); }
-"&="			{ doit(); }
-"^="			{ doit(); }
-"|="			{ doit(); }
-">>"			{ doit(); }
-"<<"			{ doit(); }
-"++"			{ doit(); }
-"--"			{ doit(); }
-"->"			{ doit(); }
-"&&"			{ doit(); }
-"||"			{ doit(); }
-"<="			{ doit(); }
-">="			{ doit(); }
-"=="			{ doit(); }
-"!="			{ doit(); }
-";"			{ doit(); }
-("{"|"<%")		{ doit(); }
-("}"|"%>")		{ doit(); }
-","			{ doit(); }
-":"			{ doit(); }
-"="			{ doit(); }
-"("			{ doit(); }
-")"			{ doit(); }
-("["|"<:")		{ doit(); }
-("]"|":>")		{ doit(); }
-"."			{ doit(); }
-"&"			{ doit(); }
-"!"			{ doit(); }
-"~"			{ doit(); }
-"-"			{ doit(); }
-"+"			{ doit(); }
-"*"			{ doit(); }
-"/"			{ doit(); }
-"%"			{ doit(); }
-"<"			{ doit(); }
-">"			{ doit(); }
-"^"			{ doit(); }
-"|"			{ doit(); }
-"?"			{ doit(); }
-"#"                     { doit(); }
-"\\"                    { doit(); }
+"..."			{ doit(TOK_OTHER); }
+">>="			{ doit(TOK_OP); }
+"<<="			{ doit(TOK_OP); }
+"+="			{ doit(TOK_OP); }
+"-="			{ doit(TOK_OP); }
+"*="			{ doit(TOK_OP); }
+"/="			{ doit(TOK_OP); }
+"%="			{ doit(TOK_OP); }
+"&="			{ doit(TOK_OP); }
+"^="			{ doit(TOK_OP); }
+"|="			{ doit(TOK_OP); }
+">>"			{ doit(TOK_OP); }
+"<<"			{ doit(TOK_OP); }
+"++"			{ doit(TOK_OP); }
+"--"			{ doit(TOK_OP); }
+"->"			{ doit(TOK_OP); }
+"&&"			{ doit(TOK_OP); }
+"||"			{ doit(TOK_OP); }
+"<="			{ doit(TOK_OP); }
+">="			{ doit(TOK_OP); }
+"=="			{ doit(TOK_OP); }
+"!="			{ doit(TOK_OP); }
+";"			{ doit(TOK_OP); }
+("{"|"<%")		{ doit(TOK_OP); }
+("}"|"%>")		{ doit(TOK_OP); }
+","			{ doit(TOK_OP); }
+":"			{ doit(TOK_OP); }
+"="			{ doit(TOK_OP); }
+"("			{ doit(TOK_OP); }
+")"			{ doit(TOK_OP); }
+("["|"<:")		{ doit(TOK_OP); }
+("]"|":>")		{ doit(TOK_OP); }
+"."			{ doit(TOK_OP); }
+"&"			{ doit(TOK_OP); }
+"!"			{ doit(TOK_OP); }
+"~"			{ doit(TOK_OP); }
+"-"			{ doit(TOK_OP); }
+"+"			{ doit(TOK_OP); }
+"*"			{ doit(TOK_OP); }
+"/"			{ doit(TOK_OP); }
+"%"			{ doit(TOK_OP); }
+"<"			{ doit(TOK_OP); }
+">"			{ doit(TOK_OP); }
+"^"			{ doit(TOK_OP); }
+"|"			{ doit(TOK_OP); }
+"?"			{ doit(TOK_OP); }
+"#"                     { doit(TOK_OTHER); }
+"\\"                    { doit(TOK_OTHER); }
 
 "/*"        {
                      for ( ; ; )  {
