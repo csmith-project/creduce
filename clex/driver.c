@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * Stuff defined for us by the lex/flex-generated code.
@@ -15,27 +16,30 @@ extern char *yytext;
 extern int count;
 extern void doit(void);
 
-char **tok_list;
+struct tok_t {
+  char *str;
+};
+
+struct tok_t *tok_list;
 int toks;
 int max_toks;
 const int initial_length = 1;
 
-void add_tok (char *tp)
+void add_tok (char *str)
 {
   if (toks >= max_toks) {
     max_toks *= 2;
-    tok_list = realloc (tok_list, max_toks * sizeof (char *));
+    tok_list = (struct tok_t *) realloc (tok_list, max_toks * sizeof (struct tok_t));
     assert (tok_list);
   }
-  tok_list[toks] = strdup (yytext);
-  assert (tok_list[toks]);
+  tok_list[toks].str = strdup (str);
+  assert (tok_list[toks].str);
   toks++;
 }
 
 void doit (void)
 {
   add_tok (yytext);
-  // printf ("%s\n", yytext);
   count++;
 }
 
@@ -47,13 +51,13 @@ int main(int argc, char *argv[]) {
   yyin = in;   
 
   max_toks = initial_length;
-  tok_list = (char **) malloc (max_toks * sizeof (char *));
+  tok_list = (struct tok_t *) malloc (max_toks * sizeof (struct tok_t));
   assert (tok_list);
 
   yylex();
   int i;
   for (i=0; i<toks; i++) {
-    printf ("%s ", tok_list[i]);
+    printf ("%s ", tok_list[i].str);
   }
   printf ("// %d tokens\n", count);
   return 0;
