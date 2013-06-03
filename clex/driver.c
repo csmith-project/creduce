@@ -17,14 +17,14 @@ const int initial_length = 1;
 
 void add_tok (char *str, enum tok_kind kind)
 {
+  assert (str);
   if (toks >= max_toks) {
     max_toks *= 2;
     tok_list = (struct tok_t *) realloc (tok_list, max_toks * sizeof (struct tok_t));
     assert (tok_list);
   }
-  tok_list[toks].str = strdup (str);
+  tok_list[toks].str = str;
   tok_list[toks].kind = kind;
-  assert (tok_list[toks].str);
   toks++;
 }
 
