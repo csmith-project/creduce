@@ -732,7 +732,17 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
 
   DeclarationName Name = ND->getDeclName();
   DeclContextLookupConstResult Result = ParentCtx->lookup(Name);
-  return (Result.first != Result.second);
+
+  assert(!Result.empty());
+
+  // There is a conflict if the same name is declared more than once.
+  DeclContextLookupConstResult::iterator it;
+  for (it = Result.begin(); it != Result.end(); it++) {
+    if (*it != Result.front()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 // We always prepend the Prefix string to EnumConstantDecl if ParentCtx

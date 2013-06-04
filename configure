@@ -15723,8 +15723,8 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-        #include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
+        #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 int
 main ()
 {

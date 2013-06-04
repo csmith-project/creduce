@@ -78,8 +78,8 @@ AC_DEFUN([AX_LLVM],
       AC_LANG_PUSH([C++])
       AC_LINK_IFELSE([
         AC_LANG_PROGRAM(
-          [[@%:@include <llvm/LLVMContext.h>
-@%:@include <llvm/Module.h>]],
+          [[@%:@include <llvm/IR/LLVMContext.h>
+@%:@include <llvm/IR/Module.h>]],
           [[llvm::LLVMContext context;
 llvm::Module *M = new llvm::Module("test", context);]])],
         ax_cv_llvm=yes,
