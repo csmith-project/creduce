@@ -50,7 +50,7 @@ void classify_tok (int tok)
 
   // FIXME-- this keeps us out of transformation loops until I
   // implement something smarter
-  if (strlen(tok_list[tok].str) < 6) return;
+  if (strncmp (tok_list[tok].str, "_x_", 3) == 0) return;
 
   // FIXME-- this loop makes overall perforamnce quadratic, better
   // not run this on big inputs
