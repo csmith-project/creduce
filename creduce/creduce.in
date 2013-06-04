@@ -368,7 +368,7 @@ my @all_methods = (
     { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  31, },
     { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  32, },
 
-    { "name" => "pass_crc",      "arg" => "",                                      "first_pass_pri" => 110, },
+    { "name" => "pass_special",      "arg" => "",                                      "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 104,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
     { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  35, },

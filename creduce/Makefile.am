@@ -22,7 +22,7 @@ dist_perllib_DATA = \
 	pass_blank.pm \
 	pass_clang.pm \
 	pass_clex.pm \
-	pass_crc.pm \
+	pass_special.pm \
 	pass_indent.pm \
 	pass_ints.pm \
 	pass_lines.pm \

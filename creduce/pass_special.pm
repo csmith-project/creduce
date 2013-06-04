@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-package pass_crc;
+package pass_special;
 
 use strict;
 use warnings;
