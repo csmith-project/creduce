@@ -36,6 +36,7 @@ sub runit ($) {
     return ($? >> 8);
 }
 
+# utility code to help us replace the nth occurrence of a pattern
 $replace_cont = 0;
 $matched = 0;
 sub replace_aux ($$$) { 

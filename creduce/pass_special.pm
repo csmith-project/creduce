@@ -46,9 +46,15 @@ sub transform ($$$) {
     my $prog = read_file ($cfile);
     my $prog2 = $prog;
 
-    # this only makes sense for Csmith output...
-    $replace_cont = -1;
-    $prog2 =~ s/(?<all>transparent_crc\s*\((?<list>.*?)\))/replace_aux($index,$+{all},junk($+{list}))/egs;
+    if ($which eq "a") {
+      # special case for Csmith output
+      $replace_cont = -1;
+      $prog2 =~ s/(?<all>transparent_crc\s*\((?<list>.*?)\))/replace_aux($index,$+{all},junk($+{list}))/egs;
+    } elsif ($which eq "b") {
+      $prog2 =~ s/extern \"C\"/replace_aux($index,"extern \"C\"", "")/egs;
+    } else {
+      die();
+    }
 
     if ($prog ne $prog2) {
 	write_file ($cfile, $prog2);
