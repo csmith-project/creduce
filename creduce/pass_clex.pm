@@ -47,7 +47,7 @@ sub check_prereqs () {
 }
 
 sub new ($$) {
-    my $index = 1;
+    my $index = 0;
     return \$index;
 }
 
@@ -62,7 +62,7 @@ sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
     my $tmpfile = POSIX::tmpnam();
-    my $cmd = "$clex --transformation=$which --counter=$index $cfile";
+    my $cmd = "$clex $which $index $cfile";
     print "$cmd\n" if $VERBOSE;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {

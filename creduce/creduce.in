@@ -45,7 +45,7 @@ use creduce_utils;
 ######################################################################
 
 my $NPROCS = Sys::CPU::cpu_count();
-my $SANITIZE;
+my $SANITIZE = 0;
 my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
@@ -434,8 +434,14 @@ my @all_methods = (
     { "name" => "pass_ints",     "arg" => "d",                      "pri" => 603,  },
     { "name" => "pass_ints",     "arg" => "e",                      "pri" => 603,  },
     { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
-    { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 1000, },
+    { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 9999, },
     );
+
+if ($SANITIZE) {
+    push @all_methods, (
+	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+    );
+}
 
 sub pass_iterator ($) {
     (my $which) = @_;

@@ -16,6 +16,7 @@ struct tok_t *tok_list;
 int toks;
 int max_toks;
 const int initial_length = 1;
+int max_seen = -1;
 
 int add_tok (char *str, enum tok_kind kind)
 {
@@ -36,16 +37,23 @@ int add_tok (char *str, enum tok_kind kind)
 void classify_tok (int tok)
 {
   if (tok_list[tok].kind != TOK_IDENT) return;
+  int id;
+  // FIXME do not hardcode this...
+  int res = sscanf ("_x_%d", tok_list[tok].str, &id);
+  if (res==1) {
+    if (id > max_seen) {
+      max_seen = id;
+    }
+  }
+
+  // FIXME-- this keeps us out of transformation loops until I
+  // implement something smarter
+  if (strlen(tok_list[tok].str) < 6) return;
+
   int i;
   for (i=0; i<toks; i++) {
     if (tok_list[i].kind != TOK_IDENT) continue;
     if (i==tok) continue;
-
-    // FIXME-- this keeps us out of transformation loops until I
-    // implement something smarter
-    if (strlen(tok_list[i].str) < 6) continue;
-
-    assert (tok_list[i].id != -1);
     if (strcmp (tok_list[i].str, tok_list[tok].str) == 0) {
       tok_list[tok].id = tok_list[i].id;
       return;
@@ -63,9 +71,13 @@ void doit (enum tok_kind kind)
 }
 
 int main(int argc, char *argv[]) {
-  assert (argc == 2);
-  printf ("file = '%s'\n", argv[1]);
-  FILE *in = fopen (argv[1], "r");
+  assert (argc == 4);
+  char *cmd = argv[1];
+  int index;
+  int ret = sscanf (argv[2], "%d", &index);
+  assert (ret==1);
+  printf ("file = '%s'\n", argv[3]);
+  FILE *in = fopen (argv[3], "r");
   assert (in);
   yyin = in;
 
@@ -75,13 +87,24 @@ int main(int argc, char *argv[]) {
 
   yylex();
   int i;
+  int matched = 0;
   for (i=0; i<toks; i++) {
-    printf ("%s", tok_list[i].str);
+    int printed = 0;
     if (tok_list[i].id != -1) {
-      printf (" -=- %d -=-", tok_list[i].id);
+      if (tok_list[i].id == index) {
+	printf ("_x_%d", max_seen+1);
+	printed = 1;
+	matched = 1;
+      }
+      // printf (" -=- %d -=-", tok_list[i].id);
     }
-    printf ("\n");
+    if (!printed) printf ("%s", tok_list[i].str);
+    printf (" ");
   }
   printf ("// %d tokens\n", count);
-  return 0;
+  if (matched) {
+    return 0;
+  } else {
+    return -1;
+  }
 }
