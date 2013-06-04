@@ -40,6 +40,11 @@ void classify_tok (int tok)
   for (i=0; i<toks; i++) {
     if (tok_list[i].kind != TOK_IDENT) continue;
     if (i==tok) continue;
+
+    // FIXME-- this keeps us out of transformation loops until I
+    // implement something smarter
+    if (strlen(tok_list[i].str) < 6) continue;
+
     assert (tok_list[i].id != -1);
     if (strcmp (tok_list[i].str, tok_list[tok].str) == 0) {
       tok_list[tok].id = tok_list[i].id;
@@ -62,7 +67,7 @@ int main(int argc, char *argv[]) {
   printf ("file = '%s'\n", argv[1]);
   FILE *in = fopen (argv[1], "r");
   assert (in);
-  yyin = in;   
+  yyin = in;
 
   max_toks = initial_length;
   tok_list = (struct tok_t *) malloc (max_toks * sizeof (struct tok_t));
