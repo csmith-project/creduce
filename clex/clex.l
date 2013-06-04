@@ -133,7 +133,7 @@ L?\"(\\.|[^\\"])*\"	{ doit(TOK_OTHER); }
                     }
            }
 
-[ \t\v\n\f]		{  }
+[ \t\v\n\f]		{ doit(TOK_WS); }
 
 .			{ fprintf (stderr, "didn't expect to see '%s'\n", yytext); 
                           assert (0); }

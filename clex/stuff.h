@@ -19,7 +19,8 @@ enum tok_kind {
   TOK_OP,
   TOK_IDENT,
   TOK_OTHER,
-  TOK_NUMBER
+  TOK_NUMBER,
+  TOK_WS
 };
 
 void doit (enum tok_kind);

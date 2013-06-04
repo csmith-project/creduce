@@ -50,7 +50,8 @@ void classify_tok (int tok)
 
   // FIXME-- this keeps us out of transformation loops until I
   // implement something smarter
-  if (strncmp (tok_list[tok].str, "_x_", 3) == 0) return;
+  if (strncmp (tok_list[tok].str, "_x_", 3) == 0 ||
+      strlen (tok_list[tok].str) <= 4) return;
 
   // FIXME-- this loop makes overall perforamnce quadratic, better
   // not run this on big inputs
@@ -75,11 +76,51 @@ void doit (enum tok_kind kind)
   count++;
 }
 
+enum mode_t {
+  MODE_RENAME = 1111,
+  MODE_RENAME_DEBUG,
+  MODE_NONE,
+};
+
+void dump_renamed_file (int tok_index)
+{
+  int i;
+  int matched = 0;
+  for (i=0; i<toks; i++) {
+    int printed = 0;
+    if (tok_list[i].id != -1) {
+      if (tok_list[i].id == tok_index) {
+	printf ("_x_%d", max_seen+1);
+	printed = 1;
+	matched = 1;
+      }
+      // printf (" -=- %d -=-", tok_list[i].id);
+    }
+    if (!printed) printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
 int main(int argc, char *argv[]) {
   assert (argc == 4);
+
   char *cmd = argv[1];
-  int index;
-  int ret = sscanf (argv[2], "%d", &index);
+  enum mode_t mode = MODE_NONE;
+  if (strcmp (cmd, "rename-toks") == 0) {
+    mode = MODE_RENAME;
+  } else if (strcmp (cmd, "rename-toks-debug") == 0) {
+    mode = MODE_RENAME_DEBUG;
+  } else {
+    printf ("error: unknown mode '%s'\n", cmd);
+    exit (-50);
+  }
+
+  int tok_index;
+  int ret = sscanf (argv[2], "%d", &tok_index);
   assert (ret==1);
   // printf ("file = '%s'\n", argv[3]);
   FILE *in = fopen (argv[3], "r");
@@ -91,24 +132,14 @@ int main(int argc, char *argv[]) {
   assert (tok_list);
 
   yylex();
-  int i;
-  int matched = 0;
-  for (i=0; i<toks; i++) {
-    int printed = 0;
-    if (tok_list[i].id != -1) {
-      if (tok_list[i].id == index) {
-	printf ("_x_%d", max_seen+1);
-	printed = 1;
-	matched = 1;
-      }
-      // printf (" -=- %d -=-", tok_list[i].id);
-    }
-    if (!printed) printf ("%s", tok_list[i].str);
-    printf (" ");
+
+  switch (mode) {
+  case MODE_RENAME:
+    dump_renamed_file (tok_index);
+    break;
+  default:
+    assert (0);
   }
-  if (matched) {
-    return 0;
-  } else {
-    return -1;
-  }
+  
+  return -1;
 }
