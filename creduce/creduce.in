@@ -255,6 +255,9 @@ sub delta_pass ($) {
 	    chdir $ORIG_DIR or die;
 	    $stopped = 1;
 	} else {
+	    
+	    system "diff $toreduce_best $tmpfn";
+
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);

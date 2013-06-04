@@ -39,12 +39,14 @@ void classify_tok (int tok)
   if (tok_list[tok].kind != TOK_IDENT) return;
   int id;
   // FIXME do not hardcode this...
-  int res = sscanf ("_x_%d", tok_list[tok].str, &id);
+  int res = sscanf (tok_list[tok].str, "_x_%d", &id);
   if (res==1) {
     if (id > max_seen) {
       max_seen = id;
     }
   }
+
+  // FIXME: have a c++ mode that recognizes its keywords
 
   // FIXME-- this keeps us out of transformation loops until I
   // implement something smarter
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]) {
   int index;
   int ret = sscanf (argv[2], "%d", &index);
   assert (ret==1);
-  printf ("file = '%s'\n", argv[3]);
+  // printf ("file = '%s'\n", argv[3]);
   FILE *in = fopen (argv[3], "r");
   assert (in);
   yyin = in;
@@ -101,7 +103,6 @@ int main(int argc, char *argv[]) {
     if (!printed) printf ("%s", tok_list[i].str);
     printf (" ");
   }
-  printf ("// %d tokens\n", count);
   if (matched) {
     return 0;
   } else {
