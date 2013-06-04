@@ -54,7 +54,7 @@ void classify_tok (int tok)
       strlen (tok_list[tok].str) <= 3) return;
 
   // FIXME-- this loop makes overall perforamnce quadratic, better
-  // not run this program on big inputs
+  // not run on big inputs
 
   int i;
   for (i=0; i<toks; i++) {
