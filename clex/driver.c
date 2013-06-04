@@ -52,6 +52,9 @@ void classify_tok (int tok)
   // implement something smarter
   if (strlen(tok_list[tok].str) < 6) return;
 
+  // FIXME-- this loop makes overall perforamnce quadratic, better
+  // not run this on big inputs
+
   int i;
   for (i=0; i<toks; i++) {
     if (tok_list[i].kind != TOK_IDENT) continue;

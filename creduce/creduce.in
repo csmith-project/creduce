@@ -45,6 +45,7 @@ use creduce_utils;
 ######################################################################
 
 my $NPROCS = Sys::CPU::cpu_count();
+my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SANITY;
 my $SKIP_FIRST;
@@ -59,6 +60,7 @@ my $CACHE = 0;
 my @options = (
     ["--cache",               "const",   1, \$CACHE, "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--print-diff",          "const",   1, \$PRINT_DIFF, "Show changes made by transformations, for debugging"],
     ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS, "Don't delete /tmp/creduce-xxxxxx directories on termination"],
@@ -255,9 +257,7 @@ sub delta_pass ($) {
 	    chdir $ORIG_DIR or die;
 	    $stopped = 1;
 	} else {
-	    
-	    system "diff $toreduce_best $tmpfn";
-
+	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);
