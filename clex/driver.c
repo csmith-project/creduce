@@ -46,15 +46,15 @@ void classify_tok (int tok)
     }
   }
 
-  // FIXME: have a c++ mode that recognizes its keywords
+  // FIXME: have a C++ mode that avoids trying to rename C++ keywords
 
   // FIXME-- this keeps us out of transformation loops until I
   // implement something smarter
   if (strncmp (tok_list[tok].str, "_x_", 3) == 0 ||
-      strlen (tok_list[tok].str) <= 4) return;
+      strlen (tok_list[tok].str) <= 3) return;
 
   // FIXME-- this loop makes overall perforamnce quadratic, better
-  // not run this on big inputs
+  // not run this program on big inputs
 
   int i;
   for (i=0; i<toks; i++) {
@@ -133,13 +133,10 @@ int main(int argc, char *argv[]) {
 
   yylex();
 
+  // these calls all exit() at the end
   switch (mode) {
   case MODE_RENAME:
     dump_renamed_file (tok_index);
-    break;
-  default:
-    assert (0);
   }
-  
-  return -1;
+  assert (0);
 }

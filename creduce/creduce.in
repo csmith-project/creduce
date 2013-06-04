@@ -17,10 +17,12 @@
 
 ## TODO: 
 # make peep:b faster and less stupid
+#   one possibility is to turn on caching for only that pass
 # benchmark the caching code on some large reductions
 # use IPC::Run3 instead of system?
 # test against LLVM 3.3 when it comes out
 # use clang-format after we update to 3.3
+# support adding/removing passes via the command line
 
 use strict;
 use warnings;
