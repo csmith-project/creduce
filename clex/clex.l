@@ -59,7 +59,7 @@ L?'(\\.|[^\\'])+'	{ doit(TOK_OTHER); }
 {D}*"."{D}+({E})?{FS}?	{ doit(TOK_NUMBER); }
 {D}+"."{D}*({E})?{FS}?	{ doit(TOK_NUMBER); }
 
-L?\"(\\.|[^\\"])*\"	{ doit(TOK_OTHER); }
+L?\"(\\.|[^\\"])*\"	{ doit(TOK_STRING); }
 
 "..."			{ doit(TOK_OTHER); }
 ">>="			{ doit(TOK_OP); }

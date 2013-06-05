@@ -78,7 +78,7 @@ void doit (enum tok_kind kind)
 
 enum mode_t {
   MODE_RENAME = 1111,
-  MODE_RENAME_DEBUG,
+  MODE_DELETE_STRING,
   MODE_NONE,
 };
 
@@ -88,13 +88,36 @@ void dump_renamed_file (int tok_index)
   int matched = 0;
   for (i=0; i<toks; i++) {
     int printed = 0;
-    if (tok_list[i].id != -1) {
-      if (tok_list[i].id == tok_index) {
-	printf ("_x_%d", max_seen+1);
+    if (tok_list[i].id != -1 &&
+	tok_list[i].id == tok_index) {
+      printf ("_x_%d", max_seen+1);
+      printed = 1;
+      matched = 1;
+    }
+    if (!printed) printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
+void delete_string (int idx)
+{
+  int i;
+  int matched = 0;
+  int which = 0;
+  for (i=0; i<toks; i++) {
+    int printed = 0;
+    if (tok_list[i].kind == TOK_STRING &&
+	strcmp (tok_list[i].str, "\"\"") != 0) {
+      if (which == idx) {
+	printf ("\"\"");
 	printed = 1;
 	matched = 1;
-      }
-      // printf (" -=- %d -=-", tok_list[i].id);
+      } 
+      which++;
     }
     if (!printed) printf ("%s", tok_list[i].str);
   }
@@ -112,8 +135,8 @@ int main(int argc, char *argv[]) {
   enum mode_t mode = MODE_NONE;
   if (strcmp (cmd, "rename-toks") == 0) {
     mode = MODE_RENAME;
-  } else if (strcmp (cmd, "rename-toks-debug") == 0) {
-    mode = MODE_RENAME_DEBUG;
+  } else if (strcmp (cmd, "delete-string") == 0) {
+    mode = MODE_DELETE_STRING;
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
     exit (-50);
@@ -137,6 +160,8 @@ int main(int argc, char *argv[]) {
   switch (mode) {
   case MODE_RENAME:
     dump_renamed_file (tok_index);
+  case MODE_DELETE_STRING:
+    delete_string (tok_index);
   }
   assert (0);
 }

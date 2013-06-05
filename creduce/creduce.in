@@ -447,6 +447,7 @@ my @all_methods = (
 if ($SANITIZE) {
     push @all_methods, (
 	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+	{ "name" => "pass_clex", "arg" => "delete-string",          "last_pass_pri" => 1001, },
     );
 }
 
