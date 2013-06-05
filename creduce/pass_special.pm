@@ -52,6 +52,8 @@ sub transform ($$$) {
       $prog2 =~ s/(?<all>transparent_crc\s*\((?<list>.*?)\))/replace_aux($index,$+{all},junk($+{list}))/egs;
     } elsif ($which eq "b") {
       $prog2 =~ s/extern \"C\"/replace_aux($index,"extern \"C\"", "")/egs;
+    } elsif ($which eq "c") {
+      $prog2 =~ s/extern \"C++\"/replace_aux($index,"extern \"C++\"", "")/egs;
     } else {
       die();
     }

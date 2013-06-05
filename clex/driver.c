@@ -38,7 +38,7 @@ void classify_tok (int tok)
 {
   if (tok_list[tok].kind != TOK_IDENT) return;
   int id;
-  // FIXME do not hardcode this...
+  // FIXME find first unused instead of max+1?
   int res = sscanf (tok_list[tok].str, "_x_%d", &id);
   if (res==1) {
     if (id > max_seen) {
