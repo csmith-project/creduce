@@ -79,6 +79,7 @@ void doit (enum tok_kind kind)
 enum mode_t {
   MODE_RENAME = 1111,
   MODE_DELETE_STRING,
+  MODE_RM_TOKS,
   MODE_NONE,
 };
 
@@ -128,6 +129,32 @@ void delete_string (int idx)
   }
 }
 
+int rm_toks_n;
+
+void rm_toks (int idx)
+{
+  int i;
+  int matched = 0;
+  int which = 0;
+  int started = 0;
+  for (i=0; i<toks; i++) {
+    if (tok_list[i].kind != TOK_WS) {
+      if (which == idx) {
+	started = 1;
+	matched = 1;
+      }
+      which++;
+    }
+    if (!started ||
+	(started && which > (idx + rm_toks_n))) printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
 int main(int argc, char *argv[]) {
   assert (argc == 4);
 
@@ -137,6 +164,11 @@ int main(int argc, char *argv[]) {
     mode = MODE_RENAME;
   } else if (strcmp (cmd, "delete-string") == 0) {
     mode = MODE_DELETE_STRING;
+  } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
+    mode = MODE_RM_TOKS;
+    int res = sscanf (&cmd[8], "%d", &rm_toks_n);
+    assert (res==1);
+    assert (rm_toks_n > 0 && rm_toks_n <= 16);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
     exit (-50);
@@ -160,8 +192,12 @@ int main(int argc, char *argv[]) {
   switch (mode) {
   case MODE_RENAME:
     dump_renamed_file (tok_index);
+    assert (0);
   case MODE_DELETE_STRING:
     delete_string (tok_index);
+    assert (0);
+  case MODE_RM_TOKS:
+    rm_toks (tok_index);
+    assert (0);
   }
-  assert (0);
 }
