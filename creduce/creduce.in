@@ -56,6 +56,7 @@ my $SANITIZE = 0;
 my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
+my $SLOW;
 # if set, cache results of the delta test
 #
 # FIXME: the caching strategy is not super great since we fork a child
@@ -71,6 +72,7 @@ my @options = (
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS, "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
+    ["--slow",                "const",   1, \$SLOW, "Run additional passes that may improve final output slightly, but that might also be very slow"],
     ["--verbose",             "const",   1, \$VERBOSE, "Print debug information"]
 );
 
@@ -454,7 +456,11 @@ if ($SANITIZE) {
 	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
 	# FIXME-- call this pass by default instead of here
 	{ "name" => "pass_clex", "arg" => "delete-string",          "last_pass_pri" => 1001, },
-	# SLOOOOW
+    );
+}
+
+if ($SLOW) {
+    push @all_methods, (
 	{ "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 1001, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 1001, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 1001, },
@@ -464,13 +470,13 @@ if ($SANITIZE) {
 	{ "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 1001, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 1001, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-10",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-11",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-12",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-13",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-14",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-15",              "pri" => 1001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-16",              "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 1001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 1001, },
     );
 }
 
