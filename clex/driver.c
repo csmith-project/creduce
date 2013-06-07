@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
     mode = MODE_RM_TOKS;
     int res = sscanf (&cmd[8], "%d", &rm_toks_n);
     assert (res==1);
-    assert (rm_toks_n > 0 && rm_toks_n <= 16);
+    assert (rm_toks_n > 0 && rm_toks_n <= 1000);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
     exit (-50);
