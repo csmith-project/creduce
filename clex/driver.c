@@ -11,12 +11,10 @@ struct tok_t {
   int id;
 };
 
-int next_id;
 struct tok_t *tok_list;
 int toks;
 int max_toks;
 const int initial_length = 1;
-int max_seen = -1;
 
 int add_tok (char *str, enum tok_kind kind)
 {
@@ -34,46 +32,9 @@ int add_tok (char *str, enum tok_kind kind)
   return toks-1;
 }
 
-// FIXME factor out the renaming stuff into the proper function
-void classify_tok (int tok)
-{
-  if (tok_list[tok].kind != TOK_IDENT) return;
-  int id;
-  // FIXME find first unused instead of max+1?
-  int res = sscanf (tok_list[tok].str, "_x_%d", &id);
-  if (res==1) {
-    if (id > max_seen) {
-      max_seen = id;
-    }
-  }
-
-  // FIXME: have a C++ mode that avoids trying to rename C++ keywords
-
-  // FIXME-- this keeps us out of transformation loops until I
-  // implement something smarter
-  if (strncmp (tok_list[tok].str, "_x_", 3) == 0) return;
-  // if (strlen (tok_list[tok].str) <= 3) return;
-
-  // FIXME-- this loop makes overall perforamnce quadratic, better
-  // not run on big inputs
-
-  int i;
-  for (i=0; i<toks; i++) {
-    if (tok_list[i].kind != TOK_IDENT) continue;
-    if (i==tok) continue;
-    if (strcmp (tok_list[i].str, tok_list[tok].str) == 0) {
-      tok_list[tok].id = tok_list[i].id;
-      return;
-    }
-  }
-  tok_list[tok].id = next_id;
-  next_id++;
-}
-
 void doit (enum tok_kind kind)
 {
   int tok = add_tok (yytext, kind);
-  classify_tok (tok);
   count++;
 }
 
@@ -96,9 +57,46 @@ void print_toks (void)
   exit (0);
 }
 
-void dump_renamed_file (int tok_index)
+// FIXME: have a C++ mode that avoids trying to rename C++ keywords?
+
+void rename_toks (int tok_index)
 {
+  // find the highest number used in a rename, and also assign a number to each 
+  // distinct identifier that doesn't start wtih our prefix
+  int max_seen = -1;
+  int next_id = 0;
   int i;
+  for (i=0; i<toks; i++) {
+    if (tok_list[i].kind != TOK_IDENT) continue;
+    // FIXME find first unused instead of max+1?
+    int id;
+    int res = sscanf (tok_list[i].str, "_x_%d", &id);
+    if (res==1) {
+      // this one was already renamed
+      if (id > max_seen) {
+	max_seen = id;
+      }
+    } else {
+      // it's a candidate for renaming so give it a number
+      // FIXME: can bail out of here if the id exceeds our target
+      // tok_index
+      int j;
+      int matched = 0;
+      for (j=0; j<i; j++) {
+	if (tok_list[j].kind != TOK_IDENT) continue;
+	if (strcmp (tok_list[j].str, tok_list[i].str) == 0) {
+	  matched = 1;
+	  tok_list[i].id = tok_list[j].id;
+	}
+      }
+      if (!matched) {
+	tok_list[i].id = next_id;
+	next_id++;
+      }
+    }
+  }
+
+  // now dump the renamed token stream
   int matched = 0;
   for (i=0; i<toks; i++) {
     int printed = 0;
@@ -284,7 +282,7 @@ int main(int argc, char *argv[]) {
     print_toks ();
     assert (0);
   case MODE_RENAME:
-    dump_renamed_file (tok_index);
+    rename_toks (tok_index);
     assert (0);
   case MODE_DELETE_STRING:
     delete_string (tok_index);
