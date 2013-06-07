@@ -80,6 +80,7 @@ enum mode_t {
   MODE_RENAME = 1111,
   MODE_DELETE_STRING,
   MODE_RM_TOKS,
+  MODE_RM_TOK_PATTERN,
   MODE_NONE,
 };
 
@@ -155,8 +156,78 @@ void rm_toks (int idx)
   }
 }
 
+void print_pattern (unsigned char c)
+{
+  int z;
+  for (z=0; z<8; z++) {
+    printf ("%d", (c&128)?1:0);
+    c <<= 1;
+  }
+  printf ("\n");
+}
+
+void rm_tok_pattern (int idx)
+{
+  int i;
+  int n_patterns = 1<<(rm_toks_n-1);
+  unsigned char patterns[n_patterns];
+  for (i=0; i<n_patterns; i++) {
+    patterns[i] = 1 | ((unsigned)i << 1);
+  }
+
+  int n_pattern = idx & (n_patterns-1);
+  unsigned char pat = patterns[n_pattern];	
+
+  if (0) {
+    printf ("pattern = ");
+    print_pattern (pat);
+  }
+
+  idx >>= (rm_toks_n-1);
+  
+  int which = 0;
+  int started = 0;
+  int matched = 0;
+  int deleted = 0;
+  for (i=0; i<toks; i++) {
+    if (tok_list[i].kind != TOK_WS) {
+      if (which == idx) {
+	matched = 1;
+	started = 1;
+      }
+      if (which == (idx + rm_toks_n)) started = 0;
+      which++;
+    }
+    int print = 0;
+    int pattern_idx = which - idx;
+    if (tok_list[i].kind == TOK_WS) {
+      print = 1;
+    } else {
+      if (!started) {
+	print = 1;
+      } else {
+	if (pat & 1) {
+	  deleted = 1;
+	  // printf ("[%s]", tok_list[i].str);
+	} else {
+	  print = 1;
+	}
+	pat >>= 1;
+      }
+    }
+    if (print) printf ("%s", tok_list[i].str);
+  }
+  if (matched && deleted) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
 int main(int argc, char *argv[]) {
-  assert (argc == 4);
+  if (argc != 4) {
+    printf ("USAGE: %s command index file\n", argv[0]);
+  }
 
   char *cmd = argv[1];
   enum mode_t mode = MODE_NONE;
@@ -169,6 +240,11 @@ int main(int argc, char *argv[]) {
     int res = sscanf (&cmd[8], "%d", &rm_toks_n);
     assert (res==1);
     assert (rm_toks_n > 0 && rm_toks_n <= 1000);
+  } else if (strncmp (cmd, "rm-tok-pattern-", 15) == 0) {
+    mode = MODE_RM_TOK_PATTERN;
+    int res = sscanf (&cmd[15], "%d", &rm_toks_n);
+    assert (res==1);
+    assert (rm_toks_n > 1 && rm_toks_n <= 8);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
     exit (-50);
@@ -198,6 +274,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_RM_TOKS:
     rm_toks (tok_index);
+    assert (0);
+  case MODE_RM_TOK_PATTERN:
+    rm_tok_pattern (tok_index);
     assert (0);
   }
 }
