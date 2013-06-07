@@ -61,6 +61,7 @@ void print_toks (void)
 
 void rename_toks (int tok_index)
 {
+  assert (tok_index >= 0);
   // find the highest number used in a rename, and also assign a number to each 
   // distinct identifier that doesn't start wtih our prefix
   int max_seen = -1;
@@ -78,8 +79,6 @@ void rename_toks (int tok_index)
       }
     } else {
       // it's a candidate for renaming so give it a number
-      // FIXME: can bail out of here if the id exceeds our target
-      // tok_index
       int j;
       int matched = 0;
       for (j=0; j<i; j++) {
@@ -87,6 +86,7 @@ void rename_toks (int tok_index)
 	if (strcmp (tok_list[j].str, tok_list[i].str) == 0) {
 	  matched = 1;
 	  tok_list[i].id = tok_list[j].id;
+	  assert (tok_list[j].id != -1);
 	}
       }
       if (!matched) {
@@ -95,20 +95,24 @@ void rename_toks (int tok_index)
       }
     }
   }
+  char newname[255];
+  sprintf (newname, "_x_%d", max_seen+1);
 
   // now dump the renamed token stream
   int matched = 0;
+  char *oldname = NULL;
   for (i=0; i<toks; i++) {
-    int printed = 0;
-    if (tok_list[i].id != -1 &&
-	tok_list[i].id == tok_index) {
-      printf ("_x_%d", max_seen+1);
-      printed = 1;
+    if (tok_list[i].id == tok_index) {
+      assert (!oldname || strcmp (oldname, tok_list[i].str) == 0);
+      oldname = tok_list[i].str;
       matched = 1;
+      printf ("%s", newname);
+    } else {
+      printf ("%s", tok_list[i].str);
     }
-    if (!printed) printf ("%s", tok_list[i].str);
   }
   if (matched) {
+    printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
     exit (0);
   } else {
     exit (-1);
