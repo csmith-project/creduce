@@ -34,6 +34,7 @@ int add_tok (char *str, enum tok_kind kind)
   return toks-1;
 }
 
+// FIXME factor out the renaming stuff into the proper function
 void classify_tok (int tok)
 {
   if (tok_list[tok].kind != TOK_IDENT) return;
@@ -50,8 +51,8 @@ void classify_tok (int tok)
 
   // FIXME-- this keeps us out of transformation loops until I
   // implement something smarter
-  if (strncmp (tok_list[tok].str, "_x_", 3) == 0 ||
-      strlen (tok_list[tok].str) <= 3) return;
+  if (strncmp (tok_list[tok].str, "_x_", 3) == 0) return;
+  // if (strlen (tok_list[tok].str) <= 3) return;
 
   // FIXME-- this loop makes overall perforamnce quadratic, better
   // not run on big inputs
@@ -78,11 +79,22 @@ void doit (enum tok_kind kind)
 
 enum mode_t {
   MODE_RENAME = 1111,
+  MODE_PRINT,
   MODE_DELETE_STRING,
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
   MODE_NONE,
 };
+
+void print_toks (void)
+{
+  int i;
+  for (i=0; i<toks; i++) {
+    // if (tok_list[i].kind != TOK_WS) printf ("%s\n", tok_list[i].str);
+    if (tok_list[i].kind == TOK_IDENT) printf ("%s\n", tok_list[i].str);
+  }
+  exit (0);
+}
 
 void dump_renamed_file (int tok_index)
 {
@@ -233,6 +245,8 @@ int main(int argc, char *argv[]) {
   enum mode_t mode = MODE_NONE;
   if (strcmp (cmd, "rename-toks") == 0) {
     mode = MODE_RENAME;
+  } else if (strcmp (cmd, "print") == 0) {
+    mode = MODE_PRINT;
   } else if (strcmp (cmd, "delete-string") == 0) {
     mode = MODE_DELETE_STRING;
   } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
@@ -266,6 +280,9 @@ int main(int argc, char *argv[]) {
 
   // these calls all exit() at the end
   switch (mode) {
+  case MODE_PRINT:
+    print_toks ();
+    assert (0);
   case MODE_RENAME:
     dump_renamed_file (tok_index);
     assert (0);
