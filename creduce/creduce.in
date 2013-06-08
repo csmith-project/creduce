@@ -211,12 +211,19 @@ sub call_transform ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
-my @kids = ();
+# this is the list of variants that we're currently considering; it is
+# speculative by assuming that each subsequent variant is
+# uninteresting; once an interesting variant is found, we have to
+# empty out this list using killem() and start again; elements of this
+# list are tuples where the first element is the pid of the child
+# process (if running) or -1 (if we've already waited for that child
+# or there never was a child due to a cache hit)
+my @variants = ();
 my $num_running = 0;
 
 sub killem () {
-    while (scalar(@kids) > 0) {
-	my $kidref = shift @kids;
+    while (scalar(@variants) > 0) {
+	my $kidref = shift @variants;
 	die unless (scalar(@{$kidref})==5);
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
 	if ($pid != -1) {
@@ -246,7 +253,7 @@ sub delta_pass ($) {
     $good_cnt = 0;
     $bad_cnt = 0;
 
-    die unless (scalar(@kids)==0);
+    die unless (scalar(@variants)==0);
 
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
@@ -289,7 +296,7 @@ sub delta_pass ($) {
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-	    push @kids, \@l;
+	    push @variants, \@l;
 	    my $delta_result;
 	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
@@ -307,14 +314,14 @@ sub delta_pass ($) {
     }
 
     # starting at the front of the list, peel off all variants that
-    # aren't backed up by a running process; this might be because
+    # aren't backed up by a running subprocess; this might be because
     # there was a cache hit, or it might be because a subprocess has
-    # terminated
-    while (scalar (@kids) > 0) {
-	my $kidref = $kids[0];
+    # already terminated
+    while (scalar (@variants) > 0) {
+	my $kidref = $variants[0];
 	(my $pid,my $newsh,my $tmpdir,my $tmpfn,my $delta_result) = @{$kidref};
 	last if ($pid != -1);
-	my $trash = shift @kids;
+	my $trash = shift @variants;
 	# ok, now we have a result to work with
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
@@ -335,7 +342,6 @@ sub delta_pass ($) {
 	File::Path::rmtree ($tmpdir, 0, 0);	
     }
 
-    # now we wait...
     if ($num_running>0) {	
 	print "about to wait\n" if $DEBUG_SMP;
 	my $xpid = wait();
@@ -345,22 +351,22 @@ sub delta_pass ($) {
 	print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
 	$num_running--;
 	my $found = 0;
-	for (my $i=0; $i<scalar(@kids); $i++) {
-	    my $kidref = $kids[$i];
+	for (my $i=0; $i<scalar(@variants); $i++) {
+	    my $kidref = $variants[$i];
 	    die unless (scalar(@{$kidref})==5);
 	    (my $pid,my $newsh,my $tmpdir,my $tmpfn,my $res) = @{$kidref};
 	    if ($xpid==$pid) {
 		$found++;
 		my @l = (-1,$newsh,$tmpdir,$tmpfn,$delta_result);
-		splice (@kids, $i, 1, \@l);
+		splice (@variants, $i, 1, \@l);
 		last;
 	    }
 	}
 	die unless $found == 1;
     }
 
-    # pass termination condition
-    if ($stopped && scalar(@kids)==0) {
+    # termination condition for this pass
+    if ($stopped && scalar(@variants)==0) {
 	remove_tmpdirs();
 	return;
     }
