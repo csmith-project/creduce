@@ -57,6 +57,7 @@ my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
 my $SLOW;
+my $NODEAFULT;
 # if set, cache results of the delta test
 #
 # FIXME: the caching strategy is not super great since we fork a child
@@ -67,6 +68,7 @@ my $CACHE = 0;
 my @options = (
     ["--cache",               "const",   1, \$CACHE, "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--no-default-passes",   "const",   1, \$NODEFAULT, "Do not run the default passes"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF, "Show changes made by transformations, for debugging"],
     ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
     ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
@@ -479,6 +481,10 @@ if ($SLOW) {
 	{ "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9015, },
 	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-8",       "pri" => 9100, },
     );
+}
+
+if ($NODEAFULT) {
+    @all_methods = ();
 }
 
 my $which;
