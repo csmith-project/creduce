@@ -89,6 +89,7 @@ $call = "$varnum\\s*$RE{balanced}{-parens=>'()'}";
     ["wchar_t", "int"],
     ["bool", "int"],
     ["typeof\\s+($varnum)", "int"],
+    ["__typeof__\\s+($varnum)", "int"],
     ["int(\\s+)argc(\\s*),(\\s*)(.*)(\\s*)\\*argv\\[\\]", "void"],
     ["int(\\s+)argc(\\s*),(\\s*)(.*)(\\s*)\\*(\\s*)\\*argv", "void"],
     ["int.*?;", ""],
