@@ -57,7 +57,7 @@ my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
 my $SLOW;
-my $NODEAFULT;
+my $NODEFAULT;
 # if set, cache results of the delta test
 #
 # FIXME: the caching strategy is not super great since we fork a child
@@ -66,6 +66,7 @@ my $NODEAFULT;
 my $CACHE = 0;
 
 my @options = (
+    # ["--add-pass"             "string",  3, \@
     ["--cache",               "const",   1, \$CACHE,       "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS,      "Set number of creduce processes to run simultaneously", "<N>"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,   "Do not run the default passes"],
@@ -261,6 +262,8 @@ sub delta_pass ($) {
 	chdir $tmpdir or die;
 	my $tmpfn = Cwd::abs_path($orig_tmpfn);
 	File::Copy::copy($toreduce_best,$tmpfn) or die;
+	# creating the variant is done in the parent, it's only
+	# testing it that we parallelize
 	(my $delta_res, $state) = call_transform ($delta_method,$tmpfn,$delta_arg,$state);
 	die unless ($delta_res == $OK || $delta_res == $STOP);
 	if ($delta_res == $STOP) {
@@ -287,6 +290,8 @@ sub delta_pass ($) {
 	}
     }
 
+    ### FIXME: retire processes in order
+
     # at this point wait if there's anyone to wait for
     if (scalar(@kids)>0) {	
 	my $xpid = wait();
@@ -304,12 +309,12 @@ sub delta_pass ($) {
 	    die unless (scalar(@{$kidref})==4);
 	    ($pid, $newsh, $tmpdir, $tmpfn) = @{$kidref};
 	    if ($xpid==$pid) {
-		$found = 1;
+		$found++;
 		splice (@kids, $i, 1);
 		last;
 	    }
 	}
-	die unless $found;
+	die unless $found == 1;
 
 	if ($CACHE) {
 	    my $prog = read_file($tmpfn);
@@ -483,7 +488,7 @@ if ($SLOW) {
     );
 }
 
-if ($NODEAFULT) {
+if ($NODEFAULT) {
     @all_methods = ();
 }
 
