@@ -211,13 +211,14 @@ sub call_transform ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
-# this is the list of variants that we're currently considering; it is
-# speculative by assuming that each subsequent variant is
-# uninteresting; once an interesting variant is found, we have to
-# empty out this list using killem() and start again; elements of this
-# list are tuples where the first element is the pid of the child
-# process (if running) or -1 (if we've already waited for that child
-# or there never was a child due to a cache hit)
+# @variants is the list of variants that we're currently considering;
+# it is speculative by assuming that each subsequent variant is
+# uninteresting; once an interesting variant is found, the speculation
+# is incorrect and we have to empty out this list using killem() and
+# start again; elements of this list are tuples where the first
+# element is the pid of the child process (if running) or -1 (if we've
+# already waited for that child or there never was a child due to a
+# cache hit)
 my @variants = ();
 my $num_running = 0;
 
@@ -254,6 +255,7 @@ sub delta_pass ($) {
     $bad_cnt = 0;
 
     die unless (scalar(@variants)==0);
+    die unless ($num_running==0);
 
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";

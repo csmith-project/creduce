@@ -112,7 +112,7 @@ void rename_toks (int tok_index)
     }
   }
   if (matched) {
-    printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
+    // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
     exit (0);
   } else {
     exit (-1);
