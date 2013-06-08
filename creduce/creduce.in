@@ -276,7 +276,7 @@ sub delta_pass ($) {
 	    if ($pid==0) {
 		# put this process (the child) into a process group
 		# named by its pid so that we'll be able to kill its
-		# entire subtree at once later
+		# entire subtree all at once later
 		setpgrp();
 		$delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
 		exit ($delta_result);
