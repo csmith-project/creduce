@@ -50,6 +50,7 @@ use creduce_utils;
 
 ######################################################################
 
+my $DEBUG_SMP = 0;
 my $NPROCS = Sys::CPU::cpu_count();
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
@@ -211,15 +212,20 @@ sub call_transform ($$$$) {
 }
 
 my @kids = ();
+my $num_running = 0;
 
 sub killem () {
     while (scalar(@kids) > 0) {
 	my $kidref = shift @kids;
+	die unless (scalar(@{$kidref})==5);
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
-	# kill the whole group
-	kill ('TERM', -$pid); 
-	waitpid ($pid, 0);	
-	File::Path::rmtree ($tmpdir, 0, 0);	
+	if ($pid != -1) {
+	    # kill the whole group
+	    kill ('TERM', -$pid); 
+	    waitpid ($pid, 0);	
+	    File::Path::rmtree ($tmpdir, 0, 0);	
+	    $num_running--;
+	}
     }
 }
 
@@ -241,7 +247,6 @@ sub delta_pass ($) {
     $bad_cnt = 0;
 
     die unless (scalar(@kids)==0);
-    my $num_running = 0;
 
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
@@ -282,7 +287,7 @@ sub delta_pass ($) {
 
 	    my $pid = fork();
 	    die unless ($pid >= 0);
-	    my @l = ($pid, $state, $tmpdir, $tmpfn);
+	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    push @kids, \@l;
 	    my $delta_result;
@@ -297,51 +302,20 @@ sub delta_pass ($) {
 	    }
 	    chdir $ORIG_DIR or die;
 	    $num_running++;
+	    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
 	}
     }
 
-    # peel off finished first elements of the list here
-
-    # if first process is running, now we have to wait for it
-    if ($num_running>0) {	
-	my $xpid = wait();
-	die if ($xpid==-1);
-	my $ret = $?;
-	my $delta_result = $ret >> 8;	    
-
-	my $found = 0;
-	my $pid;
-	my $newsh;
-	my $tmpdir;
-	my $tmpfn;
-	my $res;
-	for (my $i=0; $i<scalar(@kids); $i++) {
-	    my $kidref = $kids[$i];
-	    die unless (scalar(@{$kidref})==5);
-	    ($pid,$newsh,$tmpdir,$tmpfn,$res) = @{$kidref};
-	    if ($xpid==$pid) {
-		$found++;
-		splice (@kids, $i, 1);
-		last;
-	    }
-	}
-	die unless $found == 1;
-
-	if ($CACHE) {
-	    my $prog = read_file($tmpfn);
-	    my $len = -s $tmpfn;
-	    $cache{$len}{$prog} = $delta_result;
-	    if ($len < $old_len) {
-		foreach my $k (keys %cache) {
-		    if ($k > ($len + $CACHE_PRUNE_SIZE)) {
-			$cache{$k} = ();
-		    }
-		}
-	    }
-	    $old_len = $len;
-	}
-    }
-
+    # starting at the front of the list, peel off all variants that
+    # aren't backed up by a running process; this might be because
+    # there was a cache hit, or it might be because a subprocess has
+    # terminated
+    while (scalar (@kids) > 0) {
+	my $kidref = $kids[0];
+	(my $pid,my $newsh,my $tmpdir,my $tmpfn,my $delta_result) = @{$kidref};
+	last if ($pid != -1);
+	my $trash = shift @kids;
+	# ok, now we have a result to work with
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
 	    # best version--this has to be done in the parent process
@@ -358,8 +332,31 @@ sub delta_pass ($) {
 	    $bad_cnt++;
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
-
 	File::Path::rmtree ($tmpdir, 0, 0);	
+    }
+
+    # now we wait...
+    if ($num_running>0) {	
+	print "about to wait\n" if $DEBUG_SMP;
+	my $xpid = wait();
+	die if ($xpid==-1);
+	my $ret = $?;
+	my $delta_result = $ret >> 8;	    
+	print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
+	$num_running--;
+	my $found = 0;
+	for (my $i=0; $i<scalar(@kids); $i++) {
+	    my $kidref = $kids[$i];
+	    die unless (scalar(@{$kidref})==5);
+	    (my $pid,my $newsh,my $tmpdir,my $tmpfn,my $res) = @{$kidref};
+	    if ($xpid==$pid) {
+		$found++;
+		my @l = (-1,$newsh,$tmpdir,$tmpfn,$delta_result);
+		splice (@kids, $i, 1, \@l);
+		last;
+	    }
+	}
+	die unless $found == 1;
     }
 
     # pass termination condition
