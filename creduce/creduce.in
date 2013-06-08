@@ -66,16 +66,16 @@ my $NODEAFULT;
 my $CACHE = 0;
 
 my @options = (
-    ["--cache",               "const",   1, \$CACHE, "Cache results of delta tests"],
-    ["-n",                    "integer", 1, \$NPROCS, "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--no-default-passes",   "const",   1, \$NODEFAULT, "Do not run the default passes"],
-    ["--print-diff",          "const",   1, \$PRINT_DIFF, "Show changes made by transformations, for debugging"],
-    ["--sanitize",            "const",   1, \$SANITIZE, "Attempt to obscure details from the original source file"],
-    ["--sanity-checks",       "const",   1, \$SANITY,  "Ensure the delta test succeeds before starting each pass"],
-    ["--save-temps",          "const",   1, \$SAVE_TEMPS, "Don't delete /tmp/creduce-xxxxxx directories on termination"],
-    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST, "Skip initial passes (useful if input is already reduced)"],
-    ["--slow",                "const",   1, \$SLOW, "Run additional passes that may improve final output slightly, but that might also be very slow"],
-    ["--verbose",             "const",   1, \$VERBOSE, "Print debug information"]
+    ["--cache",               "const",   1, \$CACHE,       "Cache results of delta tests"],
+    ["-n",                    "integer", 1, \$NPROCS,      "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--no-default-passes",   "const",   1, \$NODEFAULT,   "Do not run the default passes"],
+    ["--print-diff",          "const",   1, \$PRINT_DIFF,  "Show changes made by transformations, for debugging"],
+    ["--sanitize",            "const",   1, \$SANITIZE,    "Attempt to obscure details from the original source file"],
+    ["--sanity-checks",       "const",   1, \$SANITY,      "Ensure the delta test succeeds before starting each pass"],
+    ["--save-temps",          "const",   1, \$SAVE_TEMPS,  "Don't delete /tmp/creduce-xxxxxx directories on termination"],
+    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,  "Skip initial passes (useful if input is already reduced)"],
+    ["--slow",                "const",   1, \$SLOW,        "Run additional passes that may improve final output slightly, but that might also be very slow"],
+    ["--verbose",             "const",   1, \$VERBOSE,     "Print debug information"]
 );
 
 my $help = creduce_config::PACKAGE_STRING . " -- C and C++ program reducer";
