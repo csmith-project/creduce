@@ -215,7 +215,7 @@ my @kids = ();
 sub killem () {
     while (scalar(@kids) > 0) {
 	my $kidref = shift @kids;
-	(my $pid, my $newsh, my $tmpdir, my $tmpfn) = @{$kidref};
+	(my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
 	# kill the whole group
 	kill ('TERM', -$pid); 
 	waitpid ($pid, 0);	
@@ -241,6 +241,7 @@ sub delta_pass ($) {
     $bad_cnt = 0;
 
     die unless (scalar(@kids)==0);
+    my $num_running = 0;
 
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
@@ -255,9 +256,13 @@ sub delta_pass ($) {
 
     my $stopped = 0;
   AGAIN:
-
-    # create child processes until either we've created enough or we get a STOP
-    while (!$stopped && scalar(@kids) < $NPROCS) {
+    
+    # create child processes until:
+    # 1. we've created enough 
+    # 2. we get a STOP
+    # 3. we get a cache hit, in which case it's a better bet to just
+    #    look at the result instead of speculating more
+    while (!$stopped && $num_running < $NPROCS) {
 	my $tmpdir = make_tmpdir();
 	chdir $tmpdir or die;
 	my $tmpfn = Cwd::abs_path($orig_tmpfn);
@@ -271,6 +276,10 @@ sub delta_pass ($) {
 	    $stopped = 1;
 	} else {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
+
+	    # FIXME: check the cache here
+	    # FIXME: extend the plugin interface to optionally return a reference to the processed data
+
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    my @l = ($pid, $state, $tmpdir, $tmpfn);
@@ -287,13 +296,14 @@ sub delta_pass ($) {
 		exit ($delta_result);
 	    }
 	    chdir $ORIG_DIR or die;
+	    $num_running++;
 	}
     }
 
-    ### FIXME: retire processes in order
+    # peel off finished first elements of the list here
 
-    # at this point wait if there's anyone to wait for
-    if (scalar(@kids)>0) {	
+    # if first process is running, now we have to wait for it
+    if ($num_running>0) {	
 	my $xpid = wait();
 	die if ($xpid==-1);
 	my $ret = $?;
@@ -304,10 +314,11 @@ sub delta_pass ($) {
 	my $newsh;
 	my $tmpdir;
 	my $tmpfn;
+	my $res;
 	for (my $i=0; $i<scalar(@kids); $i++) {
 	    my $kidref = $kids[$i];
-	    die unless (scalar(@{$kidref})==4);
-	    ($pid, $newsh, $tmpdir, $tmpfn) = @{$kidref};
+	    die unless (scalar(@{$kidref})==5);
+	    ($pid,$newsh,$tmpdir,$tmpfn,$res) = @{$kidref};
 	    if ($xpid==$pid) {
 		$found++;
 		splice (@kids, $i, 1);
@@ -329,6 +340,7 @@ sub delta_pass ($) {
 	    }
 	    $old_len = $len;
 	}
+    }
 
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
