@@ -1,19 +1,18 @@
 -----------------------------------------------------------------
 
 This directory contains a few random test cases for C-Reduce. They
-don't depend strongly on any particular compiler version. They serve
-two purposes:
+aren't particularly portable or interesting, but rather are used as
+smoke-tests by the C-Reduce developers.
 
-1. Regression testing.
+To run these you must have gcc, clang, frama-c, and kcc in your path.
+The last two programs can be found here:
 
-2. A training set for creating our CDE-based binary C-Reduce
-   distribution:
+  http://frama-c.com/
 
-  http://www.pgbovine.net/cde.html
+  https://code.google.com/p/c-semantics/
 
 Run the tests like this:
 
   ./run_tests
 
 -----------------------------------------------------------------
-
