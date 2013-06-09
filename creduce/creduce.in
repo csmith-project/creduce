@@ -26,7 +26,9 @@
 # use clang-format after we update to 3.3
 # support adding/removing passes via the command line
 # implement a fuzzer mode that probabilistically skips xformations
-#   by calling advance extra times
+#   by calling advance extra times (and don't do the original repetetive 
+#   line-delta passes
+# new slow pass: collapse identifers
 
 use strict;
 use warnings;
@@ -51,6 +53,7 @@ use creduce_utils;
 
 ######################################################################
 
+my $GIVEUP_CONSTANT = 1000;
 my $DEBUG_SMP = 0;
 my $NPROCS = Sys::CPU::cpu_count();
 my $PRINT_DIFF = 0;
@@ -69,16 +72,17 @@ my $CACHE = 0;
 
 my @options = (
     # ["--add-pass"             "string",  3, \@
-    ["--cache",               "const",   1, \$CACHE,       "Cache results of delta tests"],
-    ["-n",                    "integer", 1, \$NPROCS,      "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--no-default-passes",   "const",   1, \$NODEFAULT,   "Do not run the default passes"],
-    ["--print-diff",          "const",   1, \$PRINT_DIFF,  "Show changes made by transformations, for debugging"],
-    ["--sanitize",            "const",   1, \$SANITIZE,    "Attempt to obscure details from the original source file"],
-    ["--sanity-checks",       "const",   1, \$SANITY,      "Ensure the delta test succeeds before starting each pass"],
-    ["--save-temps",          "const",   1, \$SAVE_TEMPS,  "Don't delete /tmp/creduce-xxxxxx directories on termination"],
-    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,  "Skip initial passes (useful if input is already reduced)"],
-    ["--slow",                "const",   1, \$SLOW,        "Run additional passes that may improve final output slightly, but that might also be very slow"],
-    ["--verbose",             "const",   1, \$VERBOSE,     "Print debug information"]
+    ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
+    ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
+    ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
+    ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
+    ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
+    ["--sanity-checks",       "const",   1, \$SANITY,          "Ensure the delta test succeeds before starting each pass"],
+    ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
+    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
+    ["--slow",                "const",   1, \$SLOW,            "Run additional passes that may improve final output slightly, but that might also be very slow"],
+    ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
 );
 
 my $help = creduce_config::PACKAGE_STRING . " -- C and C++ program reducer";
@@ -223,7 +227,7 @@ sub call_transform ($$$$) {
 my @variants = ();
 my $num_running = 0;
 
-sub killem () {
+sub killem() {
     while (scalar(@variants) > 0) {
 	my $kidref = shift @variants;
 	die unless (scalar(@{$kidref})==5);
@@ -269,6 +273,7 @@ sub delta_pass ($) {
 	sanity_check();
     }
 
+    my $since_success = 0;
     my $stopped = 0;
   AGAIN:
     
@@ -331,6 +336,7 @@ sub delta_pass ($) {
 	    # best version--this has to be done in the parent process
 	    killem ();
 	    $good_cnt++;
+	    $since_success = 0;
 	    $method_worked{$delta_method}{$delta_arg}++;
 	    $state = $newsh;
 	    $stopped = 0;
@@ -340,6 +346,7 @@ sub delta_pass ($) {
 	} else {
 	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
+	    $since_success++;
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
 	File::Path::rmtree ($tmpdir, 0, 0);	
@@ -366,6 +373,14 @@ sub delta_pass ($) {
 	    }
 	}
 	die unless $found == 1;
+    }
+
+    # nasty heuristic for avoiding getting stuck by buggy passes that
+    # keep reporting success w/o making progress
+    if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
+	killem();
+	remove_tmpdirs();
+	return;
     }
 
     # termination condition for this pass
