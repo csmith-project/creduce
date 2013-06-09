@@ -25,7 +25,8 @@
 # test against LLVM 3.3 when it comes out
 # use clang-format after we update to 3.3
 # support adding/removing passes via the command line
-# write an optional brute-force pass that deletes pairs, triples, etc. of tokens
+# implement a fuzzer mode that probabilistically skips xformations
+#   by calling advance extra times
 
 use strict;
 use warnings;
