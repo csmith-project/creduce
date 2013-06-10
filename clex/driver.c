@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "stuff.h"
+#include "defs.h"
 
 struct tok_t {
   char *str;

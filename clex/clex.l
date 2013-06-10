@@ -9,7 +9,7 @@ IS			(u|U|l|L)*
 
 %{
 
-#include <stuff.h>
+#include <defs.h>
 
 %}
 
