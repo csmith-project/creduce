@@ -499,45 +499,29 @@ if ($SANITIZE) {
 }
 
 if ($SLOW) {
+    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9000, },
+    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9001, },
+    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9002, },
+    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9003, },
+    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9004, },
+    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9005, },
+    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9006, },
+    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9007, },
+    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9008, },
+    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9009, },
+    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9010, },
+    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9011, },
+    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9012, },
+    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9013, },
+    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9014, },
+    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9015, },
     if (0) {
 	# too slow for most purposes...
 	push @all_methods, (
-	    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9000, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9001, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9002, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9003, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9004, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9005, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9006, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9007, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9008, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9009, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9010, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9011, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9012, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9013, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9014, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9015, },
 	    { "name" => "pass_clex", "arg" => "rm-tok-pattern-8",       "pri" => 9100, },
 	);
     } else {
 	push @all_methods, (
-	    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9000, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9001, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9002, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9003, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9004, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9005, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9006, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9007, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9008, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9009, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9010, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9011, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9012, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9013, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9014, },
-	    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9015, },
 	    { "name" => "pass_clex", "arg" => "rm-tok-pattern-4",       "pri" => 9100, },
 	);
     }
