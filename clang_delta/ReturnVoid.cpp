@@ -99,11 +99,27 @@ bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
       ValidFuncDecls.end())
     return false;
 
-  QualType RVType = FD->getResultType();
+  // this function happen to have a library function, e.g. strcpy,
+  // then the type source info won't be available, let's try to
+  // get one from the one which is in the source
+  if (!FD->getTypeSourceInfo()) {
+    const FunctionDecl *FirstFD = FD->getFirstDeclaration();
+    FD = NULL;
+    for (FunctionDecl::redecl_iterator I = FirstFD->redecls_begin(), 
+         E = FirstFD->redecls_end(); I != E; ++I) {
+      if ((*I)->getTypeSourceInfo()) {
+        FD = (*I);
+        break;
+      }
+    }
+    if (!FD)
+      return false;
+  }
   TypeLoc TLoc = FD->getTypeSourceInfo()->getTypeLoc();
   SourceLocation SLoc = TLoc.getBeginLoc();
   if (SLoc.isInvalid())
     return false;
+  QualType RVType = FD->getResultType();
   return !(RVType.getTypePtr()->isVoidType());
 }
 
