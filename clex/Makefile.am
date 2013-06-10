@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-libexec_PROGRAMS = clex
+libexec_PROGRAMS = clex strlex
 
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
@@ -18,6 +18,15 @@ clex_CPPFLAGS = \
 
 clex_SOURCES = \
 	clex.l \
+	defs.h \
+	driver.c
+
+strlex_CPPFLAGS = \
+	$(GIT_FLAG)
+
+strlex_SOURCES = \
+	strlex.l \
+	defs.h \
 	driver.c
 
 # SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that

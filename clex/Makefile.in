@@ -81,10 +81,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-libexec_PROGRAMS = clex$(EXEEXT)
+libexec_PROGRAMS = clex$(EXEEXT) strlex$(EXEEXT)
 subdir = clex
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am clex.c \
-	$(top_srcdir)/autoconf/depcomp $(top_srcdir)/autoconf/ylwrap
+	strlex.c $(top_srcdir)/autoconf/depcomp \
+	$(top_srcdir)/autoconf/ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
 	$(top_srcdir)/m4/ax_llvm.m4 \
@@ -109,6 +110,9 @@ AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+am_strlex_OBJECTS = strlex-strlex.$(OBJEXT) strlex-driver.$(OBJEXT)
+strlex_OBJECTS = $(am_strlex_OBJECTS)
+strlex_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -152,8 +156,8 @@ am__v_LEX_ = $(am__v_LEX_@AM_DEFAULT_V@)
 am__v_LEX_0 = @echo "  LEX     " $@;
 am__v_LEX_1 = 
 YLWRAP = $(top_srcdir)/autoconf/ylwrap
-SOURCES = $(clex_SOURCES)
-DIST_SOURCES = $(clex_SOURCES)
+SOURCES = $(clex_SOURCES) $(strlex_SOURCES)
+DIST_SOURCES = $(clex_SOURCES) $(strlex_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -320,6 +324,15 @@ clex_CPPFLAGS = \
 
 clex_SOURCES = \
 	clex.l \
+	defs.h \
+	driver.c
+
+strlex_CPPFLAGS = \
+	$(GIT_FLAG)
+
+strlex_SOURCES = \
+	strlex.l \
+	defs.h \
 	driver.c
 
 
@@ -415,6 +428,10 @@ clex$(EXEEXT): $(clex_OBJECTS) $(clex_DEPENDENCIES) $(EXTRA_clex_DEPENDENCIES)
 	@rm -f clex$(EXEEXT)
 	$(AM_V_CCLD)$(LINK) $(clex_OBJECTS) $(clex_LDADD) $(LIBS)
 
+strlex$(EXEEXT): $(strlex_OBJECTS) $(strlex_DEPENDENCIES) $(EXTRA_strlex_DEPENDENCIES) 
+	@rm -f strlex$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(strlex_OBJECTS) $(strlex_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -423,6 +440,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-clex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-driver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlex-driver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlex-strlex.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -472,6 +491,34 @@ clex-driver.obj: driver.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='clex-driver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
+
+strlex-strlex.o: strlex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-strlex.o -MD -MP -MF $(DEPDIR)/strlex-strlex.Tpo -c -o strlex-strlex.o `test -f 'strlex.c' || echo '$(srcdir)/'`strlex.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-strlex.Tpo $(DEPDIR)/strlex-strlex.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='strlex.c' object='strlex-strlex.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-strlex.o `test -f 'strlex.c' || echo '$(srcdir)/'`strlex.c
+
+strlex-strlex.obj: strlex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-strlex.obj -MD -MP -MF $(DEPDIR)/strlex-strlex.Tpo -c -o strlex-strlex.obj `if test -f 'strlex.c'; then $(CYGPATH_W) 'strlex.c'; else $(CYGPATH_W) '$(srcdir)/strlex.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-strlex.Tpo $(DEPDIR)/strlex-strlex.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='strlex.c' object='strlex-strlex.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-strlex.obj `if test -f 'strlex.c'; then $(CYGPATH_W) 'strlex.c'; else $(CYGPATH_W) '$(srcdir)/strlex.c'; fi`
+
+strlex-driver.o: driver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-driver.o -MD -MP -MF $(DEPDIR)/strlex-driver.Tpo -c -o strlex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-driver.Tpo $(DEPDIR)/strlex-driver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='strlex-driver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
+
+strlex-driver.obj: driver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-driver.obj -MD -MP -MF $(DEPDIR)/strlex-driver.Tpo -c -o strlex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-driver.Tpo $(DEPDIR)/strlex-driver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='strlex-driver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
@@ -602,6 +649,7 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f clex.c
+	-rm -f strlex.c
 clean: clean-am
 
 clean-am: clean-generic clean-libexecPROGRAMS clean-libtool \
