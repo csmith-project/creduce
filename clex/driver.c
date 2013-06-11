@@ -44,6 +44,7 @@ enum mode_t {
   MODE_DELETE_STRING,
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
+  MODE_COLLAPSE_TOKS,
   MODE_NONE,
 };
 
@@ -57,50 +58,59 @@ void print_toks (void)
   exit (0);
 }
 
+int number_tokens (int ignore_renamed)
+{
+  int next_id = 0;
+  int max_id_seen = -1;
+  int i;
+  for (i=0; i<toks; i++) {
+    if (tok_list[i].kind != TOK_IDENT) continue;
+    int id;
+    int res = sscanf (tok_list[i].str, "_x_%d", &id);
+    if (res==1) {
+      if (id > max_id_seen) {
+	max_id_seen = id;
+      }
+      if (ignore_renamed) continue;
+    }
+    int j;
+    int matched = 0;
+    for (j=0; j<i; j++) {
+      if (tok_list[j].kind != TOK_IDENT) continue;
+      if (strcmp (tok_list[j].str, tok_list[i].str) == 0) {
+	matched = 1;
+	tok_list[i].id = tok_list[j].id;
+	assert (tok_list[j].id != -1);
+      }
+    }
+    if (!matched) {
+      tok_list[i].id = next_id;
+      next_id++;
+    }
+  }
+  // FIXME find first unused instead of max_id_seen?
+  return max_id_seen;
+}
+
+void collapse_toks (int tok_index)
+{
+  assert (tok_index >= 0);
+  number_tokens(0);
+  
+}
+
 // FIXME: have a C++ mode that avoids trying to rename C++ keywords?
 
 void rename_toks (int tok_index)
 {
   assert (tok_index >= 0);
-  // find the highest number used in a rename, and also assign a number to each 
-  // distinct identifier that doesn't start wtih our prefix
-  int max_seen = -1;
-  int next_id = 0;
-  int i;
-  for (i=0; i<toks; i++) {
-    if (tok_list[i].kind != TOK_IDENT) continue;
-    // FIXME find first unused instead of max+1?
-    int id;
-    int res = sscanf (tok_list[i].str, "_x_%d", &id);
-    if (res==1) {
-      // this one was already renamed
-      if (id > max_seen) {
-	max_seen = id;
-      }
-    } else {
-      // it's a candidate for renaming so give it a number
-      int j;
-      int matched = 0;
-      for (j=0; j<i; j++) {
-	if (tok_list[j].kind != TOK_IDENT) continue;
-	if (strcmp (tok_list[j].str, tok_list[i].str) == 0) {
-	  matched = 1;
-	  tok_list[i].id = tok_list[j].id;
-	  assert (tok_list[j].id != -1);
-	}
-      }
-      if (!matched) {
-	tok_list[i].id = next_id;
-	next_id++;
-      }
-    }
-  }
+  int unused = 1+number_tokens(1);
   char newname[255];
-  sprintf (newname, "_x_%d", max_seen+1);
-
-  // now dump the renamed token stream
+  sprintf (newname, "_x_%d", unused);
   int matched = 0;
   char *oldname = NULL;
+  int i;
+  // dump the renamed token stream
   for (i=0; i<toks; i++) {
     if (tok_list[i].id == tok_index) {
       assert (!oldname || strcmp (oldname, tok_list[i].str) == 0);
@@ -251,6 +261,8 @@ int main(int argc, char *argv[]) {
     mode = MODE_PRINT;
   } else if (strcmp (cmd, "delete-string") == 0) {
     mode = MODE_DELETE_STRING;
+  } else if (strcmp (cmd, "collapse-toks") == 0) {
+    mode = MODE_COLLAPSE_TOKS;
   } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
     mode = MODE_RM_TOKS;
     int res = sscanf (&cmd[8], "%d", &rm_toks_n);
@@ -290,6 +302,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_DELETE_STRING:
     delete_string (tok_index);
+    assert (0);
+  case MODE_COLLAPSE_TOKS:
+    collapse_toks (tok_index);
     assert (0);
   case MODE_RM_TOKS:
     rm_toks (tok_index);
