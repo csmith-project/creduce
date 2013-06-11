@@ -267,6 +267,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
   if (const CXXDependentScopeMemberExpr *ME = 
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
 
+    if (ME->isImplicitAccess())
+      return false;
     DeclarationName DName = ME->getMember();
     TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
                 "Not an indentifier!");
