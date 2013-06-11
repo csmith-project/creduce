@@ -28,7 +28,6 @@
 # implement a fuzzer mode that probabilistically skips xformations
 #   by calling advance extra times (and don't do the original repetetive 
 #   line-delta passes
-# new slow pass: collapse identifers
 
 use strict;
 use warnings;
@@ -658,9 +657,17 @@ print "CLEANUP PASS\n" if $VERBOSE;
 
 print "===================== done ====================\n";
 
+sub byname {
+    if (${$a}{"name"} eq ${$b}{"name"}) {
+	return ${$a}{"arg"} cmp ${$b}{"arg"};
+    } else {
+	return ${$a}{"name"} cmp ${$b}{"name"};
+    }
+}
+
 print "\n";
 print "pass statistics:\n";
-foreach my $mref (sort @all_methods) {
+foreach my $mref (sort byname @all_methods) {
     my $method = ${$mref}{"name"};
     my $arg = ${$mref}{"arg"};
     my $w = $method_worked{$method}{$arg};

@@ -58,7 +58,7 @@ void print_toks (void)
   exit (0);
 }
 
-int number_tokens (int ignore_renamed)
+void number_tokens (int ignore_renamed, int *max_id_seen_p, int *max_tok_p)
 {
   int next_id = 0;
   int max_id_seen = -1;
@@ -89,14 +89,46 @@ int number_tokens (int ignore_renamed)
     }
   }
   // FIXME find first unused instead of max_id_seen?
-  return max_id_seen;
+  if (max_id_seen_p) *max_id_seen_p = max_id_seen;
+  if (max_tok_p) *max_tok_p = next_id;
 }
 
 void collapse_toks (int tok_index)
 {
   assert (tok_index >= 0);
-  number_tokens(0);
-  
+  int max_tok_id;
+  number_tokens(0,NULL,&max_tok_id);
+  // fprintf (stderr, "tok_index = %d, number of tokens = %d, max_tok_id = %d\n", tok_index, toks, max_tok_id);
+  int counter = -1;
+  int i;
+  for (i=0; i<max_tok_id; i++) {
+    int j;
+    for (j=0; j<max_tok_id; j++) {
+      if (i==j) continue;
+      counter++;
+      if (counter == tok_index) {
+	// rename i to have the same name as j
+	int k;
+	char *new_name = NULL;
+	for (k=0; k<toks; k++) {
+	  if (tok_list[k].id == j) {
+	    new_name = tok_list[k].str;
+	  }
+	}
+	assert (new_name);
+	for (k=0; k<toks; k++) {
+	  if (tok_list[k].id == i) {
+	    // fprintf (stderr, "renaming '%s' to '%s'\n", tok_list[i].str, new_name);
+	    printf ("%s", new_name);
+	  } else {
+	    printf ("%s", tok_list[k].str);
+	  }
+	}
+	exit (0);
+      }
+    }
+  }
+  exit (-1);
 }
 
 // FIXME: have a C++ mode that avoids trying to rename C++ keywords?
@@ -104,9 +136,10 @@ void collapse_toks (int tok_index)
 void rename_toks (int tok_index)
 {
   assert (tok_index >= 0);
-  int unused = 1+number_tokens(1);
+  int unused;
+  number_tokens(1,&unused,NULL);
   char newname[255];
-  sprintf (newname, "_x_%d", unused);
+  sprintf (newname, "_x_%d", unused+1);
   int matched = 0;
   char *oldname = NULL;
   int i;
