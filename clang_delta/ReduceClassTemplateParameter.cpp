@@ -15,6 +15,7 @@
 #include "ReduceClassTemplateParameter.h"
 
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
@@ -67,13 +68,13 @@ public:
 
   bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
 
-  bool isUsedParam(const NamedDecl *ND) {
-    return UsedParameters->count(ND);
+  bool isUsedParam(unsigned Idx) {
+    return UsedParameters->count(Idx);
   }
 
 private:
 
-  typedef SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
+  typedef SmallSet<unsigned, 8> TemplateParameterSet;
 
   TemplateParameterSet *UsedParameters;
 };
@@ -82,7 +83,7 @@ bool TemplateParameterVisitor::VisitTemplateTypeParmType(
        TemplateTypeParmType *Ty)
 {
   const TemplateTypeParmDecl *D = Ty->getDecl();
-  UsedParameters->insert(D);
+  UsedParameters->insert(D->getIndex());
   return true;
 }
 
@@ -206,7 +207,7 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ND = (*I);
-    if (ParameterVisitor.isUsedParam(ND)) {
+    if (ParameterVisitor.isUsedParam(Index)) {
       Index++;
       continue;
     }
