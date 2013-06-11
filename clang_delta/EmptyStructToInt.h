@@ -18,6 +18,7 @@ namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class RecordDecl;
+  class FieldDecl;
 }
 
 class EmptyStructToIntASTVisitor;
@@ -51,6 +52,8 @@ private:
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
   bool isValidRecordDecl(const clang::RecordDecl *RD);
+
+  bool pointToSelf(const clang::FieldDecl *FD);
 
   void removeRecordDecls(void);
 

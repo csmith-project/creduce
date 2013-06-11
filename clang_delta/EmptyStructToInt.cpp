@@ -264,6 +264,29 @@ void EmptyStructToInt::removeRecordDecls(void)
   }
 }
 
+bool EmptyStructToInt::pointToSelf(const FieldDecl *FD)
+{
+  const Type *Ty = FD->getType().getTypePtr();
+  if (!Ty->isPointerType())
+    return false;
+  const Type *PointeeTy = getBasePointerElemType(Ty);
+  if (TransformationManager::isCXXLangOpt()) {
+    const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+    if (!Base)
+      return false;
+    const CXXRecordDecl *Parent = dyn_cast<CXXRecordDecl>(FD->getParent());
+    TransAssert(Parent && "Invalid Parent!");
+    return (Parent->getCanonicalDecl() == Base->getCanonicalDecl());
+  }
+
+  const RecordType *RT = PointeeTy->getAs<RecordType>();
+  if (!RT)
+    return false;
+  const RecordDecl *RD = RT->getDecl();
+  const RecordDecl *Parent = FD->getParent();
+  return (Parent->getCanonicalDecl() == RD->getCanonicalDecl());
+}
+
 bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
 {
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD);
@@ -285,6 +308,10 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
         return false;
       const FieldDecl *FD = *(Def->field_begin());
       TransAssert(FD && "Invalid FieldDecl");
+      // skip case such as 
+      // struct S { struct S *p; };
+      if (pointToSelf(FD))
+        return false;
       return !FD->isReferenced();
     }
   }
