@@ -32,7 +32,8 @@ it: \
   * does not have any base class; \n\
   * is not a base class of another class; \n\
   * is not described by any template; \n\
-  * has only one unreferenced field\n";
+  * has only one unreferenced field; \n\
+  * doesn't have self pointer reference\n";
 
 static RegisterTransformation<EmptyStructToInt>
          Trans("empty-struct-to-int", DescriptionMsg);
