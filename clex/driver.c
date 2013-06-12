@@ -45,6 +45,7 @@ enum mode_t {
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
   MODE_COLLAPSE_TOKS,
+  MODE_SHORTEN_STRING,
   MODE_NONE,
 };
 
@@ -156,6 +157,48 @@ void rename_toks (int tok_index)
   }
   if (matched) {
     // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
+void delete_asm_comment (char *s)
+{
+  int i;
+  for (i=1; s[i] != '\\'; i++) { }
+  int j;
+  for (j=0; j<(strlen(s)-i+1); j++) {
+    s[j] = s[j+i];
+    // s[j] = '~';
+  }
+}
+
+void shorten_string (int idx)
+{
+  int i;
+  int matched = 0;
+  int which = 0;
+  for (i=0; i<toks; i++) {
+    int printed = 0;
+    if (tok_list[i].kind == TOK_STRING) {
+      int j = 0;
+      char *s = tok_list[i].str;
+      while (s[j] != 0) {
+	if (s[j] == '#') {
+	  if (idx==which) {
+	    matched = 1;
+	    delete_asm_comment (&s[j]);
+	    break;
+	  }
+	  which++;
+	}
+	j++;
+      }
+    }
+    printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
     exit (0);
   } else {
     exit (-1);
@@ -294,6 +337,8 @@ int main(int argc, char *argv[]) {
     mode = MODE_PRINT;
   } else if (strcmp (cmd, "delete-string") == 0) {
     mode = MODE_DELETE_STRING;
+  } else if (strcmp (cmd, "shorten-string") == 0) {
+    mode = MODE_SHORTEN_STRING;
   } else if (strcmp (cmd, "collapse-toks") == 0) {
     mode = MODE_COLLAPSE_TOKS;
   } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
@@ -335,6 +380,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_DELETE_STRING:
     delete_string (tok_index);
+    assert (0);
+  case MODE_SHORTEN_STRING:
+    shorten_string (tok_index);
     assert (0);
   case MODE_COLLAPSE_TOKS:
     collapse_toks (tok_index);
