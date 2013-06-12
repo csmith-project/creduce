@@ -3,3 +3,5 @@
 # Files made by compilation.
 clex
 clex.c
+strlex
+strlex.c
