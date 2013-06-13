@@ -15,7 +15,7 @@
 #include "ReduceClassTemplateParameter.h"
 
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
@@ -57,7 +57,7 @@ class TemplateParameterVisitor : public
   RecursiveASTVisitor<TemplateParameterVisitor> {
 
 public:
-  TemplateParameterVisitor(void)
+  TemplateParameterVisitor()
              : UsedParameters(NULL) { 
     UsedParameters = new TemplateParameterSet();
   }
@@ -68,13 +68,13 @@ public:
 
   bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
 
-  bool isUsedParam(unsigned Idx) {
-    return UsedParameters->count(Idx);
+  bool isUsedParam(const NamedDecl *ND) {
+    return UsedParameters->count(ND);
   }
 
 private:
 
-  typedef SmallSet<unsigned, 8> TemplateParameterSet;
+  typedef SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
 
   TemplateParameterSet *UsedParameters;
 };
@@ -83,7 +83,7 @@ bool TemplateParameterVisitor::VisitTemplateTypeParmType(
        TemplateTypeParmType *Ty)
 {
   const TemplateTypeParmDecl *D = Ty->getDecl();
-  UsedParameters->insert(D->getIndex());
+  UsedParameters->insert(D);
   return true;
 }
 
@@ -190,7 +190,8 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
 
   TemplateParameterVisitor ParameterVisitor;
   CXXRecordDecl *CXXRD = D->getTemplatedDecl();
-  if (CXXRecordDecl *Def = CXXRD->getDefinition())
+  CXXRecordDecl *Def = CXXRD->getDefinition();
+  if (Def)
     ParameterVisitor.TraverseDecl(Def);
 
   // ISSUE: we should also check the parameter usage for partial template
@@ -202,12 +203,22 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
   //   template<bool, typename T> struct S{};
   //   template<typename T> struct<true, T> S{};
   // if we remove bool and true, we will have two definitions for S
+  TemplateParameterList *TPList;
+  if (Def) {
+    // make sure we use the params as in ParameterVisitor
+    const ClassTemplateDecl *CT = Def->getDescribedClassTemplate();
+    TransAssert(CT && "NULL DescribedClassTemplate!");
+    TPList = CT->getTemplateParameters();
+  }
+  else {
+    TPList = CanonicalD->getTemplateParameters();
+  }
+
   unsigned Index = 0;
-  TemplateParameterList *TPList = CanonicalD->getTemplateParameters();
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ND = (*I);
-    if (ParameterVisitor.isUsedParam(Index)) {
+    if (ParameterVisitor.isUsedParam(ND)) {
       Index++;
       continue;
     }
@@ -285,7 +296,7 @@ void ReduceClassTemplateParameter::removeParameterByRange(SourceRange Range,
   }
 }
 
-void ReduceClassTemplateParameter::removeParameterFromDecl(void)
+void ReduceClassTemplateParameter::removeParameterFromDecl()
 {
   unsigned NumParams = TheClassTemplateDecl->getTemplateParameters()->size();
   
@@ -589,7 +600,7 @@ bool ReduceClassTemplateParameter::reducePartialSpec(
 // ISSUE: The transformation is known to go wrong in the following case:
 // template<typename T1, typename T2> struct S;
 // template<typename T1, typename T2> struct S<T2, T1>;
-void ReduceClassTemplateParameter::removeParameterFromPartialSpecs(void)
+void ReduceClassTemplateParameter::removeParameterFromPartialSpecs()
 {
   SmallVector<ClassTemplatePartialSpecializationDecl *, 10> PartialDecls;
   TheClassTemplateDecl->getPartialSpecializations(PartialDecls);
@@ -686,7 +697,7 @@ bool ReduceClassTemplateParameter::referToTheTemplateDecl(
   return Context->hasSameTemplateName(*TheTemplateName, TmplName);
 }
 
-ReduceClassTemplateParameter::~ReduceClassTemplateParameter(void)
+ReduceClassTemplateParameter::~ReduceClassTemplateParameter()
 {
   delete TheTemplateName;
   delete CollectionVisitor;
