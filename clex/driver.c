@@ -163,24 +163,27 @@ void rename_toks (int tok_index)
   }
 }
 
-void delete_asm_comment (char *s)
+void string_rm_chars (char *s, int i)
 {
-  int i;
-  for (i=1; s[i] != '\\'; i++) { }
   int j;
   for (j=0; j<(strlen(s)-i+1); j++) {
     s[j] = s[j+i];
-    // s[j] = '~';
   }
 }
 
-void shorten_string (int idx)
+void delete_asm_comment (char *s)
+{
+  int i;
+  for (i=0; s[i] != '\\'; i++) { }
+  string_rm_chars (s, i);
+}
+
+void remove_asm_comment (int idx)
 {
   int i;
   int matched = 0;
   int which = 0;
   for (i=0; i<toks; i++) {
-    int printed = 0;
     if (tok_list[i].kind == TOK_STRING) {
       int j = 0;
       char *s = tok_list[i].str;
@@ -194,6 +197,32 @@ void shorten_string (int idx)
 	  which++;
 	}
 	j++;
+      }
+    }
+    printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
+void shorten_string (int idx)
+{
+  int i;
+  int matched = 0;
+  int which = 0;
+  for (i=0; i<toks; i++) {
+    if (!matched && tok_list[i].kind == TOK_STRING) {
+      char *s = tok_list[i].str;
+      int len = strlen(s)-2;
+      if (idx >= len) {
+	idx -= len;
+      } else {
+	string_rm_chars (s+idx+1, 1);
+	matched = 1;
+	which++;
       }
     }
     printf ("%s", tok_list[i].str);
