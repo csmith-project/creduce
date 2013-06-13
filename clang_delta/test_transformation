@@ -62,6 +62,8 @@ sub get_instance_num($) {
     die "Cannot query the number of instances for $trans!" 
         if ($? >> 8);
 
+    die "Failed to query the number of instances for $trans on $SRC_FILE" 
+      if (!defined($out[0]));
     my $num;
     if ($out[0] =~ m/Available transformation instances:[\s\t]*([0-9]+)/) {
        $num = $1; 
@@ -146,7 +148,7 @@ sub do_one_test($) {
       die "Unknown transformation: $trans!";
     }
 
-    print "\nTesting $trans ...\n";
+    print "\nTesting $trans on $SRC_FILE ...\n";
     my $test_dir = "$WORKING_DIR/$trans";
     print_msg("Making dir $test_dir ...\n");
     mkdir $test_dir or die;
