@@ -492,11 +492,13 @@ my @all_methods = (
 
 if ($SANITIZE) {
     push @all_methods, (
-        { "name" => "pass_clex",     "arg" => "shorten-string",                         "last_pass_pri" => 1002, },
-	# not helpful?
-	# { "name" => "pass_clex", "arg" => "collapse-toks",          "pri" => 5000, },
-	# maybe call this pass by default instead of here
 	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+        { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 1001, },
+        { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
+        { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
+        { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 1010, },
+	# not helpful
+	# { "name" => "pass_clex", "arg" => "collapse-toks",          "pri" => 5000, },
     );
 }
 

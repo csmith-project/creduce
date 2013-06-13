@@ -46,6 +46,8 @@ enum mode_t {
   MODE_RM_TOK_PATTERN,
   MODE_COLLAPSE_TOKS,
   MODE_SHORTEN_STRING,
+  MODE_REMOVE_ASM_COMMENT,
+  MODE_REMOVE_ASM_LINE,
   MODE_NONE,
 };
 
@@ -197,6 +199,57 @@ void remove_asm_comment (int idx)
 	  which++;
 	}
 	j++;
+      }
+    }
+    printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
+int remove_line (char *s, int idx, int *numlines)
+{
+  int line = 0;
+  int lastpos = 1;
+  int ret = 0;
+  int i;
+  for (i=0; i<strlen(s); i++) {
+    if (strncmp (s+i, "\\n", 2) == 0 || s[i+1] == 0) {
+      if (line == idx) {
+	if (s[i+1] == 0) {
+	  printf ("removing rest of string at %d\n", lastpos);
+	  s[lastpos] = '"';
+	  s[lastpos+1] = 0;
+	} else {
+	  printf ("removing %d chars at %d\n", i - lastpos + 2, lastpos);
+	  string_rm_chars (s + lastpos, i - lastpos + 2);
+	}
+	ret = 1;
+      }
+      lastpos = i + 2;
+      line++;
+    }
+  }
+  *numlines = line;
+  return ret;
+}
+
+void remove_asm_line (int idx)
+{
+  int i;
+  int matched = 0;
+  for (i=0; i<toks; i++) {
+    if (!matched && tok_list[i].kind == TOK_STRING) {
+      char *s = tok_list[i].str;      
+      int numlines;
+      int res = remove_line (s, idx, &numlines);
+      if (res) {
+	matched = 1;
+      } else {
+	idx -= numlines;
       }
     }
     printf ("%s", tok_list[i].str);
@@ -368,6 +421,10 @@ int main(int argc, char *argv[]) {
     mode = MODE_DELETE_STRING;
   } else if (strcmp (cmd, "shorten-string") == 0) {
     mode = MODE_SHORTEN_STRING;
+  } else if (strcmp (cmd, "remove-asm-comment") == 0) {
+    mode = MODE_REMOVE_ASM_COMMENT;
+  } else if (strcmp (cmd, "remove-asm-line") == 0) {
+    mode = MODE_REMOVE_ASM_LINE;
   } else if (strcmp (cmd, "collapse-toks") == 0) {
     mode = MODE_COLLAPSE_TOKS;
   } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
@@ -413,6 +470,9 @@ int main(int argc, char *argv[]) {
   case MODE_SHORTEN_STRING:
     shorten_string (tok_index);
     assert (0);
+  case MODE_REMOVE_ASM_LINE:
+    remove_asm_line (tok_index);
+    assert (0);
   case MODE_COLLAPSE_TOKS:
     collapse_toks (tok_index);
     assert (0);
@@ -421,6 +481,8 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_RM_TOK_PATTERN:
     rm_tok_pattern (tok_index);
+    assert (0);
+  default:
     assert (0);
   }
 }
