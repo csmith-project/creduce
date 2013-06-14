@@ -68,10 +68,12 @@ my $NODEFAULT;
 # if set, cache results of the delta test
 #
 my $CACHE = 0;
+my $FUZZ = 0;
 
 my @options = (
     ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
+    ["--fuzz",                "const",   1, \$FUZZ,            "Make C-Reduce more effective as a fuzzer, but also slower (best used in conjunction with --skip-initial-passes"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
@@ -318,8 +320,13 @@ sub delta_pass ($) {
 
 	    my $pid = fork();
 	    die unless ($pid >= 0);
-	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);
+	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);	    
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+	    if ($FUZZ) {
+		while (rand()<0.5) {
+		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+		}
+	    }
 	    push @variants, \@l;
 	    my $delta_result;
 	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
