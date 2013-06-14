@@ -58,6 +58,9 @@ void print_toks (void)
   for (i=0; i<toks; i++) {
     if (tok_list[i].kind == TOK_IDENT) printf ("%s\n", tok_list[i].str);
   }
+  for (i=0; i<toks; i++) {
+    if (tok_list[i].kind == TOK_NUMBER) printf ("%s\n", tok_list[i].str);
+  }
   exit (0);
 }
 
