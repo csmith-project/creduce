@@ -226,8 +226,8 @@ int remove_line (char *s, int idx, int *numlines)
 	} else {
 	  // printf ("removing %d chars at %d\n", i - lastpos + 2, lastpos);
 	  string_rm_chars (s + lastpos, i - lastpos + 2);
+	  ret = 1;
 	}
-	ret = 1;
       }
       lastpos = i + 2;
       line++;
