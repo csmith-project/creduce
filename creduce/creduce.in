@@ -104,9 +104,6 @@ my @custom_methods;
 sub process_foo {
     my ($opt, $args, $dest) = @_;
     my $x = scalar(@$args);
-    foreach my $z (@$args) {
-	print "  '$z'\n";
-    }
     my $name = shift @$args;
     my $subpass = shift @$args;
     my $pri = shift @$args;

@@ -55,7 +55,6 @@ void print_toks (void)
 {
   int i;
   for (i=0; i<toks; i++) {
-    // if (tok_list[i].kind != TOK_WS) printf ("%s\n", tok_list[i].str);
     if (tok_list[i].kind == TOK_IDENT) printf ("%s\n", tok_list[i].str);
   }
   exit (0);
@@ -220,11 +219,11 @@ int remove_line (char *s, int idx, int *numlines)
     if (strncmp (s+i, "\\n", 2) == 0 || s[i+1] == 0) {
       if (line == idx) {
 	if (s[i+1] == 0) {
-	  printf ("removing rest of string at %d\n", lastpos);
+	  // printf ("removing rest of string at %d\n", lastpos);
 	  s[lastpos] = '"';
 	  s[lastpos+1] = 0;
 	} else {
-	  printf ("removing %d chars at %d\n", i - lastpos + 2, lastpos);
+	  // printf ("removing %d chars at %d\n", i - lastpos + 2, lastpos);
 	  string_rm_chars (s + lastpos, i - lastpos + 2);
 	}
 	ret = 1;
@@ -469,6 +468,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_SHORTEN_STRING:
     shorten_string (tok_index);
+    assert (0);
+  case MODE_REMOVE_ASM_COMMENT:
+    remove_asm_comment (tok_index);
     assert (0);
   case MODE_REMOVE_ASM_LINE:
     remove_asm_line (tok_index);
