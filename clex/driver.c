@@ -69,7 +69,7 @@ void number_tokens (int ignore_renamed, int *max_id_seen_p, int *max_tok_p)
   for (i=0; i<toks; i++) {
     if (tok_list[i].kind != TOK_IDENT) continue;
     int id;
-    int res = sscanf (tok_list[i].str, "_x_%d", &id);
+    int res = sscanf (tok_list[i].str, "x%d", &id);
     if (res==1) {
       if (id > max_id_seen) {
 	max_id_seen = id;
@@ -142,7 +142,7 @@ void rename_toks (int tok_index)
   int unused;
   number_tokens(1,&unused,NULL);
   char newname[255];
-  sprintf (newname, "_x_%d", unused+1);
+  sprintf (newname, "x%d", unused+1);
   int matched = 0;
   char *oldname = NULL;
   int i;
