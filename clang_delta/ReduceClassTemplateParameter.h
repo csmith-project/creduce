@@ -43,7 +43,7 @@ public:
       TheTemplateName(NULL)
   {}
 
-  ~ReduceClassTemplateParameter(void);
+  ~ReduceClassTemplateParameter();
 
 private:
   typedef llvm::SmallPtrSet<const clang::ClassTemplateDecl *, 20> 
@@ -57,9 +57,9 @@ private:
 
   bool isValidClassTemplateDecl(const clang::ClassTemplateDecl *D);
 
-  void removeParameterFromDecl(void);
+  void removeParameterFromDecl();
 
-  void removeParameterFromPartialSpecs(void);
+  void removeParameterFromPartialSpecs();
 
   void removeOneParameterFromPartialDecl(
          const clang::ClassTemplatePartialSpecializationDecl *PartialD,
@@ -77,7 +77,7 @@ private:
          const clang::ClassTemplatePartialSpecializationDecl *PartialD,
          const clang::TemplateArgument &Arg);
 
-  void removeArgumentFromSpecializations(void);
+  void removeArgumentFromSpecializations();
 
   bool referToTheTemplateDecl(clang::TemplateName TmplName);
 
@@ -112,7 +112,7 @@ private:
   clang::TemplateName *TheTemplateName;
 
   // Unimplemented
-  ReduceClassTemplateParameter(void);
+  ReduceClassTemplateParameter();
 
   ReduceClassTemplateParameter(const ReduceClassTemplateParameter &);
 
