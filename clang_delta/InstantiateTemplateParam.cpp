@@ -95,8 +95,7 @@ class TemplateParameterFilterVisitor : public
 public:
   explicit TemplateParameterFilterVisitor(TemplateParameterSet &Params,
                                  InstantiateTemplateParam *Instance)
-    : FilterAll(false),
-      Parameters(Params),
+    : Parameters(Params),
       ConsumerInstance(Instance)
   { }
 
@@ -104,15 +103,9 @@ public:
 
   bool isBeforeColonColon(TypeLoc &Loc);
 
-  void setFilterAll(bool Flag) {
-    FilterAll = Flag;
-  }
-
   bool VisitTemplateTypeParmTypeLoc(TemplateTypeParmTypeLoc Loc);
 
 private:
-  bool FilterAll;
-
   TemplateParameterSet &Parameters;
 
   InstantiateTemplateParam *ConsumerInstance;
@@ -137,7 +130,7 @@ bool TemplateParameterFilterVisitor::VisitTemplateTypeParmTypeLoc(
   if (!Parameters.count(ND))
     return true;
 
-  if (FilterAll || isBeforeColonColon(Loc))
+  if (isBeforeColonColon(Loc))
     Parameters.erase(ND);
 
   return true;
@@ -289,13 +282,17 @@ void InstantiateTemplateParam::filterInvalidParams(const TemplateDecl *D,
     return;
   CXXRecordDecl *Def = CD->getTemplatedDecl()->getDefinition();
   TransAssert(Def && "No Definition?");
-  if (Def->isCompleteDefinition()) {
-    Filter.setFilterAll(true);
-    for (CXXRecordDecl::base_class_iterator I = Def->bases_begin(),
-                                            E = Def->bases_end();
-         I != E; ++I) {
-      Filter.TraverseTypeLoc(I->getTypeSourceInfo()->getTypeLoc());
-    }
+  if (!Def->isCompleteDefinition())
+    return;
+  for (CXXRecordDecl::base_class_const_iterator I = Def->bases_begin(),
+       E = Def->bases_end(); I != E; ++I) {
+    const CXXBaseSpecifier *BS = I;
+    const Type *Ty = BS->getType().getTypePtr();
+    const TemplateTypeParmType *ParmTy = dyn_cast<TemplateTypeParmType>(Ty);
+    if (!ParmTy)
+      continue;
+    const TemplateTypeParmDecl *ParmD = ParmTy->getDecl();
+    Params.erase(ParmD);
   }
 }
 
