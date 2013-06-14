@@ -16,6 +16,7 @@
 ####################################################################
 
 ## TODO: 
+# fix the caching code
 # make peep:b faster and less stupid
 # benchmark the caching code on some large reductions
 #   measure hits by pass
@@ -64,13 +65,10 @@ my $SLOW;
 my $NODEFAULT;
 # if set, cache results of the delta test
 #
-# FIXME: the caching strategy is not super great since we fork a child
-# process before even looking into the cache, but looking first is a
-# more invasive change
 my $CACHE = 0;
 
 my @options = (
-    # ["--add-pass"             "string",  3, \@
+    ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
@@ -100,6 +98,26 @@ GetOptions(\@options, \@ARGV) or exit 1;
 # permitting caching of larger results which is useful for some of the
 # passes that make (temporary) backwards progress
 my $CACHE_PRUNE_SIZE = 5000;
+
+my @custom_methods;
+
+sub process_foo {
+    my ($opt, $args, $dest) = @_;
+    my $x = scalar(@$args);
+    foreach my $z (@$args) {
+	print "  '$z'\n";
+    }
+    my $name = shift @$args;
+    my $subpass = shift @$args;
+    my $pri = shift @$args;
+    return 0 unless defined $name && defined $subpass && defined $pri;
+    my %pass = ();
+    $pass{"name"} = $name;
+    $pass{"arg"} = $subpass;
+    $pass{"pri"} = $pri;
+    push @custom_methods, \%pass;
+    return 1;
+}
 
 ######################################################################
 
@@ -535,6 +553,10 @@ if ($SLOW) {
 
 if ($NODEFAULT) {
     @all_methods = ();
+}
+
+foreach my $r (@custom_methods) {
+    push @all_methods, $r;
 }
 
 my $which;
