@@ -297,7 +297,7 @@ void x_string (int idx)
       char *s = tok_list[i].str;
       int j;
       for (j=0; j<strlen(s); j++) {
-	if (s[j] != ' ' && s[j] != 'x') {
+	if (s[j] != 'x') {
 	  if (which == idx) {
 	    s[j] = 'x';
 	    matched = 1;
