@@ -63,7 +63,8 @@ my $SANITIZE = 0;
 my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
-my $SLOW;
+my $SLOW = 0;
+my $SLLOOWW = 0;
 my $NODEFAULT;
 # if set, cache results of the delta test
 #
@@ -83,6 +84,7 @@ my @options = (
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
     ["--slow",                "const",   1, \$SLOW,            "Run additional passes that may improve final output slightly, but that might also be very slow"],
+    ["--sllooww",             "const",   1, \$SLLOOWW,         "Like --slow but more so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
 );
 
@@ -527,7 +529,7 @@ if ($SANITIZE) {
     );
 }
 
-if ($SLOW) {
+if ($SLOW || $SLLOOWW) {
     push @all_methods, (
 	{ "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9000, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9001, },
@@ -546,16 +548,37 @@ if ($SLOW) {
 	{ "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9014, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9015, },
     );
-    if (0) {
-	# too slow for most purposes...
-	push @all_methods, (
-	    { "name" => "pass_clex", "arg" => "rm-tok-pattern-8",       "pri" => 9100, },
-	);
-    } else {
-	push @all_methods, (
-	    { "name" => "pass_clex", "arg" => "rm-tok-pattern-4",       "pri" => 9100, },
-	);
-    }
+}
+
+if ($SLOW && !$SLLOOWW) {
+    push @all_methods, (
+	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-4",       "pri" => 9100, },
+    );
+}
+
+if ($SLLOOWW) {
+    # too slow for most purposes...
+    push @all_methods, (
+	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-8",       "pri" => 9100, },
+    );
+    push @all_methods, (
+	{ "name" => "pass_clex", "arg" => "rm-toks-17",              "pri" => 9000, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-18",              "pri" => 9001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-19",              "pri" => 9002, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-20",              "pri" => 9003, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-21",              "pri" => 9004, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-22",              "pri" => 9005, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-23",              "pri" => 9006, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-24",              "pri" => 9007, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-25",              "pri" => 9008, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-26",             "pri" => 9009, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-27",             "pri" => 9010, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9011, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9012, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9013, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9014, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-32",             "pri" => 9015, },
+    );
 }
 
 if ($NODEFAULT) {
