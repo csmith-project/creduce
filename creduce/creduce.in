@@ -29,6 +29,8 @@
 # implement a fuzzer mode that probabilistically skips xformations
 #   by calling advance extra times (and don't do the original repetetive 
 #   line-delta passes
+# maybe add a format string reduction pass that eliminates a format
+#   specifier and also the corresponding argument
 
 use strict;
 use warnings;
@@ -512,6 +514,7 @@ if ($SANITIZE) {
         { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
         { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
         { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 1010, },
+        { "name" => "pass_clex", "arg" => "x-string",               "pri" => 1011, },
 	# not helpful
 	# { "name" => "pass_clex", "arg" => "collapse-toks",          "pri" => 5000, },
     );

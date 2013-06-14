@@ -46,6 +46,7 @@ enum mode_t {
   MODE_RM_TOK_PATTERN,
   MODE_COLLAPSE_TOKS,
   MODE_SHORTEN_STRING,
+  MODE_X_STRING,
   MODE_REMOVE_ASM_COMMENT,
   MODE_REMOVE_ASM_LINE,
   MODE_NONE,
@@ -286,6 +287,34 @@ void shorten_string (int idx)
   }
 }
 
+void x_string (int idx)
+{
+  int i;
+  int matched = 0;
+  int which = 0;
+  for (i=0; i<toks; i++) {
+    if (!matched && tok_list[i].kind == TOK_STRING) {
+      char *s = tok_list[i].str;
+      int j;
+      for (j=0; j<strlen(s); j++) {
+	if (s[j] != ' ' && s[j] != 'x') {
+	  if (which == idx) {
+	    s[j] = 'x';
+	    matched = 1;
+	  }
+	  which++;
+	}
+      }
+    }
+    printf ("%s", tok_list[i].str);
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
+
 void delete_string (int idx)
 {
   int i;
@@ -420,6 +449,8 @@ int main(int argc, char *argv[]) {
     mode = MODE_DELETE_STRING;
   } else if (strcmp (cmd, "shorten-string") == 0) {
     mode = MODE_SHORTEN_STRING;
+  } else if (strcmp (cmd, "x-string") == 0) {
+    mode = MODE_X_STRING;
   } else if (strcmp (cmd, "remove-asm-comment") == 0) {
     mode = MODE_REMOVE_ASM_COMMENT;
   } else if (strcmp (cmd, "remove-asm-line") == 0) {
@@ -468,6 +499,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_SHORTEN_STRING:
     shorten_string (tok_index);
+    assert (0);
+  case MODE_X_STRING:
+    x_string (tok_index);
     assert (0);
   case MODE_REMOVE_ASM_COMMENT:
     remove_asm_comment (tok_index);
