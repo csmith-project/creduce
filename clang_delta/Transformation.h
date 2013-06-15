@@ -36,6 +36,7 @@ namespace clang {
   class TemplateSpecializationType;
   class NamedDecl;
   class CXXConstructorDecl;
+  class TypeLoc;
 }
 
 typedef enum {
@@ -189,6 +190,8 @@ protected:
   bool isParameterPack(const clang::NamedDecl *ND);
 
   unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
+
+  bool isBeforeColonColon(clang::TypeLoc &Loc);
 
   const std::string Name;
 

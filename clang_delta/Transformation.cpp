@@ -18,6 +18,7 @@
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
+#include "clang/Lex/Lexer.h"
 #include "clang/Basic/SourceManager.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/ADT/SmallString.h"
@@ -786,6 +787,18 @@ unsigned Transformation::getNumCtorWrittenInitializers(
       Num++;
   }
   return Num;
+}
+
+bool Transformation::isBeforeColonColon(TypeLoc &Loc)
+{
+  SourceLocation EndLoc = Loc.getEndLoc();
+  SourceLocation ColonColonLoc =
+      Lexer::findLocationAfterToken(EndLoc,
+                                    tok::coloncolon,
+                                    *SrcManager,
+                                    Context->getLangOpts(),
+                                    /*SkipTrailingWhitespaceAndNewLine=*/true);
+  return ColonColonLoc.isValid();
 }
 
 Transformation::~Transformation(void)

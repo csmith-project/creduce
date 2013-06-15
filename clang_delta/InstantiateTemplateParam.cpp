@@ -14,7 +14,6 @@
 
 #include "InstantiateTemplateParam.h"
 
-#include "clang/Lex/Lexer.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
@@ -93,15 +92,13 @@ class TemplateParameterFilterVisitor : public
   RecursiveASTVisitor<TemplateParameterFilterVisitor> {
 
 public:
-  explicit TemplateParameterFilterVisitor(TemplateParameterSet &Params,
+  TemplateParameterFilterVisitor(TemplateParameterSet &Params,
                                  InstantiateTemplateParam *Instance)
     : Parameters(Params),
       ConsumerInstance(Instance)
   { }
 
   ~TemplateParameterFilterVisitor() { };
-
-  bool isBeforeColonColon(TypeLoc &Loc);
 
   bool VisitTemplateTypeParmTypeLoc(TemplateTypeParmTypeLoc Loc);
 
@@ -111,18 +108,6 @@ private:
   InstantiateTemplateParam *ConsumerInstance;
 };
 
-bool TemplateParameterFilterVisitor::isBeforeColonColon(TypeLoc &Loc)
-{
-  SourceLocation EndLoc = Loc.getEndLoc();
-  SourceLocation ColonColonLoc =
-      Lexer::findLocationAfterToken(EndLoc,
-                                    tok::coloncolon,
-                                    *(ConsumerInstance->SrcManager),
-                                    ConsumerInstance->Context->getLangOpts(),
-                                    /*SkipTrailingWhitespaceAndNewLine=*/true);
-  return ColonColonLoc.isValid();
-}
-
 bool TemplateParameterFilterVisitor::VisitTemplateTypeParmTypeLoc(
        TemplateTypeParmTypeLoc Loc)
 {
@@ -130,7 +115,7 @@ bool TemplateParameterFilterVisitor::VisitTemplateTypeParmTypeLoc(
   if (!Parameters.count(ND))
     return true;
 
-  if (isBeforeColonColon(Loc))
+  if (ConsumerInstance->isBeforeColonColon(Loc))
     Parameters.erase(ND);
 
   return true;
