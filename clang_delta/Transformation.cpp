@@ -671,18 +671,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::Elaborated: {
     const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty);
     const Type *NamedT = ETy->getNamedType().getTypePtr();
-    if ( const TemplateSpecializationType *TSTy = 
-         dyn_cast<TemplateSpecializationType>(NamedT) ) {
-      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
-    }
-    else if ( const TypedefType * Ty = dyn_cast<TypedefType>(NamedT) ){
-      Base = getBaseDeclFromType(Ty);
-    }
-    else {
-      Base = ETy->getAsCXXRecordDecl();
-    }
-    TransAssert(Base && "Bad base class type from ElaboratedType!");
-    return Base;
+    return getBaseDeclFromType(NamedT);
   }
 
   case Type::DependentName: {
@@ -702,25 +691,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
     const TypedefNameDecl *TdefD = TdefTy->getDecl();
     const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
-    if (const TemplateSpecializationType *TSTy = 
-         dyn_cast<TemplateSpecializationType>(UnderlyingTy) ) {
-      Base = getBaseDeclFromTemplateSpecializationType(TSTy);
-    }
-    else if (const ElaboratedType *ETy = 
-             dyn_cast<ElaboratedType>(UnderlyingTy)) {
-      Base = getBaseDeclFromType(ETy);
-    }
-    else if (dyn_cast<DependentNameType>(UnderlyingTy)) {
-      return NULL;
-    }
-    else if (dyn_cast<TemplateTypeParmType>(UnderlyingTy)) {
-      return NULL;
-    }
-    else {
-      Base = UnderlyingTy->getAsCXXRecordDecl();
-    }
-    TransAssert(Base && "Bad base class type from Typedef!");
-    return Base;
+    return getBaseDeclFromType(UnderlyingTy);
   }
 
   case Type::TemplateTypeParm: {
