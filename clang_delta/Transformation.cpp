@@ -674,6 +674,47 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return getBaseDeclFromType(NamedT);
   }
 
+  case Type::Paren: {
+    const ParenType *PT = dyn_cast<ParenType>(Ty);
+    const Type *InnerTy = PT->getInnerType().getTypePtr();
+    return getBaseDeclFromType(InnerTy);
+  }
+
+  case Type::Typedef: {
+    const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
+    const TypedefNameDecl *TdefD = TdefTy->getDecl();
+    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
+    return getBaseDeclFromType(UnderlyingTy);
+  }
+
+  case Type::Decltype: {
+    const DecltypeType *DT = dyn_cast<DecltypeType>(Ty);
+    const Type *UnderlyingTy = DT->getUnderlyingType().getTypePtr();
+    return getBaseDeclFromType(UnderlyingTy);
+  }
+
+  case Type::ConstantArray:
+  case Type::DependentSizedArray:
+  case Type::IncompleteArray:
+  case Type::VariableArray: { // fall-through
+    const ArrayType *AT = dyn_cast<ArrayType>(Ty);
+    const Type *ElemTy = AT->getElementType().getTypePtr();
+    return getBaseDeclFromType(ElemTy);
+  }
+
+  case Type::MemberPointer: {
+    const MemberPointerType *MPT = dyn_cast<MemberPointerType>(Ty);
+    const Type *PT = MPT->getPointeeType().getTypePtr();
+    return getBaseDeclFromType(PT);
+  }
+
+  case Type::SubstTemplateTypeParm: {
+    const SubstTemplateTypeParmType *TP = 
+      dyn_cast<SubstTemplateTypeParmType>(Ty);
+    const Type *ST = TP->getReplacementType().getTypePtr();
+    return getBaseDeclFromType(ST);
+  }
+
   case Type::DependentName: {
     // It's not always the case that we could resolve a dependent name type.
     // For example, 
@@ -687,13 +728,6 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return NULL;
   }
 
-  case Type::Typedef: {
-    const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
-    const TypedefNameDecl *TdefD = TdefTy->getDecl();
-    const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
-    return getBaseDeclFromType(UnderlyingTy);
-  }
-
   case Type::TemplateTypeParm: {
     // Yet another case we might not know the base class, e.g.,
     // template<typename T1> 
@@ -703,13 +737,12 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return NULL;
   }
 
-  case Type::Builtin: {
+  case Type::Enum:
+  case Type::FunctionProto:
+  case Type::FunctionNoProto:
+  case Type::SubstTemplateTypeParmPack:
+  case Type::Builtin: // fall-through
     return NULL;
-  }
-
-  case Type::Enum: {
-    return NULL;
-  }
 
   default:
     Base = Ty->getAsCXXRecordDecl();
