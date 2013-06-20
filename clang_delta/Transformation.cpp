@@ -736,6 +736,10 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return NULL;
   }
 
+  case Type::Enum: {
+    return NULL;
+  }
+
   default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");
