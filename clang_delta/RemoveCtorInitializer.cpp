@@ -124,7 +124,7 @@ bool RemoveCtorInitializer::isValidType(const Type *Ty)
     const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RTy->getDecl());
     if (!CXXRD)
       return true;
-    return CXXRD->hasDeclaredDefaultConstructor();
+    return !CXXRD->needsImplicitDefaultConstructor();
   }
   return true;
 }
