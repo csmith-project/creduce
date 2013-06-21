@@ -66,6 +66,8 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
+	TemplateArgToInt.cpp \
+	TemplateArgToInt.h \
 	ClassTemplateToClass.cpp \
 	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \

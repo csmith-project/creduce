@@ -106,6 +106,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-BinOpSimplification.$(OBJEXT) \
 	clang_delta-CallExprToValue.$(OBJEXT) \
 	clang_delta-ClangDelta.$(OBJEXT) \
+	clang_delta-TemplateArgToInt.$(OBJEXT) \
 	clang_delta-ClassTemplateToClass.$(OBJEXT) \
 	clang_delta-CombineGlobalVarDecl.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
@@ -437,6 +438,8 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
+	TemplateArgToInt.cpp \
+	TemplateArgToInt.h \
 	ClassTemplateToClass.cpp \
 	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \
@@ -651,6 +654,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-BinOpSimplification.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CallExprToValue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClangDelta.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TemplateArgToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClassTemplateToClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineGlobalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
@@ -782,6 +786,20 @@ clang_delta-ClangDelta.obj: ClangDelta.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ClangDelta.cpp' object='clang_delta-ClangDelta.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ClangDelta.obj `if test -f 'ClangDelta.cpp'; then $(CYGPATH_W) 'ClangDelta.cpp'; else $(CYGPATH_W) '$(srcdir)/ClangDelta.cpp'; fi`
+
+clang_delta-TemplateArgToInt.o: TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.o -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
+
+clang_delta-TemplateArgToInt.obj: TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.obj -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
 
 clang_delta-ClassTemplateToClass.o: ClassTemplateToClass.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ClassTemplateToClass.o -MD -MP -MF $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo -c -o clang_delta-ClassTemplateToClass.o `test -f 'ClassTemplateToClass.cpp' || echo '$(srcdir)/'`ClassTemplateToClass.cpp
