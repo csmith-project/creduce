@@ -28,11 +28,11 @@ Flex:
 GNU Indent
   http://www.gnu.org/software/indent/
 
-LLVM/Clang 3.2:
-  http://llvm.org/releases/download.html#3.2
+LLVM/Clang 3.3:
+  http://llvm.org/releases/download.html#3.3
   (no need to compile it, any of the "Clang binaries" packages should
   work fine)
-  (Ubuntu 13.04 appears to have a package for LLVM/Clang 3.2 but we
+  (Ubuntu 13.04 appears to have a package for LLVM/Clang 3.3 but we
    have not tested it)
 
 Perl modules:
