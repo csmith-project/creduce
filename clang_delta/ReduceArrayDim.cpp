@@ -123,12 +123,15 @@ void ReduceArrayDim::HandleTranslationUnit(ASTContext &Ctx)
     return;
   }
 
-  TransAssert(CollectionVisitor && "NULL CollectionVisitor!");
-  TransAssert(RewriteVisitor && "NULL CollectionVisitor!");
+  TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
   TransAssert(TheVarDecl && "NULL TheVarDecl!");
 
   RewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (!Rewritten) {
+    TransError = TransNoTextModificationError;
+    return;
+  }
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -286,6 +289,7 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
   }
 
   freeBracketLocPairs(BPVector);
+  Rewritten = true;
   return;
 }
 
@@ -374,6 +378,7 @@ void ReduceArrayDim::handleOneArraySubscriptExpr(
     return;
 
   rewriteSubscriptExpr(IdxExprs); 
+  Rewritten = true;
 }
 
 ReduceArrayDim::~ReduceArrayDim(void)
