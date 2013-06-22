@@ -106,7 +106,6 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-BinOpSimplification.$(OBJEXT) \
 	clang_delta-CallExprToValue.$(OBJEXT) \
 	clang_delta-ClangDelta.$(OBJEXT) \
-	clang_delta-TemplateArgToInt.$(OBJEXT) \
 	clang_delta-ClassTemplateToClass.$(OBJEXT) \
 	clang_delta-CombineGlobalVarDecl.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
@@ -138,8 +137,8 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
 	clang_delta-RemoveUnusedStructField.$(OBJEXT) \
 	clang_delta-RemoveUnusedVar.$(OBJEXT) \
-	clang_delta-RenameClass.$(OBJEXT) \
 	clang_delta-RenameCXXMethod.$(OBJEXT) \
+	clang_delta-RenameClass.$(OBJEXT) \
 	clang_delta-RenameFun.$(OBJEXT) \
 	clang_delta-RenameParam.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
@@ -157,6 +156,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-SimplifyIf.$(OBJEXT) \
 	clang_delta-SimplifyStruct.$(OBJEXT) \
 	clang_delta-SimplifyStructUnionDecl.$(OBJEXT) \
+	clang_delta-TemplateArgToInt.$(OBJEXT) \
 	clang_delta-Transformation.$(OBJEXT) \
 	clang_delta-TransformationManager.$(OBJEXT) \
 	clang_delta-UnifyFunctionDecl.$(OBJEXT) \
@@ -438,8 +438,6 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
-	TemplateArgToInt.cpp \
-	TemplateArgToInt.h \
 	ClassTemplateToClass.cpp \
 	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \
@@ -505,10 +503,10 @@ clang_delta_SOURCES = \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \
 	RemoveUnusedVar.h \
-	RenameClass.cpp \
-	RenameClass.h \
 	RenameCXXMethod.cpp \
 	RenameCXXMethod.h \
+	RenameClass.cpp \
+	RenameClass.h \
 	RenameFun.cpp \
 	RenameFun.h \
 	RenameParam.cpp \
@@ -543,6 +541,8 @@ clang_delta_SOURCES = \
 	SimplifyStruct.h \
 	SimplifyStructUnionDecl.cpp \
 	SimplifyStructUnionDecl.h \
+	TemplateArgToInt.cpp \
+	TemplateArgToInt.h \
 	Transformation.cpp \
 	Transformation.h \
 	TransformationManager.cpp \
@@ -654,7 +654,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-BinOpSimplification.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CallExprToValue.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClangDelta.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TemplateArgToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ClassTemplateToClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineGlobalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
@@ -705,6 +704,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyIf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyStruct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyStructUnionDecl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TemplateArgToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-Transformation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TransformationManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-UnifyFunctionDecl.Po@am__quote@
@@ -786,20 +786,6 @@ clang_delta-ClangDelta.obj: ClangDelta.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ClangDelta.cpp' object='clang_delta-ClangDelta.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ClangDelta.obj `if test -f 'ClangDelta.cpp'; then $(CYGPATH_W) 'ClangDelta.cpp'; else $(CYGPATH_W) '$(srcdir)/ClangDelta.cpp'; fi`
-
-clang_delta-TemplateArgToInt.o: TemplateArgToInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.o -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
-
-clang_delta-TemplateArgToInt.obj: TemplateArgToInt.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.obj -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
 
 clang_delta-ClassTemplateToClass.o: ClassTemplateToClass.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ClassTemplateToClass.o -MD -MP -MF $(DEPDIR)/clang_delta-ClassTemplateToClass.Tpo -c -o clang_delta-ClassTemplateToClass.o `test -f 'ClassTemplateToClass.cpp' || echo '$(srcdir)/'`ClassTemplateToClass.cpp
@@ -1235,20 +1221,6 @@ clang_delta-RemoveUnusedVar.obj: RemoveUnusedVar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedVar.obj `if test -f 'RemoveUnusedVar.cpp'; then $(CYGPATH_W) 'RemoveUnusedVar.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedVar.cpp'; fi`
 
-clang_delta-RenameClass.o: RenameClass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameClass.cpp' object='clang_delta-RenameClass.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
-
-clang_delta-RenameClass.obj: RenameClass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameClass.cpp' object='clang_delta-RenameClass.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
-
 clang_delta-RenameCXXMethod.o: RenameCXXMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameCXXMethod.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameCXXMethod.Tpo -c -o clang_delta-RenameCXXMethod.o `test -f 'RenameCXXMethod.cpp' || echo '$(srcdir)/'`RenameCXXMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RenameCXXMethod.Tpo $(DEPDIR)/clang_delta-RenameCXXMethod.Po
@@ -1262,6 +1234,20 @@ clang_delta-RenameCXXMethod.obj: RenameCXXMethod.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameCXXMethod.cpp' object='clang_delta-RenameCXXMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameCXXMethod.obj `if test -f 'RenameCXXMethod.cpp'; then $(CYGPATH_W) 'RenameCXXMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameCXXMethod.cpp'; fi`
+
+clang_delta-RenameClass.o: RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameClass.cpp' object='clang_delta-RenameClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.o `test -f 'RenameClass.cpp' || echo '$(srcdir)/'`RenameClass.cpp
+
+clang_delta-RenameClass.obj: RenameClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-RenameClass.Tpo -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RenameClass.Tpo $(DEPDIR)/clang_delta-RenameClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameClass.cpp' object='clang_delta-RenameClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameClass.obj `if test -f 'RenameClass.cpp'; then $(CYGPATH_W) 'RenameClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameClass.cpp'; fi`
 
 clang_delta-RenameFun.o: RenameFun.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RenameFun.o -MD -MP -MF $(DEPDIR)/clang_delta-RenameFun.Tpo -c -o clang_delta-RenameFun.o `test -f 'RenameFun.cpp' || echo '$(srcdir)/'`RenameFun.cpp
@@ -1500,6 +1486,20 @@ clang_delta-SimplifyStructUnionDecl.obj: SimplifyStructUnionDecl.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SimplifyStructUnionDecl.cpp' object='clang_delta-SimplifyStructUnionDecl.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyStructUnionDecl.obj `if test -f 'SimplifyStructUnionDecl.cpp'; then $(CYGPATH_W) 'SimplifyStructUnionDecl.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyStructUnionDecl.cpp'; fi`
+
+clang_delta-TemplateArgToInt.o: TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.o -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.o `test -f 'TemplateArgToInt.cpp' || echo '$(srcdir)/'`TemplateArgToInt.cpp
+
+clang_delta-TemplateArgToInt.obj: TemplateArgToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-TemplateArgToInt.obj -MD -MP -MF $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-TemplateArgToInt.Tpo $(DEPDIR)/clang_delta-TemplateArgToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemplateArgToInt.cpp' object='clang_delta-TemplateArgToInt.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-TemplateArgToInt.obj `if test -f 'TemplateArgToInt.cpp'; then $(CYGPATH_W) 'TemplateArgToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/TemplateArgToInt.cpp'; fi`
 
 clang_delta-Transformation.o: Transformation.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-Transformation.o -MD -MP -MF $(DEPDIR)/clang_delta-Transformation.Tpo -c -o clang_delta-Transformation.o `test -f 'Transformation.cpp' || echo '$(srcdir)/'`Transformation.cpp

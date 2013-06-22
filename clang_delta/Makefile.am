@@ -66,8 +66,6 @@ clang_delta_SOURCES = \
 	CallExprToValue.cpp \
 	CallExprToValue.h \
 	ClangDelta.cpp \
-	TemplateArgToInt.cpp \
-	TemplateArgToInt.h \
 	ClassTemplateToClass.cpp \
 	ClassTemplateToClass.h \
 	CombineGlobalVarDecl.cpp \
@@ -133,10 +131,10 @@ clang_delta_SOURCES = \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \
 	RemoveUnusedVar.h \
-	RenameClass.cpp \
-	RenameClass.h \
 	RenameCXXMethod.cpp \
 	RenameCXXMethod.h \
+	RenameClass.cpp \
+	RenameClass.h \
 	RenameFun.cpp \
 	RenameFun.h \
 	RenameParam.cpp \
@@ -171,6 +169,8 @@ clang_delta_SOURCES = \
 	SimplifyStruct.h \
 	SimplifyStructUnionDecl.cpp \
 	SimplifyStructUnionDecl.h \
+	TemplateArgToInt.cpp \
+	TemplateArgToInt.h \
 	Transformation.cpp \
 	Transformation.h \
 	TransformationManager.cpp \
