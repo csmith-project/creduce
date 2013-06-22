@@ -1,6 +1,6 @@
 # -*- mode: m4 -*-
 #
-# Copyright (c) 2012 The University of Utah
+# Copyright (c) 2012, 2013 The University of Utah
 # Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -27,7 +27,7 @@
 # The definition of AX_LLVM in this file is almost completely rewritten from
 # the version (serial #12) found in the Archive.
 #
-# The current file has been updated for modern LLVM (3.1).
+# The current file has been updated for modern LLVM (3.3).
 
 AC_DEFUN([AX_LLVM],
 [
@@ -78,8 +78,8 @@ AC_DEFUN([AX_LLVM],
       AC_LANG_PUSH([C++])
       AC_LINK_IFELSE([
         AC_LANG_PROGRAM(
-          [[@%:@include <llvm/LLVMContext.h>
-@%:@include <llvm/Module.h>]],
+          [[@%:@include <llvm/IR/LLVMContext.h>
+@%:@include <llvm/IR/Module.h>]],
           [[llvm::LLVMContext context;
 llvm::Module *M = new llvm::Module("test", context);]])],
         ax_cv_llvm=yes,
