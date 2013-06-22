@@ -55,16 +55,26 @@ bool RemoveCtorInitializerASTVisitor::VisitCXXConstructorDecl(
       continue;
     }
       
-    if (!Init->isAnyMemberInitializer()) {
+    if (Init->isInClassMemberInitializer() ||
+        Init->isPackExpansion() ||
+        Init->isDelegatingInitializer()) {
       Idx++;
       continue;
     }
-    const FieldDecl *Field = Init->getAnyMember();
-    TransAssert(Field && "Invalid Field for Init!");
-    const Type *Ty = Field->getType().getTypePtr();
-    if (!ConsumerInstance->isValidType(Ty)) {
-      Idx++;
-      continue;
+
+    if (const FieldDecl *Field = Init->getAnyMember()) {
+      const Type *Ty = Field->getType().getTypePtr();
+      if (!ConsumerInstance->isValidType(Ty)) {
+        Idx++;
+        continue;
+      }
+    }
+    else if (const Type *Ty = Init->getBaseClass()) {
+      const CXXRecordDecl *Base = ConsumerInstance->getBaseDeclFromType(Ty);
+      if (Base && Base->needsImplicitDefaultConstructor()) {
+        Idx++;
+        continue;
+      }
     }
 
     ConsumerInstance->ValidInstanceNum++;
