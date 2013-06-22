@@ -7,11 +7,13 @@ C-Reduce
 --------------------------------------------------------------------
 Prereqs:
 
-On Ubuntu, prerequisites other than LLVM can be installed like this:
+On Ubuntu or Mint, prerequisites other than LLVM can be installed like
+this:
 
   sudo apt-get install indent astyle delta libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
-    libregexp-common-perl libsys-cpu-perl flex build-essential
+    libregexp-common-perl libsys-cpu-perl flex build-essential \
+    zlib1g-dev
 
 Otherwise, install these packages either manually or using the package
 manager:
@@ -25,15 +27,13 @@ Berkeley delta:
 Flex:
   http://flex.sourceforge.net/
 
-GNU Indent
+GNU Indent:
   http://www.gnu.org/software/indent/
 
 LLVM/Clang 3.3:
   http://llvm.org/releases/download.html#3.3
-  (no need to compile it, any of the "Clang binaries" packages should
-  work fine)
-  (Ubuntu 13.04 appears to have a package for LLVM/Clang 3.3 but we
-   have not tested it)
+  (no need to compile it, the appropriate "Clang binaries" package is
+  all you need)
 
 Perl modules:
   Benchmark::Timer
@@ -50,6 +50,9 @@ For example, (perhaps as root):
   cpan -i 'Getopt::Tabular'
   cpan -i 'Regexp::Common'
   cpan -i 'Sys::CPU'
+
+zlib:
+  http://www.zlib.net/
 
 --------------------------------------------------------------------
 Building and installing C-Reduce:
