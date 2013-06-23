@@ -145,6 +145,8 @@ clang_delta_SOURCES = \
 	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
+	ReplaceDependentTypedef.cpp \
+	ReplaceDependentTypedef.h \
 	ReplaceDerivedClass.cpp \
 	ReplaceDerivedClass.h \
 	ReplaceSimpleTypedef.cpp \
