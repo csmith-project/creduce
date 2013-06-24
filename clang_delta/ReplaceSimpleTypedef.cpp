@@ -81,9 +81,9 @@ bool ReplaceSimpleTypedefRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc Loc)
 {
   const TypedefType *TdefTy = Loc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
-  if (!TdefD)
+  if (!TdefD || TdefD->getLocStart().isInvalid())
     return true;
-  
+ 
   if (dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl()) == 
       ConsumerInstance->TheTypedefDecl) {
     SourceRange Range = Loc.getSourceRange();
