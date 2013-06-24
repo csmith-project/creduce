@@ -260,7 +260,18 @@ void InstantiateTemplateParam::handleOneClassTemplateDecl(
 void InstantiateTemplateParam::handleOneFunctionTemplateDecl(
        const FunctionTemplateDecl *D)
 {
-
+  FunctionTemplateDecl::spec_iterator I = D->spec_begin();
+  FunctionTemplateDecl::spec_iterator E = D->spec_end();
+  if (I == E)
+    return;
+  const FunctionDecl *FD = (*I);
+  ++I;
+  if (I != D->spec_end())
+    return;
+  if (const FunctionTemplateSpecializationInfo *Info =
+      FD->getTemplateSpecializationInfo()) {
+    handleOneTemplateSpecialization(D, *(Info->TemplateArguments));
+  }
 }
 
 InstantiateTemplateParam::~InstantiateTemplateParam()
