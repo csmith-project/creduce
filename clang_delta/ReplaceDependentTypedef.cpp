@@ -134,6 +134,24 @@ bool ReplaceDependentTypedef::getDependentNameString(
   return true;
 }
 
+bool ReplaceDependentTypedef::getTemplateTypeParmString(
+       const TemplateTypeParmType *ParmTy,
+       const TemplateArgument *Args,
+       unsigned NumArgs,
+       std::string &Str)
+{
+  unsigned Idx = ParmTy->getIndex();
+  // we could have default template args, skip this case for now
+  if (Idx >= NumArgs)
+    return false;
+  const TemplateArgument Arg = Args[Idx];
+  if (Arg.getKind() != TemplateArgument::Type)
+    return false;
+  QualType ArgQT = Arg.getAsType();
+  ArgQT.getAsStringInternal(Str, Context->getPrintingPolicy());
+  return true;
+}
+
 bool ReplaceDependentTypedef::getTypedefString(const StringRef &Name,
                                                const CXXRecordDecl *CXXRD,
                                                const TemplateArgument *Args,
@@ -149,11 +167,16 @@ bool ReplaceDependentTypedef::getTypedefString(const StringRef &Name,
     if (!D || (D->getNameAsString() != Name))
       continue;
     const Type *UnderlyingTy = D->getUnderlyingType().getTypePtr();
-    if (UnderlyingTy->getTypeClass() != Type::DependentName)
-      continue;
-
-    if (getDependentNameString(UnderlyingTy, Args, NumArgs, Str, Typename))
-      return true;
+    Type::TypeClass TC = UnderlyingTy->getTypeClass();
+    if (TC == Type::DependentName) {
+      if (getDependentNameString(UnderlyingTy, Args, NumArgs, Str, Typename))
+        return true;
+    }
+    else if (const TemplateTypeParmType *ParmTy = 
+             UnderlyingTy->getAs<TemplateTypeParmType>()) {
+      if (getTemplateTypeParmString(ParmTy, Args, NumArgs, Str))
+        return true;
+    }
   }
   return false;
 }

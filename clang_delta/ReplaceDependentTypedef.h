@@ -23,6 +23,7 @@ namespace clang {
   class StringRef;
   class CXXRecordDecl;
   class TemplateArgument;
+  class TemplateTypeParmType;
 }
 
 class ReplaceDependentTypedefCollectionVisitor;
@@ -67,6 +68,11 @@ private:
                               unsigned NumArgs,
                               std::string &Str,
                               bool &Typename);
+
+  bool getTemplateTypeParmString(const clang::TemplateTypeParmType *ParmTy,
+                                const clang::TemplateArgument *Args,
+                                unsigned NumArgs,
+                                std::string &Str);
 
   void rewriteTypedefDecl();
 
