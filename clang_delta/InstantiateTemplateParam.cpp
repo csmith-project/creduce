@@ -214,7 +214,7 @@ void InstantiateTemplateParam::handleOneTemplateSpecialization(
   if (ParamsSet.size() == 0)
     return;
 
-  unsigned NumArgs = ArgList.size();
+  unsigned NumArgs = ArgList.size(); (void)NumArgs;
   unsigned Idx = 0;
   TemplateParameterList *TPList = D->getTemplateParameters();
   for (TemplateParameterList::const_iterator I = TPList->begin(),
