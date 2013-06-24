@@ -171,7 +171,8 @@ bool InstantiateTemplateTypeParamToIntASTVisitor::VisitFunctionTemplateDecl(
   return true;
 }
 
-bool InstantiateTemplateTypeParamToIntRewriteVisitor::VisitTemplateTypeParmTypeLoc(
+bool 
+InstantiateTemplateTypeParamToIntRewriteVisitor::VisitTemplateTypeParmTypeLoc(
        TemplateTypeParmTypeLoc Loc)
 {
   const TemplateTypeParmDecl *D = Loc.getDecl();
