@@ -65,10 +65,6 @@ public:
 
   bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
 
-  bool isUsedParam(const NamedDecl *ND) {
-    return UsedParameters.count(ND);
-  }
-
 private:
 
   TemplateParameterSet &UsedParameters;
@@ -247,7 +243,7 @@ void InstantiateTemplateTypeParamToInt::handleOneTemplateDecl(const TemplateDecl
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ND = (*I);
-    if (!ParameterVisitor.isUsedParam(ND))
+    if (!ParamsSet.count(ND))
       continue;
     ValidInstanceNum++;
     if (ValidInstanceNum == TransformationCounter)

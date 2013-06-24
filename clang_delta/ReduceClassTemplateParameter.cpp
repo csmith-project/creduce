@@ -53,37 +53,30 @@ private:
 
 namespace {
 
+typedef SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
+
 class TemplateParameterVisitor : public 
   RecursiveASTVisitor<TemplateParameterVisitor> {
 
 public:
-  TemplateParameterVisitor()
-             : UsedParameters(NULL) { 
-    UsedParameters = new TemplateParameterSet();
-  }
+  explicit TemplateParameterVisitor(TemplateParameterSet &Params)
+             : UsedParameters(Params) 
+  { }
 
-  ~TemplateParameterVisitor() {
-    delete UsedParameters;
-  };
+  ~TemplateParameterVisitor() { };
 
   bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
 
-  bool isUsedParam(const NamedDecl *ND) {
-    return UsedParameters->count(ND);
-  }
-
 private:
 
-  typedef SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
-
-  TemplateParameterSet *UsedParameters;
+  TemplateParameterSet &UsedParameters;
 };
 
 bool TemplateParameterVisitor::VisitTemplateTypeParmType(
        TemplateTypeParmType *Ty)
 {
   const TemplateTypeParmDecl *D = Ty->getDecl();
-  UsedParameters->insert(D);
+  UsedParameters.insert(D);
   return true;
 }
 
@@ -188,7 +181,8 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
   if (!ConsumerInstance->isValidClassTemplateDecl(D))
     return true;
 
-  TemplateParameterVisitor ParameterVisitor;
+  TemplateParameterSet ParamsSet;
+  TemplateParameterVisitor ParameterVisitor(ParamsSet);
   CXXRecordDecl *CXXRD = D->getTemplatedDecl();
   CXXRecordDecl *Def = CXXRD->getDefinition();
   if (Def)
@@ -218,7 +212,7 @@ bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ND = (*I);
-    if (ParameterVisitor.isUsedParam(ND)) {
+    if (ParamsSet.count(ND)) {
       Index++;
       continue;
     }
