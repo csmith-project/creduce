@@ -79,6 +79,8 @@ clang_delta_SOURCES = \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \
 	EmptyStructToInt.h \
+	InstantiateTemplateParam.cpp \
+	InstantiateTemplateParam.h \
 	InstantiateTemplateTypeParamToInt.cpp \
 	InstantiateTemplateTypeParamToInt.h \
 	LiftAssignmentExpr.cpp \
