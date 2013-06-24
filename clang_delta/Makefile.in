@@ -111,7 +111,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
 	clang_delta-CopyPropagation.$(OBJEXT) \
 	clang_delta-EmptyStructToInt.$(OBJEXT) \
-	clang_delta-InstantiateTemplateParam.$(OBJEXT) \
+	clang_delta-InstantiateTemplateTypeParamToInt.$(OBJEXT) \
 	clang_delta-LiftAssignmentExpr.$(OBJEXT) \
 	clang_delta-LocalToGlobal.$(OBJEXT) \
 	clang_delta-MoveFunctionBody.$(OBJEXT) \
@@ -452,8 +452,8 @@ clang_delta_SOURCES = \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \
 	EmptyStructToInt.h \
-	InstantiateTemplateParam.cpp \
-	InstantiateTemplateParam.h \
+	InstantiateTemplateTypeParamToInt.cpp \
+	InstantiateTemplateTypeParamToInt.h \
 	LiftAssignmentExpr.cpp \
 	LiftAssignmentExpr.h \
 	LocalToGlobal.cpp \
@@ -662,7 +662,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CopyPropagation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-EmptyStructToInt.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-InstantiateTemplateParam.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-LiftAssignmentExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-LocalToGlobal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-MoveFunctionBody.Po@am__quote@
@@ -861,19 +861,19 @@ clang_delta-EmptyStructToInt.obj: EmptyStructToInt.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-EmptyStructToInt.obj `if test -f 'EmptyStructToInt.cpp'; then $(CYGPATH_W) 'EmptyStructToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/EmptyStructToInt.cpp'; fi`
 
-clang_delta-InstantiateTemplateParam.o: InstantiateTemplateParam.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-InstantiateTemplateParam.o -MD -MP -MF $(DEPDIR)/clang_delta-InstantiateTemplateParam.Tpo -c -o clang_delta-InstantiateTemplateParam.o `test -f 'InstantiateTemplateParam.cpp' || echo '$(srcdir)/'`InstantiateTemplateParam.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-InstantiateTemplateParam.Tpo $(DEPDIR)/clang_delta-InstantiateTemplateParam.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InstantiateTemplateParam.cpp' object='clang_delta-InstantiateTemplateParam.o' libtool=no @AMDEPBACKSLASH@
+clang_delta-InstantiateTemplateTypeParamToInt.o: InstantiateTemplateTypeParamToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-InstantiateTemplateTypeParamToInt.o -MD -MP -MF $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Tpo -c -o clang_delta-InstantiateTemplateTypeParamToInt.o `test -f 'InstantiateTemplateTypeParamToInt.cpp' || echo '$(srcdir)/'`InstantiateTemplateTypeParamToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Tpo $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InstantiateTemplateTypeParamToInt.cpp' object='clang_delta-InstantiateTemplateTypeParamToInt.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-InstantiateTemplateParam.o `test -f 'InstantiateTemplateParam.cpp' || echo '$(srcdir)/'`InstantiateTemplateParam.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-InstantiateTemplateTypeParamToInt.o `test -f 'InstantiateTemplateTypeParamToInt.cpp' || echo '$(srcdir)/'`InstantiateTemplateTypeParamToInt.cpp
 
-clang_delta-InstantiateTemplateParam.obj: InstantiateTemplateParam.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-InstantiateTemplateParam.obj -MD -MP -MF $(DEPDIR)/clang_delta-InstantiateTemplateParam.Tpo -c -o clang_delta-InstantiateTemplateParam.obj `if test -f 'InstantiateTemplateParam.cpp'; then $(CYGPATH_W) 'InstantiateTemplateParam.cpp'; else $(CYGPATH_W) '$(srcdir)/InstantiateTemplateParam.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-InstantiateTemplateParam.Tpo $(DEPDIR)/clang_delta-InstantiateTemplateParam.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InstantiateTemplateParam.cpp' object='clang_delta-InstantiateTemplateParam.obj' libtool=no @AMDEPBACKSLASH@
+clang_delta-InstantiateTemplateTypeParamToInt.obj: InstantiateTemplateTypeParamToInt.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-InstantiateTemplateTypeParamToInt.obj -MD -MP -MF $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Tpo -c -o clang_delta-InstantiateTemplateTypeParamToInt.obj `if test -f 'InstantiateTemplateTypeParamToInt.cpp'; then $(CYGPATH_W) 'InstantiateTemplateTypeParamToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/InstantiateTemplateTypeParamToInt.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Tpo $(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='InstantiateTemplateTypeParamToInt.cpp' object='clang_delta-InstantiateTemplateTypeParamToInt.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-InstantiateTemplateParam.obj `if test -f 'InstantiateTemplateParam.cpp'; then $(CYGPATH_W) 'InstantiateTemplateParam.cpp'; else $(CYGPATH_W) '$(srcdir)/InstantiateTemplateParam.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-InstantiateTemplateTypeParamToInt.obj `if test -f 'InstantiateTemplateTypeParamToInt.cpp'; then $(CYGPATH_W) 'InstantiateTemplateTypeParamToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/InstantiateTemplateTypeParamToInt.cpp'; fi`
 
 clang_delta-LiftAssignmentExpr.o: LiftAssignmentExpr.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-LiftAssignmentExpr.o -MD -MP -MF $(DEPDIR)/clang_delta-LiftAssignmentExpr.Tpo -c -o clang_delta-LiftAssignmentExpr.o `test -f 'LiftAssignmentExpr.cpp' || echo '$(srcdir)/'`LiftAssignmentExpr.cpp
