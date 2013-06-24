@@ -12,7 +12,7 @@
 #  include <config.h>
 #endif
 
-#include "InstantiateTemplateParam.h"
+#include "InstantiateTemplateTypeParamToInt.h"
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
@@ -46,8 +46,8 @@ inside the class's definition. For example, \n\
 \n\
 Currently, just simply replace any reference of T with int.\n";
 
-static RegisterTransformation<InstantiateTemplateParam>
-         Trans("instantiate-template-param", DescriptionMsg);
+static RegisterTransformation<InstantiateTemplateTypeParamToInt>
+         Trans("instantiate-template-type-param-to-int", DescriptionMsg);
 
 namespace {
 
@@ -93,7 +93,7 @@ class TemplateParameterFilterVisitor : public
 
 public:
   TemplateParameterFilterVisitor(TemplateParameterSet &Params,
-                                 InstantiateTemplateParam *Instance)
+                                 InstantiateTemplateTypeParamToInt *Instance)
     : Parameters(Params),
       ConsumerInstance(Instance)
   { }
@@ -105,7 +105,7 @@ public:
 private:
   TemplateParameterSet &Parameters;
 
-  InstantiateTemplateParam *ConsumerInstance;
+  InstantiateTemplateTypeParamToInt *ConsumerInstance;
 };
 
 bool TemplateParameterFilterVisitor::VisitTemplateTypeParmTypeLoc(
@@ -123,12 +123,12 @@ bool TemplateParameterFilterVisitor::VisitTemplateTypeParmTypeLoc(
 
 // ISSUE: maybe also try to instantiate a type parm with
 // its default value, if it exists?
-class InstantiateTemplateParamASTVisitor : public 
-  RecursiveASTVisitor<InstantiateTemplateParamASTVisitor> {
+class InstantiateTemplateTypeParamToIntASTVisitor : public 
+  RecursiveASTVisitor<InstantiateTemplateTypeParamToIntASTVisitor> {
 
 public:
-  explicit InstantiateTemplateParamASTVisitor(
-             InstantiateTemplateParam *Instance)
+  explicit InstantiateTemplateTypeParamToIntASTVisitor(
+             InstantiateTemplateTypeParamToInt *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -137,27 +137,27 @@ public:
   bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D);
 
 private:
-  InstantiateTemplateParam *ConsumerInstance;
+  InstantiateTemplateTypeParamToInt *ConsumerInstance;
 
 };
 
-class InstantiateTemplateParamRewriteVisitor : public 
-  RecursiveASTVisitor<InstantiateTemplateParamRewriteVisitor> {
+class InstantiateTemplateTypeParamToIntRewriteVisitor : public 
+  RecursiveASTVisitor<InstantiateTemplateTypeParamToIntRewriteVisitor> {
 
 public:
-  explicit InstantiateTemplateParamRewriteVisitor(
-             InstantiateTemplateParam *Instance)
+  explicit InstantiateTemplateTypeParamToIntRewriteVisitor(
+             InstantiateTemplateTypeParamToInt *Instance)
     : ConsumerInstance(Instance)
   { }
 
   bool VisitTemplateTypeParmTypeLoc(TemplateTypeParmTypeLoc Loc);
 
 private:
-  InstantiateTemplateParam *ConsumerInstance;
+  InstantiateTemplateTypeParamToInt *ConsumerInstance;
 
 };
 
-bool InstantiateTemplateParamASTVisitor::VisitClassTemplateDecl(
+bool InstantiateTemplateTypeParamToIntASTVisitor::VisitClassTemplateDecl(
        ClassTemplateDecl *D)
 {
   // only care about declarations
@@ -166,7 +166,7 @@ bool InstantiateTemplateParamASTVisitor::VisitClassTemplateDecl(
   return true;
 }
 
-bool InstantiateTemplateParamASTVisitor::VisitFunctionTemplateDecl(
+bool InstantiateTemplateTypeParamToIntASTVisitor::VisitFunctionTemplateDecl(
        FunctionTemplateDecl *D)
 {
   // only care about declarations
@@ -175,7 +175,7 @@ bool InstantiateTemplateParamASTVisitor::VisitFunctionTemplateDecl(
   return true;
 }
 
-bool InstantiateTemplateParamRewriteVisitor::VisitTemplateTypeParmTypeLoc(
+bool InstantiateTemplateTypeParamToIntRewriteVisitor::VisitTemplateTypeParmTypeLoc(
        TemplateTypeParmTypeLoc Loc)
 {
   const TemplateTypeParmDecl *D = Loc.getDecl();
@@ -187,14 +187,14 @@ bool InstantiateTemplateParamRewriteVisitor::VisitTemplateTypeParmTypeLoc(
   return true;
 }
 
-void InstantiateTemplateParam::Initialize(ASTContext &context) 
+void InstantiateTemplateTypeParamToInt::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
-  CollectionVisitor = new InstantiateTemplateParamASTVisitor(this);
-  ParamRewriteVisitor = new InstantiateTemplateParamRewriteVisitor(this);
+  CollectionVisitor = new InstantiateTemplateTypeParamToIntASTVisitor(this);
+  ParamRewriteVisitor = new InstantiateTemplateTypeParamToIntRewriteVisitor(this);
 }
 
-void InstantiateTemplateParam::HandleTranslationUnit(ASTContext &Ctx)
+void InstantiateTemplateTypeParamToInt::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (TransformationManager::isCLangOpt()) {
     ValidInstanceNum = 0;
@@ -222,7 +222,7 @@ void InstantiateTemplateParam::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-void InstantiateTemplateParam::handleOneTemplateDecl(const TemplateDecl *D)
+void InstantiateTemplateTypeParamToInt::handleOneTemplateDecl(const TemplateDecl *D)
 {
   // doesn't handle TypeAliasTemplateDecl
   TransAssert((!dyn_cast<TypeAliasTemplateDecl>(D)) && 
@@ -255,7 +255,7 @@ void InstantiateTemplateParam::handleOneTemplateDecl(const TemplateDecl *D)
   }
 }
 
-void InstantiateTemplateParam::filterInvalidParams(const TemplateDecl *D,
+void InstantiateTemplateTypeParamToInt::filterInvalidParams(const TemplateDecl *D,
                                                    TemplateParameterSet &Params)
 {
   NamedDecl *ND = D->getTemplatedDecl();
@@ -281,7 +281,7 @@ void InstantiateTemplateParam::filterInvalidParams(const TemplateDecl *D,
   }
 }
 
-InstantiateTemplateParam::~InstantiateTemplateParam()
+InstantiateTemplateTypeParamToInt::~InstantiateTemplateTypeParamToInt()
 {
   delete CollectionVisitor;
   delete ParamRewriteVisitor;

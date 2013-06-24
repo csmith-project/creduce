@@ -8,8 +8,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef INSTANTIATE_TEMPLATE_PARAM_H
-#define INSTANTIATE_TEMPLATE_PARAM_H
+#ifndef INSTANTIATE_TEMPLATE_TYPE_PARAM_TO_INT_H
+#define INSTANTIATE_TEMPLATE_TYPE_PARAM_TO_INT_H
 
 #include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
@@ -21,23 +21,23 @@ namespace clang {
   class NamedDecl;
 }
 
-class InstantiateTemplateParamASTVisitor;
-class InstantiateTemplateParamRewriteVisitor;
+class InstantiateTemplateTypeParamToIntASTVisitor;
+class InstantiateTemplateTypeParamToIntRewriteVisitor;
 
-class InstantiateTemplateParam : public Transformation {
-friend class InstantiateTemplateParamASTVisitor;
-friend class InstantiateTemplateParamRewriteVisitor;
+class InstantiateTemplateTypeParamToInt : public Transformation {
+friend class InstantiateTemplateTypeParamToIntASTVisitor;
+friend class InstantiateTemplateTypeParamToIntRewriteVisitor;
 friend class TemplateParameterFilterVisitor;
 
 public:
-  InstantiateTemplateParam(const char *TransName, const char *Desc)
+  InstantiateTemplateTypeParamToInt(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
       ParamRewriteVisitor(NULL),
       TheParameter(NULL)
   {}
 
-  ~InstantiateTemplateParam();
+  ~InstantiateTemplateTypeParamToInt();
 
 private:
 
@@ -56,18 +56,18 @@ private:
 
   TemplateDeclSet VisitedTemplateDecls;
 
-  InstantiateTemplateParamASTVisitor *CollectionVisitor;
+  InstantiateTemplateTypeParamToIntASTVisitor *CollectionVisitor;
 
-  InstantiateTemplateParamRewriteVisitor *ParamRewriteVisitor;
+  InstantiateTemplateTypeParamToIntRewriteVisitor *ParamRewriteVisitor;
 
   const clang::NamedDecl *TheParameter;
 
   // Unimplemented
-  InstantiateTemplateParam();
+  InstantiateTemplateTypeParamToInt();
 
-  InstantiateTemplateParam(const InstantiateTemplateParam &);
+  InstantiateTemplateTypeParamToInt(const InstantiateTemplateTypeParamToInt &);
 
-  void operator=(const InstantiateTemplateParam &);
+  void operator=(const InstantiateTemplateTypeParamToInt &);
 };
 
 #endif
