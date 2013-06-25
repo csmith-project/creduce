@@ -20,9 +20,11 @@
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
+#include "CommonTemplateArgumentVisitor.h"
 
 using namespace clang;
 using namespace llvm;
+using namespace clang_delta_common_visitor;
 
 static const char *DescriptionMsg = 
 "This pass replaces a template argument in an instantiation with \
@@ -62,26 +64,14 @@ private:
 };
 
 class TemplateArgToIntArgCollector : public 
-  RecursiveASTVisitor<TemplateArgToIntArgCollector> {
+  CommonTemplateArgumentVisitor<TemplateArgToIntArgCollector, 
+                                TemplateArgToInt> {
 
 public:
-  explicit TemplateArgToIntArgCollector(
-             TemplateArgToInt *Instance)
-    : ConsumerInstance(Instance)
+  explicit TemplateArgToIntArgCollector(TemplateArgToInt *Instance)
+    : CommonTemplateArgumentVisitor<TemplateArgToIntArgCollector,
+                                    TemplateArgToInt>(Instance)
   { }
-
-  bool VisitClassTemplatePartialSpecializationDecl(
-         ClassTemplatePartialSpecializationDecl *D);
-
-  bool VisitTemplateSpecializationTypeLoc(TemplateSpecializationTypeLoc TLoc);
-
-  bool VisitFunctionDecl(FunctionDecl *D);
-
-  bool VisitDeclRefExpr(DeclRefExpr *E);
-
-private:
-  TemplateArgToInt *ConsumerInstance;
-
 };
 
 typedef llvm::SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
@@ -200,70 +190,6 @@ bool TemplateArgToIntASTVisitor::VisitFunctionTemplateDecl(
 {
   if (D->isThisDeclarationADefinition())
     ConsumerInstance->handleOneTemplateDecl(D);
-  return true;
-}
-
-bool TemplateArgToIntArgCollector::VisitTemplateSpecializationTypeLoc(
-       TemplateSpecializationTypeLoc TLoc)
-{
-  ConsumerInstance->handleTemplateSpecializationTypeLoc(TLoc);
-  return true;
-}
-
-bool TemplateArgToIntArgCollector::
-       VisitClassTemplatePartialSpecializationDecl(
-         ClassTemplatePartialSpecializationDecl *D)
-{
-  ConsumerInstance->handleTemplateArgumentLocs(
-    D->getSpecializedTemplate(),
-    D->getTemplateArgsAsWritten(),
-    D->getNumTemplateArgsAsWritten());
-  return true;
-}
-
-bool TemplateArgToIntArgCollector::VisitFunctionDecl(FunctionDecl *D)
-{
-  const FunctionTemplateSpecializationInfo *FTSI =
-          D->getTemplateSpecializationInfo();
-  if (!FTSI)
-    return true;
-
-  if ((FTSI->getTemplateSpecializationKind() == TSK_Undeclared) ||
-      (FTSI->getTemplateSpecializationKind() == TSK_ImplicitInstantiation))
-    return true;
-
-  if (const ASTTemplateArgumentListInfo *TALI =
-        FTSI->TemplateArgumentsAsWritten) {
-    ConsumerInstance->handleTemplateArgumentLocs(
-      D->getPrimaryTemplate(),
-      TALI->getTemplateArgs(),
-      TALI->NumTemplateArgs);
-  }
-
-  return true;
-}
-
-bool TemplateArgToIntArgCollector::VisitDeclRefExpr(DeclRefExpr *E)
-{
-  const ValueDecl *VD = E->getDecl();
-  const TemplateDecl *TempD = NULL;
-  if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(VD)) {
-    TempD = FD->getDescribedFunctionTemplate();
-  }
-  else {
-    const Type *Ty = VD->getType().getTypePtr();
-    if (Ty->isPointerType() || Ty->isReferenceType())
-      Ty = ConsumerInstance->getBasePointerElemType(Ty);
-    const CXXRecordDecl *CXXRD = ConsumerInstance->getBaseDeclFromType(Ty);
-    if (!CXXRD)
-      return true;
-    TempD = CXXRD->getDescribedClassTemplate();
-  }
-  if (!TempD)
-    return true;
-
-  ConsumerInstance->handleTemplateArgumentLocs(TempD, E->getTemplateArgs(), 
-                                               E->getNumTemplateArgs());
   return true;
 }
 

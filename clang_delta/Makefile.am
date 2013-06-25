@@ -75,6 +75,7 @@ clang_delta_SOURCES = \
 	CommonParameterRewriteVisitor.h \
 	CommonRenameClassRewriteVisitor.h \
 	CommonStatementVisitor.h \
+	CommonTemplateArgumentVisitor.h \
 	CopyPropagation.cpp \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \

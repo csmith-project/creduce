@@ -32,11 +32,18 @@ class TemplateArgToIntASTVisitor;
 class TemplateArgToIntArgCollector;
 class TemplateGlobalInvalidParameterVisitor;
 
+namespace clang_delta_common_visitor {
+  template<typename T, typename Trans> class CommonTemplateArgumentVisitor;
+}
+
 class TemplateArgToInt : public Transformation {
 friend class TemplateArgToIntASTVisitor;
 friend class TemplateArgToIntArgCollector;
 friend class TemplateInvalidParameterVisitor;
 friend class TemplateGlobalInvalidParameterVisitor;
+friend class clang_delta_common_visitor::
+               CommonTemplateArgumentVisitor<TemplateArgToIntArgCollector, 
+                                             TemplateArgToInt>;
 
 public:
   TemplateArgToInt(const char *TransName, const char *Desc)
