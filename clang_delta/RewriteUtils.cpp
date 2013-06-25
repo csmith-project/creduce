@@ -1240,6 +1240,15 @@ bool RewriteUtils::insertStringBeforeFunc(const FunctionDecl *FD,
   return !TheRewriter->InsertTextBefore(StartLoc, Str);
 }
 
+bool RewriteUtils::insertStringBeforeTemplateDecl(const TemplateDecl *D,
+                                                  const std::string &Str)
+{
+  SourceRange Range = D->getSourceRange();
+  SourceLocation StartLoc = Range.getBegin();
+  TransAssert(StartLoc.isValid() && "Invalid template decl StartLoc!");
+  return !TheRewriter->InsertTextBefore(StartLoc, Str);
+}
+
 bool RewriteUtils::replaceUnionWithStruct(const NamedDecl *ND)
 {
   SourceRange NDRange = ND->getSourceRange();

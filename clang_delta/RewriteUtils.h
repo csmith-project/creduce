@@ -31,6 +31,7 @@ namespace clang {
   class CallExpr;
   class Expr;
   class FunctionDecl;
+  class TemplateDecl;
   class Stmt;
   class DeclGroupRef;
   class DeclRefExpr;
@@ -167,6 +168,9 @@ public:
 
   bool insertStringBeforeFunc(const clang::FunctionDecl *FD,
                               const std::string &Str);
+
+  bool insertStringBeforeTemplateDecl(const clang::TemplateDecl *D,
+                                      const std::string &Str);
 
   bool replaceUnionWithStruct(const clang::NamedDecl *ND);
 
