@@ -111,7 +111,6 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
 	clang_delta-CopyPropagation.$(OBJEXT) \
 	clang_delta-EmptyStructToInt.$(OBJEXT) \
-	clang_delta-InstantiateTemplateNonTypeParam.$(OBJEXT) \
 	clang_delta-InstantiateTemplateParam.$(OBJEXT) \
 	clang_delta-InstantiateTemplateTypeParamToInt.$(OBJEXT) \
 	clang_delta-LiftAssignmentExpr.$(OBJEXT) \
