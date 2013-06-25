@@ -71,6 +71,8 @@ public:
     : ConsumerInstance(Instance)
   { }
 
+  bool VisitRecordDecl(RecordDecl *D);
+
   bool VisitClassTemplateDecl(ClassTemplateDecl *D);
 
   bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D);
@@ -79,6 +81,13 @@ private:
   InstantiateTemplateParam *ConsumerInstance;
 
 };
+
+bool InstantiateTemplateParamASTVisitor::VisitRecordDecl(RecordDecl *D)
+{
+  ConsumerInstance->AvailableRecordDecls.insert(
+    dyn_cast<RecordDecl>(D->getCanonicalDecl()));
+  return true;
+}
 
 bool InstantiateTemplateParamASTVisitor::VisitClassTemplateDecl(
        ClassTemplateDecl *D)
@@ -155,14 +164,100 @@ void InstantiateTemplateParam::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert((TheInstantiationString != "") && "Invalid InstantiationString!");
   TransAssert(ParamRewriteVisitor && "NULL ParamRewriteVisitor!");
   ParamRewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  addForwardDecl();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
 }
 
+void InstantiateTemplateParam::addForwardDecl()
+{
+  TransAssert(TheTemplateDecl && "NULL TheTemplateDecl!");
+  if (TheForwardDeclString == "")
+    return;
+  RewriteHelper->insertStringBeforeTemplateDecl(TheTemplateDecl, 
+                                                TheForwardDeclString);
+}
+
+void InstantiateTemplateParam::addOneForwardDeclStr(
+       const RecordDecl *RD,
+       std::string &ForwardStr,
+       RecordDeclSet &TempAvailableRecordDecls)
+{
+  const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());
+  if (AvailableRecordDecls.count(CanonicalRD) || 
+      TempAvailableRecordDecls.count(CanonicalRD))
+    return;
+
+  ForwardStr += RD->getKindName();
+  ForwardStr += " ";
+  ForwardStr += RD->getNameAsString() + ";\n";
+  TempAvailableRecordDecls.insert(CanonicalRD);
+}
+
+void InstantiateTemplateParam::addForwardTemplateDeclStr(
+       const ClassTemplateDecl *ClassTD,
+       std::string &ForwardStr,
+       RecordDeclSet &TempAvailableRecordDecls)
+{
+  const CXXRecordDecl *RD = ClassTD->getTemplatedDecl();
+  const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());
+  if (AvailableRecordDecls.count(CanonicalRD) || 
+      TempAvailableRecordDecls.count(CanonicalRD))
+    return;
+
+  std::string TemplateStr = "";
+  RewriteHelper->getStringBetweenLocs(TemplateStr,
+                                      ClassTD->getSourceRange().getBegin(),
+                                      RD->getInnerLocStart());
+  ForwardStr += TemplateStr;
+  ForwardStr += RD->getKindName();
+  ForwardStr += " ";
+  ForwardStr += RD->getNameAsString() + ";\n";
+  TempAvailableRecordDecls.insert(CanonicalRD);
+}
+
+void InstantiateTemplateParam::getForwardDeclStr(
+       const Type *Ty,
+       std::string &ForwardStr,
+       RecordDeclSet &TempAvailableRecordDecls)
+{
+  if (const RecordType *RT = Ty->getAsUnionType()) {
+    const RecordDecl *RD = RT->getDecl();
+    addOneForwardDeclStr(RD, ForwardStr, TempAvailableRecordDecls);
+    return;
+  }
+
+  const CXXRecordDecl *CXXRD = Ty->getAsCXXRecordDecl();
+  if (!CXXRD)
+    return;
+
+  const ClassTemplateSpecializationDecl *SpecD = 
+    dyn_cast<ClassTemplateSpecializationDecl>(CXXRD);
+  if (!SpecD) {
+    addOneForwardDeclStr(CXXRD, ForwardStr, TempAvailableRecordDecls);
+    return;
+  }
+  
+  addForwardTemplateDeclStr(SpecD->getSpecializedTemplate(),
+                            ForwardStr,
+                            TempAvailableRecordDecls);
+
+  const TemplateArgumentList &ArgList = SpecD->getTemplateArgs();
+  unsigned NumArgs = ArgList.size();
+  for (unsigned I = 0; I < NumArgs; ++I) {
+    const TemplateArgument Arg = ArgList[I];
+    if (Arg.getKind() != TemplateArgument::Type)
+      continue;
+    getForwardDeclStr(Arg.getAsType().getTypePtr(), 
+                      ForwardStr,
+                      TempAvailableRecordDecls);
+  }
+}
+
 bool InstantiateTemplateParam::getTypeString(
-       const QualType &QT, std::string &Str)
+       const QualType &QT, std::string &Str, std::string &ForwardStr)
 {
   const Type *Ty = QT.getTypePtr();
   Type::TypeClass TC = Ty->getTypeClass();
@@ -170,17 +265,23 @@ bool InstantiateTemplateParam::getTypeString(
   switch (TC) {
   case Type::Elaborated: {
     const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Ty);
-    return getTypeString(ETy->getNamedType(), Str);
+    return getTypeString(ETy->getNamedType(), Str, ForwardStr);
   }
 
   case Type::Typedef: {
     const TypedefType *TdefTy = dyn_cast<TypedefType>(Ty);
     const TypedefNameDecl *TdefD = TdefTy->getDecl();
-    return getTypeString(TdefD->getUnderlyingType(), Str);
+    return getTypeString(TdefD->getUnderlyingType(), Str, ForwardStr);
   }
 
-  case Type::Record:
-  case Type::Builtin: { // fall-through
+  case Type::Record: {
+    RecordDeclSet TempAvailableRecordDecls;
+    getForwardDeclStr(Ty, ForwardStr, TempAvailableRecordDecls);
+    QT.getAsStringInternal(Str, Context->getPrintingPolicy());
+    return true;
+  }
+
+  case Type::Builtin: {
     QT.getAsStringInternal(Str, Context->getPrintingPolicy());
     return true;
   }
@@ -193,14 +294,17 @@ bool InstantiateTemplateParam::getTypeString(
   return false;
 }
 
-bool InstantiateTemplateParam::getTemplateArgumentString(
-       const TemplateArgument &Arg, std::string &ArgStr)
+bool 
+InstantiateTemplateParam::getTemplateArgumentString(const TemplateArgument &Arg,
+                                                    std::string &ArgStr, 
+                                                    std::string &ForwardStr)
 {
   ArgStr = "";
+  ForwardStr = "";
   if (Arg.getKind() != TemplateArgument::Type)
     return false;
   QualType QT = Arg.getAsType();
-  return getTypeString(QT, ArgStr);
+  return getTypeString(QT, ArgStr, ForwardStr);
 }
 
 void InstantiateTemplateParam::handleOneTemplateSpecialization(
@@ -232,12 +336,15 @@ void InstantiateTemplateParam::handleOneTemplateSpecialization(
     TransAssert((Idx < NumArgs) && "Invalid Idx!");
     const TemplateArgument &Arg = ArgList.get(Idx);
     std::string ArgStr;
-    if (!getTemplateArgumentString(Arg, ArgStr))
+    std::string ForwardStr;
+    if (!getTemplateArgumentString(Arg, ArgStr, ForwardStr))
       continue;
     ValidInstanceNum++;
     if (ValidInstanceNum == TransformationCounter) {
       TheInstantiationString = ArgStr;
       TheParameter = ND;
+      TheTemplateDecl = D;
+      TheForwardDeclString = ForwardStr;
     }
   }
 }

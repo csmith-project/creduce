@@ -24,6 +24,8 @@ namespace clang {
   class TemplateArgument;
   class QualType;
   class NamedDecl;
+  class Type;
+  class RecordDecl;
 }
 
 class InstantiateTemplateParamASTVisitor;
@@ -39,12 +41,16 @@ public:
       CollectionVisitor(NULL),
       ParamRewriteVisitor(NULL),
       TheParameter(NULL),
-      TheInstantiationString("")
+      TheTemplateDecl(NULL),
+      TheInstantiationString(""),
+      TheForwardDeclString("")
   {}
 
   ~InstantiateTemplateParam();
 
 private:
+
+  typedef llvm::SmallPtrSet<const clang::RecordDecl *, 10> RecordDeclSet;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -59,9 +65,28 @@ private:
          const clang::TemplateArgumentList & ArgList);
 
   bool getTemplateArgumentString(const clang::TemplateArgument &Arg, 
-                                 std::string &Str);
+                                 std::string &Str,
+                                 std::string &ForwardStr);
 
-  bool getTypeString(const clang::QualType &QT, std::string &ArgStr);
+  bool getTypeString(const clang::QualType &QT, 
+                     std::string &ArgStr,
+                     std::string &ForwardStr);
+
+  void getForwardDeclStr(const clang::Type *Ty, 
+                         std::string &ForwardStr,
+                         RecordDeclSet &TempAvailableRecordDecls);
+
+  void addOneForwardDeclStr(const clang::RecordDecl *RD,
+                            std::string &ForwardStr,
+                            RecordDeclSet &TempAvailableRecordDecls);
+
+  void addForwardTemplateDeclStr(const clang::ClassTemplateDecl *ClassTD,
+                                 std::string &ForwardStr,
+                                 RecordDeclSet &TempAvailableRecordDecls);
+
+  void addForwardDecl();
+
+  RecordDeclSet AvailableRecordDecls;
 
   InstantiateTemplateParamASTVisitor *CollectionVisitor;
 
@@ -69,7 +94,11 @@ private:
 
   const clang::NamedDecl *TheParameter;
 
+  const clang::TemplateDecl *TheTemplateDecl;
+
   std::string TheInstantiationString;
+
+  std::string TheForwardDeclString;
 
   // Unimplemented
   InstantiateTemplateParam();
