@@ -79,16 +79,6 @@ public:
 
   bool VisitDeclRefExpr(DeclRefExpr *E);
 
-  bool VisitRecordTypeLoc(RecordTypeLoc RTLoc);
-
-#if 0
-  bool VisitCXXDependentScopeMemberExpr(CXXDependentScopeMemberExpr *E);
-
-  bool VisitDependentScopeDeclRefExpr(DependentScopeDeclRefExpr *E);
-
-  bool VisitMemberExpr(MemberExpr *E);
-#endif
-  
 private:
   TemplateArgToInt *ConsumerInstance;
 
@@ -274,18 +264,6 @@ bool TemplateArgToIntArgCollector::VisitDeclRefExpr(DeclRefExpr *E)
 
   ConsumerInstance->handleTemplateArgumentLocs(TempD, E->getTemplateArgs(), 
                                                E->getNumTemplateArgs());
-  return true;
-}
-
-bool TemplateArgToIntArgCollector::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
-{
-  const Type *Ty = RTLoc.getTypePtr();
-  if (Ty->isUnionType())
-    return true;
-
-  const CXXRecordDecl *RD = dyn_cast<CXXRecordDecl>(RTLoc.getDecl());
-  if (!RD)
-    return true;
   return true;
 }
 
