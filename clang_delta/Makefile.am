@@ -176,6 +176,8 @@ clang_delta_SOURCES = \
 	SimplifyStructUnionDecl.h \
 	TemplateArgToInt.cpp \
 	TemplateArgToInt.h \
+	TemplateNonTypeArgToInt.cpp \
+	TemplateNonTypeArgToInt.h \
 	Transformation.cpp \
 	Transformation.h \
 	TransformationManager.cpp \
