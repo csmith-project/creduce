@@ -32,6 +32,40 @@ wth an integer (if its type is compatible) \n";
 static RegisterTransformation<TemplateNonTypeArgToInt>
          Trans("template-non-type-arg-to-int", DescriptionMsg);
 
+class TemplateNonTypeArgToIntArgCollector : public 
+  RecursiveASTVisitor<TemplateNonTypeArgToIntArgCollector> {
+
+public:
+  explicit TemplateNonTypeArgToIntArgCollector(
+             TemplateNonTypeArgToInt *Instance)
+    : ConsumerInstance(Instance)
+  { }
+
+  bool VisitClassTemplateDecl(ClassTemplateDecl *D);
+
+  bool VisitFunctionTemplateDecl(FunctionTemplateDecl *D);
+
+private:
+  TemplateNonTypeArgToInt *ConsumerInstance;
+
+};
+
+bool TemplateNonTypeArgToIntArgCollector::VisitClassTemplateDecl(
+       ClassTemplateDecl *D)
+{
+  if (D->isThisDeclarationADefinition())
+    ConsumerInstance->handleOneTemplateDecl(D);
+  return true;
+}
+
+bool TemplateNonTypeArgToIntArgCollector::VisitFunctionTemplateDecl(
+       FunctionTemplateDecl *D)
+{
+  if (D->isThisDeclarationADefinition())
+    ConsumerInstance->handleOneTemplateDecl(D);
+  return true;
+}
+
 class TemplateNonTypeArgToIntASTVisitor : public 
   CommonTemplateArgumentVisitor<TemplateNonTypeArgToIntASTVisitor,
                                 TemplateNonTypeArgToInt> {
@@ -48,6 +82,7 @@ void TemplateNonTypeArgToInt::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new TemplateNonTypeArgToIntASTVisitor(this);
+  ArgCollector = new TemplateNonTypeArgToIntArgCollector(this);
 }
 
 void TemplateNonTypeArgToInt::HandleTranslationUnit(ASTContext &Ctx)
@@ -56,6 +91,7 @@ void TemplateNonTypeArgToInt::HandleTranslationUnit(ASTContext &Ctx)
     ValidInstanceNum = 0;
   }
   else {
+    ArgCollector->TraverseDecl(Ctx.getTranslationUnitDecl());
     CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
   }
 
@@ -82,16 +118,19 @@ bool TemplateNonTypeArgToInt::isValidTemplateArgument(
   TemplateArgument::ArgKind K = Arg.getKind();
   switch (K) {
   case TemplateArgument::Declaration: {
-    const ValueDecl *VD = Arg.getAsDecl();
-    return VD->getType().getTypePtr()->isIntegerType();
+    return true;
   }
 
   case TemplateArgument::Expression: {
     const Expr *E = Arg.getAsExpr();
-    return E->getType().getTypePtr()->isIntegerType();
+    if (dyn_cast<IntegerLiteral>(E) || dyn_cast<CXXBoolLiteralExpr>(E))
+      return false;
+
+    return true;
   }
 
   default:
+    TransAssert(0 && "Unreachable code!");
     return false;
   }
   TransAssert(0 && "Unreachable code!");
@@ -124,21 +163,65 @@ void TemplateNonTypeArgToInt::handleTemplateArgumentLocs(
   TransAssert(D && "NULL TemplateDecl!");
   if (!TAL)
     return;
+  TemplateParameterIdxSet *ValidIdx = 
+    DeclToParamIdx[dyn_cast<TemplateDecl>(D->getCanonicalDecl())];
+  if (!ValidIdx)
+    return;
   for (unsigned I = 0; I < NumArgs; ++I) {
-    handleOneTemplateArgumentLoc(TAL[I]);
+    if (ValidIdx->count(I))
+      handleOneTemplateArgumentLoc(TAL[I]);
   }
 }
 
 void TemplateNonTypeArgToInt::handleTemplateSpecializationTypeLoc(
        const TemplateSpecializationTypeLoc &TLoc)
 {
+  const Type *Ty = TLoc.getTypePtr();
+  const TemplateSpecializationType *TST = 
+    Ty->getAs<TemplateSpecializationType>();
+  TemplateName TplName = TST->getTemplateName();
+  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
+
+  TemplateParameterIdxSet *ValidIdx = 
+    DeclToParamIdx[dyn_cast<TemplateDecl>(TplD->getCanonicalDecl())];
+  if (!ValidIdx)
+    return;
   for (unsigned I = 0; I < TLoc.getNumArgs(); ++I) {
-    handleOneTemplateArgumentLoc(TLoc.getArgLoc(I));
+    if (ValidIdx->count(I))
+      handleOneTemplateArgumentLoc(TLoc.getArgLoc(I));
   }
+}
+
+bool TemplateNonTypeArgToInt::isValidParameter(const NamedDecl *ND)
+{
+  const NonTypeTemplateParmDecl *NonTypeD = 
+          dyn_cast<NonTypeTemplateParmDecl>(ND);
+  if (!NonTypeD)
+    return false;
+  const Type *Ty = NonTypeD->getType().getTypePtr();
+  return Ty->isIntegerType();
+}
+      
+void TemplateNonTypeArgToInt::handleOneTemplateDecl(const TemplateDecl *D)
+{
+  TemplateParameterIdxSet *ValidParamIdx = new TemplateParameterIdxSet();
+  TemplateParameterList *TPList = D->getTemplateParameters();
+  unsigned Idx = 0;
+  for (TemplateParameterList::const_iterator I = TPList->begin(),
+       E = TPList->end(); I != E; ++I) {
+    const NamedDecl *ParamND = (*I);
+    if (isValidParameter(ParamND))
+      ValidParamIdx->insert(Idx);
+    Idx++;
+  }
+
+  TransAssert(!DeclToParamIdx[D] && "Duplicate TemplateDecl!");
+  DeclToParamIdx[dyn_cast<TemplateDecl>(D->getCanonicalDecl())] = ValidParamIdx;
 }
 
 TemplateNonTypeArgToInt::~TemplateNonTypeArgToInt()
 {
   delete CollectionVisitor;
+  delete ArgCollector;
 }
 

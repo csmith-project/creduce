@@ -11,6 +11,8 @@
 #ifndef TEMPLATE_NON_TYPE_ARG_TO_INT_H
 #define TEMPLATE_NON_TYPE_ARG_TO_INT_H
 
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/DenseMap.h"
 #include "Transformation.h"
 
 namespace clang {
@@ -21,23 +23,27 @@ namespace clang {
   class TemplateArgumentLoc;
   class TemplateArgument;
   class TemplateSpecializationTypeLoc;
+  class NamedDecl;
 }
 
 namespace clang_delta_common_visitor {
   template<typename T, typename Trans> class CommonTemplateArgumentVisitor;
 }
 class TemplateNonTypeArgToIntASTVisitor;
+class TemplateNonTypeArgToIntArgCollector;
 
 class TemplateNonTypeArgToInt : public Transformation {
 friend class TemplateNonTypeArgToIntASTVisitor;
 friend class clang_delta_common_visitor::CommonTemplateArgumentVisitor
                <TemplateNonTypeArgToIntASTVisitor, 
                 TemplateNonTypeArgToInt>;
+friend class TemplateNonTypeArgToIntArgCollector;
 
 public:
   TemplateNonTypeArgToInt(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       CollectionVisitor(NULL),
+      ArgCollector(NULL),
       TheExpr(NULL),
       IntString("1")
   {}
@@ -46,9 +52,17 @@ public:
 
 private:
 
+  typedef llvm::SmallSet<unsigned, 8> TemplateParameterIdxSet;
+
+  typedef llvm::DenseMap<const clang::TemplateDecl *, 
+                         TemplateParameterIdxSet *> TemplateDeclToParamIdxMap;
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
+
+  void handleOneTemplateDecl(const clang::TemplateDecl *D);
+
+  bool isValidParameter(const clang::NamedDecl *ND);
 
   void handleTemplateArgumentLocs(const clang::TemplateDecl *D, 
                                   const clang::TemplateArgumentLoc *TAL, 
@@ -61,7 +75,11 @@ private:
 
   bool isValidTemplateArgument(const clang::TemplateArgument &Arg);
 
+  TemplateDeclToParamIdxMap DeclToParamIdx;
+
   TemplateNonTypeArgToIntASTVisitor *CollectionVisitor;
+
+  TemplateNonTypeArgToIntArgCollector *ArgCollector;
 
   clang::Expr *TheExpr;
 
