@@ -125,6 +125,11 @@ bool TemplateNonTypeArgToInt::isValidTemplateArgument(
     const Expr *E = Arg.getAsExpr();
     if (dyn_cast<IntegerLiteral>(E) || dyn_cast<CXXBoolLiteralExpr>(E))
       return false;
+    if (const UnaryOperator *UO = dyn_cast<UnaryOperator>(E)) {
+      UnaryOperator::Opcode Op = UO->getOpcode();
+      if((Op == UO_Minus) || (Op == UO_Plus))
+        return false;
+    }
 
     return true;
   }
