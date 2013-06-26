@@ -160,7 +160,6 @@ bool ReplaceDependentTypedef::getTypedefString(const StringRef &Name,
                                                bool &Typename)
 {
   Str = "";
-  // really simplified lookup process, maybe need to check parent decl context? 
   for (DeclContext::decl_iterator I = CXXRD->decls_begin(),
        E = CXXRD->decls_end(); I != E; ++I) {
     const TypedefDecl *D = dyn_cast<TypedefDecl>(*I);
@@ -178,6 +177,25 @@ bool ReplaceDependentTypedef::getTypedefString(const StringRef &Name,
         return true;
     }
   }
+
+  // check base class
+  for (CXXRecordDecl::base_class_const_iterator I =
+       CXXRD->bases_begin(), E = CXXRD->bases_end(); I != E; ++I) {
+    const CXXBaseSpecifier *BS = I;
+    const Type *Ty = BS->getType().getTypePtr();
+    const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+    // it could happen if we have a dependent base specifier
+    if (!Base)
+      continue;
+    const CXXRecordDecl *BaseDef = Base->getDefinition();
+    if (!BaseDef)
+      continue;
+    if (getTypedefString(Name, BaseDef, Args, NumArgs, Str, Typename))
+      return true;
+  }
+
+  // TODO: really simplified lookup process, maybe need 
+  //       to check other decl context?
   return false;
 }
 
@@ -217,8 +235,11 @@ bool ReplaceDependentTypedef::getTypeString(const QualType &QT,
     const Type *Ty = Specifier->getAsType();
     if (!Ty)
       return false;
-    const CXXRecordDecl *CXXRD = getBaseDeclFromType(Ty);
-    if (!CXXRD)
+    const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
+    if (!Base)
+      return false;
+    const CXXRecordDecl *BaseDef = Base->getDefinition();
+    if (!BaseDef)
       return false;
 
     unsigned NumArgs = 0;
@@ -228,8 +249,8 @@ bool ReplaceDependentTypedef::getTypeString(const QualType &QT,
       NumArgs = TST->getNumArgs();
       Args = TST->getArgs();
     }
-    return 
-      getTypedefString(IdInfo->getName(), CXXRD, Args, NumArgs, Str, Typename);
+    return getTypedefString(IdInfo->getName(), 
+             BaseDef, Args, NumArgs, Str, Typename);
   }
 
   case Type::Record:
