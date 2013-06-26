@@ -22,8 +22,6 @@ namespace clang {
   class TypedefDecl;
   class StringRef;
   class CXXRecordDecl;
-  class TemplateArgument;
-  class TemplateTypeParmType;
 }
 
 class ReplaceDependentTypedefCollectionVisitor;
@@ -50,29 +48,7 @@ private:
 
   void handleOneTypedefDecl(const clang::TypedefDecl *D);
 
-  bool getTypeString(const clang::QualType &QT, 
-                     std::string &Str,
-                     bool &Typename);
-
   bool isValidType(const clang::QualType &QT);
-
-  bool getTypedefString(const llvm::StringRef &Name,
-                        const clang::CXXRecordDecl *CXXRD,
-                        const clang::TemplateArgument *Args,
-                        unsigned NumArgs,
-                        std::string &Str,
-                        bool &Typename);
-
-  bool getDependentNameString(const clang::Type *Ty,
-                              const clang::TemplateArgument *Args,
-                              unsigned NumArgs,
-                              std::string &Str,
-                              bool &Typename);
-
-  bool getTemplateTypeParmString(const clang::TemplateTypeParmType *ParmTy,
-                                const clang::TemplateArgument *Args,
-                                unsigned NumArgs,
-                                std::string &Str);
 
   void rewriteTypedefDecl();
 

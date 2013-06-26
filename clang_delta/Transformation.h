@@ -37,6 +37,10 @@ namespace clang {
   class NamedDecl;
   class CXXConstructorDecl;
   class TypeLoc;
+  class TemplateArgument;
+  class TemplateTypeParmType;
+  class DependentNameType;
+  class QualType;
 }
 
 typedef enum {
@@ -192,6 +196,32 @@ protected:
   unsigned getNumCtorWrittenInitializers(const clang::CXXConstructorDecl &Ctor);
 
   bool isBeforeColonColon(clang::TypeLoc &Loc);
+
+  bool getTypeString(const clang::QualType &QT, 
+                     std::string &Str,
+                     bool &Typename);
+
+  bool getTypedefString(const llvm::StringRef &Name,
+                        const clang::CXXRecordDecl *CXXRD,
+                        const clang::TemplateArgument *Args,
+                        unsigned NumArgs,
+                        std::string &Str,
+                        bool &Typename);
+
+  bool getDependentNameTypeString(const clang::DependentNameType *DNT,
+                                  std::string &Str,
+                                  bool &Typename);
+
+  bool replaceDependentNameString(const clang::Type *Ty,
+                                  const clang::TemplateArgument *Args,
+                                  unsigned NumArgs,
+                                  std::string &Str,
+                                  bool &Typename);
+
+  bool getTemplateTypeParmString(const clang::TemplateTypeParmType *ParmTy,
+                                const clang::TemplateArgument *Args,
+                                unsigned NumArgs,
+                                std::string &Str);
 
   const std::string Name;
 
