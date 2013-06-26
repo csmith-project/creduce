@@ -145,6 +145,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
 	clang_delta-ReplaceArrayIndexVar.$(OBJEXT) \
 	clang_delta-ReplaceCallExpr.$(OBJEXT) \
+	clang_delta-ReplaceDependentName.$(OBJEXT) \
 	clang_delta-ReplaceDependentTypedef.$(OBJEXT) \
 	clang_delta-ReplaceDerivedClass.$(OBJEXT) \
 	clang_delta-ReplaceSimpleTypedef.$(OBJEXT) \
@@ -523,6 +524,8 @@ clang_delta_SOURCES = \
 	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \
 	ReplaceCallExpr.h \
+	ReplaceDependentName.cpp \
+	ReplaceDependentName.h \
 	ReplaceDependentTypedef.cpp \
 	ReplaceDependentTypedef.h \
 	ReplaceDerivedClass.cpp \
@@ -703,6 +706,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceCallExpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDependentName.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDependentTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDerivedClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po@am__quote@
@@ -1345,6 +1349,20 @@ clang_delta-ReplaceCallExpr.obj: ReplaceCallExpr.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceCallExpr.cpp' object='clang_delta-ReplaceCallExpr.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceCallExpr.obj `if test -f 'ReplaceCallExpr.cpp'; then $(CYGPATH_W) 'ReplaceCallExpr.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceCallExpr.cpp'; fi`
+
+clang_delta-ReplaceDependentName.o: ReplaceDependentName.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceDependentName.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceDependentName.Tpo -c -o clang_delta-ReplaceDependentName.o `test -f 'ReplaceDependentName.cpp' || echo '$(srcdir)/'`ReplaceDependentName.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceDependentName.Tpo $(DEPDIR)/clang_delta-ReplaceDependentName.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceDependentName.cpp' object='clang_delta-ReplaceDependentName.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceDependentName.o `test -f 'ReplaceDependentName.cpp' || echo '$(srcdir)/'`ReplaceDependentName.cpp
+
+clang_delta-ReplaceDependentName.obj: ReplaceDependentName.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceDependentName.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceDependentName.Tpo -c -o clang_delta-ReplaceDependentName.obj `if test -f 'ReplaceDependentName.cpp'; then $(CYGPATH_W) 'ReplaceDependentName.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceDependentName.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceDependentName.Tpo $(DEPDIR)/clang_delta-ReplaceDependentName.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceDependentName.cpp' object='clang_delta-ReplaceDependentName.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceDependentName.obj `if test -f 'ReplaceDependentName.cpp'; then $(CYGPATH_W) 'ReplaceDependentName.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceDependentName.cpp'; fi`
 
 clang_delta-ReplaceDependentTypedef.o: ReplaceDependentTypedef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceDependentTypedef.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceDependentTypedef.Tpo -c -o clang_delta-ReplaceDependentTypedef.o `test -f 'ReplaceDependentTypedef.cpp' || echo '$(srcdir)/'`ReplaceDependentTypedef.cpp
