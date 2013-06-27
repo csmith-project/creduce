@@ -56,6 +56,9 @@ bool CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR)
   VarDecl *VD = dyn_cast<VarDecl>(*DI);
   if (!VD)
     return true;
+  SourceRange Range = VD->getSourceRange();
+  if (Range.getBegin().isInvalid() || Range.getEnd().isInvalid())
+    return true;
 
   const Type *T = VD->getType().getTypePtr();
   const Type *CanonicalT = Context->getCanonicalType(T);
