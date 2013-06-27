@@ -4,15 +4,8 @@
 
 C-Reduce TODO list:
 
-ways to speculate:
-  all pessimistic
-  all optimisitc
-  mix...
-
-documentation about creating a c-reduce pass
-  side effects, directory restrictions, etc.
-
-support predicates written as perl modules
+write some documentation about creating a c-reduce pass: side effects,
+directory restrictions, etc.
 
 Konstantin suggestion:
   deal with un-preprocessed code in a smart way, for example by
@@ -23,23 +16,6 @@ implement suggestion from Joerg Sonnenberger:
   requires a good model of when this will be profitable
 
 make it again possible to run just selected passes
-
-optionally, keep stats about fast vs. slow tests and
-  successful vs. unsuccessful xforms
-
-exploit early-exit from delta test to speed this up
-  keep per-pass statistic on the probability of requiring the slow test
-  invert this to decide how many fast tests to run in a row
-  need to keep checkpoints of reducer state + file
-
-factor timeout out of test script: creduce can supply a timeout
-  decrease it as the test starts to run faster
-
-support testcase obfuscation better
-
-try to find passes that need to try a little harder-- run them in
-isolation and see how long it takes to reach a fixpoint; adjust them
-to back up a bit after each successful transformation, perhaps
 
 --------------------------------------------------------------------
 
@@ -53,13 +29,7 @@ reduce the indirect level of struct member accesses
   Note that to do these kinds of simplification, we also need to 
   change struct declarations appropriately.
 
-change string literals
-
 change operators to other operators, e.g., replace / with +
-
-rename enumerate types
-
-typedef expansion
 
 - add supports to C++ specific features
  * rename class member functions to m_fn1 ...

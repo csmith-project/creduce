@@ -22,14 +22,10 @@
 # benchmark the caching code on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
-# move caching into the parent
 # use IPC::Run3 instead of system?
-# test against LLVM 3.3 when it comes out
-# use clang-format after we update to 3.3
+# use clang-format 
+# merge adjacent strings?
 # support adding/removing passes via the command line
-# implement a fuzzer mode that probabilistically skips xformations
-#   by calling advance extra times (and don't do the original repetetive 
-#   line-delta passes
 # maybe add a format string reduction pass that eliminates a format
 #   specifier and also the corresponding argument
 
