@@ -84,6 +84,8 @@ private:
                                  std::string &ForwardStr,
                                  RecordDeclSet &TempAvailableRecordDecls);
 
+  void removeTemplateKeyword();
+
   void addForwardDecl();
 
   RecordDeclSet AvailableRecordDecls;

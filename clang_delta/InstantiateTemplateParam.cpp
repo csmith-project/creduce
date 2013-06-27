@@ -164,11 +164,25 @@ void InstantiateTemplateParam::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert((TheInstantiationString != "") && "Invalid InstantiationString!");
   TransAssert(ParamRewriteVisitor && "NULL ParamRewriteVisitor!");
   ParamRewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  removeTemplateKeyword();
   addForwardDecl();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void InstantiateTemplateParam::removeTemplateKeyword()
+{
+  if (dyn_cast<ClassTemplateDecl>(TheTemplateDecl))
+    return;
+  TemplateParameterList *TPList = TheTemplateDecl->getTemplateParameters();
+  if (TPList->size() != 1)
+    return;
+  const NamedDecl *ND = TPList->getParam(0);
+  TransAssert((ND == TheParameter) && "Invalid template parameter!");
+  TheRewriter.RemoveText(SourceRange(TPList->getTemplateLoc(),
+                                     TPList->getRAngleLoc()));
 }
 
 void InstantiateTemplateParam::addForwardDecl()
