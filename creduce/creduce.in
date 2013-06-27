@@ -16,6 +16,7 @@
 ####################################################################
 
 ## TODO: 
+# add a multidelta?
 # fix the caching code
 # make peep:b faster and less stupid
 # benchmark the caching code on some large reductions
