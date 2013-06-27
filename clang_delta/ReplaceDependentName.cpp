@@ -119,9 +119,16 @@ void ReplaceDependentName::handleOneElaboratedTypeLoc(
   if (TLoc.getQualifierLoc().getBeginLoc().isInvalid())
     return;
   std::string Str = "";
+  if (ValidInstanceNum == 8)
+    TransAssert(ET);
   bool Typename = false;
   if (!getTypeString(ET->getNamedType(), Str, Typename))
     return;
+  std::string TyStr = "";
+  ET->getNamedType().getAsStringInternal(TyStr, Context->getPrintingPolicy());
+  if (TyStr == Str)
+    return;
+  
   ValidInstanceNum++;
   if (ValidInstanceNum == TransformationCounter) {
     TheTyName = Str;
