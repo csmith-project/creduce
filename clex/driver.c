@@ -32,7 +32,7 @@ int add_tok (char *str, enum tok_kind kind)
   return toks-1;
 }
 
-void doit (enum tok_kind kind)
+void process_token (enum tok_kind kind)
 {
   int tok = add_tok (yytext, kind);
   count++;

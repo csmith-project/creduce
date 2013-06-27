@@ -15,100 +15,100 @@ IS			(u|U|l|L)*
 
 %%
 
-"auto"			{ doit(TOK_KEYWORD); }
-"break"			{ doit(TOK_KEYWORD); }
-"case"			{ doit(TOK_KEYWORD); }
-"char"			{ doit(TOK_KEYWORD); }
-"const"			{ doit(TOK_KEYWORD); }
-"continue"		{ doit(TOK_KEYWORD); }
-"default"		{ doit(TOK_KEYWORD); }
-"do"			{ doit(TOK_KEYWORD); }
-"double"		{ doit(TOK_KEYWORD); }
-"else"			{ doit(TOK_KEYWORD); }
-"enum"			{ doit(TOK_KEYWORD); }
-"extern"		{ doit(TOK_KEYWORD); }
-"float"			{ doit(TOK_KEYWORD); }
-"for"			{ doit(TOK_KEYWORD); }
-"goto"			{ doit(TOK_KEYWORD); }
-"if"			{ doit(TOK_KEYWORD); }
-"int"			{ doit(TOK_KEYWORD); }
-"long"			{ doit(TOK_KEYWORD); }
-"register"		{ doit(TOK_KEYWORD); }
-"return"		{ doit(TOK_KEYWORD); }
-"short"			{ doit(TOK_KEYWORD); }
-"signed"		{ doit(TOK_KEYWORD); }
-"sizeof"		{ doit(TOK_KEYWORD); }
-"static"		{ doit(TOK_KEYWORD); }
-"struct"		{ doit(TOK_KEYWORD); }
-"switch"		{ doit(TOK_KEYWORD); }
-"typedef"		{ doit(TOK_KEYWORD); }
-"union"			{ doit(TOK_KEYWORD); }
-"unsigned"		{ doit(TOK_KEYWORD); }
-"void"			{ doit(TOK_KEYWORD); }
-"volatile"		{ doit(TOK_KEYWORD); }
-"while"			{ doit(TOK_KEYWORD); }
+"auto"			{ process_token(TOK_KEYWORD); }
+"break"			{ process_token(TOK_KEYWORD); }
+"case"			{ process_token(TOK_KEYWORD); }
+"char"			{ process_token(TOK_KEYWORD); }
+"const"			{ process_token(TOK_KEYWORD); }
+"continue"		{ process_token(TOK_KEYWORD); }
+"default"		{ process_token(TOK_KEYWORD); }
+"do"			{ process_token(TOK_KEYWORD); }
+"double"		{ process_token(TOK_KEYWORD); }
+"else"			{ process_token(TOK_KEYWORD); }
+"enum"			{ process_token(TOK_KEYWORD); }
+"extern"		{ process_token(TOK_KEYWORD); }
+"float"			{ process_token(TOK_KEYWORD); }
+"for"			{ process_token(TOK_KEYWORD); }
+"goto"			{ process_token(TOK_KEYWORD); }
+"if"			{ process_token(TOK_KEYWORD); }
+"int"			{ process_token(TOK_KEYWORD); }
+"long"			{ process_token(TOK_KEYWORD); }
+"register"		{ process_token(TOK_KEYWORD); }
+"return"		{ process_token(TOK_KEYWORD); }
+"short"			{ process_token(TOK_KEYWORD); }
+"signed"		{ process_token(TOK_KEYWORD); }
+"sizeof"		{ process_token(TOK_KEYWORD); }
+"static"		{ process_token(TOK_KEYWORD); }
+"struct"		{ process_token(TOK_KEYWORD); }
+"switch"		{ process_token(TOK_KEYWORD); }
+"typedef"		{ process_token(TOK_KEYWORD); }
+"union"			{ process_token(TOK_KEYWORD); }
+"unsigned"		{ process_token(TOK_KEYWORD); }
+"void"			{ process_token(TOK_KEYWORD); }
+"volatile"		{ process_token(TOK_KEYWORD); }
+"while"			{ process_token(TOK_KEYWORD); }
 
-{L}({L}|{D})*		{ doit(TOK_IDENT); }
+{L}({L}|{D})*		{ process_token(TOK_IDENT); }
 
-0[xX]{H}+{IS}?		{ doit(TOK_NUMBER); }
-0{D}+{IS}?		{ doit(TOK_NUMBER); }
-{D}+{IS}?		{ doit(TOK_NUMBER); }
-L?'(\\.|[^\\'])+'	{ doit(TOK_OTHER); }
+0[xX]{H}+{IS}?		{ process_token(TOK_NUMBER); }
+0{D}+{IS}?		{ process_token(TOK_NUMBER); }
+{D}+{IS}?		{ process_token(TOK_NUMBER); }
+L?'(\\.|[^\\'])+'	{ process_token(TOK_OTHER); }
 
-{D}+{E}{FS}?		{ doit(TOK_NUMBER); }
-{D}*"."{D}+({E})?{FS}?	{ doit(TOK_NUMBER); }
-{D}+"."{D}*({E})?{FS}?	{ doit(TOK_NUMBER); }
+{D}+{E}{FS}?		{ process_token(TOK_NUMBER); }
+{D}*"."{D}+({E})?{FS}?	{ process_token(TOK_NUMBER); }
+{D}+"."{D}*({E})?{FS}?	{ process_token(TOK_NUMBER); }
 
-L?\"(\\.|[^\\"])*\"	{ doit(TOK_STRING); }
+L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
 
-"..."			{ doit(TOK_OTHER); }
-">>="			{ doit(TOK_OP); }
-"<<="			{ doit(TOK_OP); }
-"+="			{ doit(TOK_OP); }
-"-="			{ doit(TOK_OP); }
-"*="			{ doit(TOK_OP); }
-"/="			{ doit(TOK_OP); }
-"%="			{ doit(TOK_OP); }
-"&="			{ doit(TOK_OP); }
-"^="			{ doit(TOK_OP); }
-"|="			{ doit(TOK_OP); }
-">>"			{ doit(TOK_OP); }
-"<<"			{ doit(TOK_OP); }
-"++"			{ doit(TOK_OP); }
-"--"			{ doit(TOK_OP); }
-"->"			{ doit(TOK_OP); }
-"&&"			{ doit(TOK_OP); }
-"||"			{ doit(TOK_OP); }
-"<="			{ doit(TOK_OP); }
-">="			{ doit(TOK_OP); }
-"=="			{ doit(TOK_OP); }
-"!="			{ doit(TOK_OP); }
-";"			{ doit(TOK_OP); }
-("{"|"<%")		{ doit(TOK_OP); }
-("}"|"%>")		{ doit(TOK_OP); }
-","			{ doit(TOK_OP); }
-":"			{ doit(TOK_OP); }
-"="			{ doit(TOK_OP); }
-"("			{ doit(TOK_OP); }
-")"			{ doit(TOK_OP); }
-("["|"<:")		{ doit(TOK_OP); }
-("]"|":>")		{ doit(TOK_OP); }
-"."			{ doit(TOK_OP); }
-"&"			{ doit(TOK_OP); }
-"!"			{ doit(TOK_OP); }
-"~"			{ doit(TOK_OP); }
-"-"			{ doit(TOK_OP); }
-"+"			{ doit(TOK_OP); }
-"*"			{ doit(TOK_OP); }
-"/"			{ doit(TOK_OP); }
-"%"			{ doit(TOK_OP); }
-"<"			{ doit(TOK_OP); }
-">"			{ doit(TOK_OP); }
-"^"			{ doit(TOK_OP); }
-"|"			{ doit(TOK_OP); }
-"?"			{ doit(TOK_OP); }
-"#"                     { doit(TOK_OTHER); }
-"\\"                    { doit(TOK_OTHER); }
+"..."			{ process_token(TOK_OTHER); }
+">>="			{ process_token(TOK_OP); }
+"<<="			{ process_token(TOK_OP); }
+"+="			{ process_token(TOK_OP); }
+"-="			{ process_token(TOK_OP); }
+"*="			{ process_token(TOK_OP); }
+"/="			{ process_token(TOK_OP); }
+"%="			{ process_token(TOK_OP); }
+"&="			{ process_token(TOK_OP); }
+"^="			{ process_token(TOK_OP); }
+"|="			{ process_token(TOK_OP); }
+">>"			{ process_token(TOK_OP); }
+"<<"			{ process_token(TOK_OP); }
+"++"			{ process_token(TOK_OP); }
+"--"			{ process_token(TOK_OP); }
+"->"			{ process_token(TOK_OP); }
+"&&"			{ process_token(TOK_OP); }
+"||"			{ process_token(TOK_OP); }
+"<="			{ process_token(TOK_OP); }
+">="			{ process_token(TOK_OP); }
+"=="			{ process_token(TOK_OP); }
+"!="			{ process_token(TOK_OP); }
+";"			{ process_token(TOK_OP); }
+("{"|"<%")		{ process_token(TOK_OP); }
+("}"|"%>")		{ process_token(TOK_OP); }
+","			{ process_token(TOK_OP); }
+":"			{ process_token(TOK_OP); }
+"="			{ process_token(TOK_OP); }
+"("			{ process_token(TOK_OP); }
+")"			{ process_token(TOK_OP); }
+("["|"<:")		{ process_token(TOK_OP); }
+("]"|":>")		{ process_token(TOK_OP); }
+"."			{ process_token(TOK_OP); }
+"&"			{ process_token(TOK_OP); }
+"!"			{ process_token(TOK_OP); }
+"~"			{ process_token(TOK_OP); }
+"-"			{ process_token(TOK_OP); }
+"+"			{ process_token(TOK_OP); }
+"*"			{ process_token(TOK_OP); }
+"/"			{ process_token(TOK_OP); }
+"%"			{ process_token(TOK_OP); }
+"<"			{ process_token(TOK_OP); }
+">"			{ process_token(TOK_OP); }
+"^"			{ process_token(TOK_OP); }
+"|"			{ process_token(TOK_OP); }
+"?"			{ process_token(TOK_OP); }
+"#"                     { process_token(TOK_OTHER); }
+"\\"                    { process_token(TOK_OTHER); }
 
 "/*"        {
                      for ( ; ; )  {
@@ -133,7 +133,7 @@ L?\"(\\.|[^\\"])*\"	{ doit(TOK_STRING); }
                     }
            }
 
-[ \t\v\n\f]		{ doit(TOK_WS); }
+[ \t\v\n\f]		{ process_token(TOK_WS); }
 
 .			{ fprintf (stderr, "didn't expect to see '%s'\n", yytext); 
                           assert (0); }

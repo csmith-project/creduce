@@ -24,4 +24,4 @@ enum tok_kind {
   TOK_STRING,
 };
 
-void doit (enum tok_kind);
+void process_token (enum tok_kind);
