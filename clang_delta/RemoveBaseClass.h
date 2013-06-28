@@ -48,8 +48,6 @@ private:
 
   void handleOneCXXRecordDecl(const clang::CXXRecordDecl *CXXRD);
 
-  unsigned getValidNumDecls(const clang::CXXRecordDecl *CXXRD);
-
   void copyBaseClassDecls(void);
 
   void removeBaseSpecifier(void);

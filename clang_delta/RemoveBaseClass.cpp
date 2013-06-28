@@ -115,20 +115,6 @@ void RemoveBaseClass::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-unsigned RemoveBaseClass::getValidNumDecls(const CXXRecordDecl *CXXRD)
-{
-  const DeclContext *Ctx = dyn_cast<DeclContext>(CXXRD);
-  TransAssert(Ctx && "Invalid DeclContext!");
-
-  unsigned Num = 0;
-  for (DeclContext::decl_iterator I = Ctx->decls_begin(),
-       E = Ctx->decls_end(); I != E; ++I) {
-    if (!(*I)->isImplicit())
-      Num++;
-  }
-  return Num;
-}
-
 bool RemoveBaseClass::isDirectlyDerivedFrom(const CXXRecordDecl *SubC, 
                                             const CXXRecordDecl *Base)
 {
@@ -175,7 +161,7 @@ void RemoveBaseClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
     return;
   }
 
-  if (getValidNumDecls(CanonicalRD) > MaxNumDecls)
+  if (getNumExplicitDecls(CanonicalRD) > MaxNumDecls)
     return;
 
   if (!AllBaseClasses.count(CanonicalRD))
@@ -209,7 +195,7 @@ void RemoveBaseClass::doRewrite(void)
 // ISSUE: directly copying decls could bring in name conflicts
 void RemoveBaseClass::copyBaseClassDecls(void)
 {
-  if (!getValidNumDecls(TheBaseClass))
+  if (!getNumExplicitDecls(TheBaseClass))
     return;
   SourceLocation StartLoc = 
     RewriteHelper->getLocationAfter(TheBaseClass->getLocation(), '{');

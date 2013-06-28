@@ -223,6 +223,8 @@ protected:
                                 unsigned NumArgs,
                                 std::string &Str);
 
+  unsigned getNumExplicitDecls(const clang::CXXRecordDecl *CXXRD);
+
   const std::string Name;
 
   int TransformationCounter;

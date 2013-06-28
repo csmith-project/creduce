@@ -987,6 +987,20 @@ bool Transformation::getTypeString(const QualType &QT,
   return false;
 }
 
+unsigned Transformation::getNumExplicitDecls(const CXXRecordDecl *CXXRD)
+{
+  const DeclContext *Ctx = dyn_cast<DeclContext>(CXXRD);
+  TransAssert(Ctx && "Invalid DeclContext!");
+
+  unsigned Num = 0;
+  for (DeclContext::decl_iterator I = Ctx->decls_begin(),
+       E = Ctx->decls_end(); I != E; ++I) {
+    if (!(*I)->isImplicit())
+      Num++;
+  }
+  return Num;
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();
