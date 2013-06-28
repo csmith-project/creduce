@@ -24,10 +24,10 @@ using namespace clang;
 using namespace llvm;
 
 static const char *DescriptionMsg = 
-"This pass replace a class with its base class if \n\
-  * this class has only one base class; \n\
-  * this class doesn't have any explicit declaration.\n\
-  * the base class is a specialization of a class template \n\
+"This pass tries to replace a class with its base class if \n\
+  * this class has only one base class, and \n\
+  * this class doesn't have any explicit declaration, and \n\
+  * the base class is a class template specialization \n\
 ";
 
 static RegisterTransformation<ReplaceClassWithBaseTemplateSpec>
