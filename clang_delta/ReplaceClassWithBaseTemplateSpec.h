@@ -16,7 +16,6 @@
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
-  class ClassTemplateDecl;
 }
 
 class ReplaceClassWithBaseTemplateSpecVisitor;
