@@ -158,6 +158,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-SimplifyCommaExpr.$(OBJEXT) \
 	clang_delta-SimplifyDependentTypedef.$(OBJEXT) \
 	clang_delta-SimplifyIf.$(OBJEXT) \
+	clang_delta-SimplifyNestedClass.$(OBJEXT) \
 	clang_delta-SimplifyStruct.$(OBJEXT) \
 	clang_delta-SimplifyStructUnionDecl.$(OBJEXT) \
 	clang_delta-TemplateArgToInt.$(OBJEXT) \
@@ -552,6 +553,8 @@ clang_delta_SOURCES = \
 	SimplifyDependentTypedef.h \
 	SimplifyIf.cpp \
 	SimplifyIf.h \
+	SimplifyNestedClass.cpp \
+	SimplifyNestedClass.h \
 	SimplifyStruct.cpp \
 	SimplifyStruct.h \
 	SimplifyStructUnionDecl.cpp \
@@ -723,6 +726,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyCommaExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyDependentTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyIf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyNestedClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyStruct.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-SimplifyStructUnionDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TemplateArgToInt.Po@am__quote@
@@ -1536,6 +1540,20 @@ clang_delta-SimplifyIf.obj: SimplifyIf.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SimplifyIf.cpp' object='clang_delta-SimplifyIf.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyIf.obj `if test -f 'SimplifyIf.cpp'; then $(CYGPATH_W) 'SimplifyIf.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyIf.cpp'; fi`
+
+clang_delta-SimplifyNestedClass.o: SimplifyNestedClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyNestedClass.o -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyNestedClass.Tpo -c -o clang_delta-SimplifyNestedClass.o `test -f 'SimplifyNestedClass.cpp' || echo '$(srcdir)/'`SimplifyNestedClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-SimplifyNestedClass.Tpo $(DEPDIR)/clang_delta-SimplifyNestedClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SimplifyNestedClass.cpp' object='clang_delta-SimplifyNestedClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyNestedClass.o `test -f 'SimplifyNestedClass.cpp' || echo '$(srcdir)/'`SimplifyNestedClass.cpp
+
+clang_delta-SimplifyNestedClass.obj: SimplifyNestedClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyNestedClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyNestedClass.Tpo -c -o clang_delta-SimplifyNestedClass.obj `if test -f 'SimplifyNestedClass.cpp'; then $(CYGPATH_W) 'SimplifyNestedClass.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyNestedClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-SimplifyNestedClass.Tpo $(DEPDIR)/clang_delta-SimplifyNestedClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SimplifyNestedClass.cpp' object='clang_delta-SimplifyNestedClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-SimplifyNestedClass.obj `if test -f 'SimplifyNestedClass.cpp'; then $(CYGPATH_W) 'SimplifyNestedClass.cpp'; else $(CYGPATH_W) '$(srcdir)/SimplifyNestedClass.cpp'; fi`
 
 clang_delta-SimplifyStruct.o: SimplifyStruct.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-SimplifyStruct.o -MD -MP -MF $(DEPDIR)/clang_delta-SimplifyStruct.Tpo -c -o clang_delta-SimplifyStruct.o `test -f 'SimplifyStruct.cpp' || echo '$(srcdir)/'`SimplifyStruct.cpp
