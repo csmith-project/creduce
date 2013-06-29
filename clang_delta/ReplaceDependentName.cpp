@@ -71,7 +71,12 @@ void ReplaceDependentName::Initialize(ASTContext &context)
 
 void ReplaceDependentName::HandleTranslationUnit(ASTContext &Ctx)
 {
-  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (TransformationManager::isCLangOpt()) {
+    ValidInstanceNum = 0;
+  }
+  else {
+    CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  }
 
   if (QueryInstanceOnly)
     return;
