@@ -150,7 +150,7 @@ void ReplaceClassWithBaseTemplateSpec::handleOneCXXRecordDecl(
 
 void ReplaceClassWithBaseTemplateSpec::removeBaseSpecifier(void)
 {
-  unsigned NumBases = TheCXXRecord->getNumBases();
+  unsigned NumBases = TheCXXRecord->getNumBases(); (void)NumBases;
   TransAssert((NumBases == 1) && "TheCXXRecord can have only one base!");
   SourceLocation StartLoc = TheCXXRecord->getLocation();
   StartLoc = RewriteHelper->getLocationUntil(StartLoc, ':');
