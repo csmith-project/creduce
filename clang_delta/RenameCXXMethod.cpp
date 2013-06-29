@@ -453,6 +453,7 @@ void RenameCXXMethod::addOneInheritedName(const CXXMethodDecl *MD,
 {
   const CXXMethodDecl *CanonicalMD = MD->getCanonicalDecl();
   CXXMethodDeclToNameMap::iterator I = NewMethodNames.find(CanonicalMD);
+  (void)I;
   TransAssert((I == NewMethodNames.end()) && "Duplicate CXXMethodDecl!");
 
   const CXXMethodDecl *CanonicalBaseMD = BaseMD->getCanonicalDecl();

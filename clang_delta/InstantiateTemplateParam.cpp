@@ -179,7 +179,7 @@ void InstantiateTemplateParam::removeTemplateKeyword()
   TemplateParameterList *TPList = TheTemplateDecl->getTemplateParameters();
   if (TPList->size() != 1)
     return;
-  const NamedDecl *ND = TPList->getParam(0);
+  const NamedDecl *ND = TPList->getParam(0); (void)ND;
   TransAssert((ND == TheParameter) && "Invalid template parameter!");
   TheRewriter.RemoveText(SourceRange(TPList->getTemplateLoc(),
                                      TPList->getRAngleLoc()));
