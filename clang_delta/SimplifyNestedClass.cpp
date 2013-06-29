@@ -150,7 +150,9 @@ void SimplifyNestedClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
 {
   TransAssert(CXXRD && "NULL CXXRD!");
   TransAssert(CXXRD->isThisDeclarationADefinition() &&  "Not a definition!");
-  if (CXXRD->getDescribedClassTemplate() || CXXRD->getNumBases())
+  if (CXXRD->getDescribedClassTemplate() || 
+      CXXRD->getNumBases() ||
+      dyn_cast<ClassTemplateSpecializationDecl>(CXXRD))
     return;
   // anon class
   if (CXXRD->getNameAsString() == "")
