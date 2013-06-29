@@ -237,7 +237,10 @@ const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
     return NULL;
 
   const InitListExpr *ILE = dyn_cast<InitListExpr>(InitE);
-  TransAssert(ILE && "Bad InitListExpr!");
+  // not always the case we will have an InitListExpr, e.g.,
+  // RHS is a struct, or dereferencing a struct pointer, etc
+  if (!ILE)
+    return NULL;
   return getInitExprByIndex(Idxs, ILE);
 }
 
