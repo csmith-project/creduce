@@ -11,8 +11,6 @@
 #ifndef SIMPLIFY_NESTED_CLASS_H
 #define SIMPLIFY_NESTED_CLASS_H
 
-#include "clang/Basic/TokenKinds.h"
-#include "clang/Basic/SourceLocation.h"
 #include "Transformation.h"
 
 namespace clang {
