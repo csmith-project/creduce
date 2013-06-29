@@ -17,6 +17,7 @@
 #include "clang/Basic/SourceManager.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
+#include "clang/Lex/Lexer.h"
 
 #include "TransformationManager.h"
 
@@ -82,11 +83,11 @@ bool SimplifyNestedClassRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc TLoc)
     return true;
 
   if (ConsumerInstance->isBeforeColonColon(TLoc)) {
-    SourceLocation EndLoc = 
+    SourceLocation LocEnd = 
       ConsumerInstance->RewriteHelper->getLocationAfter(
         TLoc.getEndLoc(), ':');
     ConsumerInstance->TheRewriter.RemoveText(
-                        SourceRange(TLoc.getBeginLoc(), EndLoc));
+                        SourceRange(TLoc.getBeginLoc(), LocEnd));
   }
   else {
     ConsumerInstance->RewriteHelper->replaceRecordType(TLoc,
@@ -133,9 +134,8 @@ void SimplifyNestedClass::removeOuterClass()
 {
   TransAssert(TheBaseCXXRD && "NULL Base CXXRD!");
   SourceLocation LocStart = TheBaseCXXRD->getLocStart();
-  SourceLocation LocEnd = 
-    RewriteHelper->getLocationUntil(LocStart, '{');
-  TransAssert(LocEnd.isValid() && "Invalid Location!");
+  SourceLocation LocEnd = TheInnerDecl->getLocStart();
+  LocEnd = LocEnd.getLocWithOffset(-1);
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 
   LocStart = TheBaseCXXRD->getRBraceLoc();
@@ -152,25 +152,31 @@ void SimplifyNestedClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
   TransAssert(CXXRD->isThisDeclarationADefinition() &&  "Not a definition!");
   if (CXXRD->getDescribedClassTemplate() || CXXRD->getNumBases())
     return;
+  // anon class
+  if (CXXRD->getNameAsString() == "")
+    return;
 
-  bool HasClassDef = false;
+  const Decl *InnerDecl = NULL;
   const DeclContext *Ctx = dyn_cast<DeclContext>(CXXRD);
   for (DeclContext::decl_iterator I = Ctx->decls_begin(),
        E = Ctx->decls_end(); I != E; ++I) {
-    if ((*I)->isImplicit())
+    if ((*I)->isImplicit() || dyn_cast<AccessSpecDecl>(*I))
       continue;
     if (dyn_cast<CXXRecordDecl>(*I) || dyn_cast<ClassTemplateDecl>(*I)) {
-      if (HasClassDef)
+      if (InnerDecl)
         return;
-      HasClassDef = true;
+      InnerDecl = (*I);
+    }
+    else {
+      return;
     }
   }
-  if (!HasClassDef)
+  if (!InnerDecl)
     return;
-
   ValidInstanceNum++;
   if (ValidInstanceNum == TransformationCounter) {
     TheBaseCXXRD = CXXRD;
+    TheInnerDecl = InnerDecl;
   }
 }
 

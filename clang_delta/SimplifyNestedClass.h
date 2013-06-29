@@ -11,12 +11,15 @@
 #ifndef SIMPLIFY_NESTED_CLASS_H
 #define SIMPLIFY_NESTED_CLASS_H
 
+#include "clang/Basic/TokenKinds.h"
+#include "clang/Basic/SourceLocation.h"
 #include "Transformation.h"
 
 namespace clang {
   class DeclGroupRef;
   class ASTContext;
   class CXXRecordDecl;
+  class Decl;
 }
 
 class SimplifyNestedClassVisitor;
@@ -50,6 +53,8 @@ private:
   SimplifyNestedClassRewriteVisitor *RewriteVisitor;;
 
   const clang::CXXRecordDecl *TheBaseCXXRD;
+
+  const clang::Decl *TheInnerDecl;
 
   // Unimplemented
   SimplifyNestedClass(void);
