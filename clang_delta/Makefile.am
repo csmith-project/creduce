@@ -130,6 +130,8 @@ clang_delta_SOURCES = \
 	RemoveUnusedEnumMember.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
+	RemoveUnusedOuterClass.cpp \
+	RemoveUnusedOuterClass.h \
 	RemoveUnusedStructField.cpp \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \

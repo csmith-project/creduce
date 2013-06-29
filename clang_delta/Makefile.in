@@ -136,6 +136,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RemoveUnresolvedBase.$(OBJEXT) \
 	clang_delta-RemoveUnusedEnumMember.$(OBJEXT) \
 	clang_delta-RemoveUnusedFunction.$(OBJEXT) \
+	clang_delta-RemoveUnusedOuterClass.$(OBJEXT) \
 	clang_delta-RemoveUnusedStructField.$(OBJEXT) \
 	clang_delta-RemoveUnusedVar.$(OBJEXT) \
 	clang_delta-RenameCXXMethod.$(OBJEXT) \
@@ -509,6 +510,8 @@ clang_delta_SOURCES = \
 	RemoveUnusedEnumMember.h \
 	RemoveUnusedFunction.cpp \
 	RemoveUnusedFunction.h \
+	RemoveUnusedOuterClass.cpp \
+	RemoveUnusedOuterClass.h \
 	RemoveUnusedStructField.cpp \
 	RemoveUnusedStructField.h \
 	RemoveUnusedVar.cpp \
@@ -704,6 +707,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnresolvedBase.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedEnumMember.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedFunction.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedStructField.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RemoveUnusedVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameCXXMethod.Po@am__quote@
@@ -1232,6 +1236,20 @@ clang_delta-RemoveUnusedFunction.obj: RemoveUnusedFunction.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RemoveUnusedFunction.cpp' object='clang_delta-RemoveUnusedFunction.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedFunction.obj `if test -f 'RemoveUnusedFunction.cpp'; then $(CYGPATH_W) 'RemoveUnusedFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedFunction.cpp'; fi`
+
+clang_delta-RemoveUnusedOuterClass.o: RemoveUnusedOuterClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedOuterClass.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Tpo -c -o clang_delta-RemoveUnusedOuterClass.o `test -f 'RemoveUnusedOuterClass.cpp' || echo '$(srcdir)/'`RemoveUnusedOuterClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Tpo $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RemoveUnusedOuterClass.cpp' object='clang_delta-RemoveUnusedOuterClass.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedOuterClass.o `test -f 'RemoveUnusedOuterClass.cpp' || echo '$(srcdir)/'`RemoveUnusedOuterClass.cpp
+
+clang_delta-RemoveUnusedOuterClass.obj: RemoveUnusedOuterClass.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedOuterClass.obj -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Tpo -c -o clang_delta-RemoveUnusedOuterClass.obj `if test -f 'RemoveUnusedOuterClass.cpp'; then $(CYGPATH_W) 'RemoveUnusedOuterClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedOuterClass.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Tpo $(DEPDIR)/clang_delta-RemoveUnusedOuterClass.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RemoveUnusedOuterClass.cpp' object='clang_delta-RemoveUnusedOuterClass.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RemoveUnusedOuterClass.obj `if test -f 'RemoveUnusedOuterClass.cpp'; then $(CYGPATH_W) 'RemoveUnusedOuterClass.cpp'; else $(CYGPATH_W) '$(srcdir)/RemoveUnusedOuterClass.cpp'; fi`
 
 clang_delta-RemoveUnusedStructField.o: RemoveUnusedStructField.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-RemoveUnusedStructField.o -MD -MP -MF $(DEPDIR)/clang_delta-RemoveUnusedStructField.Tpo -c -o clang_delta-RemoveUnusedStructField.o `test -f 'RemoveUnusedStructField.cpp' || echo '$(srcdir)/'`RemoveUnusedStructField.cpp
