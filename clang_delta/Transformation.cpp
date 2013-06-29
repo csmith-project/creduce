@@ -503,7 +503,10 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
     const CXXBaseSpecifier *BS = I;
     const Type *Ty = BS->getType().getTypePtr();
     const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
-    TransAssert(Base && "NULL Base!");
+    // it's not always the case we could resolve a base specifier, e.g.
+    // Ty is of DependentName
+    if (!Base)
+      continue;
     const CXXRecordDecl *BaseDef = Base->getDefinition();
     if (!BaseDef)
       continue;
