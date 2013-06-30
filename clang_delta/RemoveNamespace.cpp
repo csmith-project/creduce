@@ -546,7 +546,7 @@ bool RemoveNamespaceRewriteVisitor::TraverseNestedNameSpecifierLoc(
     return true;
   }
 
-  if (!QualifierLoc)
+  if (!QualifierLoc || QualifierLoc.getBeginLoc().isInvalid())
     return true;
 
   SmallVector<NestedNameSpecifierLoc, 8> QualifierLocs;
