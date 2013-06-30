@@ -240,9 +240,19 @@ bool RemoveNamespaceRewriteVisitor::VisitNamespaceAliasDecl(
 
   const NamespaceDecl *CanonicalND = 
     D->getNamespace()->getCanonicalDecl();
-  if (CanonicalND == ConsumerInstance->TheNamespaceDecl) {
-    ConsumerInstance->RewriteHelper->removeDecl(D);
-    return true;
+  if (D->getQualifier()) {
+    TraverseNestedNameSpecifierLoc(D->getQualifierLoc());
+    if (CanonicalND == ConsumerInstance->TheNamespaceDecl) {
+      NestedNameSpecifierLoc QualLoc = D->getQualifierLoc();
+      SourceLocation QualEndLoc = QualLoc.getEndLoc();
+      SourceLocation DeclEndLoc = D->getSourceRange().getEnd();
+      ConsumerInstance->TheRewriter.RemoveText(
+        SourceRange(QualEndLoc, DeclEndLoc));
+    }
+  }
+  else {
+    if (CanonicalND == ConsumerInstance->TheNamespaceDecl)
+      ConsumerInstance->RewriteHelper->removeDecl(D);
   }
 
   return true;
@@ -566,7 +576,8 @@ bool RemoveNamespaceRewriteVisitor::TraverseNestedNameSpecifierLoc(
       }
       case NestedNameSpecifier::NamespaceAlias: {
         const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
-        ND = NAD->getNamespace()->getCanonicalDecl();
+        if (!NAD->getQualifier())
+          ND = NAD->getNamespace()->getCanonicalDecl();
         break;
       }
       case NestedNameSpecifier::TypeSpec: // Fall-through
@@ -1076,6 +1087,9 @@ bool RemoveNamespace::isTheNamespaceSpecifier(const NestedNameSpecifier *NNS)
 
   case NestedNameSpecifier::NamespaceAlias: {
     const NamespaceAliasDecl *NAD = NNS->getAsNamespaceAlias();
+    // we remove the namealias only when it doesn't have nestedspecifier
+    if (NAD->getQualifier())
+      return false;
     const NamespaceDecl *CanonicalND = 
       NAD->getNamespace()->getCanonicalDecl();
     return (CanonicalND == TheNamespaceDecl);
