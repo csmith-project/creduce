@@ -45,6 +45,8 @@ private:
 
   typedef llvm::SmallPtrSet<const clang::NamedDecl *, 8> TemplateParameterSet;
 
+  typedef llvm::SmallPtrSet<void *, 10> LocPtrSet;
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
@@ -55,6 +57,8 @@ private:
                            TemplateParameterSet &Params);
 
   TemplateDeclSet VisitedTemplateDecls;
+
+  LocPtrSet VisitedLocs;
 
   InstantiateTemplateTypeParamToIntASTVisitor *CollectionVisitor;
 
