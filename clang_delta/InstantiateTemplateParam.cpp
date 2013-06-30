@@ -45,17 +45,23 @@ public:
 
   ~TemplateParameterVisitor() { };
 
-  bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
+  bool VisitTemplateTypeParmTypeLoc(TemplateTypeParmTypeLoc Loc);
 
 private:
 
   TemplateParameterSet &UsedParameters;
 };
 
-bool TemplateParameterVisitor::VisitTemplateTypeParmType(
-       TemplateTypeParmType *Ty)
+// seems clang can't detect the T in T::* in the following case:
+// struct B;
+// template <typename T> struct C {
+//   C(void (T::*)()) { }
+// };
+// struct D { C<B> m; };
+bool TemplateParameterVisitor::VisitTemplateTypeParmTypeLoc(
+       TemplateTypeParmTypeLoc Loc)
 {
-  const TemplateTypeParmDecl *D = Ty->getDecl();
+  const TemplateTypeParmDecl *D = Loc.getDecl();
   UsedParameters.insert(D);
   return true;
 }
