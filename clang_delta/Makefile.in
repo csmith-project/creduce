@@ -150,6 +150,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-ReplaceDependentName.$(OBJEXT) \
 	clang_delta-ReplaceDependentTypedef.$(OBJEXT) \
 	clang_delta-ReplaceDerivedClass.$(OBJEXT) \
+	clang_delta-ReplaceOneLevelTypedefType.$(OBJEXT) \
 	clang_delta-ReplaceSimpleTypedef.$(OBJEXT) \
 	clang_delta-ReplaceUndefinedFunction.$(OBJEXT) \
 	clang_delta-ReturnVoid.$(OBJEXT) \
@@ -538,6 +539,8 @@ clang_delta_SOURCES = \
 	ReplaceDependentTypedef.h \
 	ReplaceDerivedClass.cpp \
 	ReplaceDerivedClass.h \
+	ReplaceOneLevelTypedefType.cpp \
+	ReplaceOneLevelTypedefType.h \
 	ReplaceSimpleTypedef.cpp \
 	ReplaceSimpleTypedef.h \
 	ReplaceUndefinedFunction.cpp \
@@ -721,6 +724,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDependentName.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDependentTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceDerivedClass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceUndefinedFunction.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReturnVoid.Po@am__quote@
@@ -1432,6 +1436,20 @@ clang_delta-ReplaceDerivedClass.obj: ReplaceDerivedClass.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceDerivedClass.cpp' object='clang_delta-ReplaceDerivedClass.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceDerivedClass.obj `if test -f 'ReplaceDerivedClass.cpp'; then $(CYGPATH_W) 'ReplaceDerivedClass.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceDerivedClass.cpp'; fi`
+
+clang_delta-ReplaceOneLevelTypedefType.o: ReplaceOneLevelTypedefType.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceOneLevelTypedefType.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Tpo -c -o clang_delta-ReplaceOneLevelTypedefType.o `test -f 'ReplaceOneLevelTypedefType.cpp' || echo '$(srcdir)/'`ReplaceOneLevelTypedefType.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Tpo $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceOneLevelTypedefType.cpp' object='clang_delta-ReplaceOneLevelTypedefType.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceOneLevelTypedefType.o `test -f 'ReplaceOneLevelTypedefType.cpp' || echo '$(srcdir)/'`ReplaceOneLevelTypedefType.cpp
+
+clang_delta-ReplaceOneLevelTypedefType.obj: ReplaceOneLevelTypedefType.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceOneLevelTypedefType.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Tpo -c -o clang_delta-ReplaceOneLevelTypedefType.obj `if test -f 'ReplaceOneLevelTypedefType.cpp'; then $(CYGPATH_W) 'ReplaceOneLevelTypedefType.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceOneLevelTypedefType.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Tpo $(DEPDIR)/clang_delta-ReplaceOneLevelTypedefType.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceOneLevelTypedefType.cpp' object='clang_delta-ReplaceOneLevelTypedefType.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceOneLevelTypedefType.obj `if test -f 'ReplaceOneLevelTypedefType.cpp'; then $(CYGPATH_W) 'ReplaceOneLevelTypedefType.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceOneLevelTypedefType.cpp'; fi`
 
 clang_delta-ReplaceSimpleTypedef.o: ReplaceSimpleTypedef.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceSimpleTypedef.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceSimpleTypedef.Tpo -c -o clang_delta-ReplaceSimpleTypedef.o `test -f 'ReplaceSimpleTypedef.cpp' || echo '$(srcdir)/'`ReplaceSimpleTypedef.cpp
