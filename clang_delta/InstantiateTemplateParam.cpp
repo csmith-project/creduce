@@ -135,6 +135,24 @@ InstantiateTemplateParamRewriteVisitor::VisitTemplateTypeParmTypeLoc(
   if (D != ConsumerInstance->TheParameter)
     return true;
 
+  // I know it's ugly, but seems sometimes Clang injects some extra
+  // TypeLoc which causes the problem, for example, in the code below,
+  // template<typename T> class A {
+  // public:
+  // template<typename T1> struct C { typedef A other; };
+  // };
+  // template<typename T1, typename T2> class B {
+  //   typedef typename T2::template C<int>::other type;
+  // };
+  // class B<char, A<char> >;
+  // the "typedef typename T2 ..." is treated as 
+  //   typedef typename T2::template T2::C<int>::other type;
+  // where the second T2 is injected by Clang
+  void *Ptr = Loc.getLocStart().getPtrEncoding();
+  if (ConsumerInstance->VisitedLocs.count(Ptr))
+    return true;
+  ConsumerInstance->VisitedLocs.insert(Ptr);
+
   SourceRange Range = Loc.getSourceRange();
   ConsumerInstance->TheRewriter.ReplaceText(Range, 
                        ConsumerInstance->TheInstantiationString);
