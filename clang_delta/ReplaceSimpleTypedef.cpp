@@ -155,7 +155,7 @@ void ReplaceSimpleTypedef::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-void ReplaceSimpleTypedef::removeTypedefs(void)
+void ReplaceSimpleTypedef::removeTypedefs()
 {
   for (TypedefDecl::redecl_iterator I = TheTypedefDecl->redecls_begin(),
        E = TheTypedefDecl->redecls_end(); I != E; ++I) {

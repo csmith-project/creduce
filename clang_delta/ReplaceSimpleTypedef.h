@@ -36,7 +36,7 @@ public:
       IsScalarType(false)
   {}
 
-  ~ReplaceSimpleTypedef(void);
+  ~ReplaceSimpleTypedef();
 
 private:
 
@@ -50,7 +50,7 @@ private:
 
   bool isValidType(const clang::Type *Ty, const clang::TypedefDecl *D);
 
-  void removeTypedefs(void);
+  void removeTypedefs();
 
   TypedefDeclsSet VisitedTypedefDecls;
 
@@ -65,7 +65,7 @@ private:
   bool IsScalarType;
 
   // Unimplemented
-  ReplaceSimpleTypedef(void);
+  ReplaceSimpleTypedef();
 
   ReplaceSimpleTypedef(const ReplaceSimpleTypedef &);
 
