@@ -186,7 +186,7 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
 
   for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
        PE = FD->param_end(); PI != PE; ++PI) {
-    if ((*PI)->isImplicit())
+    if ((*PI)->isImplicit() || (*PI)->getSourceRange().isInvalid())
       continue;
 
     ValidInstanceNum++;
