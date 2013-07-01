@@ -68,8 +68,8 @@ AX_PROG_PERL_MODULES(
 #
 AC_PATH_PROG([ASTYLE], [astyle], [no])
 AS_IF([test "x$ASTYLE" = "xno"], [missing_runtime_prereq=yes])
-AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no])
-AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_runtime_prereq=yes])
+dnl AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no])
+dnl AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_runtime_prereq=yes])
 AC_PATH_PROG([INDENT], [indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_runtime_prereq=yes])
 #
@@ -145,10 +145,10 @@ AS_IF([test "x$ASTYLE" = "xno"],
   [
     AC_MSG_WARN([You must install Artistic Style before running C-Reduce])
   ])
-AS_IF([test "x$CLANG_FORMAT" = "xno"],
-  [
-    AC_MSG_WARN([You must install clang-format before running C-Reduce])
-  ])
+dnl AS_IF([test "x$CLANG_FORMAT" = "xno"],
+dnl   [
+dnl     AC_MSG_WARN([You must install clang-format before running C-Reduce])
+dnl   ])
 AS_IF([test "x$INDENT" = "xno"],
   [
     AC_MSG_WARN([You must install GNU Indent before running C-Reduce])
