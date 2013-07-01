@@ -799,7 +799,7 @@ bool RewriteUtils::addStringAfterStmt(Stmt *AfterStmt,
   return !(TheRewriter->InsertText(LocEnd, NewStr));
 }
 
-bool RewriteUtils::addStringAfterVarDecl(VarDecl *VD,
+bool RewriteUtils::addStringAfterVarDecl(const VarDecl *VD,
                                          const std::string &Str)
 {
   SourceRange VarRange = VD->getSourceRange();

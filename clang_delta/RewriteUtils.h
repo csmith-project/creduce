@@ -104,8 +104,8 @@ public:
   bool addStringAfterStmt(clang::Stmt *AfterStmt, 
                                  const std::string &Str);
 
-  bool addStringAfterVarDecl(clang::VarDecl *VD,
-                                    const std::string &Str);
+  bool addStringAfterVarDecl(const clang::VarDecl *VD,
+                             const std::string &Str);
 
   bool addStringAfterFuncDecl(const clang::FunctionDecl *FD,
                               const std::string &Str);
