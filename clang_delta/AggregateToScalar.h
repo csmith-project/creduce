@@ -82,8 +82,6 @@ private:
 
   llvm::DenseMap<const clang::VarDecl *, clang::DeclStmt *> VarDeclToDeclStmtMap;
 
-  llvm::DenseMap<const clang::VarDecl *, clang::DeclGroupRef> VarDeclToDeclGroupMap;
-
   VarToIdx ValidVars;
 
   IdxToExpr ValidExprs;

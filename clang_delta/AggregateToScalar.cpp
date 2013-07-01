@@ -112,10 +112,6 @@ void AggregateToScalar::Initialize(ASTContext &context)
 bool AggregateToScalar::HandleTopLevelDecl(DeclGroupRef D) 
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
-    VarDecl *VD = dyn_cast<VarDecl>(*I);
-    if (VD)
-      VarDeclToDeclGroupMap[VD] = D;
-
     AggregateAccessVisitor->TraverseDecl(*I);
   }
   return true;
@@ -168,17 +164,7 @@ bool AggregateToScalar::addTmpVar(const Expr *RefE,
     return RewriteHelper->addStringAfterStmt(TheDeclStmt, VarStr);
   }
   else {
-    llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI =
-      VarDeclToDeclGroupMap.find(TheVarDecl);
-    TransAssert((DI != VarDeclToDeclGroupMap.end()) && 
-                 "Cannot find VarDeclGroup!");
-    VarDecl *LastVD = NULL;
-    DeclGroupRef DR = (*DI).second;
-    for (DeclGroupRef::iterator I = DR.begin(), E = DR.end(); I != E; ++I) {
-      LastVD = dyn_cast<VarDecl>(*I);
-    }
-    TransAssert(LastVD && "Bad LastVD!");
-    return RewriteHelper->addStringAfterVarDecl(LastVD, VarStr);
+    return RewriteHelper->addStringAfterVarDecl(TheVarDecl, VarStr);
   }
 }
 
