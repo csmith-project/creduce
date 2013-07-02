@@ -180,6 +180,8 @@ clang_delta_SOURCES = \
 	SimplifyIf.h \
 	SimplifyNestedClass.cpp \
 	SimplifyNestedClass.h \
+	SimplifyRecursiveTemplateInstantiation.cpp \
+	SimplifyRecursiveTemplateInstantiation.h \
 	SimplifyStruct.cpp \
 	SimplifyStruct.h \
 	SimplifyStructUnionDecl.cpp \
