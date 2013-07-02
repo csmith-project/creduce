@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2013 The University of Utah
+ * All rights reserved.
+ *
+ * This file is distributed under the University of Illinois Open Source
+ * License.  See the file COPYING for details.
+ */
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>

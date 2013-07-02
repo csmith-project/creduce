@@ -1,3 +1,13 @@
+%{
+/*
+ * Copyright (c) 2013 The University of Utah
+ * All rights reserved.
+ *
+ * This file is distributed under the University of Illinois Open Source
+ * License.  See the file COPYING for details.
+ */
+%}
+
 D			[0-9]
 L			[a-zA-Z_]
 H			[a-fA-F0-9]
