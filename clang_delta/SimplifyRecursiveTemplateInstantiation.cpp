@@ -26,11 +26,11 @@ using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass handles a special case where we have recursive template \
-instantiations. For example, given a code blow: \n\
+instantiations. For example, given the code blow: \n\
   C<B<C<B<C<B<D>, G<int> > > \n\
-it will replace a outer B with an inner specialization of B, i.e. B<D>.\n\
+it will replace an outer instantiation of B with an inner one, e.g. B<D>.\n\
 The the number of transformation instances counts from inside to \n\
-outside. Currently we only handle class template instantiations \n\
+outside. Currently we only handle class template instantiations. \n\
 ";
 
 static RegisterTransformation<SimplifyRecursiveTemplateInstantiation>
