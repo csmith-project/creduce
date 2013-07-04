@@ -86,7 +86,7 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
-AX_LLVM([engine])
+AX_LLVM([3.3],[engine])
 
 # Handle configure-time choice of assertion-checking method.
 #

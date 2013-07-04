@@ -12,15 +12,18 @@
 
 # SYNOPSIS
 #
-#   AX_LLVM([llvm-libs])
+#   AX_LLVM([version],[llvm-libs])
 #
 # DESCRIPTION
 #
-#   Test for the existence of LLVM and make sure that a simple test program
-#   can be linked with the libraries described in the llvm-libs argument,
-#   i.e.:
+#   Test for the existence of LLVM, test that LLVM is at least the specified
+#   version, and test that a simple test program can be linked with the
+#   libraries described in the llvm-libs argument, i.e.:
 #
 #     llvm --libs <llvm-libs>
+#
+#   If the <version> argument is the empty string, then the version check is
+#   bypassed.
 #
 # This file was derived from the LLVM Autoconf macro found in the Autoconf
 # Macro Archive: <http://www.gnu.org/software/autoconf-archive/ax_llvm.html>.
@@ -38,7 +41,7 @@ AC_DEFUN([AX_LLVM],
     [with_llvm=yes])
 
   if test "x$with_llvm" = "xno"; then
-    AC_MSG_FAILURE(
+    AC_MSG_ERROR(
       [--with-llvm=no was given but this package requires LLVM])
   elif test "x$with_llvm" = "xyes"; then
     with_llvm_path="$PATH"
@@ -48,14 +51,26 @@ AC_DEFUN([AX_LLVM],
 
   AC_PATH_PROG([LLVM_CONFIG], [llvm-config], [], [$with_llvm_path])
   if test -z "$LLVM_CONFIG"; then
-    AC_MSG_FAILURE(
+    AC_MSG_ERROR(
       [LLVM is required but program `llvm-config' cannot be found in $with_llvm_path])
+  fi
+
+  if test -n "$1"; then
+    AC_MSG_CHECKING([for LLVM version])
+    LLVM_VERSION=`$LLVM_CONFIG --version`
+    AC_MSG_RESULT([$LLVM_VERSION])
+    AX_COMPARE_VERSION([$LLVM_VERSION],[ge],[$1],
+      [],
+      [
+        AC_MSG_ERROR(
+          [LLVM version $1 or later is required])
+      ])
   fi
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
   LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
   LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
-  LLVM_LIBS=`$LLVM_CONFIG --libs $1`
+  LLVM_LIBS=`$LLVM_CONFIG --libs $2`
 
   # The output of `llvm-config --ldflags' often contains library directives
   # that must come *after* all the LLVM libraries on the link line: e.g.,
@@ -72,7 +87,7 @@ AC_DEFUN([AX_LLVM],
   LIBS="$LIBS $LLVM_LIBS $LLVM_LDFLAGS"
   # LIBS="$LIBS $LLVM_LIBS" --- see comment above.
 
-  AC_CACHE_CHECK(can compile with and link with LLVM([$1]),
+  AC_CACHE_CHECK(can compile with and link with LLVM([$2]),
     ax_cv_llvm,
     [
       AC_LANG_PUSH([C++])
@@ -92,7 +107,7 @@ llvm::Module *M = new llvm::Module("test", context);]])],
   LIBS="$LIBS_SAVED"
 
   if test "$ax_cv_llvm" != "yes"; then
-    AC_MSG_ERROR(
+    AC_MSG_FAILURE(
       [cannot compile and link test program with selected LLVM])
   fi
   AC_SUBST(LLVM_BINDIR)

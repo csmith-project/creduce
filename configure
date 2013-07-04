@@ -15631,10 +15631,7 @@ fi
 
 
   if test "x$with_llvm" = "xno"; then
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "--with-llvm=no was given but this package requires LLVM
-See \`config.log' for more details" "$LINENO" 5; }
+    as_fn_error $? "--with-llvm=no was given but this package requires LLVM" "$LINENO" 5
   elif test "x$with_llvm" = "xyes"; then
     with_llvm_path="$PATH"
   else
@@ -15682,10 +15679,53 @@ fi
 
 
   if test -z "$LLVM_CONFIG"; then
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "LLVM is required but program \`llvm-config' cannot be found in $with_llvm_path
-See \`config.log' for more details" "$LINENO" 5; }
+    as_fn_error $? "LLVM is required but program \`llvm-config' cannot be found in $with_llvm_path" "$LINENO" 5
+  fi
+
+  if test -n "3.3"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for LLVM version" >&5
+$as_echo_n "checking for LLVM version... " >&6; }
+    LLVM_VERSION=`$LLVM_CONFIG --version`
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LLVM_VERSION" >&5
+$as_echo "$LLVM_VERSION" >&6; }
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "$LLVM_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "3.3" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version_A}/true/;s/x${ax_compare_version_B}/false/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+    :
+    else
+        as_fn_error $? "LLVM version 3.3 or later is required" "$LINENO" 5
+
+  fi
+
   fi
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
@@ -15757,7 +15797,10 @@ $as_echo "$ax_cv_llvm" >&6; }
   LIBS="$LIBS_SAVED"
 
   if test "$ax_cv_llvm" != "yes"; then
-    as_fn_error $? "cannot compile and link test program with selected LLVM" "$LINENO" 5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "cannot compile and link test program with selected LLVM
+See \`config.log' for more details" "$LINENO" 5; }
   fi
 
 
