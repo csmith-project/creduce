@@ -45,7 +45,9 @@ use Benchmark::Timer;
 use Cwd;
 use File::Temp;
 use File::Copy;
-use Sys::CPU;
+
+# Load module `Sys::CPU' if it is available.
+eval { require Sys::CPU; Sys::CPU->import(); };
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
@@ -54,7 +56,10 @@ use creduce_utils;
 
 my $GIVEUP_CONSTANT = 1000;
 my $DEBUG_SMP = 0;
-my $NPROCS = Sys::CPU::cpu_count();
+my $NPROCS = 1;
+if (defined(&Sys::CPU::cpu_count)) {
+    $NPROCS = Sys::CPU::cpu_count();
+}
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SANITY;
