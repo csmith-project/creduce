@@ -42,7 +42,7 @@ use Getopt::Tabular;
 use POSIX;
 use Regexp::Common;
 use Benchmark::Timer;
-use Cwd;
+use File::Spec;
 use File::Temp;
 use File::Copy;
 
@@ -307,7 +307,7 @@ sub delta_pass ($) {
     while (!$stopped && $num_running < $NPROCS) {
 	my $tmpdir = make_tmpdir();
 	chdir $tmpdir or die;
-	my $tmpfn = Cwd::abs_path($orig_tmpfn);
+	my $tmpfn = File::Spec->rel2abs($orig_tmpfn);
 	File::Copy::copy($toreduce_best,$tmpfn) or die;
 	# creating the variant is done in the parent, it's only
 	# testing it that we parallelize
@@ -658,7 +658,7 @@ foreach my $mref (@all_methods) {
 }
 print "\n" if $VERBOSE;
 
-$test = Cwd::abs_path(shift @ARGV);
+$test = File::Spec->rel2abs(shift @ARGV);
 usage unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
@@ -677,7 +677,10 @@ $ORIG_DIR = getcwd();
 
 # absolute path so we can refer to this file from temporary working
 # dirs
-$toreduce_best  = Cwd::abs_path("$toreduce_base.best");
+#
+# Note: On Cygwin, Cwd::abs_path() doesn't work for nonexistent files.  Bah.
+#
+$toreduce_best  = File::Spec->rel2abs("$toreduce_base.best");
 $toreduce_orig = "$toreduce_base.orig";
 
 File::Copy::copy($toreduce,$toreduce_orig) or die;
