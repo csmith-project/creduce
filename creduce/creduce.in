@@ -254,13 +254,13 @@ sub killem() {
 	my $kidref = shift @variants;
 	die unless (scalar(@{$kidref})==5);
 	(my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
-	File::Path::rmtree ($tmpdir, 0, 0);	
 	if ($pid != -1) {
 	    # kill the whole group
 	    kill ('TERM', -$pid); 
 	    waitpid ($pid, 0);
 	    $num_running--;
 	}
+	File::Path::rmtree ($tmpdir, 0, 0);	
     }
 }
 
