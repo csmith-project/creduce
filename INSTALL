@@ -41,7 +41,7 @@ Perl modules:
   File::Which
   Getopt::Tabular
   Regexp::Common
-  Sys::CPU
+  Sys::CPU (optional, but recommended)
 
 For example, (perhaps as root):
   cpan -i 'Benchmark::Timer'
