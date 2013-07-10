@@ -16,6 +16,7 @@
 ####################################################################
 
 ## TODO: 
+# add a SIGINT/SIGTERM handler that deletes tmp dirs
 # add a multidelta?
 # fix the caching code
 # make peep:b faster and less stupid
