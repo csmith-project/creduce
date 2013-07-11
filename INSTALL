@@ -35,6 +35,15 @@ LLVM/Clang 3.3:
   (no need to compile it, the appropriate "Clang binaries" package is
   all you need)
 
+NOTE: The LLVM 3.3 release has some performance issues that were fixed
+      by the LLVM developers shortly after the release. If you want to
+      increase the speed of C-Reduce by as much as 100% when reducing
+      large C++ programs, you may want to experiment with using
+      development versions of LLVM 3.3+, following instructions here:
+      http://clang.llvm.org/get_started.html We have had good luck
+      using versions aroung 186000 but newer versions probably also
+      work.
+
 Perl modules:
   Benchmark::Timer
   Exporter::Lite
