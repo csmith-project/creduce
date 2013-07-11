@@ -41,7 +41,7 @@ NOTE: The LLVM 3.3 release has some performance issues that were fixed
       large C++ programs, you may want to experiment with using
       development versions of LLVM 3.3+, following instructions here:
       http://clang.llvm.org/get_started.html We have had good luck
-      using versions aroung 186000 but newer versions probably also
+      using versions around 186000 but newer versions probably also
       work.
 
 Perl modules:
