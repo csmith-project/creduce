@@ -75,7 +75,7 @@ my $CACHE = 0;
 my $FUZZ = 0;
 
 my @options = (
-    ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
+#    ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
     ["--fuzz",                "const",   1, \$FUZZ,            "Make C-Reduce more effective as a fuzzer, but also slower (best used in conjunction with --skip-initial-passes)"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
