@@ -18,8 +18,10 @@
 ## TODO:
 # debug clex crashes 
 # maybe implement passes to:
+#   delete function bodies using the line delta algorithm
 #   ensure that identifiers first appear in sorted order
 #   identifiers are dense
+#   reduce the non-header-file part first, and use PCHs
 # add a SIGINT/SIGTERM handler that deletes tmp dirs
 # add a multidelta?
 # fix the caching code
