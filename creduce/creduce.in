@@ -15,11 +15,16 @@
 #
 ####################################################################
 
-## TODO: 
+## TODO:
+# debug clex crashes 
+# maybe implement passes to:
+#   ensure that identifiers first appear in sorted order
+#   identifiers are dense
 # add a SIGINT/SIGTERM handler that deletes tmp dirs
 # add a multidelta?
 # fix the caching code
 # make peep:b faster and less stupid
+#   or else replace it with clex-based passes
 # benchmark the caching code on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
