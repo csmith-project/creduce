@@ -106,10 +106,17 @@ usage: creduce [options] test_script.sh file.c
        creduce --help to list options
 USAGE
 
+sub usage() {
+    print $usage_text;
+    die;
+}
+
 Getopt::Tabular::SetHelp ($help, $usage_text);
 Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
+# At this point, @ARGV should contain exactly two file names.
+usage() unless (@ARGV == 2);
 
 # delete cached results for program sizes this much larger than the
 # current size; this heuristic is designed to save RAM while also
@@ -429,11 +436,6 @@ sub delta_pass ($) {
     goto AGAIN;
 }
 
-sub usage() {
-    print $usage_text;
-    die;
-}
-
 my @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
 
@@ -669,11 +671,11 @@ foreach my $mref (@all_methods) {
 print "\n" if $VERBOSE;
 
 $test = File::Spec->rel2abs(shift @ARGV);
-usage unless defined($test);
+usage() unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
 $toreduce = shift @ARGV;
-usage unless defined($toreduce);
+usage() unless defined($toreduce);
 check_file_attributes("file", $toreduce, "efrw");
 
 print "===< $$ >===\n";
