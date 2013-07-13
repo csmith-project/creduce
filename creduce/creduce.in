@@ -16,7 +16,9 @@
 ####################################################################
 
 ## TODO:
-# debug clex crashes 
+# add support for preprocessing during reduction
+# add clang_format
+# debug clex crashes, add crash reporting for it?
 # maybe implement passes to:
 #   delete function bodies using the line delta algorithm
 #   ensure that identifiers first appear in sorted order
