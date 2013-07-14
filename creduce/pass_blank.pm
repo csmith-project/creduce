@@ -13,7 +13,10 @@ package pass_blank;
 use strict;
 use warnings;
 
+use File::Copy;
 use creduce_utils;
+
+my @rx = (qr/^\s*$/, qr/^#/);
 
 sub check_prereqs () {
     return 1;
@@ -31,40 +34,40 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub do_transform($$) {
+    my ($cfile, $pattern) = @_;
+
+    open INF, "<$cfile" or die;
+    my $tmpfile = POSIX::tmpnam();
+    open OUTF, ">$tmpfile" or die;
+
+    my $matched;
+    while (my $line = <INF>) {
+        if ($line =~ $pattern) {
+            $matched = 1;
+            next;
+        }
+        print OUTF $line;
+    }
+
+    close INF;
+    close OUTF;
+    move($tmpfile, $cfile) if $matched;
+    return $matched;
+}
+
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my $index = ${$state};
 
-    return ($STOP, \$index) unless ($index < 2);
+    return ($STOP, \$index) unless ($index < scalar @rx);
 
-    if ($index == 0) {
-	open INF, "<$cfile" or die;
-	my $tmpfile = POSIX::tmpnam();
-	open OUTF, ">$tmpfile" or die;
-	while (my $line = <INF>) {
-	    next if ($line =~ /^\s*$/);
-	    print OUTF $line;
-	}
-	close INF;
-	close OUTF;    
-	system "mv $tmpfile $cfile";
+    my $success;
+    until ($success || $index >= scalar @rx) {
+        $success = do_transform($cfile, $rx[$index]);
+        $index++;
     }
-
-    if ($index == 1) {
-	open INF, "<$cfile" or die;
-	my $tmpfile = POSIX::tmpnam();
-	open OUTF, ">$tmpfile" or die;
-	while (my $line = <INF>) {
-	    next if ($line =~ /^#/);
-	    print OUTF $line;
-	}
-	close INF;
-	close OUTF;    
-	system "mv $tmpfile $cfile";
-    }
-    
-    $index++;
-    return ($OK, \$index);
+    return ($success ? $OK : $STOP, \$index);
 }
 
 1;
