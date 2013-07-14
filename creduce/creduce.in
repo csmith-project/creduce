@@ -82,10 +82,12 @@ my $NODEFAULT;
 #
 my $CACHE = 0;
 my $FUZZ = 0;
+my $CPP;
 
 my @options = (
 #    ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
+    ["--cpp",                 "string",  1, \$CPP,             "Command to preprocess the file being reduced; doing some reduction prior to preprocessing may result in faster reduction"],
     ["--fuzz",                "const",   1, \$FUZZ,            "Make C-Reduce more effective as a fuzzer, but also slower (best used in conjunction with --skip-initial-passes)"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
@@ -723,6 +725,12 @@ while (1) {
     while (my $item = $next->()) {
 	delta_pass ($item);
     }
+
+    if ($pass_num == 0 && defined ($CPP)) {
+	runit ($CPP);
+	sanity_check();
+    }
+
     $pass_num++;
     my $s = -s $toreduce_best;
     print "Termination check: size was $file_size; now $s\n";
