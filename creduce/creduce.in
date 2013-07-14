@@ -18,6 +18,7 @@
 ## TODO:
 # add support for reducing non-preprocessed code
 #   remove comments
+#   remove preprocessor directives after preprocessing
 # add support for preprocessing during reduction
 # add clang_format
 # debug clex crashes, add crash reporting for it?
@@ -26,7 +27,6 @@
 #   ensure that identifiers first appear in sorted order
 #   identifiers are dense
 #   reduce the non-header-file part first, and use PCHs
-# add a SIGINT/SIGTERM handler that deletes tmp dirs
 # add a multidelta?
 # fix the caching code
 # make peep:b faster and less stupid
@@ -658,6 +658,20 @@ sub check_file_attributes($$$) {
 }
 
 ############################### main #################################
+
+my @normal_signals = qw(TERM INT HUP PIPE);
+use sigtrap 'handler', \&sigHandler, 'normal-signals';
+
+my $root_process_pid = $$;
+
+sub sigHandler {
+    my ($sigName) = @_;
+    exit() unless ($$ == $root_process_pid);
+    killem();
+    chdir $ORIG_DIR;
+    remove_tmpdirs();
+    die "$sigName caught, terminating $$\n";
+}
 
 my $timer = Benchmark::Timer->new();
 $timer->start();
