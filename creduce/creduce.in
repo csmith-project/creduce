@@ -19,7 +19,6 @@
 # add support for reducing non-preprocessed code
 #   remove comments
 #   remove preprocessor directives after preprocessing
-# add support for preprocessing during reduction
 # add clang_format
 # debug clex crashes, add crash reporting for it?
 # maybe implement passes to:
@@ -28,14 +27,12 @@
 #   identifiers are dense
 #   reduce the non-header-file part first, and use PCHs
 # add a multidelta?
-# fix the caching code
 # make peep:b faster and less stupid
 #   or else replace it with clex-based passes
-# benchmark the caching code on some large reductions
+# maybe: fix the caching code and then benchmark on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
 # use IPC::Run3 instead of system?
-# use clang-format 
 # merge adjacent strings?
 # support adding/removing passes via the command line
 # maybe add a format string reduction pass that eliminates a format
