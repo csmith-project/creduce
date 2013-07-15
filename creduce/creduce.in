@@ -19,7 +19,6 @@
 # add support for reducing non-preprocessed code
 #   remove comments
 #   remove preprocessor directives after preprocessing
-# add clang_format
 # debug clex crashes, add crash reporting for it?
 # maybe implement passes to:
 #   delete function bodies using the line delta algorithm
@@ -27,8 +26,7 @@
 #   identifiers are dense
 #   reduce the non-header-file part first, and use PCHs
 # add a multidelta?
-# make peep:b faster and less stupid
-#   or else replace it with clex-based passes
+# replace peep::a and peep::b with token-based passes
 # maybe: fix the caching code and then benchmark on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
