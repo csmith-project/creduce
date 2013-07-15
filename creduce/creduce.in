@@ -756,13 +756,13 @@ while (1) {
 	my $res = runit ($CPP);
 	die unless ($res==0);
 	File::Copy::copy($toreduce,$toreduce_best) or die;
-	# reset this since we probably just made the file a lot larger
+	# reset the fixpoint detector 
 	$file_size = 1 + (-s $toreduce_best);
 	sanity_check();
 
-	# TODO: perhaps run a pass dedicated to eliminating line
-	# number markers and other CPP junk-- line delta will do the
-	# job, but one line at a time
+	# TODO: perhaps add a pass dedicated to eliminating line
+	# number markers and other CPP junk all at once; line delta 0
+	# will do the job, but not rapidly
 
         line_delta_pass (0);
         line_delta_pass (1);

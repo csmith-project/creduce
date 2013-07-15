@@ -20,7 +20,8 @@ my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 sub check_prereqs () {
     my $path1 = File::Which::which ("indent");
     my $path2 = File::Which::which ("astyle");
-    return defined ($path1) && defined ($path2);
+    my $path2 = File::Which::which ("clang-format");
+    return defined ($path1) && defined ($path2) && defined ($path3);
 }
 
 sub new ($$) {
@@ -45,6 +46,7 @@ sub transform ($$$) {
     } elsif ($arg eq "final") {
 	system "indent $cfile >/dev/null 2>&1";
 	system "astyle $cfile >/dev/null 2>&1";
+	system "clang-format -i $cfile >/dev/null 2>&1";
     } else {
 	die;
     }
