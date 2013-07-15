@@ -203,7 +203,10 @@ sub sanity_check () {
     my $tmpdir = make_tmpdir();
     chdir $tmpdir or die;
     File::Copy::copy($toreduce_best,$toreduce) or die;
-    run_test($toreduce) or die "test (and sanity check) fails";
+    if (!run_test($toreduce)) {
+	chdir $ORIG_DIR;
+	die "test (and sanity check) fails";
+    }
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
     remove_tmpdirs();
