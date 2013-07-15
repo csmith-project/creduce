@@ -39,16 +39,20 @@ sub advance ($$$) {
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my $index = ${$state};
-    return ($STOP, \$index) unless ($index == 0);
     if (0) {
     } elsif ($arg eq "regular") {
+	return ($STOP, \$index) unless ($index == 0);
 	system "indent $INDENT_OPTS $cfile >/dev/null 2>&1";
     } elsif ($arg eq "final") {
-	system "indent $cfile >/dev/null 2>&1";
-	system "astyle $cfile >/dev/null 2>&1";
-	system "clang-format -i $cfile >/dev/null 2>&1";
-    } else {
-	die;
+	if ($index == 0) {
+	    system "indent $cfile >/dev/null 2>&1";
+	} elsif ($index == 1) {
+	    system "astyle $cfile >/dev/null 2>&1";
+	} elsif ($index == 2) {
+	    system "clang-format -i $cfile >/dev/null 2>&1";
+	} else {
+	    return ($STOP, \$index);
+	}
     }
     $index++;
     return ($OK, \$index);
