@@ -687,6 +687,7 @@ CFLAGS
 CC
 TOPFORMFLAT
 INDENT
+CLANG_FORMAT
 ASTYLE
 PERL_VERSION
 GREP
@@ -3425,6 +3426,50 @@ fi
 
 
 if test "x$ASTYLE" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+# Extract the first word of "clang-format", so it can be a program name with args.
+set dummy clang-format; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CLANG_FORMAT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CLANG_FORMAT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CLANG_FORMAT="$CLANG_FORMAT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CLANG_FORMAT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_CLANG_FORMAT" && ac_cv_path_CLANG_FORMAT="no"
+  ;;
+esac
+fi
+CLANG_FORMAT=$ac_cv_path_CLANG_FORMAT
+if test -n "$CLANG_FORMAT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CLANG_FORMAT" >&5
+$as_echo "$CLANG_FORMAT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$CLANG_FORMAT" = "xno"; then :
   missing_runtime_prereq=yes
 fi
 # Extract the first word of "indent", so it can be a program name with args.
@@ -18603,6 +18648,12 @@ if test "x$ASTYLE" = "xno"; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Artistic Style before running C-Reduce" >&5
 $as_echo "$as_me: WARNING: You must install Artistic Style before running C-Reduce" >&2;}
+
+fi
+if test "x$CLANG_FORMAT" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install clang-format before running C-Reduce" >&5
+$as_echo "$as_me: WARNING: You must install clang-format before running C-Reduce" >&2;}
 
 fi
 if test "x$INDENT" = "xno"; then :
