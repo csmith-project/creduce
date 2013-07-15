@@ -13,15 +13,24 @@ package pass_indent;
 use strict;
 use warnings;
 
+use creduce_config qw(ASTYLE CLANG_FORMAT INDENT);
 use creduce_utils;
 
-my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
+my $astyle;
+my $clang_format;
+my $indent;
+
+my $indent_opts = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 
 sub check_prereqs () {
-    my $path1 = File::Which::which ("indent");
-    my $path2 = File::Which::which ("astyle");
-    my $path3 = File::Which::which ("clang-format");
-    return defined ($path1) && defined ($path2) && defined ($path3);
+    $astyle =
+	find_external_program(creduce_config::ASTYLE, "astyle");
+    $clang_format =
+	find_external_program(creduce_config::CLANG_FORMAT, "clang-format");
+    $indent =
+	find_external_program(creduce_config::INDENT, "indent");
+
+    return defined ($astyle) && defined ($clang_format) && defined ($indent);
 }
 
 sub new ($$) {
@@ -42,14 +51,14 @@ sub transform ($$$) {
     if (0) {
     } elsif ($arg eq "regular") {
 	return ($STOP, \$index) unless ($index == 0);
-	system "indent $INDENT_OPTS $cfile >/dev/null 2>&1";
+	system "$indent $indent_opts $cfile >/dev/null 2>&1";
     } elsif ($arg eq "final") {
 	if ($index == 0) {
-	    system "indent $cfile >/dev/null 2>&1";
+	    system "$indent $cfile >/dev/null 2>&1";
 	} elsif ($index == 1) {
-	    system "astyle $cfile >/dev/null 2>&1";
+	    system "$astyle $cfile >/dev/null 2>&1";
 	} elsif ($index == 2) {
-	    system "clang-format -i $cfile >/dev/null 2>&1";
+	    system "$clang_format -i $cfile >/dev/null 2>&1";
 	} else {
 	    return ($STOP, \$index);
 	}

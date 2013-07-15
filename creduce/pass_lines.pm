@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2013 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -14,8 +14,11 @@ use strict;
 use warnings;
 
 use POSIX;
-use File::Which;
+
+use creduce_config qw(TOPFORMFLAT);
 use creduce_utils;
+
+my $topformflat;
 
 my $BACKWARD = 0;
 
@@ -29,8 +32,9 @@ sub count_lines ($) {
 }
 
 sub check_prereqs () {
-    my $path = File::Which::which ("topformflat");
-    return defined ($path);
+    $topformflat = find_external_program(creduce_config::TOPFORMFLAT,
+					 "topformflat");
+    return defined($topformflat);
 }
 
 sub new ($$) {
@@ -69,9 +73,9 @@ sub transform ($$$) {
 	delete $sh{"flatten"};
 	$sh{"start"} = 1;
 	my $tmpfile = POSIX::tmpnam();
-	system "topformflat $arg < $cfile > $tmpfile";
+	system "$topformflat $arg < $cfile > $tmpfile";
 	system "mv $tmpfile $cfile";	
-	print "ran topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
+	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
 	return ($OK, \%sh);
     }
 

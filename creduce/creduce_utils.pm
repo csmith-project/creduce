@@ -13,14 +13,34 @@ package creduce_utils;
 use warnings;
 
 use Exporter::Lite;
+use File::Spec;
+use File::Which;
 
-@EXPORT      = qw(read_file write_file $OK $STOP $VERBOSE
-                  $replace_cont replace_aux runit $matched);
+@EXPORT      = qw($VERBOSE $OK $STOP
+		  find_external_program
+		  runit 
+		  $replace_cont $matched replace_aux
+		  read_file write_file
+                  );
 
 $VERBOSE = 0;
 
 $OK = 999999;
 $STOP = 111333;
+
+sub find_external_program($$) {
+    my ($configured_path, $program_name) = @_;
+    # $configured_path is the pathname that was found at configure time.
+    # If it seems OK, use it.
+    # Otherwise, try looking in the user's path for $program_name.
+    if (File::Spec->file_name_is_absolute ($configured_path)
+	&& -e $configured_path
+	&& -f $configured_path
+	&& -x $configured_path) {
+	return $configured_path;
+    }
+    return File::Which::which ($program_name);
+}
 
 sub runit ($) {
     (my $cmd) = @_;
