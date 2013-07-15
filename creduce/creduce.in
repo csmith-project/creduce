@@ -437,6 +437,12 @@ sub delta_pass ($) {
     goto AGAIN;
 }
 
+sub line_delta_pass ($) {
+    (my $n) = @_;
+    my $line = { "name" => "pass_lines", "arg" => "$n", };
+    delta_pass ($line);
+}
+
 my @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
 
@@ -740,7 +746,12 @@ while (1) {
     }
 
     if ($pass_num == 0 && defined ($CPP)) {
-	# TODO: add a last-ditch call to line delta 0
+
+	# regardless of how the phase ordering is setup, we want to
+	# run a line delta pass now as a last-ditch attempt to
+	# eliminate some #include directives
+        line_delta_pass (0);
+
 	printf "running preprocessor command '$CPP'\n";
 	my $res = runit ($CPP);
 	die unless ($res==0);
@@ -748,6 +759,15 @@ while (1) {
 	# reset this since we probably just made the file a lot larger
 	$file_size = 1 + (-s $toreduce_best);
 	sanity_check();
+
+	# TODO: perhaps run a pass dedicated to eliminating line
+	# number markers and other CPP junk-- line delta will do the
+	# job, but one line at a time
+
+        line_delta_pass (0);
+        line_delta_pass (1);
+        line_delta_pass (2);
+        line_delta_pass (10);
     }
 
     $pass_num++;
