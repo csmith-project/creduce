@@ -20,7 +20,7 @@ my $INDENT_OPTS = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 sub check_prereqs () {
     my $path1 = File::Which::which ("indent");
     my $path2 = File::Which::which ("astyle");
-    my $path2 = File::Which::which ("clang-format");
+    my $path3 = File::Which::which ("clang-format");
     return defined ($path1) && defined ($path2) && defined ($path3);
 }
 
