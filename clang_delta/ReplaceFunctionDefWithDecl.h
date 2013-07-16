@@ -11,6 +11,7 @@
 #ifndef REPLACE_FUNCTION_DEF_WITH_DECL_H
 #define REPLACE_FUNCTION_DEF_WITH_DECL_H
 
+#include <string>
 #include "llvm/ADT/SmallVector.h"
 #include "Transformation.h"
 
@@ -20,6 +21,7 @@ namespace clang {
   class FunctionDecl;
   class CXXConstructorDecl;
   class FunctionTemplateDecl;
+  class SourceLocation;
 }
 
 class ReplaceFunctionDefWithDeclCollectionVisitor;
@@ -57,6 +59,19 @@ private:
 
   bool hasValidOuterLocStart(const clang::FunctionTemplateDecl *FTD, 
                              const clang::FunctionDecl *FD);
+ 
+  bool removeOneInlineKeyword(const std::string &LeadingInlineStr,
+                              const std::string &InlineStr, 
+                              const std::string &Str,
+                              const clang::SourceLocation &StartLoc);
+
+  bool removeInlineKeyword(const std::string &InlineStr, 
+                           const std::string &Str,
+                           const clang::SourceLocation &StartLoc);
+
+  void removeInlineKeywordFromOneFunctionDecl(const clang::FunctionDecl *FD);
+
+  void removeInlineKeywordFromFunctionDecls(const clang::FunctionDecl *FD);
 
   void doRewriting();
 

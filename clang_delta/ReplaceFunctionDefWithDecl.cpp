@@ -47,10 +47,7 @@ private:
 bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
        FunctionDecl *FD)
 {
-  // compiler warns about used-but-not-defined inlined specified function
-  // question --- do we need to be such conservative, i.e. not to
-  // replace inlined specified function?
-  if (FD->isThisDeclarationADefinition() && !FD->isInlineSpecified())
+  if (FD->isThisDeclarationADefinition())
     ConsumerInstance->addOneFunctionDef(FD);
   return true;
 }
@@ -139,12 +136,88 @@ bool ReplaceFunctionDefWithDecl::hasValidOuterLocStart(
   return (FDStartPos < FTDStartPos); 
 }
 
+bool ReplaceFunctionDefWithDecl::removeOneInlineKeyword(
+       const std::string &LeadingInlineStr, 
+       const std::string &InlineStr, 
+       const std::string &Str,
+       const SourceLocation &StartLoc)
+{
+  if (!Str.compare(0, LeadingInlineStr.length(), LeadingInlineStr)) {
+    TheRewriter.RemoveText(SourceRange(
+                  StartLoc,
+                  StartLoc.getLocWithOffset(LeadingInlineStr.length() - 1)));
+    return true;
+  }
+
+  size_t Off = Str.find(InlineStr);
+  if (Off == std::string::npos)
+    return false;
+
+  TheRewriter.RemoveText(SourceRange(
+                StartLoc.getLocWithOffset(Off),
+                StartLoc.getLocWithOffset(Off + InlineStr.length() - 1)));
+  return true;
+}
+
+bool ReplaceFunctionDefWithDecl::removeInlineKeyword(
+       const std::string &InlineStr, 
+       const std::string &Str,
+       const SourceLocation &StartLoc)
+{
+  char Spaces[] = {' ', '\t', '\n'};
+  unsigned Len = sizeof(Spaces) / sizeof(char);
+  for (unsigned I = 0; I < Len; ++I) {
+    std::string LeadingInlineStr = InlineStr + Spaces[I];
+    for (unsigned J = 0; J < Len; ++J) {
+      for (unsigned K = 0; K < Len; ++K) {
+        std::string InlineStrVariant = Spaces[J] + InlineStr + Spaces[K];
+        if (removeOneInlineKeyword(LeadingInlineStr, InlineStrVariant, 
+                                   Str, StartLoc))
+          return true;
+      }
+    }
+  }
+  return false;
+}
+
+void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
+       const FunctionDecl *FD)
+{
+  if (!FD->isInlineSpecified())
+    return;
+  SourceLocation StartLoc = FD->getSourceRange().getBegin();
+  SourceLocation EndLoc = FD->getLocation();
+  std::string Str;
+  RewriteHelper->getStringBetweenLocs(Str, StartLoc, EndLoc);
+  if (removeInlineKeyword("inline", Str, StartLoc))
+    return;
+  if (removeInlineKeyword("__inline", Str, StartLoc))
+    return;
+  TransAssert(0 && "Unreachable code!");
+}
+
+void ReplaceFunctionDefWithDecl::removeInlineKeywordFromFunctionDecls(
+       const FunctionDecl *FD)
+{
+  if (!FD->isInlineSpecified())
+    return;
+
+  const FunctionDecl *FirstFD = FD->getFirstDeclaration();
+  for (FunctionDecl::redecl_iterator I = FirstFD->redecls_begin(),
+       E = FirstFD->redecls_end(); I != E; ++I) {
+    removeInlineKeywordFromOneFunctionDecl(*I);
+  }
+}
+
 void ReplaceFunctionDefWithDecl::rewriteOneFunctionDef(
        const FunctionDecl *FD)
 {
   const CXXMethodDecl *CXXMD = dyn_cast<CXXMethodDecl>(FD);
   if (!CXXMD) {
     RewriteHelper->replaceFunctionDefWithStr(FD, ";");
+    // compiler warns about used-but-not-defined inlined specified function, 
+    // so get rid of the inline keyword from FD's decls
+    removeInlineKeywordFromFunctionDecls(FD);
     return;
   }
 
@@ -176,6 +249,7 @@ void ReplaceFunctionDefWithDecl::rewriteOneFunctionDef(
     removeCtorInitializers(Ctor);
   }
   RewriteHelper->replaceFunctionDefWithStr(FD, ";");
+  removeInlineKeywordFromFunctionDecls(FD);
 }
 
 void ReplaceFunctionDefWithDecl::doRewriting()
