@@ -26,16 +26,16 @@ class TransformationManager {
 
 public:
 
-  static TransformationManager *GetInstance(void);
+  static TransformationManager *GetInstance();
 
-  static void Finalize(void);
+  static void Finalize();
 
   static void registerTransformation(const char *TransName, 
                                      Transformation *TransImpl);
   
-  static bool isCXXLangOpt(void);
+  static bool isCXXLangOpt();
 
-  static bool isCLangOpt(void);
+  static bool isCLangOpt();
 
   bool doTransformation(std::string &ErrorMsg);
 
@@ -44,6 +44,7 @@ public:
   int setTransformation(const std::string &Trans) {
     if (TransformationsMap.find(Trans.c_str()) == TransformationsMap.end())
       return -1;
+    CurrentTransName = Trans;
     CurrentTransformationImpl = TransformationsMap[Trans.c_str()];
     return 0;
   }
@@ -51,6 +52,11 @@ public:
   void setTransformationCounter(int Counter) {
     assert((Counter > 0) && "Bad Counter value!");
     TransformationCounter = Counter;
+  }
+
+  void setToCounter(int Counter) {
+    assert((Counter > 0) && "Bad to-counter value!");
+    ToCounter = Counter;
   }
 
   void setSrcFileName(const std::string &FileName) {
@@ -66,13 +72,13 @@ public:
     QueryInstanceOnly = Flag;
   }
 
-  bool getQueryInstanceFlag(void) {
+  bool getQueryInstanceFlag() {
     return QueryInstanceOnly;
   }
 
   bool initializeCompilerInstance(std::string &ErrorMsg);
 
-  void outputNumTransformationInstances(void);
+  void outputNumTransformationInstances();
 
   void printTransformations();
 
@@ -80,11 +86,11 @@ public:
 
 private:
   
-  TransformationManager(void);
+  TransformationManager();
 
-  ~TransformationManager(void);
+  ~TransformationManager();
 
-  llvm::raw_ostream *getOutStream(void);
+  llvm::raw_ostream *getOutStream();
 
   void closeOutStream(llvm::raw_ostream *OutStream);
 
@@ -98,9 +104,13 @@ private:
 
   int TransformationCounter;
 
+  int ToCounter;
+
   std::string SrcFileName;
 
   std::string OutputFileName;
+
+  std::string CurrentTransName;
 
   clang::CompilerInstance *ClangInstance;
 

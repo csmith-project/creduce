@@ -21,7 +21,7 @@
 
 static TransformationManager *TransMgr;
 
-static void PrintVersion(void)
+static void PrintVersion()
 {
   llvm::outs() << "clang_delta " << PACKAGE_VERSION << "\n";
 #ifdef GIT_VERSION
@@ -30,7 +30,7 @@ static void PrintVersion(void)
   // XXX print copyright, contact info, etc.?
 }
 
-static void PrintHelpMessage(void)
+static void PrintHelpMessage()
 {
   PrintVersion();
   llvm::outs() << "\n";
@@ -49,7 +49,8 @@ static void PrintHelpMessage(void)
   llvm::outs() << "print the program version number\n";
 
   llvm::outs() << "  --verbose-transformations: ";
-  llvm::outs() << "print verbose description messages for all transformations\n";
+  llvm::outs() << "print verbose description messages for all ";
+  llvm::outs() << "transformations\n";
 
   llvm::outs() << "  --transformation=<name>: ";
   llvm::outs() << "specify the transformation\n";
@@ -58,10 +59,18 @@ static void PrintHelpMessage(void)
   llvm::outs() << "print the names of all available transformations\n";
 
   llvm::outs() << "  --query-instances=<name>: ";
-  llvm::outs() << "query available transformation instances for a given transformation\n";
+  llvm::outs() << "query available transformation instances for a given ";
+  llvm::outs() << "transformation\n";
 
   llvm::outs() << "  --counter=<number>: ";
   llvm::outs() << "specify the instance of the transformation to perform\n";
+
+  llvm::outs() << "  --to-counter=<number>: ";
+  llvm::outs() << "specify the ending instance of the transformation to ";
+  llvm::outs() << "perform (when this option is given, clang_delta will ";
+  llvm::outs() << "rewrite multiple instances [counter,to-counter] ";
+  llvm::outs() << "simultaneously. Note that currently only ";
+  llvm::outs() << "replace-function-def-with-decl supports this feature.)\n";
 
   llvm::outs() << "  --output=<filename>: ";
   llvm::outs() << "specify where to output the transformed source code ";
@@ -116,6 +125,15 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
       DieOnBadCmdArg("--" + ArgValueStr);
 
     TransMgr->setTransformationCounter(Val);
+  }
+  else if (!ArgName.compare("to-counter")) {
+    int Val;
+    std::stringstream TmpSS(ArgValue);
+
+    if (!(TmpSS >> Val))
+      DieOnBadCmdArg("--" + ArgValueStr);
+
+    TransMgr->setToCounter(Val);
   }
   else if (!ArgName.compare("output")) {
     TransMgr->setOutputFileName(ArgValue);
