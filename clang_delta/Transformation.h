@@ -52,7 +52,8 @@ typedef enum {
   TransNoValidVarsError,
   TransNoValidFunsError,
   TransNoValidParamsError,
-  TransNoTextModificationError
+  TransNoTextModificationError,
+  TransToCounterTooBigError
 } TransformationError;
 
 class Transformation : public clang::ASTConsumer {
@@ -69,12 +70,34 @@ public:
       TransError(TransSuccess),
       DescriptionString(Desc),
       RewriteHelper(NULL),
-      Rewritten(false)
+      Rewritten(false),
+      MultipleRewrites(false),
+      ToCounter(-1)
   {
     // Nothing to do
   }
 
-  virtual ~Transformation(void);
+  Transformation(const char *TransName, 
+                 const char *Desc, 
+                 bool MultipleRewritesFlag)
+    : Name(TransName),
+      TransformationCounter(-1),
+      ValidInstanceNum(0),
+      QueryInstanceOnly(false),
+      Context(NULL),
+      SrcManager(NULL),
+      TransError(TransSuccess),
+      DescriptionString(Desc),
+      RewriteHelper(NULL),
+      Rewritten(false),
+      MultipleRewrites(MultipleRewritesFlag),
+      ToCounter(-1)
+  {
+    // Nothing to do
+  }
+
+
+  virtual ~Transformation();
 
   void outputOriginalSource(llvm::raw_ostream &OutStream);
 
@@ -84,33 +107,41 @@ public:
     TransformationCounter = Counter;
   }
 
+  void setToCounter(int Counter) {
+    ToCounter = Counter;
+  }
+
+  bool isMultipleRewritesEnabled() {
+    return MultipleRewrites;
+  }
+
   void setQueryInstanceFlag(bool Flag) {
     QueryInstanceOnly = Flag;
   }
 
-  bool transSuccess(void) {
+  bool transSuccess() {
     return (TransError == TransSuccess);
   }
   
-  bool transMaxInstanceError(void) {
+  bool transMaxInstanceError() {
     return (TransError == TransMaxInstanceError);
   }
 
-  bool transInternalError(void) {
+  bool transInternalError() {
     return (TransError == TransInternalError);
   }
 
-  std::string &getDescription(void) {
+  std::string &getDescription() {
     return DescriptionString;
   }
 
   void getTransErrorMsg(std::string &ErrorMsg);
 
-  int getNumTransformationInstances(void) {
+  int getNumTransformationInstances() {
     return ValidInstanceNum;
   }
 
-  virtual bool skipCounter(void) {
+  virtual bool skipCounter() {
     return false;
   }
 
@@ -246,6 +277,10 @@ protected:
   RewriteUtils *RewriteHelper;
 
   bool Rewritten;
+
+  const bool MultipleRewrites;
+
+  int ToCounter;
 };
 
 class TransNameQueryVisitor;
@@ -256,9 +291,9 @@ friend class TransNameQueryVisitor;
 public:
   explicit TransNameQueryWrap(const std::string &Prefix);
 
-  ~TransNameQueryWrap(void);
+  ~TransNameQueryWrap();
 
-  unsigned int getMaxNamePostfix(void) {
+  unsigned int getMaxNamePostfix() {
     return MaxPostfix;
   }
 
@@ -273,7 +308,7 @@ private:
   TransNameQueryVisitor *NameQueryVisitor;
 
   // Unimplemented
-  TransNameQueryWrap(void);
+  TransNameQueryWrap();
 
   TransNameQueryWrap(const TransNameQueryWrap &);
 

@@ -121,7 +121,8 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
     ErrorMsg = "Internal transformation error!";
   }
   else if (TransError == TransMaxInstanceError) {
-    ErrorMsg = "The counter value exceeded the number of transformation instances!";
+    ErrorMsg = 
+      "The counter value exceeded the number of transformation instances!";
   }
   else if (TransError == TransMaxVarsError) {
     ErrorMsg = "Too many variables!";
@@ -140,6 +141,10 @@ void Transformation::getTransErrorMsg(std::string &ErrorMsg)
   }
   else if (TransError == TransNoTextModificationError) {
     ErrorMsg = "No modification to the transformed program!";
+  }
+  else if (TransError == TransToCounterTooBigError) {
+    ErrorMsg = 
+      "The to-counter value exceeded the number of transformation instances!";
   }
   else {
     TransAssert(0 && "Unknown transformation error!");
