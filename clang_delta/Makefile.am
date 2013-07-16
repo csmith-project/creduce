@@ -158,6 +158,8 @@ clang_delta_SOURCES = \
 	ReplaceDependentTypedef.h \
 	ReplaceDerivedClass.cpp \
 	ReplaceDerivedClass.h \
+	ReplaceFunctionDefWithDecl.cpp \
+	ReplaceFunctionDefWithDecl.h \
 	ReplaceOneLevelTypedefType.cpp \
 	ReplaceOneLevelTypedefType.h \
 	ReplaceSimpleTypedef.cpp \
