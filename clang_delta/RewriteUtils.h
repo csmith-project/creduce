@@ -190,6 +190,9 @@ public:
   bool getFunctionDeclStrAndRemove(const clang::FunctionDecl *FD,
                                    std::string &Str);
 
+  bool replaceFunctionDefWithStr(const clang::FunctionDecl *FD,
+                                 const std::string &Str);
+
   clang::SourceLocation getEndLocationUntil(clang::SourceRange Range,
                                             char Symbol);
 
@@ -222,6 +225,9 @@ public:
 
   bool removeTextFromLeftAt(clang::SourceRange Range, char C,
                             clang::SourceLocation EndLoc);
+
+  clang::SourceLocation getLocationFromLeftUntil(clang::SourceLocation StartLoc,
+                                                 char C);
 
   bool removeTextUntil(clang::SourceRange Range, char C);
 
