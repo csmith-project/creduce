@@ -55,8 +55,6 @@ sub advance ($$$) {
     } else {
 	$sh{"index"} += $sh{"chunk"};
     }
-    my $foo = $sh{"index"};
-    # print "advanced index to $foo\n";
     return \%sh;
 }
 
