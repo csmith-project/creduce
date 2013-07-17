@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-package pass_clang;
+package pass_clang_binsrch;
 
 use strict;
 use warnings;
@@ -26,6 +26,16 @@ use creduce_utils;
 my $clang_delta = "clang_delta";
 
 my $ORIG_DIR;
+
+sub count_lines ($) {
+    (my $cfile) = @_;
+    open INF, "$clang_delta  --query-instances=replace-function-def-with-decl $cfile |" or die;
+    my $line = <INF>;
+    die unless $line =~ /Available transformation instances: [(0-9)+]$/;
+    my $n = $1;
+    close INF;
+    return $n;
+}
 
 sub check_prereqs () {
     $ORIG_DIR = getcwd();
@@ -47,15 +57,77 @@ sub check_prereqs () {
 }
 
 sub new ($$) {
-    my $index = 1;
-    return \$index;
+    (my $cfile, my $arg) = @_;
+    my %sh;
+    return \%sh;
 }
 
 sub advance ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    my %sh = %{$state};
+    return \%sh if defined($sh{"start"});
+    $sh{"index"} += $sh{"chunk"};
+    return \%sh;
+}
+
+
+sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
-    my $index = ${$state};
-    $index++;
-    return \$index;
+    my %sh = %{$state};
+
+    if (defined $sh{"flatten"}) {
+	delete $sh{"flatten"};
+	$sh{"start"} = 1;
+	my $tmpfile = POSIX::tmpnam();
+	system "$topformflat $arg < $cfile > $tmpfile";
+	system "mv $tmpfile $cfile";	
+	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
+	return ($OK, \%sh);
+    }
+
+    if (defined($sh{"start"})) {
+	delete $sh{"start"};
+	my $chunk = count_lines($cfile);
+	$sh{"chunk"} = $chunk;
+	print "initial granularity = $chunk\n" if $VERBOSE;
+	$sh{"index"} = 0;
+    }
+
+  AGAIN:
+
+    my $n=0;
+    my $did_something=0;
+    my $tmpfile = POSIX::tmpnam();
+    open INF, "<$cfile" or die;
+    open OUTF, ">$tmpfile" or die;
+    while (my $line = <INF>) {
+	if ($n >= ($sh{"index"} + $sh{"chunk"}) ||
+	    $n < $sh{"index"}
+	    ) {
+	    print OUTF $line;
+	} else {
+	    $did_something++;
+	}
+	$n++;
+    }
+    close INF;
+    close OUTF;
+
+    if ($did_something) {
+	system "mv $tmpfile $cfile";
+    } else {
+	system "rm $tmpfile";
+	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
+	my $newchunk = round ($sh{"chunk"} / 2.0);
+	$sh{"chunk"} = $newchunk;
+	print "granularity = $newchunk\n" if $VERBOSE;
+	$sh{"index"} = 0;
+	goto AGAIN;
+    }
+
+    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
+
+    return ($OK, \%sh);
 }
 
 sub transform ($$$) {
