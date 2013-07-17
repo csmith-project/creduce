@@ -21,6 +21,7 @@ dist_perllib_DATA = \
 	pass_balanced.pm \
 	pass_blank.pm \
 	pass_clang.pm \
+	pass_clang_binsrch.pm \
 	pass_clex.pm \
 	pass_special.pm \
 	pass_indent.pm \
