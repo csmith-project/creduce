@@ -46,7 +46,7 @@ TransformationManager* TransformationManager::Instance;
 std::map<std::string, Transformation *> *
 TransformationManager::TransformationsMapPtr;
 
-TransformationManager *TransformationManager::GetInstance(void)
+TransformationManager *TransformationManager::GetInstance()
 {
   if (TransformationManager::Instance)
     return TransformationManager::Instance;
@@ -59,7 +59,7 @@ TransformationManager *TransformationManager::GetInstance(void)
   return TransformationManager::Instance;
 }
 
-bool TransformationManager::isCXXLangOpt(void)
+bool TransformationManager::isCXXLangOpt()
 {
   TransAssert(TransformationManager::Instance && "Invalid Instance!");
   TransAssert(TransformationManager::Instance->ClangInstance && 
@@ -68,7 +68,7 @@ bool TransformationManager::isCXXLangOpt(void)
           .CPlusPlus);
 }
 
-bool TransformationManager::isCLangOpt(void)
+bool TransformationManager::isCLangOpt()
 {
   TransAssert(TransformationManager::Instance && "Invalid Instance!");
   TransAssert(TransformationManager::Instance->ClangInstance && 
@@ -135,7 +135,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   return true;
 }
 
-void TransformationManager::Finalize(void)
+void TransformationManager::Finalize()
 {
   assert(TransformationManager::Instance);
   
@@ -156,7 +156,7 @@ void TransformationManager::Finalize(void)
   Instance = NULL;
 }
 
-llvm::raw_ostream *TransformationManager::getOutStream(void)
+llvm::raw_ostream *TransformationManager::getOutStream()
 {
   if (OutputFileName.empty())
     return &(llvm::outs());
@@ -183,6 +183,17 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
+  if (ToCounter > 0) {
+    if (CurrentTransformationImpl->isMultipleRewritesEnabled()) {
+      CurrentTransformationImpl->setToCounter(ToCounter);
+    }
+    else {
+      ErrorMsg = "current transformation[";
+      ErrorMsg += CurrentTransName; 
+      ErrorMsg += "] does not support multiple rewrites!";
+      return false;
+    }
+  }
 
   ParseAST(ClangInstance->getSema());
 
@@ -217,9 +228,16 @@ bool TransformationManager::verify(std::string &ErrorMsg)
     return false;
   }
 
-  if ((TransformationCounter <= 0) && 
-      !CurrentTransformationImpl->skipCounter()) {
+  if (CurrentTransformationImpl->skipCounter())
+    return true;
+
+  if (TransformationCounter <= 0) {
     ErrorMsg = "Invalid transformation counter!";
+    return false;
+  }
+
+  if ((ToCounter > 0) && (ToCounter < TransformationCounter)) {
+    ErrorMsg = "to-counter value cannot be smaller than counter value!";
     return false;
   }
 
@@ -242,7 +260,7 @@ void TransformationManager::registerTransformation(
   (*TransformationManager::TransformationsMapPtr)[TransName] = TransImpl;
 }
 
-void TransformationManager::printTransformations(void)
+void TransformationManager::printTransformations()
 {
   llvm::outs() << "Registered Transformations:\n";
 
@@ -255,7 +273,7 @@ void TransformationManager::printTransformations(void)
   }
 }
 
-void TransformationManager::printTransformationNames(void)
+void TransformationManager::printTransformationNames()
 {
   std::map<std::string, Transformation *>::iterator I, E;
   for (I = TransformationsMap.begin(), 
@@ -265,7 +283,7 @@ void TransformationManager::printTransformationNames(void)
   }
 }
 
-void TransformationManager::outputNumTransformationInstances(void)
+void TransformationManager::outputNumTransformationInstances()
 {
   int NumInstances = 
     CurrentTransformationImpl->getNumTransformationInstances();
@@ -273,18 +291,20 @@ void TransformationManager::outputNumTransformationInstances(void)
                << NumInstances << "\n";
 }
 
-TransformationManager::TransformationManager(void)
+TransformationManager::TransformationManager()
   : CurrentTransformationImpl(NULL),
     TransformationCounter(-1),
+    ToCounter(-1),
     SrcFileName(""),
     OutputFileName(""),
+    CurrentTransName(""),
     ClangInstance(NULL),
     QueryInstanceOnly(false)
 {
   // Nothing to do
 }
 
-TransformationManager::~TransformationManager(void)
+TransformationManager::~TransformationManager()
 {
   // Nothing to do
 }

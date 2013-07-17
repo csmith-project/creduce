@@ -30,55 +30,6 @@ AM_MAINTAINER_MODE
 AC_DEFUN([AC_DATAROOTDIR_CHECKED])
 
 ###############################################################################
-## creduce
-
-AC_PATH_PROG([PERL], [perl], [no])
-AS_IF([test "x$PERL" = "xno"],
-  AC_MSG_ERROR([a Perl interpreter was not found]))
-AX_PROG_PERL_VERSION([5.10.0],
-  [],
-  AC_MSG_ERROR([C-Reduce requires Perl 5.10.0 or later]))
-
-# Check for the run-time prerequisites of C-Reduce.  We only warn the user when
-# these are not found at configure time.  Let the user install the dependencies
-# later.
-#
-missing_runtime_prereq=no
-#
-# creduce/creduce.in
-#
-AX_PROG_PERL_MODULES(
-  [
-    Benchmark::Timer
-    Exporter::Lite
-    File::Which
-    Getopt::Tabular
-    Regexp::Common
-    Sys::CPU
-  ],
-  [
-    PERL_MODULES=yes
-  ],
-  [
-    PERL_MODULES=no
-    missing_runtime_prereq=yes
-  ])
-#
-# creduce/pass_indent.pm
-#
-AC_PATH_PROG([ASTYLE], [astyle], [no])
-AS_IF([test "x$ASTYLE" = "xno"], [missing_runtime_prereq=yes])
-dnl AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no])
-dnl AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_runtime_prereq=yes])
-AC_PATH_PROG([INDENT], [indent], [no])
-AS_IF([test "x$INDENT" = "xno"], [missing_runtime_prereq=yes])
-#
-# creduce/pass_lines.pm
-#
-AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
-AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_runtime_prereq=yes])
-
-###############################################################################
 ## clang_delta
 
 dnl AC_PROG_CC # Automake 1.11 want us to use AM_PROG_CC_C_O instead...
@@ -119,6 +70,62 @@ fi
 AM_PROG_LEX
 
 ###############################################################################
+## creduce
+
+AC_ARG_VAR([PERL], [Perl interpreter])
+AC_PATH_PROG([PERL], [perl], [no])
+AS_IF([test "x$PERL" = "xno"],
+  AC_MSG_ERROR([a Perl interpreter was not found]))
+AX_PROG_PERL_VERSION([5.10.0],
+  [],
+  AC_MSG_ERROR([C-Reduce requires Perl 5.10.0 or later]))
+
+# Check for the run-time prerequisites of C-Reduce.  We only warn the user when
+# these are not found at configure time.  Let the user install the dependencies
+# later.
+#
+missing_runtime_prereq=no
+#
+# creduce/creduce.in
+#
+AX_PROG_PERL_MODULES(
+  [
+    Benchmark::Timer
+    Exporter::Lite
+    File::Which
+    Getopt::Tabular
+    Regexp::Common
+    Sys::CPU
+  ],
+  [
+    PERL_MODULES=yes
+  ],
+  [
+    PERL_MODULES=no
+    missing_runtime_prereq=yes
+  ])
+#
+# creduce/pass_indent.pm
+#
+AC_ARG_VAR([ASTYLE], [`astyle' (Artistic Style) program])
+AC_PATH_PROG([ASTYLE], [astyle], [no])
+AS_IF([test "x$ASTYLE" = "xno"], [missing_runtime_prereq=yes])
+#
+AC_ARG_VAR([CLANG_FORMAT], [`clang-format' (LLVM/Clang) program])
+AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no], [$LLVM_BINDIR:$PATH])
+AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_runtime_prereq=yes])
+#
+AC_ARG_VAR([INDENT], [`indent' program])
+AC_PATH_PROG([INDENT], [indent], [no])
+AS_IF([test "x$INDENT" = "xno"], [missing_runtime_prereq=yes])
+#
+# creduce/pass_lines.pm
+#
+AC_ARG_VAR([TOPFORMFLAT], [`topformflat' (Berkeley Delta) program])
+AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
+AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_runtime_prereq=yes])
+
+###############################################################################
 
 AC_OUTPUT(
   Makefile
@@ -144,18 +151,22 @@ AS_IF([test "$PERL_MODULES" = "no"],
 AS_IF([test "x$ASTYLE" = "xno"],
   [
     AC_MSG_WARN([You must install Artistic Style before running C-Reduce])
+    ASTYLE=astyle
   ])
-dnl AS_IF([test "x$CLANG_FORMAT" = "xno"],
-dnl   [
-dnl     AC_MSG_WARN([You must install clang-format before running C-Reduce])
-dnl   ])
+AS_IF([test "x$CLANG_FORMAT" = "xno"],
+  [
+    AC_MSG_WARN([You must install clang-format before running C-Reduce])
+    CLANG_FORMAT=clang-format
+  ])
 AS_IF([test "x$INDENT" = "xno"],
   [
     AC_MSG_WARN([You must install GNU Indent before running C-Reduce])
+    INDENT=indent
   ])
 AS_IF([test "x$TOPFORMFLAT" = "xno"],
   [
     AC_MSG_WARN([You must install Berkeley Delta before running C-Reduce])
+    TOPFORMFLAT=topformflat
   ])
 
 AS_IF([test "$missing_runtime_prereq" = "yes"],

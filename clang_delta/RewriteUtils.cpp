@@ -1330,6 +1330,14 @@ bool RewriteUtils::getFunctionDeclStrAndRemove(const FunctionDecl *FD,
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
+bool RewriteUtils::replaceFunctionDefWithStr(const FunctionDecl *FD,
+                                             const std::string &Str)
+{
+  const Stmt *Body = FD->getBody();
+  TransAssert(Body && "FunctionDecl is not a definition!");
+  return !TheRewriter->ReplaceText(Body->getSourceRange(), Str);
+}
+
 // FIXME: probably we don't need this function, because we could use 
 //        removeDecl insteadly
 bool RewriteUtils::removeFieldDecl(const FieldDecl *FD)
@@ -1547,6 +1555,18 @@ bool RewriteUtils::removeTextFromLeftAt(SourceRange Range, char C,
   }
   StartLoc = StartLoc.getLocWithOffset(Offset);
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+}
+
+SourceLocation RewriteUtils::getLocationFromLeftUntil(SourceLocation StartLoc,
+                                                      char C)
+{
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+  int Offset = 0;
+  while (*StartBuf != C) {
+    StartBuf--;
+    Offset--;
+  }
+  return StartLoc.getLocWithOffset(Offset);
 }
 
 bool RewriteUtils::removeTextUntil(SourceRange Range, char C)

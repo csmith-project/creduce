@@ -164,6 +164,7 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CLANG_FORMAT = @CLANG_FORMAT@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -343,7 +344,11 @@ creduce_config_edit = sed \
 	-e 's|@PACKAGE_URL[@]|$(PACKAGE_URL)|g' \
 	-e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@VERSION[@]|$(VERSION)|g' \
-	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g'
+	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g' \
+	-e 's|@ASTYLE[@]|$(ASTYLE)|g' \
+	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g' \
+	-e 's|@INDENT[@]|$(INDENT)|g' \
+	-e 's|@TOPFORMFLAT[@]|$(TOPFORMFLAT)|g'
 
 CLEANFILES = \
 	creduce \

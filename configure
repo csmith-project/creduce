@@ -198,7 +198,6 @@ test -x / || exit 1"
   as_lineno_2=";as_suggested=$as_suggested$LINENO;as_suggested=$as_suggested" as_lineno_2a=\$LINENO
   eval 'test \"x\$as_lineno_1'\$as_run'\" != \"x\$as_lineno_2'\$as_run'\" &&
   test \"x\`expr \$as_lineno_1'\$as_run' + 1\`\" = \"x\$as_lineno_2'\$as_run'\"' || exit 1
-test \$(( 1 + 1 )) = 2 || exit 1
 
   test -n \"\${ZSH_VERSION+set}\${BASH_VERSION+set}\" || (
     ECHO='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
@@ -206,7 +205,8 @@ test \$(( 1 + 1 )) = 2 || exit 1
     ECHO=\$ECHO\$ECHO\$ECHO\$ECHO\$ECHO\$ECHO
     PATH=/empty FPATH=/empty; export PATH FPATH
     test \"X\`printf %s \$ECHO\`\" = \"X\$ECHO\" \\
-      || test \"X\`print -r -- \$ECHO\`\" = \"X\$ECHO\" ) || exit 1"
+      || test \"X\`print -r -- \$ECHO\`\" = \"X\$ECHO\" ) || exit 1
+test \$(( 1 + 1 )) = 2 || exit 1"
   if (eval "$as_required") 2>/dev/null; then :
   as_have_required=yes
 else
@@ -636,6 +636,12 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+TOPFORMFLAT
+INDENT
+CLANG_FORMAT
+ASTYLE
+PERL_VERSION
+PERL
 LEXLIB
 LEX_OUTPUT_ROOT
 LEX
@@ -661,6 +667,8 @@ DUMPBIN
 LD
 FGREP
 EGREP
+GREP
+SED
 LIBTOOL
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
@@ -685,13 +693,6 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
-TOPFORMFLAT
-INDENT
-ASTYLE
-PERL_VERSION
-GREP
-SED
-PERL
 MAINT
 MAINTAINER_MODE_FALSE
 MAINTAINER_MODE_TRUE
@@ -800,7 +801,12 @@ CXX
 CXXFLAGS
 CCC
 CPP
-CXXCPP'
+CXXCPP
+PERL
+ASTYLE
+CLANG_FORMAT
+INDENT
+TOPFORMFLAT'
 
 
 # Initialize some variables set by options.
@@ -1459,6 +1465,12 @@ Some influential environment variables:
   CXXFLAGS    C++ compiler flags
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
+  PERL        Perl interpreter
+  ASTYLE      `astyle' (Artistic Style) program
+  CLANG_FORMAT
+              `clang-format' (LLVM/Clang) program
+  INDENT      `indent' program
+  TOPFORMFLAT `topformflat' (Berkeley Delta) program
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3029,495 +3041,6 @@ fi
 # See <http://www.gnu.org/software/libtool/manual/autoconf/Changed-Directory-Variables.html>
 #
 
-
-###############################################################################
-## creduce
-
-# Extract the first word of "perl", so it can be a program name with args.
-set dummy perl; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PERL+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PERL in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PERL="$PERL" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PERL="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_PERL" && ac_cv_path_PERL="no"
-  ;;
-esac
-fi
-PERL=$ac_cv_path_PERL
-if test -n "$PERL"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PERL" >&5
-$as_echo "$PERL" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "x$PERL" = "xno"; then :
-  as_fn_error $? "a Perl interpreter was not found" "$LINENO" 5
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
-$as_echo_n "checking for a sed that does not truncate output... " >&6; }
-if ${ac_cv_path_SED+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-            ac_script=s/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
-     for ac_i in 1 2 3 4 5 6 7; do
-       ac_script="$ac_script$as_nl$ac_script"
-     done
-     echo "$ac_script" 2>/dev/null | sed 99q >conftest.sed
-     { ac_script=; unset ac_script;}
-     if test -z "$SED"; then
-  ac_path_SED_found=false
-  # Loop through the user's path and test for each of PROGNAME-LIST
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_prog in sed gsed; do
-    for ac_exec_ext in '' $ac_executable_extensions; do
-      ac_path_SED="$as_dir/$ac_prog$ac_exec_ext"
-      as_fn_executable_p "$ac_path_SED" || continue
-# Check for GNU ac_path_SED and select it if it is found.
-  # Check for GNU $ac_path_SED
-case `"$ac_path_SED" --version 2>&1` in
-*GNU*)
-  ac_cv_path_SED="$ac_path_SED" ac_path_SED_found=:;;
-*)
-  ac_count=0
-  $as_echo_n 0123456789 >"conftest.in"
-  while :
-  do
-    cat "conftest.in" "conftest.in" >"conftest.tmp"
-    mv "conftest.tmp" "conftest.in"
-    cp "conftest.in" "conftest.nl"
-    $as_echo '' >> "conftest.nl"
-    "$ac_path_SED" -f conftest.sed < "conftest.nl" >"conftest.out" 2>/dev/null || break
-    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
-    as_fn_arith $ac_count + 1 && ac_count=$as_val
-    if test $ac_count -gt ${ac_path_SED_max-0}; then
-      # Best one so far, save it but keep looking for a better one
-      ac_cv_path_SED="$ac_path_SED"
-      ac_path_SED_max=$ac_count
-    fi
-    # 10*(2^10) chars as input seems more than enough
-    test $ac_count -gt 10 && break
-  done
-  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
-esac
-
-      $ac_path_SED_found && break 3
-    done
-  done
-  done
-IFS=$as_save_IFS
-  if test -z "$ac_cv_path_SED"; then
-    as_fn_error $? "no acceptable sed could be found in \$PATH" "$LINENO" 5
-  fi
-else
-  ac_cv_path_SED=$SED
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_SED" >&5
-$as_echo "$ac_cv_path_SED" >&6; }
- SED="$ac_cv_path_SED"
-  rm -f conftest.sed
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
-$as_echo_n "checking for grep that handles long lines and -e... " >&6; }
-if ${ac_cv_path_GREP+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -z "$GREP"; then
-  ac_path_GREP_found=false
-  # Loop through the user's path and test for each of PROGNAME-LIST
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_prog in grep ggrep; do
-    for ac_exec_ext in '' $ac_executable_extensions; do
-      ac_path_GREP="$as_dir/$ac_prog$ac_exec_ext"
-      as_fn_executable_p "$ac_path_GREP" || continue
-# Check for GNU ac_path_GREP and select it if it is found.
-  # Check for GNU $ac_path_GREP
-case `"$ac_path_GREP" --version 2>&1` in
-*GNU*)
-  ac_cv_path_GREP="$ac_path_GREP" ac_path_GREP_found=:;;
-*)
-  ac_count=0
-  $as_echo_n 0123456789 >"conftest.in"
-  while :
-  do
-    cat "conftest.in" "conftest.in" >"conftest.tmp"
-    mv "conftest.tmp" "conftest.in"
-    cp "conftest.in" "conftest.nl"
-    $as_echo 'GREP' >> "conftest.nl"
-    "$ac_path_GREP" -e 'GREP$' -e '-(cannot match)-' < "conftest.nl" >"conftest.out" 2>/dev/null || break
-    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
-    as_fn_arith $ac_count + 1 && ac_count=$as_val
-    if test $ac_count -gt ${ac_path_GREP_max-0}; then
-      # Best one so far, save it but keep looking for a better one
-      ac_cv_path_GREP="$ac_path_GREP"
-      ac_path_GREP_max=$ac_count
-    fi
-    # 10*(2^10) chars as input seems more than enough
-    test $ac_count -gt 10 && break
-  done
-  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
-esac
-
-      $ac_path_GREP_found && break 3
-    done
-  done
-  done
-IFS=$as_save_IFS
-  if test -z "$ac_cv_path_GREP"; then
-    as_fn_error $? "no acceptable grep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
-  fi
-else
-  ac_cv_path_GREP=$GREP
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_GREP" >&5
-$as_echo "$ac_cv_path_GREP" >&6; }
- GREP="$ac_cv_path_GREP"
-
-
-
-
-
-
-    if test -n "$PERL"; then :
-
-        ax_perl_version="5.10.0"
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for perl version" >&5
-$as_echo_n "checking for perl version... " >&6; }
-
-        perl_version=`$PERL --version 2>&1 | $GREP "This is perl" | $SED -e 's/.* v\([0-9]*\.[0-9]*\.[0-9]*\) .*/\1/'`
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $perl_version" >&5
-$as_echo "$perl_version" >&6; }
-
-	PERL_VERSION=$perl_version
-
-
-
-
-
-  # Used to indicate true or false condition
-  ax_compare_version=false
-
-  # Convert the two version strings to be compared into a format that
-  # allows a simple string comparison.  The end result is that a version
-  # string of the form 1.12.5-r617 will be converted to the form
-  # 0001001200050617.  In other words, each number is zero padded to four
-  # digits, and non digits are removed.
-
-  ax_compare_version_A=`echo "$ax_perl_version" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
-                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
-                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
-                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
-                     -e 's/[^0-9]//g'`
-
-
-  ax_compare_version_B=`echo "$perl_version" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
-                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
-                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
-                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
-                     -e 's/[^0-9]//g'`
-
-
-    ax_compare_version=`echo "x$ax_compare_version_A
-x$ax_compare_version_B" | sed 's/^ *//' | sort | sed "s/x${ax_compare_version_A}/true/;s/x${ax_compare_version_B}/false/;1q"`
-
-
-
-    if test "$ax_compare_version" = "true" ; then
-
-	    :
-
-
-    else
-	    :
-            as_fn_error $? "C-Reduce requires Perl 5.10.0 or later" "$LINENO" 5
-
-  fi
-
-
-else
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find the perl interpreter" >&5
-$as_echo "$as_me: WARNING: could not find the perl interpreter" >&2;}
-        as_fn_error $? "C-Reduce requires Perl 5.10.0 or later" "$LINENO" 5
-
-fi
-
-
-# Check for the run-time prerequisites of C-Reduce.  We only warn the user when
-# these are not found at configure time.  Let the user install the dependencies
-# later.
-#
-missing_runtime_prereq=no
-#
-# creduce/creduce.in
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Make sure we have perl
-if test -z "$PERL"; then
-# Extract the first word of "perl", so it can be a program name with args.
-set dummy perl; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_PERL+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$PERL"; then
-  ac_cv_prog_PERL="$PERL" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_PERL="perl"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-PERL=$ac_cv_prog_PERL
-if test -n "$PERL"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PERL" >&5
-$as_echo "$PERL" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-fi
-
-if test "x$PERL" != x; then
-  ax_perl_modules_failed=0
-  for ax_perl_module in 'Benchmark::Timer' 'Exporter::Lite' 'File::Which' 'Getopt::Tabular' 'Regexp::Common' 'Sys::CPU' ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for perl module $ax_perl_module" >&5
-$as_echo_n "checking for perl module $ax_perl_module... " >&6; }
-
-    # Would be nice to log result here, but can't rely on autoconf internals
-    $PERL -e "use $ax_perl_module; exit" > /dev/null 2>&1
-    if test $? -ne 0; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; };
-      ax_perl_modules_failed=1
-   else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
-$as_echo "ok" >&6; };
-    fi
-  done
-
-  # Run optional shell commands
-  if test "$ax_perl_modules_failed" = 0; then
-    :
-
-    PERL_MODULES=yes
-
-  else
-    :
-
-    PERL_MODULES=no
-    missing_runtime_prereq=yes
-
-  fi
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find perl" >&5
-$as_echo "$as_me: WARNING: could not find perl" >&2;}
-fi
-#
-# creduce/pass_indent.pm
-#
-# Extract the first word of "astyle", so it can be a program name with args.
-set dummy astyle; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_ASTYLE+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $ASTYLE in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ASTYLE="$ASTYLE" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ASTYLE="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_ASTYLE" && ac_cv_path_ASTYLE="no"
-  ;;
-esac
-fi
-ASTYLE=$ac_cv_path_ASTYLE
-if test -n "$ASTYLE"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ASTYLE" >&5
-$as_echo "$ASTYLE" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "x$ASTYLE" = "xno"; then :
-  missing_runtime_prereq=yes
-fi
-# Extract the first word of "indent", so it can be a program name with args.
-set dummy indent; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_INDENT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $INDENT in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_INDENT="$INDENT" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_INDENT="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_INDENT" && ac_cv_path_INDENT="no"
-  ;;
-esac
-fi
-INDENT=$ac_cv_path_INDENT
-if test -n "$INDENT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $INDENT" >&5
-$as_echo "$INDENT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "x$INDENT" = "xno"; then :
-  missing_runtime_prereq=yes
-fi
-#
-# creduce/pass_lines.pm
-#
-# Extract the first word of "topformflat", so it can be a program name with args.
-set dummy topformflat; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_TOPFORMFLAT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $TOPFORMFLAT in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_TOPFORMFLAT="$TOPFORMFLAT" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_TOPFORMFLAT="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_TOPFORMFLAT" && ac_cv_path_TOPFORMFLAT="no"
-  ;;
-esac
-fi
-TOPFORMFLAT=$ac_cv_path_TOPFORMFLAT
-if test -n "$TOPFORMFLAT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TOPFORMFLAT" >&5
-$as_echo "$TOPFORMFLAT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "x$TOPFORMFLAT" = "xno"; then :
-  missing_runtime_prereq=yes
-fi
 
 ###############################################################################
 ## clang_delta
@@ -5121,6 +4644,69 @@ Xsed="$SED -e 1s/^X//"
 
 
 
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for grep that handles long lines and -e" >&5
+$as_echo_n "checking for grep that handles long lines and -e... " >&6; }
+if ${ac_cv_path_GREP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -z "$GREP"; then
+  ac_path_GREP_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_prog in grep ggrep; do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_GREP="$as_dir/$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_GREP" || continue
+# Check for GNU ac_path_GREP and select it if it is found.
+  # Check for GNU $ac_path_GREP
+case `"$ac_path_GREP" --version 2>&1` in
+*GNU*)
+  ac_cv_path_GREP="$ac_path_GREP" ac_path_GREP_found=:;;
+*)
+  ac_count=0
+  $as_echo_n 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    $as_echo 'GREP' >> "conftest.nl"
+    "$ac_path_GREP" -e 'GREP$' -e '-(cannot match)-' < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_GREP_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_GREP="$ac_path_GREP"
+      ac_path_GREP_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_GREP_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_GREP"; then
+    as_fn_error $? "no acceptable grep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
+  fi
+else
+  ac_cv_path_GREP=$GREP
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_GREP" >&5
+$as_echo "$ac_cv_path_GREP" >&6; }
+ GREP="$ac_cv_path_GREP"
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for egrep" >&5
@@ -15976,6 +15562,415 @@ if test "$LEX" = :; then
 fi
 
 ###############################################################################
+## creduce
+
+
+# Extract the first word of "perl", so it can be a program name with args.
+set dummy perl; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PERL+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PERL in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PERL="$PERL" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PERL="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PERL" && ac_cv_path_PERL="no"
+  ;;
+esac
+fi
+PERL=$ac_cv_path_PERL
+if test -n "$PERL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PERL" >&5
+$as_echo "$PERL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$PERL" = "xno"; then :
+  as_fn_error $? "a Perl interpreter was not found" "$LINENO" 5
+fi
+
+
+
+
+    if test -n "$PERL"; then :
+
+        ax_perl_version="5.10.0"
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for perl version" >&5
+$as_echo_n "checking for perl version... " >&6; }
+
+        perl_version=`$PERL --version 2>&1 | $GREP "This is perl" | $SED -e 's/.* v\([0-9]*\.[0-9]*\.[0-9]*\) .*/\1/'`
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $perl_version" >&5
+$as_echo "$perl_version" >&6; }
+
+	PERL_VERSION=$perl_version
+
+
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "$ax_perl_version" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "$perl_version" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort | sed "s/x${ax_compare_version_A}/true/;s/x${ax_compare_version_B}/false/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+
+	    :
+
+
+    else
+	    :
+            as_fn_error $? "C-Reduce requires Perl 5.10.0 or later" "$LINENO" 5
+
+  fi
+
+
+else
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find the perl interpreter" >&5
+$as_echo "$as_me: WARNING: could not find the perl interpreter" >&2;}
+        as_fn_error $? "C-Reduce requires Perl 5.10.0 or later" "$LINENO" 5
+
+fi
+
+
+# Check for the run-time prerequisites of C-Reduce.  We only warn the user when
+# these are not found at configure time.  Let the user install the dependencies
+# later.
+#
+missing_runtime_prereq=no
+#
+# creduce/creduce.in
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Make sure we have perl
+if test -z "$PERL"; then
+# Extract the first word of "perl", so it can be a program name with args.
+set dummy perl; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_PERL+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$PERL"; then
+  ac_cv_prog_PERL="$PERL" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_PERL="perl"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+PERL=$ac_cv_prog_PERL
+if test -n "$PERL"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PERL" >&5
+$as_echo "$PERL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+
+if test "x$PERL" != x; then
+  ax_perl_modules_failed=0
+  for ax_perl_module in 'Benchmark::Timer' 'Exporter::Lite' 'File::Which' 'Getopt::Tabular' 'Regexp::Common' 'Sys::CPU' ; do
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for perl module $ax_perl_module" >&5
+$as_echo_n "checking for perl module $ax_perl_module... " >&6; }
+
+    # Would be nice to log result here, but can't rely on autoconf internals
+    $PERL -e "use $ax_perl_module; exit" > /dev/null 2>&1
+    if test $? -ne 0; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; };
+      ax_perl_modules_failed=1
+   else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: ok" >&5
+$as_echo "ok" >&6; };
+    fi
+  done
+
+  # Run optional shell commands
+  if test "$ax_perl_modules_failed" = 0; then
+    :
+
+    PERL_MODULES=yes
+
+  else
+    :
+
+    PERL_MODULES=no
+    missing_runtime_prereq=yes
+
+  fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: could not find perl" >&5
+$as_echo "$as_me: WARNING: could not find perl" >&2;}
+fi
+#
+# creduce/pass_indent.pm
+#
+
+# Extract the first word of "astyle", so it can be a program name with args.
+set dummy astyle; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ASTYLE+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ASTYLE in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ASTYLE="$ASTYLE" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ASTYLE="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_ASTYLE" && ac_cv_path_ASTYLE="no"
+  ;;
+esac
+fi
+ASTYLE=$ac_cv_path_ASTYLE
+if test -n "$ASTYLE"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ASTYLE" >&5
+$as_echo "$ASTYLE" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$ASTYLE" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+#
+
+# Extract the first word of "clang-format", so it can be a program name with args.
+set dummy clang-format; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CLANG_FORMAT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CLANG_FORMAT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CLANG_FORMAT="$CLANG_FORMAT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$LLVM_BINDIR:$PATH"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CLANG_FORMAT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_CLANG_FORMAT" && ac_cv_path_CLANG_FORMAT="no"
+  ;;
+esac
+fi
+CLANG_FORMAT=$ac_cv_path_CLANG_FORMAT
+if test -n "$CLANG_FORMAT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CLANG_FORMAT" >&5
+$as_echo "$CLANG_FORMAT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$CLANG_FORMAT" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+#
+
+# Extract the first word of "indent", so it can be a program name with args.
+set dummy indent; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_INDENT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $INDENT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_INDENT="$INDENT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_INDENT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_INDENT" && ac_cv_path_INDENT="no"
+  ;;
+esac
+fi
+INDENT=$ac_cv_path_INDENT
+if test -n "$INDENT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $INDENT" >&5
+$as_echo "$INDENT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$INDENT" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+#
+# creduce/pass_lines.pm
+#
+
+# Extract the first word of "topformflat", so it can be a program name with args.
+set dummy topformflat; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_TOPFORMFLAT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $TOPFORMFLAT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TOPFORMFLAT="$TOPFORMFLAT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_TOPFORMFLAT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_TOPFORMFLAT" && ac_cv_path_TOPFORMFLAT="no"
+  ;;
+esac
+fi
+TOPFORMFLAT=$ac_cv_path_TOPFORMFLAT
+if test -n "$TOPFORMFLAT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $TOPFORMFLAT" >&5
+$as_echo "$TOPFORMFLAT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$TOPFORMFLAT" = "xno"; then :
+  missing_runtime_prereq=yes
+fi
+
+###############################################################################
 
 ac_config_files="$ac_config_files Makefile clang_delta/Makefile clex/Makefile creduce/Makefile scripts/Makefile tests/Makefile"
 
@@ -18603,18 +18598,28 @@ if test "x$ASTYLE" = "xno"; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Artistic Style before running C-Reduce" >&5
 $as_echo "$as_me: WARNING: You must install Artistic Style before running C-Reduce" >&2;}
+    ASTYLE=astyle
+
+fi
+if test "x$CLANG_FORMAT" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install clang-format before running C-Reduce" >&5
+$as_echo "$as_me: WARNING: You must install clang-format before running C-Reduce" >&2;}
+    CLANG_FORMAT=clang-format
 
 fi
 if test "x$INDENT" = "xno"; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install GNU Indent before running C-Reduce" >&5
 $as_echo "$as_me: WARNING: You must install GNU Indent before running C-Reduce" >&2;}
+    INDENT=indent
 
 fi
 if test "x$TOPFORMFLAT" = "xno"; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Berkeley Delta before running C-Reduce" >&5
 $as_echo "$as_me: WARNING: You must install Berkeley Delta before running C-Reduce" >&2;}
+    TOPFORMFLAT=topformflat
 
 fi
 
