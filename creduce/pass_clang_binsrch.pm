@@ -68,7 +68,17 @@ sub advance ($$$) {
     my %sh = %{$state};
     return \%sh if defined($sh{"start"});
     $sh{"index"} += $sh{"chunk"};
+    if ($VERBOSE) {
+	my $index = $sh{"index"};
+	my $chunk = $sh{"chunk"};
+	print "ADVANCE: index = $index, chunk = $chunk\n";
+    }
     return \%sh;
+}
+
+sub round ($) {
+    (my $n) = @_;
+    return int ($n+0.5);
 }
 
 sub transform ($$$) {
@@ -92,14 +102,15 @@ sub transform ($$$) {
     my $instances = $sh{"instances"};
     my $tmpfile = POSIX::tmpnam();
 
+    print "TRANSFORM: index = $index, chunk = $chunk, instances = $instances\n" if $VERBOSE;
+
     if ($index <= $instances) {
 	my $end = $index + $chunk;
 	if ($end > $instances) {
 	    $end = $instances;
 	}
-
-	$instances -= $end - $index + 1;
-	$sh{"instances"} = $instances;
+	
+	my $dec = $end - $index + 1;
 
 	my $cmd = "$clang_delta --transformation=$which --counter=$index --to-counter=$end $cfile";
 	print "$cmd\n" if $VERBOSE;
@@ -110,6 +121,7 @@ sub transform ($$$) {
 	    return ($OK, \%sh);
 	} else {
 	    if ($res == -1) {
+		print "res == -1??\n" if $VERBOSE;
 	    } else {
 		my $crashfile = $tmpfile;
 		$crashfile =~ s/\//_/g;
@@ -134,12 +146,11 @@ sub transform ($$$) {
 	}    	
 	system "mv $tmpfile $cfile";
     } else {
-	system "rm $tmpfile";
 	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
 	print "granularity = $newchunk\n" if $VERBOSE;
-	$sh{"index"} = 0;
+	$sh{"index"} = 1;
 	goto AGAIN;
     }
     return ($OK, \%sh);
