@@ -55,8 +55,6 @@ sub advance ($$$) {
     } else {
 	$sh{"index"} += $sh{"chunk"};
     }
-    my $foo = $sh{"index"};
-    # print "advanced index to $foo\n";
     return \%sh;
 }
 
@@ -140,8 +138,6 @@ sub transform ($$$) {
 	}
 	goto AGAIN;
     }
-
-    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
 
     return ($OK, \%sh);
 }

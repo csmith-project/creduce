@@ -352,7 +352,6 @@ sub delta_pass ($) {
 	    }
 	    push @variants, \@l;
 	    my $delta_result;
-	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	    if ($pid==0) {
 		# put this process (the child) into a process group
 		# named by its pid so that we'll be able to kill its
@@ -395,6 +394,7 @@ sub delta_pass ($) {
 	    $since_success++;
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
+	print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
 	File::Path::rmtree ($tmpdir, 0, 0);	
     }
 
@@ -446,6 +446,7 @@ sub line_delta_pass ($) {
 
 my @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
+    #{ "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>   2, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
@@ -662,6 +663,9 @@ sub check_file_attributes($$$) {
 }
 
 ############################### main #################################
+
+# no buffering
+$| = 1;
 
 my @normal_signals = qw(TERM INT HUP PIPE);
 use sigtrap 'handler', \&sigHandler, 'normal-signals';
