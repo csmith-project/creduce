@@ -139,8 +139,6 @@ sub transform ($$$) {
 	goto AGAIN;
     }
 
-    # print "chunk= ".$sh{"chunk"}.", index= ".$sh{"index"}.", did_something= ".$did_something."\n";
-
     return ($OK, \%sh);
 }
 
