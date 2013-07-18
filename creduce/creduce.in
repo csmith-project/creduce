@@ -82,8 +82,8 @@ my $FUZZ = 0;
 my $CPP;
 
 my @options = (
-#    ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
-    ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
+    # ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
+    # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
     ["--cpp",                 "string",  1, \$CPP,             "Command to preprocess the file being reduced; doing some reduction prior to preprocessing may result in faster reduction"],
     ["--fuzz",                "const",   1, \$FUZZ,            "Make C-Reduce more effective as a fuzzer, but also slower (best used in conjunction with --skip-initial-passes)"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
@@ -339,12 +339,6 @@ sub delta_pass ($) {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
 	    # FIXME: check the cache here
 	    # FIXME: extend the plugin interface to optionally return a reference to the processed data
-	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-	    if ($FUZZ) {
-		while (rand()<0.5) {
-		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-		}
-	    }
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    if ($pid==0) {
@@ -386,6 +380,12 @@ sub delta_pass ($) {
 	    print "success " if $VERBOSE;
 	    print_pct(-s $toreduce_best);
 	} else {
+	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+	    if ($FUZZ) {
+		while (rand()<0.5) {
+		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+		}
+	    }
 	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
 	    $since_success++;
@@ -443,7 +443,7 @@ sub line_delta_pass ($) {
 
 my @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
-    #{ "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>   2, },
+    # { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>   2, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
