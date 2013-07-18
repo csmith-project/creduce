@@ -354,6 +354,13 @@ sub delta_pass ($) {
 	    chdir $ORIG_DIR or die;
 	    $num_running++;
 	    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
+
+	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+	    if ($FUZZ) {
+		while (rand()<0.5) {
+		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+		}
+	    }
 	}
     }
 
@@ -369,7 +376,10 @@ sub delta_pass ($) {
 	# ok, now we have a result to work with
 	if ($delta_result) { 
 	    # now that the delta test succeeded, this becomes our new
-	    # best version--this has to be done in the parent process
+	    # best version -- this has to be done in the parent
+	    # process; we do not call advance() in this case since we
+	    # assume that a transformation opportunity has been
+	    # eliminated
 	    killem ();
 	    $good_cnt++;
 	    $since_success = 0;
@@ -380,12 +390,6 @@ sub delta_pass ($) {
 	    print "success " if $VERBOSE;
 	    print_pct(-s $toreduce_best);
 	} else {
-	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-	    if ($FUZZ) {
-		while (rand()<0.5) {
-		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-		}
-	    }
 	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
 	    $since_success++;
