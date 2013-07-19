@@ -37,9 +37,11 @@ public:
 
   static bool isCLangOpt();
 
-  bool doTransformation(std::string &ErrorMsg);
+  static int ErrorInvalidCounter;
 
-  bool verify(std::string &ErrorMsg);
+  bool doTransformation(std::string &ErrorMsg, int &ErrorCode);
+
+  bool verify(std::string &ErrorMsg, int &ErrorCode);
 
   int setTransformation(const std::string &Trans) {
     if (TransformationsMap.find(Trans.c_str()) == TransformationsMap.end())
