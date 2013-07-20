@@ -20,8 +20,11 @@ namespace clang {
   class QualType;
   class Type;
   class TypedefDecl;
-  class StringRef;
   class CXXRecordDecl;
+}
+
+namespace llvm {
+  class StringRef;
 }
 
 class ReplaceDependentTypedefCollectionVisitor;
