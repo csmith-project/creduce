@@ -20,6 +20,7 @@
 #include "TransformationManager.h"
 
 static TransformationManager *TransMgr;
+static int ErrorCode = -1;
 
 static void PrintVersion()
 {
@@ -91,7 +92,7 @@ static void Die(const std::string &Message)
 {
   llvm::outs() << "Error: " << Message << "\n";
   TransformationManager::Finalize();
-  exit(-1);
+  exit(ErrorCode);
 }
 
 static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
@@ -121,8 +122,10 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
     int Val;
     std::stringstream TmpSS(ArgValue);
 
-    if (!(TmpSS >> Val))
-      DieOnBadCmdArg("--" + ArgValueStr);
+    if (!(TmpSS >> Val)) {
+      ErrorCode = TransformationManager::ErrorInvalidCounter;
+      Die("Invalid counter[" + ArgValueStr + "]");
+    }
 
     TransMgr->setTransformationCounter(Val);
   }
@@ -130,8 +133,10 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
     int Val;
     std::stringstream TmpSS(ArgValue);
 
-    if (!(TmpSS >> Val))
-      DieOnBadCmdArg("--" + ArgValueStr);
+    if (!(TmpSS >> Val)) {
+      ErrorCode = TransformationManager::ErrorInvalidCounter;
+      Die("Invalid to-counter[" + ArgValueStr + "]");
+    }
 
     TransMgr->setToCounter(Val);
   }
@@ -197,13 +202,13 @@ int main(int argc, char **argv)
   }
 
   std::string ErrorMsg;
-  if (!TransMgr->verify(ErrorMsg))
+  if (!TransMgr->verify(ErrorMsg, ErrorCode))
     Die(ErrorMsg);
 
   if (!TransMgr->initializeCompilerInstance(ErrorMsg))
     Die(ErrorMsg);
 
-  if (!TransMgr->doTransformation(ErrorMsg)) {
+  if (!TransMgr->doTransformation(ErrorMsg, ErrorCode)) {
     // fail to do transformation
     Die(ErrorMsg);
   }

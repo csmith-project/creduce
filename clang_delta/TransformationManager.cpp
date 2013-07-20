@@ -41,6 +41,8 @@
 
 using namespace clang;
 
+int TransformationManager::ErrorInvalidCounter = 1;
+
 TransformationManager* TransformationManager::Instance;
 
 std::map<std::string, Transformation *> *
@@ -174,7 +176,7 @@ void TransformationManager::closeOutStream(llvm::raw_ostream *OutStream)
     delete OutStream;
 }
 
-bool TransformationManager::doTransformation(std::string &ErrorMsg)
+bool TransformationManager::doTransformation(std::string &ErrorMsg, int &ErrorCode)
 {
   ErrorMsg = "";
 
@@ -215,13 +217,15 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg)
   }
   else {
     CurrentTransformationImpl->getTransErrorMsg(ErrorMsg);
+    if (CurrentTransformationImpl->isInvalidCounterError())
+      ErrorCode = ErrorInvalidCounter;
     RV = false;
   }
   closeOutStream(OutStream);
   return RV;
 }
 
-bool TransformationManager::verify(std::string &ErrorMsg)
+bool TransformationManager::verify(std::string &ErrorMsg, int &ErrorCode)
 {
   if (!CurrentTransformationImpl) {
     ErrorMsg = "Empty transformation instance!";
@@ -233,11 +237,13 @@ bool TransformationManager::verify(std::string &ErrorMsg)
 
   if (TransformationCounter <= 0) {
     ErrorMsg = "Invalid transformation counter!";
+    ErrorCode = ErrorInvalidCounter;
     return false;
   }
 
   if ((ToCounter > 0) && (ToCounter < TransformationCounter)) {
     ErrorMsg = "to-counter value cannot be smaller than counter value!";
+    ErrorCode = ErrorInvalidCounter;
     return false;
   }
 

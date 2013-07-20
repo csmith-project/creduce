@@ -131,6 +131,11 @@ public:
     return (TransError == TransInternalError);
   }
 
+  bool isInvalidCounterError() {
+    return ((TransError == TransMaxInstanceError) ||
+            (TransError == TransToCounterTooBigError));
+  }
+
   std::string &getDescription() {
     return DescriptionString;
   }
