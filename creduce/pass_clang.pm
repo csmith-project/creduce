@@ -58,18 +58,35 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub run_clang_delta ($) {
+    (my $cmd) = @_;
+    if ((system "$cmd") != 0) {
+        my $res = $? >> 8;
+        if ($res == 255) {
+            return -1;
+        }
+        elsif ($res == 1) {
+            return -2;
+        }
+        else {
+            return -3;
+        }
+    }
+    return ($? >> 8);
+}
+
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
     my $tmpfile = POSIX::tmpnam();
     my $cmd = "$clang_delta --transformation=$which --counter=$index $cfile";
     print "$cmd\n" if $VERBOSE;
-    my $res = runit ("$cmd > $tmpfile");
+    my $res = run_clang_delta ("$cmd > $tmpfile");
     if ($res==0) {
 	system "mv $tmpfile $cfile";
 	return ($OK, \$index);
     } else {
-	if ($res == -1) {
+	if (($res == -1) || ($res == -2)) {
 	} else {
 	    my $crashfile = $tmpfile;
 	    $crashfile =~ s/\//_/g;
