@@ -142,8 +142,12 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   }
 
   SourceLocation StartLoc = Loc.getLocStart();
+  if (StartLoc.isInvalid())
+    return true;
   TypeLoc TyLoc = Loc.getNamedTypeLoc();
   SourceLocation EndLoc = TyLoc.getLocStart();
+  if (EndLoc.isInvalid())
+    return true;
   EndLoc = EndLoc.getLocWithOffset(-1);
   const char *StartBuf = 
     ConsumerInstance->SrcManager->getCharacterData(StartLoc);
