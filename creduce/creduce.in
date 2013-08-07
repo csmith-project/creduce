@@ -339,6 +339,7 @@ sub delta_pass ($) {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
 	    # FIXME: check the cache here
 	    # FIXME: extend the plugin interface to optionally return a reference to the processed data
+            my $orig_state = $state;
 	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
 	    if ($FUZZ) {
 		while (rand()<0.5) {
@@ -355,7 +356,7 @@ sub delta_pass ($) {
 		my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
 		exit ($delta_result);
 	    }
-	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);	    
+	    my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);	    
 	    push @variants, \@l;
 	    chdir $ORIG_DIR or die;
 	    $num_running++;
