@@ -339,6 +339,13 @@ sub delta_pass ($) {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
 	    # FIXME: check the cache here
 	    # FIXME: extend the plugin interface to optionally return a reference to the processed data
+            my $orig_state = $state;
+	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+	    if ($FUZZ) {
+		while (rand()<0.5) {
+		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+		}
+	    }
 	    my $pid = fork();
 	    die unless ($pid >= 0);
 	    if ($pid==0) {
@@ -349,18 +356,11 @@ sub delta_pass ($) {
 		my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
 		exit ($delta_result);
 	    }
-	    my @l = ($pid, $state, $tmpdir, $tmpfn, -99);	    
+	    my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);	    
 	    push @variants, \@l;
 	    chdir $ORIG_DIR or die;
 	    $num_running++;
 	    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
-
-	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-	    if ($FUZZ) {
-		while (rand()<0.5) {
-		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-		}
-	    }
 	}
     }
 
@@ -447,7 +447,7 @@ sub line_delta_pass ($) {
 
 my @all_methods = (
     { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
-    # { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>   2, },
+    { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>  2, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },

@@ -121,7 +121,10 @@ sub transform ($$$) {
 	    return ($OK, \%sh);
 	} else {
 	    if ($res == -1) {
-		print "res == -1??\n" if $VERBOSE;
+		# nothing?
+	    } elsif ($res == -2) {
+		print "out of instances!\n" if $VERBOSE;
+		goto rechunk;
 	    } else {
 		my $crashfile = $tmpfile;
 		$crashfile =~ s/\//_/g;
@@ -146,7 +149,8 @@ sub transform ($$$) {
 	}    	
 	system "mv $tmpfile $cfile";
     } else {
-	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
+      rechunk:
+	return ($STOP, \%sh) if ($sh{"chunk"} < 30);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
 	print "granularity = $newchunk\n" if $VERBOSE;
