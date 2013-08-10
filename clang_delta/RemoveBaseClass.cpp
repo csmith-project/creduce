@@ -283,7 +283,7 @@ void RemoveBaseClass::removeBaseInitializer(void)
 {
   for (CXXRecordDecl::ctor_iterator I = TheDerivedClass->ctor_begin(),
        E = TheDerivedClass->ctor_end(); I != E; ++I) {
-    if ((*I)->isThisDeclarationADefinition() && !(*I)->isImplicitlyDefined())
+    if ((*I)->isThisDeclarationADefinition() && !(*I)->isDefaulted())
       rewriteOneCtor(*I);
   }
 }

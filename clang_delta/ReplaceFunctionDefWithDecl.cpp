@@ -245,7 +245,7 @@ void ReplaceFunctionDefWithDecl::rewriteOneFunctionDef(
 
   if (const CXXConstructorDecl *Ctor = 
       dyn_cast<const CXXConstructorDecl>(FD)) {
-    TransAssert(!Ctor->isImplicitlyDefined() && "Implicit Def!");
+    TransAssert(!Ctor->isDefaulted() && "Implicit Def!");
     removeCtorInitializers(Ctor);
   }
   RewriteHelper->replaceFunctionDefWithStr(FD, ";");
