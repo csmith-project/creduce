@@ -41,6 +41,8 @@ public:
 
   bool VisitDeclStmt(DeclStmt *DS);
 
+  bool VisitCXXCatchStmt(CXXCatchStmt *DS);
+
 private:
 
   RemoveUnusedVar *ConsumerInstance;
@@ -50,6 +52,9 @@ bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
 {
   if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD) || 
       VD->isStaticDataMember())
+    return true;
+
+  if (ConsumerInstance->SkippedVars.count(VD->getCanonicalDecl()))
     return true;
 
   ConsumerInstance->ValidInstanceNum++;
@@ -69,6 +74,15 @@ bool RemoveUnusedVarAnalysisVisitor::VisitDeclStmt(DeclStmt *DS)
       DeclGroupRef DGR = DS->getDeclGroup();
       ConsumerInstance->VarToDeclGroup[CurrDecl] = DGR;
     }
+  }
+  return true;
+}
+
+bool RemoveUnusedVarAnalysisVisitor::VisitCXXCatchStmt(CXXCatchStmt *S)
+{
+  const VarDecl *VD = S->getExceptionDecl();
+  if (VD) {
+    ConsumerInstance->SkippedVars.insert(VD->getCanonicalDecl());
   }
   return true;
 }

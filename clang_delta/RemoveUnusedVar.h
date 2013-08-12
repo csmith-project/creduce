@@ -13,6 +13,7 @@
 
 #include <string>
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
 namespace clang {
@@ -51,6 +52,8 @@ private:
                                         const clang::VarDecl *VD);
 
   llvm::DenseMap<const clang::VarDecl *, clang::DeclGroupRef> VarToDeclGroup;
+
+  llvm::SmallPtrSet<const clang::VarDecl *, 10> SkippedVars;
 
   RemoveUnusedVarAnalysisVisitor *AnalysisVisitor;
 
