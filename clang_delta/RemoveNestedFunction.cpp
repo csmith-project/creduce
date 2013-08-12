@@ -240,7 +240,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     // In this case, we have to lookup a corresponding function decl
 
     DeclarationName DName = UE->getName();
-    TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+    TransAssert(((DName.getNameKind() == DeclarationName::Identifier) ||
+                 (DName.getNameKind() == DeclarationName::CXXOperatorName)) &&
                 "Not an indentifier!");
     const FunctionDecl *FD = NULL;
     if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
@@ -251,6 +252,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
     TransAssert(FD && "Cannot resolve DName!");
     QT = FD->getResultType();
+    //FIXME: This is actually not quite correct, we should get the instantiated
+    // type here.
     return writeNewTmpVariable(QT, VarStr);
   }
 
