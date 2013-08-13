@@ -1269,7 +1269,8 @@ bool RewriteUtils::replaceUnionWithStruct(const NamedDecl *ND)
   std::string TmpStr(StartBuf, RangeSize);
   std::string UStr = "union";
   size_t Pos = TmpStr.find(UStr);
-  TransAssert((Pos != std::string::npos) && "Bad Name Position!");
+  if (Pos == std::string::npos)
+    return true;
 
   if (Pos != 0)
     StartLoc = StartLoc.getLocWithOffset(Pos);
