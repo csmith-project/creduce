@@ -43,6 +43,8 @@ public:
 
   bool VisitDefaultStmt(clang::DefaultStmt *DS);
 
+  bool VisitCXXTryStmt(clang::CXXTryStmt *DS);
+
   void visitNonCompoundStmt(clang::Stmt *S);
 
 protected:
@@ -173,6 +175,20 @@ bool CommonStatementVisitor<T>::VisitDefaultStmt(clang::DefaultStmt *DS)
 {
   clang::Stmt *Body = DS->getSubStmt();
   visitNonCompoundStmt(Body);
+  return false;
+}
+
+template<typename T>
+bool CommonStatementVisitor<T>::VisitCXXTryStmt(clang::CXXTryStmt *CS)
+{
+  clang::CompoundStmt *TryBlock = CS->getTryBlock();
+  visitNonCompoundStmt(TryBlock);
+
+  for (unsigned I = 0; I < CS->getNumHandlers(); ++I) {
+    clang::CXXCatchStmt *CatchStmt = CS->getHandler(I);
+    clang::Stmt *CatchBlock = CatchStmt->getHandlerBlock();
+    visitNonCompoundStmt(CatchBlock);
+  }
   return false;
 }
 
