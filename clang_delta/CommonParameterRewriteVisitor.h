@@ -104,7 +104,9 @@ bool CommonParameterRewriteVisitor<T, Trans>::VisitCallExpr(
   if (const clang::UnresolvedLookupExpr *UE = 
       llvm::dyn_cast<clang::UnresolvedLookupExpr>(E)) {
     clang::DeclarationName DName = UE->getName();
-    TransAssert((DName.getNameKind() == clang::DeclarationName::Identifier) &&
+    TransAssert(((DName.getNameKind() == clang::DeclarationName::Identifier) ||
+                 (DName.getNameKind() == 
+                    clang::DeclarationName::CXXOperatorName)) &&
                 "Not an indentifier!");
     if (const clang::NestedNameSpecifier *NNS = UE->getQualifier()) {
       if (const clang::DeclContext *Ctx = 
