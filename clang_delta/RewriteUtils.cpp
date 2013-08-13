@@ -1138,6 +1138,15 @@ bool RewriteUtils::removeVarInitExpr(const VarDecl *VD)
   const Expr *Init = VD->getInit();
   SourceRange ExprRange = Init->getSourceRange();
   SourceLocation InitEndLoc = ExprRange.getEnd();
+  // handle macro, e.g.:
+  // #define NULL 0
+  // void foo(void)
+  // {
+    // int *p = NULL;
+  // }
+  if (SrcManager->isMacroBodyExpansion(InitEndLoc)) {
+    InitEndLoc = SrcManager->getFileLoc(InitEndLoc);
+  }
   return !TheRewriter->RemoveText(SourceRange(InitStartLoc, InitEndLoc));
 }
 
