@@ -760,6 +760,10 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     RewriteHelper->getExprString(E, InitStr);
     return;
 
+  case Expr::GNUNullExprClass:
+    InitStr = "";
+    return;
+
   case Expr::StringLiteralClass:
     InitStr = 'a';
     return;
