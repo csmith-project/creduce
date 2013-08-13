@@ -12,7 +12,7 @@
 #define LOCAL_TO_GLOBAL_H
 
 #include <string>
-#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
 namespace clang {
@@ -57,6 +57,8 @@ private:
   std::string getNewName(void) {
     return TheNewDeclName;
   }
+
+  llvm::SmallPtrSet<const clang::VarDecl *, 10> SkippedVars;
 
   LocalToGlobalFunctionVisitor *FunctionVisitor;
 

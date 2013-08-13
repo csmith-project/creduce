@@ -42,6 +42,8 @@ public:
 
   bool VisitVarDecl(VarDecl *VD);
 
+  bool VisitCXXCatchStmt(CXXCatchStmt *DS);
+
   void setCurrentFuncDecl(FunctionDecl *FD) {
     CurrentFuncDecl = FD;
   }
@@ -103,7 +105,9 @@ bool LocalToGlobalCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
   TransAssert(CurrentFuncDecl && "NULL CurrentFuncDecl!");
 
-  if (!VD->isLocalVarDecl() || VD->isStaticLocal() || VD->hasExternalStorage())
+  if (!VD->isLocalVarDecl() || VD->isStaticLocal() || 
+      VD->hasExternalStorage() || 
+      ConsumerInstance->SkippedVars.count(VD->getCanonicalDecl()))
     return true;
 
   ConsumerInstance->ValidInstanceNum++;
@@ -112,6 +116,15 @@ bool LocalToGlobalCollectionVisitor::VisitVarDecl(VarDecl *VD)
     ConsumerInstance->TheVarDecl = VD;
     ConsumerInstance->TheFuncDecl = CurrentFuncDecl;
     ConsumerInstance->setNewName(CurrentFuncDecl, VD);
+  }
+  return true;
+}
+
+bool LocalToGlobalCollectionVisitor::VisitCXXCatchStmt(CXXCatchStmt *S)
+{
+  const VarDecl *VD = S->getExceptionDecl();
+  if (VD) {
+    ConsumerInstance->SkippedVars.insert(VD->getCanonicalDecl());
   }
   return true;
 }
