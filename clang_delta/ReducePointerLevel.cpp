@@ -825,6 +825,8 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
 
   case Expr::MemberExprClass: // Fall-through
   case Expr::BinaryOperatorClass: 
+  case Expr::CXXMemberCallExprClass: 
+  case Expr::CallExprClass: 
   case Expr::ArraySubscriptExprClass: {
     RewriteHelper->getExprString(E, InitStr);
     InitStr = "*(" + InitStr + ")";
