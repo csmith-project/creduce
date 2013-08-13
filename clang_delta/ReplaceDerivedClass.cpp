@@ -115,8 +115,8 @@ bool ReplaceDerivedClass::isValidBaseDerivedPair(const CXXRecordDecl *Base,
     return true;
   }
   else if (BaseTmplD && DerivedTmplD) {
-    return (BaseTmplD->getTemplateParameters()->getMinRequiredArguments() ==
-            DerivedTmplD->getTemplateParameters()->getMinRequiredArguments());
+     return (BaseTmplD->getTemplateParameters()->getMinRequiredArguments() ==
+             DerivedTmplD->getTemplateParameters()->getMinRequiredArguments());
   }
 
   return false;
@@ -142,6 +142,8 @@ void ReplaceDerivedClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
   if (!CXXDef)
     return;
 
+  if (dyn_cast<ClassTemplateSpecializationDecl>(CXXRD))
+    return;
   if ((CXXDef->getNumBases() == 0) || !isEmptyClass(CXXDef))
     return;
 
