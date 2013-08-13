@@ -990,7 +990,8 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
 {
   // Remove the right brace first
   SourceLocation StartLoc = ND->getRBraceLoc();
-  TheRewriter.RemoveText(StartLoc, 1);
+  if (StartLoc.isValid())
+    TheRewriter.RemoveText(StartLoc, 1);
 
   // Then remove name and the left brace
   StartLoc = ND->getLocStart();
@@ -998,13 +999,19 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
 
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
   SourceRange NDRange = ND->getSourceRange();
-  int RangeSize = TheRewriter.getRangeSize(NDRange);
-  TransAssert((RangeSize != -1) && "Bad Namespace Range!");
+  SourceLocation EndLoc;
+  if (NDRange.isValid()) {
+    int RangeSize = TheRewriter.getRangeSize(NDRange);
+    TransAssert((RangeSize != -1) && "Bad Namespace Range!");
+    std::string NDStr(StartBuf, RangeSize);
+    size_t Pos = NDStr.find('{');
+    TransAssert((Pos != std::string::npos) && "Cannot find LBrace!");
+    EndLoc = StartLoc.getLocWithOffset(Pos);
+  }
+  else {
+    EndLoc = RewriteHelper->getEndLocationUntil(StartLoc, '{');
+  }
 
-  std::string NDStr(StartBuf, RangeSize);
-  size_t Pos = NDStr.find('{');
-  TransAssert((Pos != std::string::npos) && "Cannot find LBrace!");
-  SourceLocation EndLoc = StartLoc.getLocWithOffset(Pos);
   TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 }
 
