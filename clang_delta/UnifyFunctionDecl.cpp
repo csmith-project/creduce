@@ -88,11 +88,15 @@ void UnifyFunctionDecl::doAnalysis(void)
     const FunctionDecl *FirstFD = CanonicalFD->getFirstDeclaration();
 
     FunctionDecl::redecl_iterator RI = FirstFD->redecls_begin();
+    if (FirstFD->getSourceRange().isInvalid())
+      continue;
     ++RI;
     if (RI == FirstFD->redecls_end())
       continue;
 
     const FunctionDecl *SecondFD = (*RI);
+    if (SecondFD->getSourceRange().isInvalid())
+      continue;
     if (FirstFD->isThisDeclarationADefinition()) {
       FDDef = FirstFD;
       TransAssert(!SecondFD->isThisDeclarationADefinition() &&
