@@ -173,8 +173,23 @@ bool ClassTemplateToClassSpecializationTypeRewriteVisitor::
   if (TmplKeyLoc.isValid())
     ConsumerInstance->TheRewriter.RemoveText(TmplKeyLoc, 8);
 
-  ConsumerInstance->TheRewriter.RemoveText(SourceRange(Loc.getLAngleLoc(),
-                                                       Loc.getRAngleLoc()));
+  // it's necessary to check the validity of locations, otherwise
+  // we will get assertion errors...
+  // note that some implicit typeloc has been visited by Clang, e.g.
+  // template < typename > struct A { };
+  // struct B:A < int > {
+  //  B (  ) { }
+  // };
+  // base initializer A<int> is not presented in the code but visited,
+  // so, we need to make sure locations are valid.
+  SourceLocation LAngleLoc = Loc.getLAngleLoc();
+  if (LAngleLoc.isInvalid())
+    return true;
+  SourceLocation RAngleLoc = Loc.getRAngleLoc();
+  if (RAngleLoc.isInvalid())
+    return true;
+  ConsumerInstance->TheRewriter.RemoveText(SourceRange(LAngleLoc,
+                                                       RAngleLoc));
   return true;
 }
 
