@@ -71,7 +71,8 @@ bool RemoveCtorInitializerASTVisitor::VisitCXXConstructorDecl(
     }
     else if (const Type *Ty = Init->getBaseClass()) {
       const CXXRecordDecl *Base = ConsumerInstance->getBaseDeclFromType(Ty);
-      if (Base && Base->needsImplicitDefaultConstructor()) {
+      if (Base && Base->hasDefinition() && 
+          Base->needsImplicitDefaultConstructor()) {
         Idx++;
         continue;
       }
