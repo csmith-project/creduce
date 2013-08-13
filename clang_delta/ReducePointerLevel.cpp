@@ -760,7 +760,12 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     RewriteHelper->getExprString(E, InitStr);
     return;
 
+  // FIXME: not quite correct to set the InitStr to an empty string
   case Expr::GNUNullExprClass:
+    InitStr = "";
+    return;
+
+  case Expr::CXXNewExprClass:
     InitStr = "";
     return;
 
