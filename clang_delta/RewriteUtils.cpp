@@ -1619,7 +1619,10 @@ bool RewriteUtils::removeClassDecls(const CXXRecordDecl *CXXRD)
     SourceLocation LocEnd;
     if ((*I)->isThisDeclarationADefinition()) {
       LocEnd = (*I)->getRBraceLoc();
-      LocEnd = getLocationUntil(LocEnd, ';');
+      if (LocEnd.isValid())
+        LocEnd = getLocationUntil(LocEnd, ';');
+      else
+        LocEnd = getEndLocationUntil(Range, ';');
     }
     else {
       LocEnd = getEndLocationUntil(Range, ';');
