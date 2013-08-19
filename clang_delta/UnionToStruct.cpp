@@ -327,12 +327,18 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
     return;
   }
   
+  const Expr *IE = VD->getInit();
+  // Looks like we are safe to skip this
+  // e.g. 
+  // union U { int x; };
+  // void foo() { U y; }
+  if (dyn_cast<CXXConstructExpr>(IE))
+    return;
   if (!isValidRecordDecl(TheRecordDecl)) {
     RewriteHelper->removeVarInitExpr(VD);
     return;
   }
 
-  const Expr *IE = VD->getInit();
   const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
   TransAssert(ILE && "Bad InitListExpr!");
 
