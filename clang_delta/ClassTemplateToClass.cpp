@@ -259,15 +259,21 @@ void ClassTemplateToClass::rewriteClassTemplatePartialSpecs(void)
     const ClassTemplatePartialSpecializationDecl *PartialD = (*I);
     removeTemplateAndParameter(PartialD->getSourceRange().getBegin(), 
                                PartialD->getTemplateParameters());
-
-    TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
-    TransAssert(ArgLocs && "Invalid ArgLocs!");
-    TemplateArgumentLoc FirstArgLoc = ArgLocs[0];
+    
+    const ASTTemplateArgumentListInfo *ArgList = 
+      PartialD->getTemplateArgsAsWritten();
+    TransAssert(ArgList && "Invalid ArgList!");
+    
+    const TemplateArgumentLoc *ArgLocs = ArgList->getTemplateArgs();
+    TransAssert(ArgLocs && "Invalid ArcLogs!");
+    
+    unsigned NumArgs = ArgList->NumTemplateArgs;
+    TransAssert((NumArgs > 0) && "Invalid NumArgs!");
+    
+    const TemplateArgumentLoc FirstArgLoc = ArgLocs[0];
     SourceLocation StartLoc = FirstArgLoc.getSourceRange().getBegin();
 
-    unsigned NumArgs = PartialD->getNumTemplateArgsAsWritten();
-    TransAssert((NumArgs > 0) && "Invalid NumArgs!");
-    TemplateArgumentLoc LastArgLoc = ArgLocs[NumArgs - 1];
+    const TemplateArgumentLoc LastArgLoc = ArgLocs[NumArgs - 1];
     SourceRange LastRange = LastArgLoc.getSourceRange();
     SourceLocation EndLoc = RewriteHelper->getEndLocationUntil(LastRange, '>');
     
