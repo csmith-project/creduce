@@ -387,15 +387,19 @@ void ReduceClassTemplateParameter::removeOneParameterByArgType(
   // removing either of the arguments needs to keep the template 
   // parameter
   ArgumentDependencyVisitor AccumV(DependentTypeToVisitsCount);
-  TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
-  unsigned NumArgs = PartialD->getNumTemplateArgsAsWritten();
+  
+  const ASTTemplateArgumentListInfo *ArgList = 
+    PartialD->getTemplateArgsAsWritten();
+  
+  const TemplateArgumentLoc *ArgLocs = ArgList->getTemplateArgs();
+  unsigned NumArgs = ArgList->NumTemplateArgs;
   TransAssert((TheParameterIndex < NumArgs) && 
                "Bad NumArgs from partial template decl!");
   for (unsigned I = 0; I < NumArgs; ++I) {
     if (I == TheParameterIndex)
       continue;
     
-    TemplateArgumentLoc ArgLoc = ArgLocs[I];
+    const TemplateArgumentLoc ArgLoc = ArgLocs[I];
     TemplateArgument OtherArg = ArgLoc.getArgument();
     if (OtherArg.isInstantiationDependent() && 
         (OtherArg.getKind() == TemplateArgument::Type)) {
@@ -538,7 +542,10 @@ bool ReduceClassTemplateParameter::referToAParameter(
 bool ReduceClassTemplateParameter::isValidForReduction(
        const ClassTemplatePartialSpecializationDecl *PartialD)
 {
-  unsigned NumArgsAsWritten = PartialD->getNumTemplateArgsAsWritten();
+  const ASTTemplateArgumentListInfo *ArgList = 
+    PartialD->getTemplateArgsAsWritten();
+  
+  unsigned NumArgsAsWritten = ArgList->NumTemplateArgs;
   unsigned NumArgs = PartialD->getTemplateInstantiationArgs().size();
 
   if ((NumArgsAsWritten > 0) && 
@@ -552,11 +559,11 @@ bool ReduceClassTemplateParameter::isValidForReduction(
   if (NumArgsAsWritten != NumArgs)
     return false;
 
-  TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
+  const TemplateArgumentLoc *ArgLocs = ArgList->getTemplateArgs();
   for (unsigned AI = 0; AI < NumArgsAsWritten; ++AI) {
     if (AI == TheParameterIndex)
       continue;
-    TemplateArgumentLoc ArgLoc = ArgLocs[AI];
+    const TemplateArgumentLoc ArgLoc = ArgLocs[AI];
     TemplateArgument Arg = ArgLoc.getArgument();
     if (!referToAParameter(PartialD, Arg))
       return false;
@@ -575,14 +582,17 @@ bool ReduceClassTemplateParameter::reducePartialSpec(
 
   if (!isValidForReduction(PartialD))
     return false;
-
-  TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
-  unsigned NumArgsAsWritten = PartialD->getNumTemplateArgsAsWritten();
-  TemplateArgumentLoc FirstArgLoc = ArgLocs[0];
+  
+  const ASTTemplateArgumentListInfo *ArgList = 
+    PartialD->getTemplateArgsAsWritten();
+  const TemplateArgumentLoc *ArgLocs = ArgList->getTemplateArgs();
+  unsigned NumArgsAsWritten = ArgList->NumTemplateArgs;
+  
+  const TemplateArgumentLoc FirstArgLoc = ArgLocs[0];
   SourceRange FirstRange = FirstArgLoc.getSourceRange();
   SourceLocation StartLoc = FirstRange.getBegin();
 
-  TemplateArgumentLoc LastArgLoc = ArgLocs[NumArgsAsWritten - 1];
+  const TemplateArgumentLoc LastArgLoc = ArgLocs[NumArgsAsWritten - 1];
   SourceRange LastRange = LastArgLoc.getSourceRange();
   SourceLocation EndLoc = 
     RewriteHelper->getEndLocationUntil(LastRange, '>');
@@ -602,7 +612,12 @@ void ReduceClassTemplateParameter::removeParameterFromPartialSpecs()
   for (SmallVector<ClassTemplatePartialSpecializationDecl *, 10>::iterator 
          I = PartialDecls.begin(), E = PartialDecls.end(); I != E; ++I) {
     const ClassTemplatePartialSpecializationDecl *PartialD = (*I);
-    TemplateArgumentLoc *ArgLocs = PartialD->getTemplateArgsAsWritten();
+    
+    const ASTTemplateArgumentListInfo *ArgList = 
+      PartialD->getTemplateArgsAsWritten();
+    const TemplateArgumentLoc *ArgLocs = ArgList->getTemplateArgs();
+    unsigned NumArgs = ArgList->NumTemplateArgs;
+    
     if (!ArgLocs)
       continue;
 
@@ -616,7 +631,6 @@ void ReduceClassTemplateParameter::removeParameterFromPartialSpecs()
     if (reducePartialSpec(PartialD))
       continue;
 
-    unsigned NumArgs = PartialD->getNumTemplateArgsAsWritten();
     if ((TheParameterIndex >= NumArgs) && hasDefaultArg)
       return;
 

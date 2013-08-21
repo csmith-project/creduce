@@ -54,8 +54,8 @@ bool CommonTemplateArgumentVisitor<T, Trans>::
 {
   ConsumerInstance->handleTemplateArgumentLocs(
     D->getSpecializedTemplate(),
-    D->getTemplateArgsAsWritten(),
-    D->getNumTemplateArgsAsWritten());
+    D->getTemplateArgsAsWritten()->getTemplateArgs(),
+    D->getTemplateArgsAsWritten()->NumTemplateArgs);
   return true;
 }
 
