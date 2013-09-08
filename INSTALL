@@ -42,9 +42,9 @@ NOTE: The LLVM 3.3 release has some performance issues that were fixed
       development versions of LLVM 3.3+, following instructions here:
       http://clang.llvm.org/get_started.html 
       We have had good luck using versions around 186000 but newer
-      versions probably also work. If you use an LLVM version other
-      than 3.3, please be sure to tell us exactly what version you are
-      using if you report any bugs in our LLVM-related code.
+      versions till 188133 should also work. If you use an LLVM version
+      other than 3.3, please be sure to tell us exactly what version you 
+      are using if you report any bugs in our LLVM-related code.
 
 Perl modules:
   Benchmark::Timer
