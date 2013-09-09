@@ -33,7 +33,7 @@ public:
       TheFunctionDecl(NULL)
   { }
 
-  ~RemoveUnusedFunction(void);
+  ~RemoveUnusedFunction();
 
 private:
   
@@ -41,14 +41,16 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  void removeFunctionDecl(void);
+  void doRewriting();
+
+  void removeOneFunctionDecl();
 
   RUFAnalysisVisitor *AnalysisVisitor;
 
   clang::FunctionDecl *TheFunctionDecl;
 
   // Unimplemented
-  RemoveUnusedFunction(void);
+  RemoveUnusedFunction();
 
   RemoveUnusedFunction(const RemoveUnusedFunction &);
 

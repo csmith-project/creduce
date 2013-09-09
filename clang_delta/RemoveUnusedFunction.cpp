@@ -76,21 +76,25 @@ void RemoveUnusedFunction::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   TransAssert(TheFunctionDecl && "NULL TheFunctionDecl!");
-
-  removeFunctionDecl();
+  doRewriting();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
 }
 
-void RemoveUnusedFunction::removeFunctionDecl(void)
+void RemoveUnusedFunction::doRewriting()
+{
+  removeOneFunctionDecl();
+}
+
+void RemoveUnusedFunction::removeOneFunctionDecl()
 {
   SourceRange FuncRange = TheFunctionDecl->getSourceRange();
   TheRewriter.RemoveText(FuncRange);
 }
 
-RemoveUnusedFunction::~RemoveUnusedFunction(void)
+RemoveUnusedFunction::~RemoveUnusedFunction()
 {
   delete AnalysisVisitor;
 }
