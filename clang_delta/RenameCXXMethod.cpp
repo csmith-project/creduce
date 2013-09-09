@@ -729,6 +729,9 @@ const FunctionDecl* RenameCXXMethod::getFunctionDecl(
   if (DE->isImplicitAccess())
     return NULL;
   DeclarationName DName = DE->getMember();
+  if (DName.getNameKind() == DeclarationName::CXXOperatorName)
+    return NULL;
+
   TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
                 "Not an indentifier!");
   const Expr *E = DE->getBase();
