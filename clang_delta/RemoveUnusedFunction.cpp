@@ -202,9 +202,22 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
     return true;
   ConsumerInstance->VisitedFDs.insert(CanonicalFD);
 
-  if (FD->getTemplatedKind() == FunctionDecl::TK_MemberSpecialization) {
+  FunctionDecl::TemplatedKind TK = FD->getTemplatedKind();
+  if (TK == FunctionDecl::TK_MemberSpecialization) {
     const FunctionDecl *Member = FD->getInstantiatedFromMemberFunction();
     ConsumerInstance->addOneMemberSpecialization(FD, Member);
+    return true;
+  }
+  else if (TK == FunctionDecl::TK_DependentFunctionTemplateSpecialization) {
+    const DependentFunctionTemplateSpecializationInfo *Info =
+      FD->getDependentSpecializationInfo();
+    // don't need to track all specs, just associate FD with one
+    // of those
+    if (Info->getNumTemplates() > 0) {
+      const FunctionDecl *Member = 
+        Info->getTemplate(0)->getTemplatedDecl();
+      ConsumerInstance->addOneMemberSpecialization(FD, Member);
+    }
     return true;
   }
 
