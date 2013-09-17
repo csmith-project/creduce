@@ -204,18 +204,24 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
   if (FD->getTemplatedKind() == FunctionDecl::TK_MemberSpecialization) {
     const FunctionDecl *Member = FD->getInstantiatedFromMemberFunction();
-    MemberSpecializationSet *S = 
-      ConsumerInstance->MemberToSpecs[Member->getCanonicalDecl()];
-    if (S == NULL) {
-      S = new MemberSpecializationSet();
-      ConsumerInstance->MemberToSpecs[Member->getCanonicalDecl()] = S;
-    }
-    S->insert(FD);
+    ConsumerInstance->addOneMemberSpecialization(FD, Member);
     return true;
   }
 
-  if (FD->getTemplateSpecializationKind() == TSK_ExplicitSpecialization)
+  TemplateSpecializationKind K = FD->getTemplateSpecializationKind();
+  if (K == TSK_ExplicitSpecialization)
     return true;
+  // Why implicit instantiation would appear here? e.g.:
+  // template<typename T> void foo(T &);
+  // struct S { friend void foo<>(bool&); };
+  // OK, just add it into MemberSpec set.
+  if (K ==  TSK_ImplicitInstantiation) {
+    const FunctionTemplateDecl *FTD = FD->getPrimaryTemplate();
+    TransAssert(FTD && "NULL FunctionTemplateDecl!");
+    const FunctionDecl *Member = FTD->getTemplatedDecl();
+    ConsumerInstance->addOneMemberSpecialization(FD, Member);
+    return true;
+  }
 
   if (FD->isReferenced() || 
       FD->isMain() || 
@@ -884,6 +890,18 @@ bool RemoveUnusedFunction::isInlinedSystemFunction(const FunctionDecl *FD)
   if (I == InlinedSystemFunctions.end())
     return false;
   return ExistingSystemFunctions.count((*I).second);
+}
+
+void RemoveUnusedFunction::addOneMemberSpecialization(
+       const FunctionDecl *FD, const FunctionDecl *Member)
+{
+  MemberSpecializationSet *S = 
+    MemberToSpecs[Member->getCanonicalDecl()];
+  if (S == NULL) {
+    S = new MemberSpecializationSet();
+    MemberToSpecs[Member->getCanonicalDecl()] = S;
+  }
+  S->insert(FD);
 }
 
 RemoveUnusedFunction::~RemoveUnusedFunction()

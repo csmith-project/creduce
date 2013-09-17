@@ -125,6 +125,9 @@ private:
 
   void addOneFunctionDecl(const clang::FunctionDecl *CanonicalFD);
 
+  void addOneMemberSpecialization(const clang::FunctionDecl *FD, 
+                                  const clang::FunctionDecl *Member);
+
   const clang::FunctionDecl *lookupFunctionDeclShallow(
           const clang::DeclarationName &DName,
           const clang::DeclContext *Ctx);
