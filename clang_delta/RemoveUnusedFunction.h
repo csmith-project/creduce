@@ -114,6 +114,8 @@ private:
 
   void removeMemberSpecializations(const clang::FunctionDecl *FD);
 
+  void removeRemainingExplicitSpecs(MemberSpecializationSet *ExplicitSpecs);
+
   clang::SourceLocation getFunctionOuterLocStart(const clang::FunctionDecl *FD);
 
   bool hasValidOuterLocStart(const clang::FunctionTemplateDecl *FTD, 
@@ -127,6 +129,10 @@ private:
 
   void addOneMemberSpecialization(const clang::FunctionDecl *FD, 
                                   const clang::FunctionDecl *Member);
+
+  void createFuncToExplicitSpecs(const clang::FunctionDecl *FD);
+
+  void addFuncToExplicitSpecs(const clang::FunctionDecl *FD);
 
   const clang::FunctionDecl *lookupFunctionDeclShallow(
           const clang::DeclarationName &DName,
@@ -171,6 +177,8 @@ private:
   UsingDeclsSet VisitedUsingDecls;
 
   MemberToSpecializationMap MemberToSpecs;
+
+  MemberToSpecializationMap FuncToExplicitSpecs;
 
   MemberToSpecializationMap MemberToInstantiations;
 

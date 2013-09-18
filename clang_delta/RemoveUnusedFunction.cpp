@@ -222,8 +222,10 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
   }
 
   TemplateSpecializationKind K = FD->getTemplateSpecializationKind();
-  if (K == TSK_ExplicitSpecialization)
+  if (K == TSK_ExplicitSpecialization) {
+    ConsumerInstance->addFuncToExplicitSpecs(FD);
     return true;
+  }
   // Why implicit instantiation would appear here? e.g.:
   // template<typename T> void foo(T &);
   // struct S { friend void foo<>(bool&); };
@@ -503,6 +505,17 @@ void RemoveUnusedFunction::removeOneExplicitInstantiation(
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 }
 
+void RemoveUnusedFunction::removeRemainingExplicitSpecs(
+       MemberSpecializationSet *ExplicitSpecs)
+{
+  if (!ExplicitSpecs)
+    return;
+  for (MemberSpecializationSet::iterator I = ExplicitSpecs->begin(),
+       E = ExplicitSpecs->end(); I != E; ++I) {
+    removeOneFunctionDecl(*I);
+  }
+}
+
 // We can't handle function template explicit instantiation because
 // I am not sure how to analyze its source location.
 // For example, in the code below:
@@ -520,19 +533,23 @@ void RemoveUnusedFunction::removeFunctionExplicitInstantiations(
 
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   MemberSpecializationSet *S = MemberToInstantiations[CanonicalFD];
+  MemberSpecializationSet *ExplicitSpecs = 
+          FuncToExplicitSpecs[CanonicalFD];
 
   for (FunctionTemplateDecl::spec_iterator I = FTD->spec_begin(),
        E = FTD->spec_end(); I != E; ++I) {
     FunctionDecl *Spec = (*I);
     TemplateSpecializationKind K = Spec->getTemplateSpecializationKind();
     if (K == TSK_ExplicitSpecialization) {
-/*
-      for (FunctionDecl::redecl_iterator RI = Spec->redecls_begin(),
-           RE = Spec->redecls_end(); RI != RE; ++RI) {
-        removeOneFunctionDecl(*RI);
+      // check if the explicit spec points to any dependent specs,
+      // skip it if yes
+      if (!ExplicitSpecs) {
+        removeOneFunctionDecl(Spec);
       }
-*/
-      removeOneFunctionDecl(Spec);
+      else if (ExplicitSpecs->count(Spec)) {
+        removeOneFunctionDecl(Spec);
+        ExplicitSpecs->erase(Spec);
+      }
       continue;
     }
     if (K != TSK_ExplicitInstantiationDeclaration &&
@@ -544,6 +561,9 @@ void RemoveUnusedFunction::removeFunctionExplicitInstantiations(
       S->erase(Spec);
     }
   }
+
+  removeRemainingExplicitSpecs(ExplicitSpecs);
+
   if (!S)
     return;
   for (MemberSpecializationSet::iterator I = S->begin(), E = S->end();
@@ -564,7 +584,8 @@ void RemoveUnusedFunction::removeMemberSpecializations(const FunctionDecl *FD)
     return;
   for (MemberSpecializationSet::iterator I = S->begin(), E = S->end();
        I != E; ++I) {
-    removeOneFunctionDecl(*I);
+    const FunctionDecl *Spec = (*I);
+    removeOneFunctionDecl(Spec);
   }
 }
 
@@ -786,6 +807,31 @@ void RemoveUnusedFunction::handleOneFunctionDecl(const FunctionDecl *TheFD)
     return;
   }
 
+  FunctionDecl::TemplatedKind TK = TheFD->getTemplatedKind();
+  // Now it's another ugly part, with dependent function template spec,
+  // we lose the explicit specialization in Member's spec_iterator, e.g.:
+  // template <class T> void foo(T);           // line 1
+  // template <class T1, class T2> class A {   // line 2
+  //   friend void foo<>(T1);                  // line 3
+  // };                                        // line 4
+  // template <> void foo(char);               // line 5
+  // template class A<char, bool>;             // line 6
+  // In the code above, foo's spec_iterator has an explicit spec, 
+  // but this spec's source range points to the dependent_spec at line 3,
+  // and then we will be in trouble...
+  if (TK == FunctionDecl::TK_DependentFunctionTemplateSpecialization) {
+    const DependentFunctionTemplateSpecializationInfo *Info =
+      TheFD->getDependentSpecializationInfo();
+    // don't need to track all specs, just associate FD with one
+    // of those
+    if (Info->getNumTemplates() > 0) {
+      const FunctionDecl *Member = 
+        Info->getTemplate(0)->getTemplatedDecl();
+      createFuncToExplicitSpecs(Member);
+    }
+    return;
+  }
+
   // keep explicit instantiations that are not recored by original
   // template's spec_iterator, e.g.:
   // template<typename T> class S {
@@ -797,7 +843,7 @@ void RemoveUnusedFunction::handleOneFunctionDecl(const FunctionDecl *TheFD)
   FunctionTemplateDecl *FTD = TheFD->getPrimaryTemplate();
   if (!FTD)
     return;
-  
+
   const FunctionTemplateDecl *D = FTD->getInstantiatedFromMemberTemplate();
   if (!D)
     return;
@@ -915,6 +961,31 @@ void RemoveUnusedFunction::addOneMemberSpecialization(
     MemberToSpecs[Member->getCanonicalDecl()] = S;
   }
   S->insert(FD);
+}
+
+void RemoveUnusedFunction::createFuncToExplicitSpecs(const FunctionDecl *FD)
+{
+  MemberSpecializationSet *S = 
+    FuncToExplicitSpecs[FD->getCanonicalDecl()];
+  if (S == NULL) {
+    S = new MemberSpecializationSet();
+    FuncToExplicitSpecs[FD->getCanonicalDecl()] = S;
+  }
+}
+
+void RemoveUnusedFunction::addFuncToExplicitSpecs(const FunctionDecl *FD)
+{
+  TransAssert((FD->getTemplateSpecializationKind() 
+               == TSK_ExplicitSpecialization) &&
+              "Invalid template specialization kind!");
+  const FunctionTemplateDecl *FTD = FD->getPrimaryTemplate();
+  TransAssert(FTD && "NULL FunctionTemplateDecl!");
+  const FunctionDecl *TemplatedFD = FTD->getTemplatedDecl();
+  MemberSpecializationSet *S = 
+    FuncToExplicitSpecs[TemplatedFD->getCanonicalDecl()];
+  if (S != NULL) {
+    S->insert(FD);
+  }
 }
 
 RemoveUnusedFunction::~RemoveUnusedFunction()
