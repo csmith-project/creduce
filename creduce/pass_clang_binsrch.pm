@@ -150,7 +150,7 @@ sub transform ($$$) {
 	system "mv $tmpfile $cfile";
     } else {
       rechunk:
-	return ($STOP, \%sh) if ($sh{"chunk"} < 30);
+	return ($STOP, \%sh) if ($sh{"chunk"} < 10);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
 	print "granularity = $newchunk\n" if $VERBOSE;
