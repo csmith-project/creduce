@@ -527,6 +527,8 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
 const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
         DeclarationName &DName, const DeclContext *Ctx)
 {
+  if (dyn_cast<LinkageSpecDecl>(Ctx))
+    return NULL;
   DeclContext::lookup_const_result Result = Ctx->lookup(DName);
   for (DeclContext::lookup_const_iterator I = Result.begin(), E = Result.end();
        I != E; ++I) {
@@ -560,6 +562,8 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
 const FunctionDecl *Transformation::lookupFunctionDecl(
         DeclarationName &DName, const DeclContext *Ctx)
 {
+  if (dyn_cast<LinkageSpecDecl>(Ctx))
+    return NULL;
   if (const FunctionDecl *FD = lookupFunctionDeclFromCtx(DName, Ctx))
     return FD;
  

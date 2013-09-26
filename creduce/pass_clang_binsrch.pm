@@ -114,7 +114,7 @@ sub transform ($$$) {
 
 	my $cmd = "$clang_delta --transformation=$which --counter=$index --to-counter=$end $cfile";
 	print "$cmd\n" if $VERBOSE;
-	my $res = runit ("$cmd > $tmpfile");
+	my $res = run_clang_delta ("$cmd > $tmpfile");
 
 	if ($res==0) {
 	    system "mv $tmpfile $cfile";
@@ -150,7 +150,7 @@ sub transform ($$$) {
 	system "mv $tmpfile $cfile";
     } else {
       rechunk:
-	return ($STOP, \%sh) if ($sh{"chunk"} < 30);
+	return ($STOP, \%sh) if ($sh{"chunk"} < 10);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
 	print "granularity = $newchunk\n" if $VERBOSE;
