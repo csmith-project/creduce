@@ -114,7 +114,7 @@ sub transform ($$$) {
 
 	my $cmd = "$clang_delta --transformation=$which --counter=$index --to-counter=$end $cfile";
 	print "$cmd\n" if $VERBOSE;
-	my $res = runit ("$cmd > $tmpfile");
+	my $res = run_clang_delta ("$cmd > $tmpfile");
 
 	if ($res==0) {
 	    system "mv $tmpfile $cfile";

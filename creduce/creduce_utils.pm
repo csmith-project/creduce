@@ -19,6 +19,7 @@ use File::Which;
 @EXPORT      = qw($VERBOSE $OK $STOP
 		  find_external_program
 		  runit 
+                  run_clang_delta
 		  $replace_cont $matched replace_aux
 		  read_file write_file
                   );
@@ -51,6 +52,23 @@ sub runit ($) {
         }
         else {
             return -2;
+        }
+    }
+    return ($? >> 8);
+}
+
+sub run_clang_delta ($) {
+    (my $cmd) = @_;
+    if ((system "$cmd") != 0) {
+        my $res = $? >> 8;
+        if ($res == 255) {
+            return -1;
+        }
+        elsif ($res == 1) {
+            return -2;
+        }
+        else {
+            return -3;
         }
     }
     return ($? >> 8);
