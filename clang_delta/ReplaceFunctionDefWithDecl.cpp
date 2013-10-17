@@ -196,6 +196,8 @@ void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
     return;
   if (removeInlineKeyword("__forceinline", Str, StartLoc))
     return;
+  if (removeInlineKeyword("__inline__", Str, StartLoc))
+    return;
   TransAssert(0 && "Unreachable code!");
 }
 
