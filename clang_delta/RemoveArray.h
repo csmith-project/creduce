@@ -24,9 +24,11 @@ namespace clang {
 }
 
 class RemoveArrayCollectionVisitor;
+class InvalidArraySubscriptExprVisitor;
 
 class RemoveArray : public Transformation {
 friend class RemoveArrayCollectionVisitor;
+friend class InvalidArraySubscriptExprVisitor;
 
 public:
 
@@ -41,7 +43,7 @@ public:
 
 private:
 
-  typedef llvm::SmallVector<const clang::ArraySubscriptExpr *, 10> 
+  typedef llvm::SmallVector<clang::ArraySubscriptExpr *, 10> 
     ArraySubscriptExprVector;
 
   typedef llvm::DenseMap<const clang::VarDecl *, ArraySubscriptExprVector *> 
@@ -49,7 +51,7 @@ private:
 
   typedef std::pair<clang::SourceLocation, clang::SourceLocation>
             BracketLocPair;
-  
+
   virtual void Initialize(clang::ASTContext &context);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
@@ -58,7 +60,7 @@ private:
 
   void doRewriting(void);
 
-  void addOneArraySubscriptExpr(const clang::ArraySubscriptExpr *ASE, 
+  void addOneArraySubscriptExpr(clang::ArraySubscriptExpr *ASE, 
                                 const clang::DeclRefExpr *DRE);
 
   void deleteOneVarDecl(const clang::DeclRefExpr *DRE);
@@ -66,6 +68,9 @@ private:
   void handleOneVarDecl(const clang::VarDecl *VD);
 
   void getBracketLocPair(const clang::VarDecl *VD, BracketLocPair &LocPair);
+
+  const clang::VarDecl *getVarDeclFromArraySubscriptExpr(
+                          const clang::ArraySubscriptExpr *ASE);
 
   VarDeclToArraySubscriptExprMap ValidVarToASEMap;
    
