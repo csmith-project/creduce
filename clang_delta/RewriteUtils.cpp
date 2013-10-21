@@ -1305,8 +1305,14 @@ bool RewriteUtils::removeArraySubscriptExpr(const Expr *E)
   StartLoc = StartLoc.getLocWithOffset(Offset);
 
   SourceLocation EndLoc = ERange.getEnd();
-  EndLoc = getLocationUntil(EndLoc, ']');
-  return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+  EndLoc = EndLoc.getLocWithOffset(1);
+  if (EndLoc.isInvalid())
+    return !TheRewriter->RemoveText(SourceRange(StartLoc, ERange.getEnd()));
+
+  SourceLocation RBLoc = getLocationUntil(EndLoc, ']');
+  if (RBLoc.isInvalid())
+    return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
+  return !TheRewriter->RemoveText(SourceRange(StartLoc, RBLoc));
 }
 
 bool RewriteUtils::getFunctionDefStrAndRemove(const FunctionDecl *FD,
