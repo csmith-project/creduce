@@ -359,7 +359,7 @@ void SimpleInliner::doAnalysis(void)
     if (TransformationCounter == ValidInstanceNum) {
       // It's possible the direct callee is not a definition
       if (!CalleeDecl->isThisDeclarationADefinition()) {
-        CalleeDecl = CalleeDecl->getFirstDeclaration();
+        CalleeDecl = CalleeDecl->getFirstDecl();
         for(FunctionDecl::redecl_iterator RI = CalleeDecl->redecls_begin(),
             RE = CalleeDecl->redecls_end(); RI != RE; ++RI) {
           if ((*RI)->isThisDeclarationADefinition()) {

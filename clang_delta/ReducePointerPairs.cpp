@@ -280,7 +280,7 @@ void ReducePointerPairs::doAnalysis(void)
 
 void ReducePointerPairs::doRewriting(const VarDecl *VD)
 {
-  const VarDecl *FirstVD = VD->getFirstDeclaration();
+  const VarDecl *FirstVD = VD->getFirstDecl();
   for(VarDecl::redecl_iterator RI = FirstVD->redecls_begin(),
       RE = FirstVD->redecls_end(); RI != RE; ++RI) {
     RewriteHelper->removeAStarBefore(*RI); 
