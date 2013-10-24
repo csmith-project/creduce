@@ -208,7 +208,7 @@ void ReplaceFunctionDefWithDecl::removeInlineKeywordFromFunctionDecls(
   if (!FD->isInlineSpecified())
     return;
 
-  const FunctionDecl *FirstFD = FD->getFirstDeclaration();
+  const FunctionDecl *FirstFD = FD->getFirstDecl();
   for (FunctionDecl::redecl_iterator I = FirstFD->redecls_begin(),
        E = FirstFD->redecls_end(); I != E; ++I) {
     removeInlineKeywordFromOneFunctionDecl(*I);

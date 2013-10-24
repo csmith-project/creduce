@@ -167,7 +167,7 @@ void ReduceArraySize::rewriteArrayVarDecl(void)
   unsigned int Dim = getArrayDimension(ArrayTy);
   TransAssert((Dim > TheDimIdx) && "Bad Dimension Index!");
 
-  const VarDecl *FirstVD = TheVarDecl->getFirstDeclaration();
+  const VarDecl *FirstVD = TheVarDecl->getFirstDecl();
   for(VarDecl::redecl_iterator RI = FirstVD->redecls_begin(),
       RE = FirstVD->redecls_end(); RI != RE; ++RI) {
     BracketLocPair LocPair;
