@@ -33,6 +33,42 @@ All relevant ArraySubscriptExpr[s] will be rewritten accordingly. \n";
 static RegisterTransformation<RemoveArray>
          Trans("remove-array", DescriptionMsg);
 
+typedef llvm::SmallPtrSet<const clang::ArraySubscriptExpr *, 5>
+          ArraySubscriptExprSet;
+
+class InvalidArraySubscriptExprVisitor : public 
+  RecursiveASTVisitor<InvalidArraySubscriptExprVisitor> {
+
+public:
+
+  InvalidArraySubscriptExprVisitor(RemoveArray *Instance,
+                                   const VarDecl *VD,
+                                   ArraySubscriptExprSet &ES)
+    : ConsumerInstance(Instance),
+      TheVarDecl(VD),
+      InvalidExprs(ES)
+  { }
+
+  bool VisitArraySubscriptExpr(ArraySubscriptExpr *ASE);
+
+private:
+
+  RemoveArray *ConsumerInstance;
+
+  const VarDecl *TheVarDecl;
+
+  ArraySubscriptExprSet &InvalidExprs;
+};
+
+bool InvalidArraySubscriptExprVisitor::VisitArraySubscriptExpr(
+       ArraySubscriptExpr *ASE)
+{
+  const VarDecl *VD = ConsumerInstance->getVarDeclFromArraySubscriptExpr(ASE);
+  if (VD == TheVarDecl)
+    InvalidExprs.insert(ASE);
+  return true;
+}
+
 class RemoveArrayCollectionVisitor : public 
   RecursiveASTVisitor<RemoveArrayCollectionVisitor> {
 
@@ -62,7 +98,8 @@ bool RemoveArrayCollectionVisitor::VisitVarDecl(VarDecl *VD)
   return true;
 }
 
-bool RemoveArrayCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
+bool RemoveArrayCollectionVisitor::VisitArraySubscriptExpr(
+       ArraySubscriptExpr *ASE)
 {
   // we only have one-dimension array, so we are safe here.
   const Expr *BaseE = ASE->getBase()->IgnoreParenCasts();
@@ -130,6 +167,20 @@ void RemoveArray::doAnalysis(void)
   }
 }
 
+const VarDecl *
+RemoveArray::getVarDeclFromArraySubscriptExpr(const ArraySubscriptExpr *ASE)
+{
+  const Expr *BaseE = ASE->getBase()->IgnoreParenCasts();
+  TransAssert(BaseE && "Empty Base expression!");
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(BaseE);
+  if (!DRE)
+    return NULL;
+  const VarDecl *VD = dyn_cast<VarDecl>(DRE->getDecl());
+  if (!VD)
+    return NULL;
+  return VD->getCanonicalDecl();
+}
+
 void RemoveArray::getBracketLocPair(const VarDecl *VD,
                                     BracketLocPair &LocPair)
 {
@@ -158,8 +209,29 @@ void RemoveArray::doRewriting(void)
   if (!TheASEVec)
     return;
 
+  // filter out inner subscript that refers to the same var as the outer
+  // expr, e.g.:
+  //   x[x[0]]
+  // we don't need to rewrite x[0] in this case
+  ArraySubscriptExprSet InvalidExprs;
   for (ArraySubscriptExprVector::iterator I = TheASEVec->begin(),
        E = TheASEVec->end(); I != E; ++I) {
+    ArraySubscriptExpr *ASE = (*I);
+    if (InvalidExprs.count(ASE))
+      continue;
+    Expr *IdxE = ASE->getIdx();
+    if (!IdxE)
+      continue;
+    const VarDecl *VD = getVarDeclFromArraySubscriptExpr(ASE);
+    TransAssert(VD && "NULL VarDecl from ArraySubscriptExpr!");
+    InvalidArraySubscriptExprVisitor V(this, VD, InvalidExprs);
+    V.TraverseStmt(IdxE);
+  }
+
+  for (ArraySubscriptExprVector::iterator I = TheASEVec->begin(),
+       E = TheASEVec->end(); I != E; ++I) {
+    if (InvalidExprs.count(*I))
+      continue;
     const Expr *IdxE = (*I)->getIdx();
     RewriteHelper->removeArraySubscriptExpr(IdxE); 
   } 
@@ -179,7 +251,7 @@ void RemoveArray::deleteOneVarDecl(const DeclRefExpr *DRE)
   }
 }
 
-void RemoveArray::addOneArraySubscriptExpr(const ArraySubscriptExpr *ASE, 
+void RemoveArray::addOneArraySubscriptExpr(ArraySubscriptExpr *ASE, 
                                            const DeclRefExpr *DRE)
 {
   const ValueDecl *OrigDecl = DRE->getDecl();

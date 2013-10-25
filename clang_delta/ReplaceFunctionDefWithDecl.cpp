@@ -48,6 +48,7 @@ bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
        FunctionDecl *FD)
 {
   if (FD->isThisDeclarationADefinition() && 
+      !FD->isDeleted() &&
       !ConsumerInstance->isMacroExpansion(FD))
     ConsumerInstance->addOneFunctionDef(FD);
   return true;
@@ -193,6 +194,10 @@ void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
   if (removeInlineKeyword("inline", Str, StartLoc))
     return;
   if (removeInlineKeyword("__inline", Str, StartLoc))
+    return;
+  if (removeInlineKeyword("__forceinline", Str, StartLoc))
+    return;
+  if (removeInlineKeyword("__inline__", Str, StartLoc))
     return;
   TransAssert(0 && "Unreachable code!");
 }
