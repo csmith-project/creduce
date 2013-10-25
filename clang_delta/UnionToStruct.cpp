@@ -402,6 +402,8 @@ void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
 
   const RecordType *RDTy = T->getAsUnionType();
   TransAssert(RDTy && "Bad RecordType!");
+  if (RDTy->isIncompleteType())
+    return;
 
   const RecordDecl *RD = RDTy->getDecl(); 
   const RecordDecl *CanonicalRD = 
