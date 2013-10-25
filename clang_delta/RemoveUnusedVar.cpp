@@ -54,6 +54,10 @@ bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
       VD->isStaticDataMember())
     return true;
 
+  SourceRange VarRange = VD->getSourceRange();
+  if (VarRange.getEnd().isInvalid())
+    return true;
+
   if (ConsumerInstance->SkippedVars.count(VD->getCanonicalDecl()))
     return true;
 
