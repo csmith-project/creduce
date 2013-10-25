@@ -83,6 +83,8 @@ bool SimplifyStructCollectionVisitor::VisitRecordDecl(RecordDecl *RD)
     return true;
   if (ConsumerInstance->isSpecialRecordDecl(RD))
     return true;
+  if (RD->isInvalidDecl())
+    return true;
 
   const ASTRecordLayout &Info = ConsumerInstance->Context->getASTRecordLayout(RD);
   unsigned Count = Info.getFieldCount();
