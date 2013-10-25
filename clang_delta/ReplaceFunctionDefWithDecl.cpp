@@ -48,6 +48,7 @@ bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
        FunctionDecl *FD)
 {
   if (FD->isThisDeclarationADefinition() && 
+      !FD->isDeleted() &&
       !ConsumerInstance->isMacroExpansion(FD))
     ConsumerInstance->addOneFunctionDef(FD);
   return true;
