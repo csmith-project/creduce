@@ -304,6 +304,9 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
       return true;
     }
     else {
+      // skip invalid decl, which causes clang assertion errors
+      if (Def->isInvalidDecl())
+        return false;
       // handle another special case where a struct has an unreferenced
       // field. In some cases, we cannot simply remove this field
       // because an empty struct would make a bug disappear.
