@@ -196,7 +196,7 @@ void RemoveArray::getBracketLocPair(const VarDecl *VD,
 void RemoveArray::doRewriting(void)
 {
   // rewrite decls first
-  const VarDecl *FirstVD = TheArrayVarDecl->getFirstDecl();
+  const VarDecl *FirstVD = TheArrayVarDecl->getCanonicalDecl();
   for(VarDecl::redecl_iterator RI = FirstVD->redecls_begin(),
       RE = FirstVD->redecls_end(); RI != RE; ++RI) {
 

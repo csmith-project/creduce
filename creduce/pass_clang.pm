@@ -30,7 +30,7 @@ my $ORIG_DIR;
 sub check_prereqs () {
     $ORIG_DIR = getcwd();
     my $path;
-    if ($FindBin::Bin eq bindir) {
+    if ($FindBin::RealBin eq bindir) {
 	# This script is in the installation directory.
 	# Use the installed `clang_delta'.
 	$path = libexecdir . "/clang_delta";
