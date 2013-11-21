@@ -103,7 +103,7 @@ bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
   // then the type source info won't be available, let's try to
   // get one from the one which is in the source
   if (!FD->getTypeSourceInfo()) {
-    const FunctionDecl *FirstFD = FD->getFirstDecl();
+    const FunctionDecl *FirstFD = FD->getCanonicalDecl();
     FD = NULL;
     for (FunctionDecl::redecl_iterator I = FirstFD->redecls_begin(), 
          E = FirstFD->redecls_end(); I != E; ++I) {

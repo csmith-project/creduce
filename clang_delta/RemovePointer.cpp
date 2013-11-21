@@ -147,7 +147,7 @@ void RemovePointer::doAnalysis(void)
 
 void RemovePointer::doRewriting(void)
 {
-  const VarDecl *FirstVD = TheVarDecl->getFirstDecl();
+  const VarDecl *FirstVD = TheVarDecl->getCanonicalDecl();
   for(VarDecl::redecl_iterator RI = FirstVD->redecls_begin(),
       RE = FirstVD->redecls_end(); RI != RE; ++RI) {
     RewriteHelper->removeAStarBefore(*RI); 
