@@ -85,7 +85,7 @@ void UnifyFunctionDecl::doAnalysis(void)
     const FunctionDecl *FDDef = NULL; 
     const FunctionDecl *FDDecl = NULL;
     const FunctionDecl *CanonicalFD = (*I);
-    const FunctionDecl *FirstFD = CanonicalFD->getFirstDecl();
+    const FunctionDecl *FirstFD = CanonicalFD->getCanonicalDecl();
 
     FunctionDecl::redecl_iterator RI = FirstFD->redecls_begin();
     if (FirstFD->getSourceRange().isInvalid())
