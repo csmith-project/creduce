@@ -182,7 +182,7 @@ bool SimplifyStructUnionDecl::isSafeToRemoveName(void)
     return false;
 
   const RecordDecl *RD = 
-    dyn_cast<RecordDecl>(TheRecordDecl->getFirstDecl());
+    dyn_cast<RecordDecl>(TheRecordDecl->getCanonicalDecl());
   RecordDecl::redecl_iterator I = RD->redecls_begin();
   RecordDecl::redecl_iterator E = RD->redecls_end();
   ++I;

@@ -185,7 +185,7 @@ void UnionToStruct::rewriteOneRecordDecl(const RecordDecl *RD)
 void UnionToStruct::rewriteRecordDecls(void)
 {
   const RecordDecl *RD = 
-    dyn_cast<RecordDecl>(TheRecordDecl->getFirstDecl());
+    dyn_cast<RecordDecl>(TheRecordDecl->getCanonicalDecl());
   TransAssert(RD && "NULL RecordDecl!");
   for(RecordDecl::redecl_iterator I = RD->redecls_begin(),
       E = RD->redecls_end(); I != E; ++I) {
