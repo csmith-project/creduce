@@ -117,6 +117,8 @@ private:
 
   bool isPointerToSelf(const clang::Type *Ty, const clang::DeclaratorDecl *DD);
 
+  void checkPrefixAndPostfix(const clang::UnaryOperator *UO);
+
   DeclSet VisitedDecls;
 
   DeclSet ValidDecls;

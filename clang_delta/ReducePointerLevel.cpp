@@ -164,7 +164,13 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 
 bool PointerLevelCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
 {
-  if (UO->getOpcode() != UO_AddrOf)
+  UnaryOperator::Opcode Op = UO->getOpcode();
+  if (Op == UO_Deref) {
+    ConsumerInstance->checkPrefixAndPostfix(UO);
+    return true;
+  }
+
+  if (Op != UO_AddrOf)
     return true;
 
   const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts();
@@ -523,7 +529,7 @@ const DeclRefExpr *ReducePointerLevel::getDeclRefExpr(const Expr *Exp)
   UnaryOperator::Opcode Op = UO->getOpcode();
   (void)Op;
   TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!");
+              "Invalid Unary Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getDeclRefExpr(SubE);
 }
@@ -549,10 +555,25 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
 
   UnaryOperator::Opcode Op = UO->getOpcode();
   (void)Op;
-  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf)) && 
-              "Non-Deref-or-AddrOf Opcode!");
+  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf) ||
+              UO->isPrefix() || UO->isPostfix()) && 
+              "Invalid Unary Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
+}
+
+void ReducePointerLevel::checkPrefixAndPostfix(const UnaryOperator *UO)
+{
+  const Expr *SubE = UO->getSubExpr()->IgnoreParenCasts();
+  const UnaryOperator *SubUO = dyn_cast<UnaryOperator>(SubE);
+  if (!SubUO)
+    return;
+  if (!SubUO->isPrefix() && !SubUO->isPostfix())
+    return;
+  const DeclaratorDecl *DD = getRefDecl(SubUO->getSubExpr());
+  if (DD) {
+    ValidDecls.erase(DD);
+  }
 }
 
 void ReducePointerLevel::addOneDecl(const DeclaratorDecl *DD, 
