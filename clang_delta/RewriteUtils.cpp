@@ -616,14 +616,42 @@ bool RewriteUtils::getStmtString(const Stmt *S,
   return true;
 }
 
+SourceLocation RewriteUtils::getExpansionEndLoc(SourceLocation EndLoc)
+{
+    FileID FID = SrcManager->getFileID(EndLoc);
+    const SrcMgr::SLocEntry *Entry = &SrcManager->getSLocEntry(FID);
+
+    while (Entry->getExpansion().getExpansionLocStart().isMacroID()) {
+      EndLoc = Entry->getExpansion().getExpansionLocStart();
+      FID = SrcManager->getFileID(EndLoc);
+      Entry = &SrcManager->getSLocEntry(FID);
+    }
+
+    return Entry->getExpansion().getExpansionLocEnd();
+}
+
 bool RewriteUtils::replaceExpr(const Expr *E, 
                                const std::string &ES)
 {
   SourceRange ExprRange = E->getSourceRange();
    
   int RangeSize = TheRewriter->getRangeSize(ExprRange);
-  if (RangeSize == -1)
-    return false;
+  if (RangeSize == -1) {
+    SourceLocation StartLoc = ExprRange.getBegin();
+    if (!SrcManager->isMacroBodyExpansion(StartLoc))
+      return false;
+    StartLoc = SrcManager->getFileLoc(StartLoc);
+    SourceLocation EndLoc = ExprRange.getEnd();
+    if (!SrcManager->isMacroBodyExpansion(EndLoc))
+      return false;
+
+    // FIXME: handle cases below:
+    // #define macro bar(1,2);
+    // int bar(int p1, int p2) { return p1 + p2; }
+    // void foo(void) { int x = macro }
+    EndLoc = getExpansionEndLoc(EndLoc);
+    return !(TheRewriter->ReplaceText(SourceRange(StartLoc, EndLoc), ES));
+  }
 
   return !(TheRewriter->ReplaceText(ExprRange, ES));
 }

@@ -306,6 +306,8 @@ private:
 
   unsigned getNumArgsWrapper(const clang::Expr *E);
 
+  clang::SourceLocation getExpansionEndLoc(clang::SourceLocation EndLoc);
+
   // Unimplemented
   RewriteUtils(const RewriteUtils &);
 
