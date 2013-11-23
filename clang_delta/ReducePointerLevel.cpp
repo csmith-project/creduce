@@ -369,6 +369,8 @@ bool PointerLevelRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   if ((DD == ConsumerInstance->TheDecl) &&
      !(ConsumerInstance->VisitedDeclRefExprs.count(DRE))) {
+    // FIXME: handle cases below
+    // int foo(void) { int *a; return a[0]; }
     ConsumerInstance->rewriteDeclRefExpr(DRE);
   }
 
