@@ -16,6 +16,7 @@
 ####################################################################
 
 ## TODO:
+# specify passes using a config file
 # add support for reducing non-preprocessed code
 #   remove comments
 #   remove preprocessor directives after preprocessing
