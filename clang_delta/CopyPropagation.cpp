@@ -49,7 +49,8 @@ public:
     : ConsumerInstance(Instance),
       BeingWritten(false),
       BeingAddrTaken(false),
-      BeingIncDec(false)
+      BeingIncDec(false),
+      BeingPartial(false)
   { }
 
   bool VisitVarDecl(VarDecl *VD);
