@@ -30,21 +30,10 @@ Flex:
 GNU Indent:
   http://www.gnu.org/software/indent/
 
-LLVM/Clang 3.3:
-  http://llvm.org/releases/download.html#3.3
+LLVM/Clang 3.4:
+  http://llvm.org/releases/download.html#3.4
   (no need to compile it, the appropriate "Clang binaries" package is
   all you need)
-
-NOTE: The LLVM 3.3 release has some performance issues that were fixed
-      by the LLVM developers shortly after the release. If you want to
-      increase the speed of C-Reduce by as much as 100% when reducing
-      large C++ programs, you may want to experiment with using
-      development versions of LLVM 3.3+, following instructions here:
-      http://clang.llvm.org/get_started.html 
-      We have had good luck using versions around 186000 but newer
-      versions till 188133 should also work. If you use an LLVM version
-      other than 3.3, please be sure to tell us exactly what version you 
-      are using if you report any bugs in our LLVM-related code.
 
 Perl modules:
   Benchmark::Timer
