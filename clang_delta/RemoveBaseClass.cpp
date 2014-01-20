@@ -145,6 +145,13 @@ void RemoveBaseClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
     const CXXRecordDecl *Base = NULL;
     for (CXXRecordDeclSet::iterator I = AllBaseClasses.begin(), 
          E = AllBaseClasses.end(); I != E; ++I) {
+      if (const ClassTemplateSpecializationDecl * CTSD = 
+          dyn_cast<ClassTemplateSpecializationDecl>
+            (CanonicalRD->getDefinition())) {
+        if (!CTSD->isExplicitSpecialization())
+          continue;
+      }
+
       if (isDirectlyDerivedFrom(CanonicalRD, *I)) {
         Base = (*I);
         ValidInstanceNum++;
