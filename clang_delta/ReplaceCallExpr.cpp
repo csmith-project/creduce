@@ -147,7 +147,13 @@ bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
   if (!FD)
     return true;
 
-  const Type *T = CE->getCallReturnType().getTypePtr();
+  const Type *T;
+  // Because CE->getCallReturnType() fails on builtin functions,
+  // try to get returntype from FD (probably not really accurate thought)
+  if (FD->getBuiltinID())
+    T = FD->getResultType().getTypePtr();
+  else 
+    T = CE->getCallReturnType().getTypePtr();
   if (T->isVoidType())
     return true;
 
