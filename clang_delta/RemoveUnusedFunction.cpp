@@ -242,7 +242,8 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
       FD->isMain() || 
       ConsumerInstance->hasReferencedSpecialization(CanonicalFD) ||
       ConsumerInstance->isInlinedSystemFunction(CanonicalFD) ||
-      ConsumerInstance->isInReferencedSet(CanonicalFD))
+      ConsumerInstance->isInReferencedSet(CanonicalFD) ||
+      !ConsumerInstance->hasAtLeastOneValidLocation(CanonicalFD))
     return true;
 
   ConsumerInstance->addOneFunctionDecl(CanonicalFD);
@@ -450,7 +451,9 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
   if (!FD->isInExternCContext() && !FD->isInExternCXXContext()) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
     LocEnd = getFunctionLocEnd(FuncLocStart, LocEnd, FD);
-    TheRewriter.RemoveText(SourceRange(FuncLocStart, LocEnd));
+    if (SrcManager->isWrittenInMainFile(FuncLocStart) && 
+        SrcManager->isWrittenInMainFile(LocEnd))
+      TheRewriter.RemoveText(SourceRange(FuncLocStart, LocEnd));
     return;
   }
   
@@ -608,6 +611,20 @@ void RemoveUnusedFunction::removeOneFunctionDeclGroup(const FunctionDecl *FD)
       continue;
     RewriteHelper->removeDecl((*I).first);
   }
+}
+
+bool RemoveUnusedFunction::hasAtLeastOneValidLocation(const FunctionDecl *FD)
+{
+  for (FunctionDecl::redecl_iterator RI = FD->redecls_begin(),
+       RE = FD->redecls_end(); RI != RE; ++RI) {
+    SourceRange FuncRange = FD->getSourceRange();
+    SourceLocation StartLoc = FuncRange.getBegin();
+    SourceLocation EndLoc = FuncRange.getEnd();
+    if (SrcManager->isWrittenInMainFile(StartLoc) && 
+        SrcManager->isWrittenInMainFile(EndLoc))
+      return true;
+  }
+  return false;
 }
 
 bool RemoveUnusedFunction::isInReferencedSet(const FunctionDecl *CanonicalFD)

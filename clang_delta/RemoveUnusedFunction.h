@@ -125,6 +125,8 @@ private:
 
   bool isInReferencedSet(const clang::FunctionDecl *FD);
 
+  bool hasAtLeastOneValidLocation(const clang::FunctionDecl *FD);
+
   void addOneFunctionDecl(const clang::FunctionDecl *CanonicalFD);
 
   void addOneMemberSpecialization(const clang::FunctionDecl *FD, 
