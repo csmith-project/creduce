@@ -309,7 +309,8 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
       dyn_cast<CXXUnresolvedConstructExpr>(Lhs))
     return true;
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
-  TransAssert(DD && "NULL DD!");
+  // it's not always we could have a nonnull DD
+  // TransAssert(DD && "NULL DD!");
   if (DD != ConsumerInstance->TheDecl)
     return true;
 
