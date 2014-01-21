@@ -767,6 +767,11 @@ void ReducePointerLevel::getNewGlobalInitStr(const Expr *Init,
     return;
   }
 
+  case Expr::CXXNewExprClass: {
+    InitStr = "";
+    return;
+  }
+
   default:
     TransAssert(0 && "Uncatched initializer!");
   }
