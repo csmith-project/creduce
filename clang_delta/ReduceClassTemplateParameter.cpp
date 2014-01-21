@@ -129,6 +129,16 @@ private:
 bool ReduceClassTemplateParameterRewriteVisitor::
        VisitTemplateSpecializationTypeLoc(TemplateSpecializationTypeLoc Loc)
 {
+  // Invalidation can be introduced by constructor's initialization list, e.g.:
+  // template<typename T1, typename T2> class A { };
+  // class B : public A<int, int> {
+  //   int m;
+  //   B(int x) : m(x) {}
+  // };
+  // In RecursiveASTVisitor.h, TraverseConstructorInitializer will visit the part
+  // of initializing base class's, i.e. through base's default constructor 
+  if (Loc.getBeginLoc().isInvalid())
+    return true;
   const TemplateSpecializationType *Ty = 
     dyn_cast<TemplateSpecializationType>(Loc.getTypePtr());
   TransAssert(Ty && "Invalid TemplateSpecializationType!");
