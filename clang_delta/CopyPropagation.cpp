@@ -121,7 +121,7 @@ bool CopyPropCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
     return true;
 
   const Expr *Lhs = BO->getLHS()->IgnoreParenCasts();
-  if (!ConsumerInstance->isValidExpr(Lhs))
+  if (!ConsumerInstance->isValidLhs(Lhs))
     return true;
 
   const Expr *Rhs = BO->getRHS()->IgnoreParenCasts();
@@ -282,6 +282,23 @@ bool CopyPropagation::isValidExpr(const Expr *Exp)
   case Expr::IntegerLiteralClass:
   case Expr::GNUNullExprClass:
   case Expr::CharacterLiteralClass:
+  case Expr::DeclRefExprClass:
+  case Expr::MemberExprClass:
+  case Expr::ArraySubscriptExprClass: // Fall-through
+    return true;
+
+  default:
+    return false;
+  }
+  TransAssert(0 && "Unreachable code!");
+  return false;
+}
+
+bool CopyPropagation::isValidLhs(const Expr *Lhs)
+{
+  const Expr *E = Lhs->IgnoreParenCasts();
+
+  switch(E->getStmtClass()) {
   case Expr::DeclRefExprClass:
   case Expr::MemberExprClass:
   case Expr::ArraySubscriptExprClass: // Fall-through

@@ -64,6 +64,8 @@ private:
 
   bool isValidExpr(const clang::Expr *E);
 
+  bool isValidLhs(const clang::Expr *Lhs);
+
   void updateExpr(const clang::Expr *E, const clang::Expr *CopyE);
 
   void invalidateExpr(const clang::Expr *E);
