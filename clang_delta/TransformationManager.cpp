@@ -164,8 +164,8 @@ llvm::raw_ostream *TransformationManager::getOutStream()
     return &(llvm::outs());
 
   std::string Err;
-  llvm::raw_fd_ostream *Out = 
-    new llvm::raw_fd_ostream(OutputFileName.c_str(), Err);
+  llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
+      OutputFileName.c_str(), Err, llvm::sys::fs::F_RW);
   assert(Err.empty() && "Cannot open output file!");
   return Out;
 }

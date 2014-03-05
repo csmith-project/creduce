@@ -638,7 +638,7 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromOverloadTemplate(
       return NULL;
   }
 
-  const Type *Ty = FD->getResultType().getTypePtr();
+  const Type *Ty = FD->getReturnType().getTypePtr();
   return getFunctionDeclFromType(Ty, DName);
 }
 
@@ -663,7 +663,7 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromReturnType(
     const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(VD);
     if (!MD)
       return NULL;
-    const Type *Ty = MD->getResultType().getTypePtr();
+    const Type *Ty = MD->getReturnType().getTypePtr();
     return getFunctionDeclFromType(Ty, DName);
   }
   else if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(CalleeExpr)) {
@@ -671,7 +671,7 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromReturnType(
     const CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(VD);
     if (!MD)
       return NULL;
-    const Type *Ty = MD->getResultType().getTypePtr();
+    const Type *Ty = MD->getReturnType().getTypePtr();
     return getFunctionDeclFromType(Ty, DName);
   }
   else if (const OverloadExpr *OE = dyn_cast<OverloadExpr>(CalleeExpr)) {
@@ -699,7 +699,7 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromReturnType(
     const FunctionDecl *FD = getFunctionDecl(DE);
     if (!FD)
       return NULL;
-    const Type *Ty = FD->getResultType().getTypePtr();
+    const Type *Ty = FD->getReturnType().getTypePtr();
     // Note that it's not always true that we could get a 
     // non-null function here, e.g.:
     // template <typename T> class A {

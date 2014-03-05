@@ -67,7 +67,7 @@ private:
 
 bool UnionToStructCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  const Type *T = FD->getResultType().getTypePtr();
+  const Type *T = FD->getReturnType().getTypePtr();
   ConsumerInstance->addOneDeclarator(FD, T);
   return true;
 }

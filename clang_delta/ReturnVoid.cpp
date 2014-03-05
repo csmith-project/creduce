@@ -119,7 +119,7 @@ bool ReturnVoid::isNonVoidReturnFunction(FunctionDecl *FD)
   SourceLocation SLoc = TLoc.getBeginLoc();
   if (SLoc.isInvalid())
     return false;
-  QualType RVType = FD->getResultType();
+  QualType RVType = FD->getReturnType();
   return !(RVType.getTypePtr()->isVoidType());
 }
 
