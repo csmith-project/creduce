@@ -15290,8 +15290,8 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   fi
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
-  LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror//' | sed -e 's/-pedantic//'`
+  LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` `$LLVM_CONFIG --system-libs`"
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
   # The output of `llvm-config --ldflags' often contains library directives
