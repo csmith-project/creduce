@@ -166,7 +166,7 @@ bool ReplaceFunctionDefWithDecl::removeInlineKeyword(
        const std::string &Str,
        const SourceLocation &StartLoc)
 {
-  char Spaces[] = {' ', '\t', '\n'};
+  char Spaces[] = {' ', '\t', '\r', '\n'};
   unsigned Len = sizeof(Spaces) / sizeof(char);
   for (unsigned I = 0; I < Len; ++I) {
     std::string LeadingInlineStr = InlineStr + Spaces[I];
