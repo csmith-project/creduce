@@ -116,7 +116,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance->setTarget(Target);
   ClangInstance->createFileManager();
   ClangInstance->createSourceManager(ClangInstance->getFileManager());
-  ClangInstance->createPreprocessor();
+  ClangInstance->createPreprocessor(TU_Complete);
 
   DiagnosticConsumer &DgClient = ClangInstance->getDiagnosticClient();
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
