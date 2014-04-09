@@ -2,22 +2,65 @@
 
 use strict;
 
-my $res;
+my $DIR = "XXDIR";
 
-my $DIR = "/home/regehr/z/tgceec/barehands/foo/reduce";
+my $code;
 
-$res = system "g++ -std=c++11 -c foo.cpp > out.txt 2>&1";
-exit -1 unless ($res==0);
-my $s1 = -s "out.txt";
-my $s2 = -s "$DIR/out_best.txt";
-my $diff1 = $s1 - $s2;
-print "improvement in warning size: $diff1\n";
-my $p1 = -s "$DIR/foo.best";
-my $p2 = -s "foo.cpp";
-my $diff2 = $p2 - $p1;
-print "improvement in program size: $diff2\n";
-if ((10*$diff1) >= $diff2) {
-    system "cp out.txt $DIR/out_best.txt";
-    exit 0;
+sub desirable ($$$$) {
+    (my $sizewin, my $warnwin, my $oratio, my $nratio) = @_;
+    # return $warnwin > 0;
+    return $nratio >= $oratio;
 }
-exit -1;
+
+sub get_size ($) {
+    (my $fn) = @_;
+    open INF, "<$fn" or return 0;
+    my $line = <INF>;
+    chomp $line;
+    if (!($line =~ /^([0-9]+)$/)) {
+	print "no size in size file\n";
+	return 0;
+    }
+    my $size = $1;
+    close INF;
+    print "read size of $size\n";
+    return $size;
+}
+
+my $res = system "( ulimit -t 60 ; ulimit -v 16252928 ; clang++ -std=c++11 -c XXFILE.cpp -o /dev/null ) 2>&1 > /dev/null | wc -c > out.txt";
+if ($res!=0) {
+    $code = -1;
+    goto EXIT;
+}
+if (! -f "$DIR/out_best.txt") {
+    system "cp out.txt $DIR/out_best.txt";
+    $code = 0;
+    goto EXIT;
+}
+
+my $osize = -s "$DIR/XXFILE.best";
+my $nsize = -s "XXFILE.cpp";
+my $sizewin = $osize - $nsize;
+print "old size = $osize, new = $nsize, win = $sizewin\n";
+
+my $owarn = get_size ("$DIR/out_best.txt");
+my $nwarn = get_size ("out.txt");
+my $warnwin = $nwarn - $owarn;
+print "old warn = $owarn, new = $nwarn, win = $warnwin\n";
+
+my $oratio = (0.0+$owarn)/$osize;
+my $nratio = (0.0+$nwarn)/$nsize;
+print "old ratio = $oratio, new = $nratio\n";
+
+if (desirable($sizewin,$warnwin,$oratio,$nratio)) {
+    system "cp out.txt $DIR/out_best.txt";
+    $code = 0;
+    goto EXIT;
+} else {
+    $code = -1;
+    goto EXIT;
+}
+
+EXIT:
+#sleep (3600);
+exit ($code);
