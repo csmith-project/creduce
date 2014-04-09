@@ -611,7 +611,7 @@ if ($SLLOOWW) {
 	{ "name" => "pass_clex", "arg" => "rm-toks-26",             "pri" => 9009, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-27",             "pri" => 9010, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9011, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9012, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-29",             "pri" => 9012, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9013, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9014, },
 	{ "name" => "pass_clex", "arg" => "rm-toks-32",             "pri" => 9015, },
