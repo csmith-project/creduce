@@ -81,6 +81,8 @@ private:
 
   bool writeNewTmpVariable(const clang::QualType &QT, std::string &VarStr);
 
+  bool writeNewIntTmpVariable(std::string &VarStr);
+
   clang::SmallVector<clang::CallExpr *, 5> CallExprQueue;
 
   clang::SmallVector<clang::CallExpr *, 10> ValidCallExprs;
