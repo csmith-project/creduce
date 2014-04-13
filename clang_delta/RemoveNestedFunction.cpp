@@ -267,6 +267,13 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     return writeNewTmpVariable(QT, VarStr);
   }
 
+  if (const CXXTemporaryObjectExpr *CXXTE = 
+      dyn_cast<CXXTemporaryObjectExpr>(E)) {
+    const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
+    QT = CXXCtor->getThisType(ASTCtx);
+    return writeNewTmpVariable(QT, VarStr);
+  }
+
   if (const CXXDependentScopeMemberExpr *ME = 
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
 
@@ -388,10 +395,6 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     std::string DStr = PD->getNameAsString();
     VarStr = DStr + " " + VarStr + ";";
     return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
-  }
-  if (const ElaboratedType *ET = dyn_cast<ElaboratedType>(CalleeType)) {
-    QT = ET->getNamedType();
-    return writeNewTmpVariable(QT, VarStr);
   }
   //  return writeNewIntTmpVariable(VarStr);
   QT = TheCallExpr->getCallReturnType();
