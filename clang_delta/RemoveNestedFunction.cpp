@@ -389,6 +389,15 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     }
   }
 
+  const Type *CalleeType = E->getType().getTypePtr();
+  if (const TemplateTypeParmType *PT = 
+      dyn_cast<TemplateTypeParmType>(CalleeType)) {
+    const TemplateTypeParmDecl *PD = PT->getDecl();
+    std::string DStr = PD->getNameAsString();
+    VarStr = DStr + " " + VarStr + ";";
+    return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+  }
+  //  return writeNewIntTmpVariable(VarStr);
   QT = TheCallExpr->getCallReturnType();
   return writeNewTmpVariable(QT, VarStr);
 }
