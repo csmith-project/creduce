@@ -216,6 +216,11 @@ bool RemoveNestedFunction::writeNewTmpVariable(const QualType &QT,
   return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
 }
 
+bool RemoveNestedFunction::writeNewIntTmpVariable(std::string &VarStr)
+{
+  return RewriteHelper->addLocalVarToFunc("int " + VarStr + ";", TheFuncDecl);
+}
+
 bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 {
   std::string VarStr;
@@ -250,7 +255,14 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     }
     if (!FD)
       FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
-    TransAssert(FD && "Cannot resolve DName!");
+    // give up and generate a tmp var of int type, e.g.:
+    // template <class T> struct S {
+    //   T x;
+    //   template <class A> void foo(A &a0) { x(y(a0)); } 
+    // };
+    if (!FD)
+      return writeNewIntTmpVariable(VarStr);
+
     QT = FD->getReturnType();
     //FIXME: This is actually not quite correct, we should get the instantiated
     // type here.
