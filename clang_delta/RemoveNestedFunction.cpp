@@ -379,7 +379,9 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       // In this case, G[0] is of BuiltinType.
       // But why does clang represent a dependent type as BuiltinType here?
 
-      TransAssert((Ty->getAs<BuiltinType>() || Ty->getAs<TemplateTypeParmType>())
+      TransAssert((Ty->getAs<BuiltinType>() || 
+                   Ty->getAs<TemplateTypeParmType>() ||
+                   Ty->getAs<TypedefType>())
                   && "Uncaught Type");
       // FIXME: This is incorrect!
       // a couple of questions
