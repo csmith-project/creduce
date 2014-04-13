@@ -401,6 +401,10 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     VarStr = DStr + " " + VarStr + ";";
     return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
   }
+  if (const ElaboratedType *ET = dyn_cast<ElaboratedType>(CalleeType)) {
+    QT = ET->getNamedType();
+    return writeNewTmpVariable(QT, VarStr);
+  }
   //  return writeNewIntTmpVariable(VarStr);
   QT = TheCallExpr->getCallReturnType();
   return writeNewTmpVariable(QT, VarStr);
