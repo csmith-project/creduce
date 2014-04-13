@@ -378,6 +378,10 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
   }
 
   const Type *CalleeType = E->getType().getTypePtr();
+  // template <class T1, class T2> struct S {
+  //   T1 x; T2 y;
+  //   template <class A> void foo(A &a0) { x(y(a0)); }
+  // };
   if (const TemplateTypeParmType *PT = 
       dyn_cast<TemplateTypeParmType>(CalleeType)) {
     const TemplateTypeParmDecl *PD = PT->getDecl();
