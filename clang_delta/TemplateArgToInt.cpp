@@ -360,6 +360,14 @@ void TemplateArgToInt::handleOneType(const Type *Ty)
   TemplateTypeParmDecl *ParmDecl = ParmType->getDecl();
   TransAssert(ParmDecl && "Invalid ParmDecl!");
   const TemplateDecl *TmplD = ParamToTemplateDecl[ParmDecl];
+  if (TmplD == NULL) {
+    const DeclContext *Ctx = ParmDecl->getDeclContext();
+    TransAssert(Ctx && "NULL Ctx!");
+    const ClassTemplateSpecializationDecl *Spec = 
+      dyn_cast<ClassTemplateSpecializationDecl>(Ctx);
+    TransAssert(Spec && "Not a ClassTemplateSpecializationDecl!");
+    TmplD = Spec->getSpecializedTemplate();
+  }
   TransAssert(TmplD && "NULL TemplateDecl!");
   TemplateParameterIdxSet *InvalidIdx = 
     DeclToParamIdx[dyn_cast<TemplateDecl>(TmplD->getCanonicalDecl())];
