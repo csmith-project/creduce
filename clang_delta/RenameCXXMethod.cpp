@@ -432,13 +432,15 @@ bool RenameCXXMethod::isValidName(const StringRef &Name)
 }
 
 void RenameCXXMethod::addOneMethodName(const CXXMethodDecl *MD,
-                                       unsigned int Num)
+                                       unsigned int /*Num*/)
 {
   const CXXMethodDecl *CanonicalMD = MD->getCanonicalDecl();
   TransAssert((NewMethodNames.find(CanonicalMD) == NewMethodNames.end()) &&
               "Duplicate CXXMethodDecl!");
   std::stringstream SS;
-  SS << MethodNamePrefix << Num;
+  // SS << MethodNamePrefix << Num;
+  NumRenamedMethods++;
+  SS << MethodNamePrefix << NumRenamedMethods;
   NewMethodNames[CanonicalMD] = SS.str();
 
   // Now we check if the old name actually has a valid format, i.e. m_fn([0-9]+)

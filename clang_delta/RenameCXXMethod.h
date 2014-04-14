@@ -54,7 +54,8 @@ public:
       ClassInstantiation(false),
       FunctionInstantiation(false),
       DoRenaming(false),
-      MethodNamePrefix("m_fn")
+      MethodNamePrefix("m_fn"),
+      NumRenamedMethods(0)
   { }
 
   ~RenameCXXMethod();
@@ -159,6 +160,8 @@ private:
   bool DoRenaming;
 
   const std::string MethodNamePrefix;
+
+  int NumRenamedMethods;
 
   CXXRecordDeclSet VisitedCXXRecordDecls;
 
