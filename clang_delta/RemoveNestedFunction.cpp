@@ -369,7 +369,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 
       TransAssert((Ty->getAs<BuiltinType>() || 
                    Ty->getAs<TemplateTypeParmType>() ||
-                   Ty->getAs<TypedefType>())
+                   Ty->getAs<TypedefType>() ||
+                   Ty->getAs<DependentNameType>())
                   && "Uncaught Type");
       // FIXME: This is incorrect!
       // a couple of questions
@@ -382,7 +383,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       // DependentTy and users should never see it; however, it is here to
       // help diagnose failures to properly check for type-dependent
       // expressions.
-      return writeNewTmpVariable(QT, VarStr);
+      return writeNewIntTmpVariable(VarStr);
     }
   }
 
