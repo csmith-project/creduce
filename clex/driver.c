@@ -69,10 +69,7 @@ void print_toks (void)
 {
   int i;
   for (i=0; i<toks; i++) {
-    if (tok_list[i].kind == TOK_IDENT) printf ("%s\n", tok_list[i].str);
-  }
-  for (i=0; i<toks; i++) {
-    if (tok_list[i].kind == TOK_NUMBER) printf ("%s\n", tok_list[i].str);
+    printf ("%s", tok_list[i].str);
   }
   exit (0);
 }
@@ -491,6 +488,7 @@ void rm_tok_pattern (int idx)
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     printf ("USAGE: %s command index file\n", argv[0]);
+    exit (-1);
   }
 
   char *cmd = argv[1];

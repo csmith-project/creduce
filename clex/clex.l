@@ -149,10 +149,8 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
 
 [ \t\v\n\f]		{ process_token(TOK_WS); }
 
-.			{ fprintf (stderr, "didn't expect to see '%s'\n", yytext); 
-                          assert (0); }
+.			{ process_token(TOK_UNKNOWN); }
 
 %%
 
 int count = 0;
-
