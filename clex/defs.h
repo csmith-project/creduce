@@ -30,6 +30,7 @@ enum tok_kind {
   TOK_NUMBER,
   TOK_WS,
   TOK_STRING,
+  TOK_UNKNOWN,
 };
 
 void process_token (enum tok_kind);
