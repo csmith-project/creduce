@@ -20,6 +20,7 @@
 #include "clang/AST/RecordLayout.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
+#include "llvm/ADT/StringRef.h"
 #include "TransformationManager.h"
 
 using namespace clang;
@@ -165,9 +166,10 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   // We need to omit it.
   if (StartBuf > EndBuf) {
     SourceLocation KeywordLoc = Loc.getElaboratedKeywordLoc();
-    const char *Keyword = TypeWithKeyword::getKeywordName(ETy->getKeyword());
+    const llvm::StringRef Keyword = 
+      TypeWithKeyword::getKeywordName(ETy->getKeyword());
     ConsumerInstance->TheRewriter.ReplaceText(KeywordLoc, 
-                                              strlen(Keyword), "int");
+                                              Keyword.size(), "int");
     return true;
   }
   
