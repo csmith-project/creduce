@@ -54,6 +54,7 @@ enum mode_t {
   MODE_RENAME = 1111,
   MODE_PRINT,
   MODE_DELETE_STRING,
+  MODE_REVERSE_TOKS,
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
   MODE_COLLAPSE_TOKS,
@@ -391,7 +392,39 @@ void delete_string (int idx)
   }
 }
 
-int rm_toks_n;
+int n_toks;
+
+void reverse_toks (int idx)
+{
+  const int N = 128;
+  int matched = 0;
+  int which = 0;
+  int i;
+  int saved[N];
+  int nsaved = 0;
+  for (i=0; i<toks; i++) {
+    if (which>=idx && which<idx+n_toks) {
+      saved[nsaved] = i;
+      nsaved++;
+    } else {
+      printf ("%s", tok_list[i].str);
+    }
+    if (which == idx+n_toks) {
+      int x;
+      for (x=nsaved-1; x>=0; x--) {
+	printf ("%s", tok_list[saved[x]].str);
+      }
+    }
+    if (tok_list[i].kind != TOK_WS) {
+      which++;
+    }
+  }
+  if (matched) {
+    exit (0);
+  } else {
+    exit (-1);
+  }
+}
 
 void rm_toks (int idx)
 {
@@ -408,7 +441,7 @@ void rm_toks (int idx)
       which++;
     }
     if (!started ||
-	(started && which > (idx + rm_toks_n))) printf ("%s", tok_list[i].str);
+	(started && which > (idx + n_toks))) printf ("%s", tok_list[i].str);
   }
   if (matched) {
     exit (0);
@@ -430,7 +463,7 @@ void print_pattern (unsigned char c)
 void rm_tok_pattern (int idx)
 {
   int i;
-  int n_patterns = 1<<(rm_toks_n-1);
+  int n_patterns = 1<<(n_toks-1);
   unsigned char patterns[n_patterns];
   for (i=0; i<n_patterns; i++) {
     patterns[i] = 1 | ((unsigned)i << 1);
@@ -444,7 +477,7 @@ void rm_tok_pattern (int idx)
     print_pattern (pat);
   }
 
-  idx >>= (rm_toks_n-1);
+  idx >>= (n_toks-1);
   
   int which = 0;
   int started = 0;
@@ -456,7 +489,7 @@ void rm_tok_pattern (int idx)
 	matched = 1;
 	started = 1;
       }
-      if (which == (idx + rm_toks_n)) started = 0;
+      if (which == (idx + n_toks)) started = 0;
       which++;
     }
     int print = 0;
@@ -511,16 +544,21 @@ int main(int argc, char *argv[]) {
     mode = MODE_REMOVE_ASM_LINE;
   } else if (strcmp (cmd, "collapse-toks") == 0) {
     mode = MODE_COLLAPSE_TOKS;
+  } else if (strncmp (cmd, "reverse-", 8) == 0) {
+    mode = MODE_REVERSE_TOKS;
+    int res = sscanf (&cmd[8], "%d", &n_toks);
+    assert (res==1);
+    assert (n_toks > 0 && n_toks <= 1000);
   } else if (strncmp (cmd, "rm-toks-", 8) == 0) {
     mode = MODE_RM_TOKS;
-    int res = sscanf (&cmd[8], "%d", &rm_toks_n);
+    int res = sscanf (&cmd[8], "%d", &n_toks);
     assert (res==1);
-    assert (rm_toks_n > 0 && rm_toks_n <= 1000);
+    assert (n_toks > 0 && n_toks <= 1000);
   } else if (strncmp (cmd, "rm-tok-pattern-", 15) == 0) {
     mode = MODE_RM_TOK_PATTERN;
-    int res = sscanf (&cmd[15], "%d", &rm_toks_n);
+    int res = sscanf (&cmd[15], "%d", &n_toks);
     assert (res==1);
-    assert (rm_toks_n > 1 && rm_toks_n <= 8);
+    assert (n_toks > 1 && n_toks <= 8);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
     exit (-50);
@@ -571,6 +609,9 @@ int main(int argc, char *argv[]) {
     assert (0);
   case MODE_RM_TOKS:
     rm_toks (tok_index);
+    assert (0);
+  case MODE_REVERSE_TOKS:
+    reverse_toks (tok_index);
     assert (0);
   case MODE_RM_TOK_PATTERN:
     rm_tok_pattern (tok_index);
