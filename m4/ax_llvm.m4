@@ -1,6 +1,6 @@
 # -*- mode: m4 -*-
 #
-# Copyright (c) 2012, 2013 The University of Utah
+# Copyright (c) 2012, 2013, 2014 The University of Utah
 # Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -30,7 +30,7 @@
 # The definition of AX_LLVM in this file is almost completely rewritten from
 # the version (serial #12) found in the Archive.
 #
-# The current file has been updated for modern LLVM (3.3).
+# The current file has been updated for modern LLVM (3.3+).
 
 AC_DEFUN([AX_LLVM],
 [
@@ -68,8 +68,8 @@ AC_DEFUN([AX_LLVM],
   fi
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags`
-  LLVM_LDFLAGS=`$LLVM_CONFIG --ldflags`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror//' | sed -e 's/-pedantic//'`
+  LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` `$LLVM_CONFIG --system-libs`"
   LLVM_LIBS=`$LLVM_CONFIG --libs $2`
 
   # The output of `llvm-config --ldflags' often contains library directives

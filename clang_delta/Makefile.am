@@ -20,7 +20,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # linker options.
 #
 LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') -fno-rtti -fno-exceptions
-LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
+LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags) $(shell "$(LLVM_CONFIG)" \--system-libs)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
 LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs)
 
