@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013 The University of Utah
+## Copyright (c) 2012, 2013, 2014 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -19,8 +19,14 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') -fno-rtti -fno-exceptions
-LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags) $(shell "$(LLVM_CONFIG)" \--system-libs)
+# Also: Only LLVM post-3.4 supports `llvm-config --system-libs'.  There's no
+# harm is invoking it for LLVM 3.4 and below, but we want to avoid the usage
+# message in those cases; hence the redirection.
+#
+LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') \
+		   -fno-rtti -fno-exceptions
+LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags) \
+		   $(shell "$(LLVM_CONFIG)" \--system-libs 2&>/dev/null)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
 LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs)
 
@@ -45,6 +51,8 @@ clang_delta_CXXFLAGS = \
 # place is to add `LLVMLDFLAGS' to `clang_delta_LDADD' --- *not* to
 # `clang_delta_LDFLAGS'.  Automake puts LDFLAGS early in the link line.
 #
+# Newer LLVM's (post-3.4) support `llvm-config --system-libs', which will
+# possibly help us to straighten this out in the future.
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \

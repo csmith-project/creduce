@@ -15289,15 +15289,24 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 
   fi
 
+  # LLVM post-3.4 supports `llvm-config --system-libs'.
+  LLVM_SYSLIBS=`$LLVM_CONFIG --system-libs 2>/dev/null`
+  if test $? -ne 0; then
+    LLVM_SYSLIBS=""
+  fi
+
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
   LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror//' | sed -e 's/-pedantic//'`
-  LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` `$LLVM_CONFIG --system-libs`"
+  LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
   # The output of `llvm-config --ldflags' often contains library directives
   # that must come *after* all the LLVM libraries on the link line: e.g.,
   # "-lpthread -lffi -ldl -lm".  To ensure this, we insert LLVM_LDFLAGS into
   # LIBS, *not* into LDFLAGS.
+  #
+  # Newer LLVM's (post-3.4) support `llvm-config --system-libs', which will
+  # possibly help us to straighten this out in the future.
 
 
   CPPFLAGS_SAVED="$CPPFLAGS"
