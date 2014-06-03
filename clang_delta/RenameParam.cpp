@@ -37,8 +37,7 @@ class ExistingVarCollectionVisitor : public
 public:
 
   explicit ExistingVarCollectionVisitor(RenameParam *Instance)
-    : ConsumerInstance(Instance),
-      TheFunctionDecl(NULL)
+    : ConsumerInstance(Instance)
   { }
 
   bool VisitVarDecl(VarDecl *VD);
@@ -46,9 +45,6 @@ public:
 private:
 
   RenameParam *ConsumerInstance;
-
-  FunctionDecl *TheFunctionDecl;
-
 };
 
 class RenameParamVisitor : public RecursiveASTVisitor<RenameParamVisitor> {
