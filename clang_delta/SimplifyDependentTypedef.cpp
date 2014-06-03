@@ -62,8 +62,7 @@ class DependentTypedefTemplateTypeParmTypeVisitor : public
 public:
   explicit DependentTypedefTemplateTypeParmTypeVisitor(
              SimplifyDependentTypedef *Instance)
-    : ConsumerInstance(Instance),
-      IsValidType(false)
+    : IsValidType(false)
   { }
 
   bool VisitTemplateTypeParmType(TemplateTypeParmType *Ty);
@@ -83,8 +82,6 @@ public:
 private:
 
   TemplateTypeParmTypeSet *TypeSet;
-
-  SimplifyDependentTypedef *ConsumerInstance;
 
   bool IsValidType;
 };
