@@ -181,7 +181,9 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg, int &ErrorCo
   ErrorMsg = "";
 
   ClangInstance->createSema(TU_Complete, 0);
-  ClangInstance->getDiagnostics().setSuppressAllDiagnostics(true);
+  DiagnosticsEngine &Diag = ClangInstance->getDiagnostics();
+  Diag.setSuppressAllDiagnostics(true);
+  Diag.setIgnoreAllWarnings(true);
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
