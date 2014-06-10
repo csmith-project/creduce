@@ -610,7 +610,8 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromOverloadExpr(
   DeclarationName DName = OE->getName();
   TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
               "Not an indentifier!"); 
-  return lookupFunctionDecl(DName, RD);
+  DeclContextSet VisitedCtxs;
+  return lookupFunctionDecl(DName, RD, VisitedCtxs);
 }
 
 const FunctionDecl* RenameCXXMethod::getFunctionDeclFromType(
@@ -620,7 +621,8 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromType(
     Ty = getBasePointerElemType(Ty);
   const FunctionDecl *FD = NULL;
   if (const CXXRecordDecl *BaseRD = getBaseDeclFromType(Ty)) {
-    FD = lookupFunctionDecl(DName, BaseRD);
+    DeclContextSet VisitedCtxs;
+    FD = lookupFunctionDecl(DName, BaseRD, VisitedCtxs);
   }
   return FD;
 }
@@ -635,7 +637,8 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromOverloadTemplate(
     const DeclContext *Ctx = CurrentFD->getLookupParent();
     TransAssert(Ctx && "Bad DeclContext!");
     DeclarationName FunName = OE->getName();
-    FD = lookupFunctionDecl(FunName, Ctx);
+    DeclContextSet VisitedCtxs;
+    FD = lookupFunctionDecl(FunName, Ctx, VisitedCtxs);
     if (!FD)
       return NULL;
   }
@@ -745,7 +748,8 @@ const FunctionDecl* RenameCXXMethod::getFunctionDecl(
     TransAssert(CurrentFD && "NULL CurrentFD!");
     const DeclContext *Ctx = CurrentFD->getLookupParent();
     TransAssert(Ctx && "Bad DeclContext!");
-    FD = lookupFunctionDecl(DName, Ctx);
+    DeclContextSet VisitedCtxs;
+    FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
     TransAssert(FD && "Cannot resolve DName!");
     return FD;
   }
@@ -778,7 +782,8 @@ const FunctionDecl* RenameCXXMethod::getFunctionDecl(
   if (Ty->isPointerType() || Ty->isReferenceType())
     Ty = getBasePointerElemType(Ty);
   if (const DeclContext *Ctx = getBaseDeclFromType(Ty)) {
-    return lookupFunctionDecl(DName, Ctx);
+    DeclContextSet VisitedCtxs;
+    return lookupFunctionDecl(DName, Ctx, VisitedCtxs);
   }
   return NULL;
 }

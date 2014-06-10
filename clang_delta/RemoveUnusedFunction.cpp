@@ -737,7 +737,8 @@ void RemoveUnusedFunction::handleOneCXXDependentScopeMemberExpr(
     TransAssert(CurrentFD && "NULL CurrentFD");
     const DeclContext *Ctx = CurrentFD->getLookupParent();
     TransAssert(Ctx && "Bad DeclContext!");
-    FD = lookupFunctionDecl(DName, Ctx);
+    DeclContextSet VisitedCtxs;
+    FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
     // we may not get FD in cases where we have this->m_field
     if (FD)
       addOneReferencedFunction(FD);
