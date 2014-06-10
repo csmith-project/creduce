@@ -49,6 +49,7 @@ bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
 {
   if (FD->isThisDeclarationADefinition() && 
       !FD->isDeleted() &&
+      !FD->isDefaulted() &&
       !ConsumerInstance->isMacroExpansion(FD))
     ConsumerInstance->addOneFunctionDef(FD);
   return true;
@@ -193,6 +194,8 @@ void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
   RewriteHelper->getStringBetweenLocs(Str, StartLoc, EndLoc);
   if (removeInlineKeyword("inline", Str, StartLoc))
     return;
+  if (removeInlineKeyword("_inline", Str, StartLoc))
+    return;
   if (removeInlineKeyword("__inline", Str, StartLoc))
     return;
   if (removeInlineKeyword("__forceinline", Str, StartLoc))
@@ -251,7 +254,6 @@ void ReplaceFunctionDefWithDecl::rewriteOneFunctionDef(
 
   if (const CXXConstructorDecl *Ctor = 
       dyn_cast<const CXXConstructorDecl>(FD)) {
-    TransAssert(!Ctor->isDefaulted() && "Implicit Def!");
     removeCtorInitializers(Ctor);
   }
   RewriteHelper->replaceFunctionDefWithStr(FD, ";");
