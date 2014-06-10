@@ -14,6 +14,7 @@
 #include <string>
 #include <cstdlib>
 #include <cassert>
+#include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "RewriteUtils.h"
@@ -158,6 +159,8 @@ protected:
 
   typedef llvm::SmallVector<const clang::Expr *, 10> ExprVector;
 
+  typedef llvm::SmallPtrSet<const clang::DeclContext *, 20> DeclContextSet;
+
   unsigned int getArrayDimension(const clang::ArrayType *ArrayTy);
 
   unsigned int getArrayDimensionAndTypes(const clang::ArrayType *ArrayTy,
@@ -206,13 +209,19 @@ protected:
   bool isCXXMemberExpr(const clang::MemberExpr *ME);
 
   const clang::FunctionDecl *lookupFunctionDecl(
-          clang::DeclarationName &DName, const clang::DeclContext *Ctx);
+          clang::DeclarationName &DName, 
+          const clang::DeclContext *Ctx,
+          DeclContextSet &VisitedCtxs);
 
   const clang::FunctionDecl *lookupFunctionDeclFromCtx(
-          clang::DeclarationName &DName, const clang::DeclContext *Ctx);
+          clang::DeclarationName &DName, 
+          const clang::DeclContext *Ctx,
+          DeclContextSet &VisitedCtxs);
 
   const clang::FunctionDecl *lookupFunctionDeclFromBases(
-          clang::DeclarationName &DName, const clang::CXXRecordDecl *CXXRD);
+          clang::DeclarationName &DName, 
+          const clang::CXXRecordDecl *CXXRD,
+          DeclContextSet &VisitedCtxs);
 
   const clang::FunctionDecl *lookupFunctionDeclInGlobal(
           clang::DeclarationName &DName, const clang::DeclContext *Ctx);

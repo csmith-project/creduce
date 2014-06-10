@@ -12,6 +12,7 @@
 #define COMMON_PARAMETER_REWRITE_VISITOR_H
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 template<typename T, typename Trans>
@@ -35,6 +36,8 @@ protected:
   clang::SmallVector<clang::CallExpr *, 10> AllCallExprs;
 
   clang::SmallVector<const clang::CXXConstructExpr *, 5> AllConstructExprs;
+
+  typedef llvm::SmallPtrSet<const clang::DeclContext *, 20> DeclContextSet;
 
   bool rewriteOneCallExpr(clang::CallExpr *E);
 
@@ -110,12 +113,18 @@ bool CommonParameterRewriteVisitor<T, Trans>::VisitCallExpr(
                 "Not an indentifier!");
     if (const clang::NestedNameSpecifier *NNS = UE->getQualifier()) {
       if (const clang::DeclContext *Ctx = 
-          ConsumerInstance->getDeclContextFromSpecifier(NNS))
-        CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, Ctx);
+          ConsumerInstance->getDeclContextFromSpecifier(NNS)) {
+        DeclContextSet VisitedCtxs; 
+        CalleeDecl = 
+          ConsumerInstance->lookupFunctionDecl(DName, Ctx, VisitedCtxs);
+      }
     }
-    if (!CalleeDecl)
+    if (!CalleeDecl) {
+      DeclContextSet VisitedCtxs; 
       CalleeDecl = ConsumerInstance->lookupFunctionDecl(DName, 
-                     ConsumerInstance->TheFuncDecl->getLookupParent());
+                     ConsumerInstance->TheFuncDecl->getLookupParent(),
+                     VisitedCtxs);
+    }
     if (!CalleeDecl)
       return true;
   }

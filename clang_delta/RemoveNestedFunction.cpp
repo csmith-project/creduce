@@ -250,11 +250,16 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
                 "Not an indentifier!");
     const FunctionDecl *FD = NULL;
     if (const NestedNameSpecifier *NNS = UE->getQualifier()) {
-      if (const DeclContext *Ctx = getDeclContextFromSpecifier(NNS))
-        FD = lookupFunctionDecl(DName, Ctx);
+      if (const DeclContext *Ctx = getDeclContextFromSpecifier(NNS)) {
+        DeclContextSet VisitedCtxs;
+        FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
+      }
     }
-    if (!FD)
-      FD = lookupFunctionDecl(DName, TheFuncDecl->getLookupParent());
+    if (!FD) {
+      DeclContextSet VisitedCtxs;
+      FD = 
+        lookupFunctionDecl(DName, TheFuncDecl->getLookupParent(), VisitedCtxs);
+    }
     // give up and generate a tmp var of int type, e.g.:
     // template <class T> struct S {
     //   T x;
@@ -272,7 +277,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
   if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
     DeclarationName DName = UM->getMemberName();
     CXXRecordDecl *CXXRD = UM->getNamingClass();
-    const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD);
+    DeclContextSet VisitedCtxs;
+    const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD, VisitedCtxs);
     // FIXME: try to resolve FD here
     if (FD)
       QT = FD->getReturnType();
@@ -314,7 +320,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     if (dyn_cast<CXXThisExpr>(BaseE)) {
       const DeclContext *Ctx = TheFuncDecl->getLookupParent();
       TransAssert(Ctx && "Bad DeclContext!");
-      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx);
+      DeclContextSet VisitedCtxs;
+      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
       TransAssert(FD && "Cannot resolve DName!");
       QT = FD->getReturnType();
       return writeNewTmpVariable(QT, VarStr);
@@ -324,7 +331,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     // the current CXXRecord, e.g.,
     const Type *Ty = ME->getBaseType().getTypePtr();
     if (const DeclContext *Ctx = getBaseDeclFromType(Ty)) {
-      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx);
+      DeclContextSet VisitedCtxs;
+      const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
       if (!FD) {
         return writeNewTmpVariable(QT, VarStr);
       }

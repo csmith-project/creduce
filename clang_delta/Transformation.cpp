@@ -503,7 +503,9 @@ const FunctionDecl *Transformation::lookupFunctionDeclInGlobal(
 }
 
 const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
-        DeclarationName &DName, const CXXRecordDecl *CXXRD)
+        DeclarationName &DName, 
+        const CXXRecordDecl *CXXRD, 
+        DeclContextSet &VisitedCtxs)
 {
   for (CXXRecordDecl::base_class_const_iterator I =
        CXXRD->bases_begin(), E = CXXRD->bases_end(); I != E; ++I) {
@@ -518,14 +520,17 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
     const CXXRecordDecl *BaseDef = Base->getDefinition();
     if (!BaseDef)
       continue;
-    if (const FunctionDecl *FD = lookupFunctionDecl(DName, BaseDef))
+    if (const FunctionDecl *FD = 
+        lookupFunctionDecl(DName, BaseDef, VisitedCtxs))
       return FD;
   }
   return NULL;
 }
 
 const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
-        DeclarationName &DName, const DeclContext *Ctx)
+        DeclarationName &DName, 
+        const DeclContext *Ctx,
+        DeclContextSet &VisitedCtxs)
 {
   if (dyn_cast<LinkageSpecDecl>(Ctx))
     return NULL;
@@ -552,7 +557,8 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
       const DeclContext *Ctx = getDeclContextFromSpecifier(NNS);
       if (!Ctx)
         continue;
-      if (const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx))
+      if (const FunctionDecl *FD = 
+          lookupFunctionDecl(DName, Ctx, VisitedCtxs))
         return FD;
     }
   }
@@ -560,11 +566,18 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
 }
 
 const FunctionDecl *Transformation::lookupFunctionDecl(
-        DeclarationName &DName, const DeclContext *Ctx)
+        DeclarationName &DName, 
+        const DeclContext *Ctx, 
+        DeclContextSet &VisitedCtxs)
 {
   if (dyn_cast<LinkageSpecDecl>(Ctx))
     return NULL;
-  if (const FunctionDecl *FD = lookupFunctionDeclFromCtx(DName, Ctx))
+  if (VisitedCtxs.count(Ctx))
+    return NULL;
+  VisitedCtxs.insert(Ctx);
+
+  if (const FunctionDecl *FD = 
+      lookupFunctionDeclFromCtx(DName, Ctx, VisitedCtxs))
     return FD;
  
   // lookup base classes:
@@ -574,7 +587,8 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
   if (Ctx->isRecord()) {
     const RecordDecl *RD = dyn_cast<RecordDecl>(Ctx);
     if (const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(RD)) {
-      if (const FunctionDecl *FD = lookupFunctionDeclFromBases(DName, CXXRD))
+      if (const FunctionDecl *FD = 
+          lookupFunctionDeclFromBases(DName, CXXRD, VisitedCtxs))
         return FD;
     }
   }
@@ -584,7 +598,7 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
     // avoid infinite recursion
     if (ND->getLookupParent() == Ctx)
       return NULL;
-    if (const FunctionDecl *FD = lookupFunctionDecl(DName, ND))
+    if (const FunctionDecl *FD = lookupFunctionDecl(DName, ND, VisitedCtxs))
       return FD;
   }
 
@@ -592,7 +606,7 @@ const FunctionDecl *Transformation::lookupFunctionDecl(
   if (!ParentCtx || dyn_cast<LinkageSpecDecl>(ParentCtx))
     return NULL;
 
-  return lookupFunctionDecl(DName, ParentCtx);
+  return lookupFunctionDecl(DName, ParentCtx, VisitedCtxs);
 }
 
 const DeclContext *Transformation::getDeclContextFromSpecifier(
