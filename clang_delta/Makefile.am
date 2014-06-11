@@ -20,7 +20,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # linker options.
 #
 # Also: Only LLVM post-3.4 supports `llvm-config --system-libs'.  There's no
-# harm is invoking it for LLVM 3.4 and below, but we want to avoid the usage
+# harm in invoking it for LLVM 3.4 and below, but we want to avoid the usage
 # message in those cases; hence the redirection.
 #
 LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') \
