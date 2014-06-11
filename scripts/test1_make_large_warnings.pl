@@ -1,4 +1,12 @@
 #!/usr/bin/perl -w
+##
+## Copyright (c) 2013, 2014 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
 
 use strict;
 
