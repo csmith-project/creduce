@@ -14,6 +14,7 @@
 
 #include "ReplaceFunctionDefWithDecl.h"
 
+#include <cctype>
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/Basic/SourceManager.h"
@@ -183,6 +184,25 @@ bool ReplaceFunctionDefWithDecl::removeInlineKeyword(
   return false;
 }
 
+void ReplaceFunctionDefWithDecl::removeStringBeforeTypeIdentifier(
+       const SourceLocation &StartLoc, const SourceLocation &EndLoc)
+{
+  const char *StartPos = SrcManager->getCharacterData(StartLoc);
+  const char *EndPos = SrcManager->getCharacterData(EndLoc);
+  // skip the first char of function's name
+  EndPos--;
+  while (isspace(*EndPos) && (EndPos != StartPos)) {
+    EndPos--;
+  }
+  assert((EndPos > StartPos) && "Invalid EndPos!");
+  while (!isspace(*EndPos) && (EndPos != StartPos)) {
+    EndPos--;
+  }
+  EndPos++;
+  assert((EndPos != StartPos) && "Bad Type Location?");
+  TheRewriter.RemoveText(StartLoc, EndPos - StartPos);
+}
+
 void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
        const FunctionDecl *FD)
 {
@@ -202,7 +222,9 @@ void ReplaceFunctionDefWithDecl::removeInlineKeywordFromOneFunctionDecl(
     return;
   if (removeInlineKeyword("__inline__", Str, StartLoc))
     return;
-  TransAssert(0 && "Unreachable code!");
+  // OK, just remove whatever appears before the type identifier...
+  // It's mainly for dealing with non-preprocessed code 
+  removeStringBeforeTypeIdentifier(StartLoc, EndLoc);
 }
 
 void ReplaceFunctionDefWithDecl::removeInlineKeywordFromFunctionDecls(

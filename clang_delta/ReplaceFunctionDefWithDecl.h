@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2014 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -61,6 +61,9 @@ private:
 
   bool hasValidOuterLocStart(const clang::FunctionTemplateDecl *FTD, 
                              const clang::FunctionDecl *FD);
+
+  void removeStringBeforeTypeIdentifier(const clang::SourceLocation &StartLoc,
+                                        const clang::SourceLocation &EndLoc);
  
   bool removeOneInlineKeyword(const std::string &LeadingInlineStr,
                               const std::string &InlineStr, 
