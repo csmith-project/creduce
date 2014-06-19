@@ -81,6 +81,7 @@ my $NODEFAULT;
 my $CACHE = 0;
 my $FUZZ = 0;
 my $CPP;
+my $TIMING = 0;
 
 my @options = (
     # ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
@@ -98,6 +99,7 @@ my @options = (
     ["--slow",                "const",   1, \$SLOW,            "Run additional passes that may improve final output slightly, but that might also be very slow"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Like --slow but more so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
+    ["--timing",              "const",   1, \$TIMING,          "Print timestaps about reduction progress"],
 );
 
 my $help = creduce_config::PACKAGE_STRING . " -- C and C++ program reducer";
@@ -390,6 +392,7 @@ sub delta_pass ($) {
 	    File::Copy::copy($tmpfn,$toreduce_best) or die;
 	    print "success " if $VERBOSE;
 	    print_pct(-s $toreduce_best);
+            print "timestamp ".time()." size ".(-s $toreduce_best)."\n" if $TIMING;
 	} else {
 	    print "failure\n" if $VERBOSE;
 	    $bad_cnt++;
