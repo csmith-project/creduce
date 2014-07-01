@@ -24,17 +24,7 @@ clang_delta TODO list:
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times 
 
-reduce the indirect level of struct member accesses
-  s.f1.f2.f3 => s.f1.f2 or s.f2.f3
-  Note that to do these kinds of simplification, we also need to 
-  change struct declarations appropriately.
-
 change operators to other operators, e.g., replace / with +
-
-- add supports to C++ specific features
- * rename class member functions to m_fn1 ...
-
- * rename class member variables to m_a, m_b ...
 
 - From Konstantin Tokarev
 
