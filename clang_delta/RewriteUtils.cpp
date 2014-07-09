@@ -673,9 +673,13 @@ bool RewriteUtils::replaceExprNotInclude(const Expr *E,
 }
 
 std::string RewriteUtils::getStmtIndentString(Stmt *S,
-                                          SourceManager *SrcManager)
+                                              SourceManager *SrcManager)
 {
   SourceLocation StmtStartLoc = S->getLocStart();
+
+  if (StmtStartLoc.isMacroID()) {
+    StmtStartLoc = SrcManager->getFileLoc(StmtStartLoc);
+  }
 
   FileID FID;
   unsigned StartOffset = 
