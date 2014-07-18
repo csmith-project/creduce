@@ -5,6 +5,13 @@
 C-Reduce 
 
 --------------------------------------------------------------------
+NOTE for Ubuntu 14.04 users:
+
+The compiled versions of LLVM 3.4 on the LLVM web site are not fully compatible
+with the system compiler (gcc 4.8.2) on Ubuntu 14.04.  On this platform, you
+will need to build C-Reduce using gcc 4.9.
+
+--------------------------------------------------------------------
 Prereqs:
 
 On Ubuntu or Mint, prerequisites other than LLVM can be installed like
@@ -77,5 +84,14 @@ script where to find LLVM/Clang:
 Note that assertions are disabled by default.  To enable assertions:
 
   configure --enable-trans-assert
+
+--------------------------------------------------------------------
+Regarding LLVM versions:
+
+Released versions of C-Reduce, and also our master branch at Github, need to be
+compiled against specific released versions of LLVM, as noted in this file.
+
+Our Github repo also has a branch called llvm-svn-compatible that supports
+building C-Reduce against the current LLVM SVN head.
 
 --------------------------------------------------------------------
