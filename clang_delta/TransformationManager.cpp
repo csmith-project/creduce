@@ -112,7 +112,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
     TargetInfo::CreateTargetInfo(ClangInstance->getDiagnostics(),
-                                 &TargetOpts);
+                                 ClangInstance->getInvocation().TargetOpts);
   ClangInstance->setTarget(Target);
   ClangInstance->createFileManager();
   ClangInstance->createSourceManager(ClangInstance->getFileManager());
