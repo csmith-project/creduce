@@ -7,7 +7,7 @@ C-Reduce
 --------------------------------------------------------------------
 NOTE for Ubuntu 14.04 users:
 
-The compiled versions of LLVM 3.4 on the LLVM web site are not fully compatible
+The compiled versions of LLVM 3.4.2 on the LLVM web site are not fully compatible
 with the system compiler (gcc 4.8.2) on Ubuntu 14.04.  On this platform, you
 will need to build C-Reduce using gcc 4.9.
 
