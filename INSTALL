@@ -14,8 +14,13 @@ will need to build C-Reduce using gcc 4.9.
 --------------------------------------------------------------------
 Prereqs:
 
-On Ubuntu or Mint, prerequisites other than LLVM can be installed like
-this:
+C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
+you will need a development environment that supports these languages.
+C-Reduce's build system requires GNU Make (*not* BSD Make).
+
+Beyond the basic compile/build tools, C-Reduce depends on a set of
+third-party software packages, including LLVM.  On Ubuntu or Mint,
+the prerequisites other than LLVM can be installed like this:
 
   sudo apt-get install indent astyle delta libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
@@ -84,6 +89,10 @@ script where to find LLVM/Clang:
 Note that assertions are disabled by default.  To enable assertions:
 
   configure --enable-trans-assert
+
+The generated Makefiles require GNU Make.  BSD Make will not work.
+If you see weird make-time errors, please check that you are using
+GNU Make.
 
 --------------------------------------------------------------------
 Regarding LLVM versions:
