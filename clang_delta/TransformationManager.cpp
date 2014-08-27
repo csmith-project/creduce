@@ -124,7 +124,8 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance->createASTContext();
 
   assert(CurrentTransformationImpl && "Bad transformation instance!");
-  ClangInstance->setASTConsumer(CurrentTransformationImpl);
+  ClangInstance->setASTConsumer(
+    std::unique_ptr<ASTConsumer>(CurrentTransformationImpl));
   Preprocessor &PP = ClangInstance->getPreprocessor();
   PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
                                          PP.getLangOpts());
@@ -163,10 +164,10 @@ llvm::raw_ostream *TransformationManager::getOutStream()
   if (OutputFileName.empty())
     return &(llvm::outs());
 
-  std::string Err;
+  std::error_code EC;
   llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
-      OutputFileName.c_str(), Err, llvm::sys::fs::F_RW);
-  assert(Err.empty() && "Cannot open output file!");
+      OutputFileName.c_str(), EC, llvm::sys::fs::F_RW);
+  assert(!EC && "Cannot open output file!");
   return Out;
 }
 
