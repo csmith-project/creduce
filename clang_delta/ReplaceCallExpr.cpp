@@ -151,7 +151,7 @@ bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
   // Because CE->getCallReturnType() fails on builtin functions,
   // try to get returntype from FD (probably not really accurate thought)
   if (FD->getBuiltinID())
-    T = FD->getResultType().getTypePtr();
+    T = FD->getReturnType().getTypePtr();
   else 
     T = CE->getCallReturnType().getTypePtr();
   if (T->isVoidType())

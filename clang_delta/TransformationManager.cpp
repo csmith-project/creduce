@@ -112,11 +112,11 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   TargetInfo *Target = 
     TargetInfo::CreateTargetInfo(ClangInstance->getDiagnostics(),
-                                 &TargetOpts);
+                                 ClangInstance->getInvocation().TargetOpts);
   ClangInstance->setTarget(Target);
   ClangInstance->createFileManager();
   ClangInstance->createSourceManager(ClangInstance->getFileManager());
-  ClangInstance->createPreprocessor();
+  ClangInstance->createPreprocessor(TU_Complete);
 
   DiagnosticConsumer &DgClient = ClangInstance->getDiagnosticClient();
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
@@ -163,10 +163,10 @@ llvm::raw_ostream *TransformationManager::getOutStream()
   if (OutputFileName.empty())
     return &(llvm::outs());
 
-  std::string Err;
-  llvm::raw_fd_ostream *Out = 
-    new llvm::raw_fd_ostream(OutputFileName.c_str(), Err);
-  assert(Err.empty() && "Cannot open output file!");
+  std::string ES;
+  llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
+      OutputFileName.c_str(), ES, llvm::sys::fs::F_RW);
+  assert(ES == "" && "Cannot open output file!");
   return Out;
 }
 

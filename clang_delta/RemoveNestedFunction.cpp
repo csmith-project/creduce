@@ -268,7 +268,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     if (!FD)
       return writeNewIntTmpVariable(VarStr);
 
-    QT = FD->getResultType();
+    QT = FD->getReturnType();
     //FIXME: This is actually not quite correct, we should get the instantiated
     // type here.
     return writeNewTmpVariable(QT, VarStr);
@@ -281,7 +281,14 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD, VisitedCtxs);
     // FIXME: try to resolve FD here
     if (FD)
-      QT = FD->getResultType();
+      QT = FD->getReturnType();
+    return writeNewTmpVariable(QT, VarStr);
+  }
+
+  if (const CXXTemporaryObjectExpr *CXXTE = 
+      dyn_cast<CXXTemporaryObjectExpr>(E)) {
+    const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
+    QT = CXXCtor->getThisType(ASTCtx);
     return writeNewTmpVariable(QT, VarStr);
   }
 
@@ -323,7 +330,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       DeclContextSet VisitedCtxs;
       const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
       TransAssert(FD && "Cannot resolve DName!");
-      QT = FD->getResultType();
+      QT = FD->getReturnType();
       return writeNewTmpVariable(QT, VarStr);
     }
     
@@ -336,7 +343,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       if (!FD) {
         return writeNewTmpVariable(QT, VarStr);
       }
-      QT = FD->getResultType();
+      QT = FD->getReturnType();
       const Type *RVTy = QT.getTypePtr();
       if (RVTy->getAs<InjectedClassNameType>()) {
         // handle cases like:

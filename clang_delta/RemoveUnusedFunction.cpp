@@ -654,9 +654,8 @@ RemoveUnusedFunction::lookupFunctionDeclShallow(const DeclarationName &DName,
     }
   }
 
-  for (DeclContext::udir_iterator I = Ctx->using_directives_begin(),
-       E = Ctx->using_directives_end(); I != E; ++I) {
-    const NamespaceDecl *ND = (*I)->getNominatedNamespace();
+  for (auto *I : Ctx->using_directives()) {
+    const NamespaceDecl *ND = I->getNominatedNamespace();
     // avoid infinite recursion
     if (ND->getLookupParent() == Ctx)
       return NULL;

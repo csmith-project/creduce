@@ -388,7 +388,7 @@ std::string SimpleInliner::getNewTmpName(void)
 
 void SimpleInliner::createReturnVar(void)
 {
-  const Type *FDType = CurrentFD->getResultType().getTypePtr();
+  const Type *FDType = CurrentFD->getReturnType().getTypePtr();
   const Type *CallExprType = TheCallExpr->getCallReturnType().getTypePtr();
 
   // We don't need tmp var
@@ -398,7 +398,7 @@ void SimpleInliner::createReturnVar(void)
 
   TmpVarName = getNewTmpName();
   std::string VarStr = TmpVarName;
-  CurrentFD->getResultType().getAsStringInternal(VarStr, 
+  CurrentFD->getReturnType().getAsStringInternal(VarStr, 
                                Context->getPrintingPolicy());
   VarStr += ";";
   RewriteHelper->addLocalVarToFunc(VarStr, TheCaller);

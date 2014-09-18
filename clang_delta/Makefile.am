@@ -19,16 +19,12 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-# Also: Only LLVM post-3.4 supports `llvm-config --system-libs'.  There's no
-# harm in invoking it for LLVM 3.4 and below, but we want to avoid the usage
-# message in those cases; hence the redirection.
-#
 LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') \
-		   -fno-rtti -fno-exceptions
-LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags) \
-		   $(shell "$(LLVM_CONFIG)" \--system-libs 2&>/dev/null)
+                   -fno-rtti -fno-exceptions
+LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
-LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs)
+LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs) \
+		   $(shell "$(LLVM_CONFIG)" \--system-libs)
 
 clang_delta_CPPFLAGS = \
 	$(GIT_FLAG) \
@@ -56,7 +52,7 @@ clang_delta_CXXFLAGS = \
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
-	-lclangRewriteCore -lclangAST -lclangBasic -lclangEdit -lclangLex \
+	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
 	$(LLVMLIBS) \
 	$(LLVMLDFLAGS)
 

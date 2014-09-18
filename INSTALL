@@ -5,13 +5,6 @@
 C-Reduce 
 
 --------------------------------------------------------------------
-NOTE for Ubuntu 14.04 users:
-
-The compiled versions of LLVM 3.4.2 on the LLVM web site are not fully compatible
-with the system compiler (gcc 4.8.2) on Ubuntu 14.04.  On this platform, you
-will need to build C-Reduce using gcc 4.9.
-
---------------------------------------------------------------------
 Prereqs:
 
 C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
@@ -42,8 +35,8 @@ Flex:
 GNU Indent:
   http://www.gnu.org/software/indent/
 
-LLVM/Clang 3.4:
-  http://llvm.org/releases/download.html#3.4
+LLVM/Clang 3.5.0:
+  http://llvm.org/releases/download.html#3.5.0
   (no need to compile it, the appropriate "Clang binaries" package is
   all you need)
 

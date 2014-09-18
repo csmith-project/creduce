@@ -52,7 +52,7 @@ private:
 
 bool SimplifyStructUnionDeclVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  const Type *T = FD->getResultType().getTypePtr();
+  const Type *T = FD->getReturnType().getTypePtr();
   return ConsumerInstance->handleOneDeclarator(T);
 }
 
