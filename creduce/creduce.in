@@ -330,6 +330,9 @@ sub delta_pass ($) {
 	my $tmpdir = make_tmpdir();
 	chdir $tmpdir or die;
 	my $tmpfn = File::Spec->rel2abs($orig_tmpfn);
+        if (-s $toreduce_best == 0) {
+            die "filesize reached zero";
+        }
 	File::Copy::copy($toreduce_best,$tmpfn) or die;
 	# creating the variant is done in the parent, it's only
 	# testing it that we parallelize
