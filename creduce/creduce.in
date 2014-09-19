@@ -27,7 +27,6 @@
 #   identifiers are dense
 #   reduce the non-header-file part first, and use PCHs
 # add a multidelta?
-# replace peep::a and peep::b with token-based passes
 # maybe: fix the caching code and then benchmark on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
@@ -73,7 +72,6 @@ my $SANITIZE = 0;
 my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
-my $SLOW = 0;
 my $SLLOOWW = 0;
 my $NODEFAULT;
 # if set, cache results of the delta test
@@ -96,8 +94,7 @@ my @options = (
     ["--sanity-checks",       "const",   1, \$SANITY,          "Ensure the delta test succeeds before starting each pass"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
-    ["--slow",                "const",   1, \$SLOW,            "Run additional passes that may improve final output slightly, but that might also be very slow"],
-    ["--sllooww",             "const",   1, \$SLLOOWW,         "Like --slow but more so"],
+    ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestaps about reduction progress"],
 );
@@ -548,7 +545,6 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "move-global-var",                       "last_pass_pri" => 993, },
     { "name" => "pass_clang",    "arg" => "unify-function-decl",                   "last_pass_pri" => 994, },
     { "name" => "pass_peep",     "arg" => "a",                      "pri" => 500,  },
-    { "name" => "pass_peep",     "arg" => "b",                      "pri" => 501,  },
     { "name" => "pass_ints",     "arg" => "a",                      "pri" => 600,  },
     { "name" => "pass_ints",     "arg" => "b",                      "pri" => 601,  },
     { "name" => "pass_ints",     "arg" => "c",                      "pri" => 602,  },
@@ -557,6 +553,22 @@ my @all_methods = (
     { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
     { "name" => "pass_clex",     "arg" => "delete-string",                         "last_pass_pri" => 1001, },
     { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 9999, },
+    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9031, },
+    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9030, },
+    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9029, },
+    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9028, },
+    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9027, },
+    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9026, },
+    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9025, },
+    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9024, },
+    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9023, },
+    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9022, },
+    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9021, },
+    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9020, },
+    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9019, },
+    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9018, },
+    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9017, },
+    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9016, },
     );
 
 if ($SANITIZE) {
@@ -572,55 +584,30 @@ if ($SANITIZE) {
     );
 }
 
-if ($SLOW || $SLLOOWW) {
-    push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9015, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9014, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9013, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9012, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9011, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9010, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9009, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9008, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9007, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9006, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9005, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9004, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9003, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9002, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9001, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9000, },
-    );
-}
-
-if ($SLOW && !$SLLOOWW) {
-    push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-4",       "pri" => 9100, },
-    );
-}
-
 if ($SLLOOWW) {
-    # too slow for most purposes...
     push @all_methods, (
 	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-8",       "pri" => 9100, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-17",             "pri" => 9015, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-18",             "pri" => 9014, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-19",             "pri" => 9013, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-20",             "pri" => 9012, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-21",             "pri" => 9011, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-22",             "pri" => 9010, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-23",             "pri" => 9009, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-24",             "pri" => 9008, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-25",             "pri" => 9007, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-26",             "pri" => 9006, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-27",             "pri" => 9005, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9004, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-29",             "pri" => 9003, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9002, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-31",             "pri" => 9001, },
+	{ "name" => "pass_clex", "arg" => "rm-toks-32",             "pri" => 9000, },
+        { "name" => "pass_peep", "arg" => "b",                      "pri" => 9500,  },
     );
+} else {
     push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rm-toks-17",             "pri" => 9031, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-18",             "pri" => 9030, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-19",             "pri" => 9029, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-20",             "pri" => 9028, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-21",             "pri" => 9027, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-22",             "pri" => 9026, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-23",             "pri" => 9025, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-24",             "pri" => 9024, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-25",             "pri" => 9023, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-26",             "pri" => 9022, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-27",             "pri" => 9021, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-28",             "pri" => 9020, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-29",             "pri" => 9019, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9018, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-30",             "pri" => 9017, },
-	{ "name" => "pass_clex", "arg" => "rm-toks-32",             "pri" => 9016, },
+	{ "name" => "pass_clex", "arg" => "rm-tok-pattern-4",       "pri" => 9100, },
     );
 }
 
