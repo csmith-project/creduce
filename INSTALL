@@ -93,7 +93,7 @@ Regarding LLVM versions:
 Released versions of C-Reduce, and also our master branch at Github, need to be
 compiled against specific released versions of LLVM, as noted in this file.
 
-Our Github repo also has a branch called llvm-svn-compatible that supports
-building C-Reduce against the current LLVM SVN head.
+Our Github repo usually also has a branch called llvm-svn-compatible that
+supports building C-Reduce against the current LLVM SVN head.
 
 --------------------------------------------------------------------

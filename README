@@ -10,6 +10,11 @@ automatically produces a much smaller C/C++ program that has the same
 property.  It is intended for use by people who discover and report
 bugs in compilers and other tools that process C/C++ code.
 
+NOTE: C-Reduce happens to do a pretty good job reducing the size of
+programs in languages other than C/C++, such as JavaScript and Rust.
+If you need to reduce programs in some other language, please give it
+a try.
+
 Documentation and other information can be found at the C-Reduce web
 page:
 
