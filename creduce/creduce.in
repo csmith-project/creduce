@@ -66,6 +66,8 @@ my $DEBUG_SMP = 0;
 my $NPROCS = 1;
 if (defined(&Sys::CPU::cpu_count)) {
     $NPROCS = Sys::CPU::cpu_count();
+    # Yang's data suggests that speedup peaks at 8 cores
+    $NPROCS = 8 if ($NPROCS > 8);
 }
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
