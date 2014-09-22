@@ -41,14 +41,18 @@ clang_delta_CXXFLAGS = \
 # of `clang_delta_LDFLAGS'.  This leads to the funny escape in `LLVMLIBS',
 # above, and the need to define `clang_delta_DEPENDENCIES', below.
 #
-# The output of `llvm-config --ldflags' often contains library directives that
-# must come *after* all the LLVM/Clang libraries on the link line: e.g.,
-# "-lpthread -lffi -ldl -lm".  The easiest way to get these into the right
-# place is to add `LLVMLDFLAGS' to `clang_delta_LDADD' --- *not* to
-# `clang_delta_LDFLAGS'.  Automake puts LDFLAGS early in the link line.
+# Pre LLVM-3.5, the output of `llvm-config --ldflags' would often contain
+# library directives that must come *after* all the LLVM/Clang libraries on the
+# link line: e.g., "-lpthread -lffi -ldl -lm".  The easiest way to get these
+# into the right place is to add `LLVMLDFLAGS' to `clang_delta_LDADD' --- *not*
+# to `clang_delta_LDFLAGS'.  Automake puts LDFLAGS early in the link line.
 #
 # Newer LLVM's (post-3.4) support `llvm-config --system-libs', which will
 # possibly help us to straighten this out in the future.
+#
+# In LLVM 3.5, `llvm-config --ldflags' does not contain the list of system
+# libraries.  So probably, we could move `LLVMLDFLAGS' back to the definition
+# of `clang_delta_LDFLAGS'.  I'll do that later.
 clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
