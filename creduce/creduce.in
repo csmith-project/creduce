@@ -44,6 +44,7 @@ use FindBin;
 use lib $FindBin::Bin, '@perllibdir@';
 use Exporter::Lite;
 use File::Basename;
+use File::Compare;
 use File::Which;
 use Getopt::Tabular;
 use POSIX;
@@ -342,31 +343,56 @@ sub delta_pass ($) {
 	    $stopped = 1;
 	} else {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
-	    # FIXME: check the cache here
-	    # FIXME: extend the plugin interface to optionally return a reference to the processed data
-            my $orig_state = $state;
-	    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-	    if ($FUZZ) {
-		while (rand()<0.5) {
-		    $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-		}
-	    }
-	    my $pid = fork();
-	    die unless ($pid >= 0);
-	    if ($pid==0) {
-		# put this process (the child) into a process group
-		# named by its pid so that we'll be able to kill its
-		# entire subtree all at once later
-		setpgrp();
-		my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);		
-		exit ($delta_result);
-	    }
-	    my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);	    
-	    push @variants, \@l;
-	    chdir $ORIG_DIR or die;
-	    $num_running++;
-	    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
-	}
+            if (compare ($toreduce_best, $tmpfn) == 0) {
+                my $n = int(rand(1000000));
+                my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
+                File::Copy::copy($toreduce_best, $crashfile) or die;
+                print <<"EOT";
+
+
+=======================================
+
+OOPS: ${delta_method}::${delta_arg} failed to
+modify the test case, which means you have
+encountered a bug in C-Reduce. Please consider
+mailing ${crashfile} to
+creduce-bugs\@flux.utah.edu and we will try to fix
+the bug. Please also let us know what version of
+C-Reduce you are using and include any other
+details that may help us reproduce the problem.
+
+=======================================
+
+EOT
+                chdir $ORIG_DIR or die;
+                $stopped = 1;
+            } else {
+                # FIXME: check the cache here
+                # FIXME: extend the plugin interface to optionally return a reference to the processed data
+                my $orig_state = $state;
+                $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+                if ($FUZZ) {
+                    while (rand()<0.5) {
+                        $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
+                    }
+                }
+                my $pid = fork();
+                die unless ($pid >= 0);
+                if ($pid==0) {
+                    # put this process (the child) into a process group named by
+                    # its pid so that we'll be able to kill its entire subtree
+                    # later
+                    setpgrp();
+                    my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
+                    exit ($delta_result);
+                }
+                my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);
+                push @variants, \@l;
+                chdir $ORIG_DIR or die;
+                $num_running++;
+                print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
+            }
+        }
     }
 
     # starting at the front of the list, peel off all variants that
