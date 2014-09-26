@@ -37,8 +37,12 @@ GNU Indent:
 
 LLVM/Clang 3.5.0:
   http://llvm.org/releases/download.html#3.5.0
-  (no need to compile it, the appropriate "Clang binaries" package is
-  all you need)
+  (No need to compile it: the appropriate "Clang binaries" package is
+  all you need.  If you use one of the binary packages, you may need to
+  install additional packages that the binary package depends on.  For
+  example, the "Clang Ubuntu 14.04 Linux" binary package depends on
+  "libedit2" and "libtinfo5".  You may need to install these, e.g.:
+  "sudo apt-get install libedit2 libtinfo5".)
 
 Perl modules:
   Benchmark::Timer
