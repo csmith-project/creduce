@@ -1012,6 +1012,17 @@ bool RewriteUtils::getEntireDeclGroupStrAndRemove(DeclGroupRef DGR,
   SourceRange LastRange = LastD->getSourceRange();
   SourceLocation EndLoc = getEndLocationUntil(LastRange, ';');
 
+  // This isn't really good, but if EndLoc is invalid, what can we do? 
+  if (EndLoc.isInvalid()) {
+    unsigned Off = 0;
+    const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+    while ((*StartBuf != '\n') && (*StartBuf != ';') && (*StartBuf != '\0')) {
+      Off++;
+      StartBuf++;
+    }
+    assert(Off && "Zero offset!");
+    EndLoc = StartLoc.getLocWithOffset(Off);
+  }
   getStringBetweenLocs(Str, StartLoc, EndLoc);
   return !TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc));
 }
