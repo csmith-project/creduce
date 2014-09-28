@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2014 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -187,6 +187,8 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
   for (FunctionDecl::param_const_iterator PI = FD->param_begin(),
        PE = FD->param_end(); PI != PE; ++PI) {
     if ((*PI)->isImplicit() || (*PI)->getSourceRange().isInvalid())
+      continue;
+    if (!FD->hasBody() && (*PI)->getNameAsString().empty())
       continue;
 
     ValidInstanceNum++;
