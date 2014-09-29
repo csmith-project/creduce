@@ -42,7 +42,7 @@ LLVM/Clang 3.5.0:
   install additional packages that the binary package depends on.  For
   example, the "Clang Ubuntu 14.04 Linux" binary package depends on
   "libedit2" and "libtinfo5".  You may need to install these, e.g.:
-  "sudo apt-get install libedit2 libtinfo5".)
+  "sudo apt-get install libedit-dev libtinfo-dev".)
 
 Perl modules:
   Benchmark::Timer
