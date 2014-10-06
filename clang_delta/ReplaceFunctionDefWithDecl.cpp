@@ -270,7 +270,13 @@ void ReplaceFunctionDefWithDecl::rewriteOneFunctionDef(
         return;
       }
     }
-    TheRewriter.RemoveText(FD->getSourceRange());
+    SourceRange R = FD->getSourceRange();
+    SourceLocation LocStart = R.getBegin();
+    SourceLocation LocEnd = R.getEnd();
+    if (LocStart.isMacroID()) {
+      LocStart = SrcManager->getFileLoc(LocStart);
+    }
+    TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
     return;
   }
 
