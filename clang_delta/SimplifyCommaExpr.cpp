@@ -185,7 +185,14 @@ void SimplifyCommaExpr::simplifyCommaExpr(void)
 
   SourceRange LHSRange = LHS->getSourceRange();
   SourceLocation StartLoc = LHSRange.getBegin();
-  SourceLocation EndLoc = RewriteHelper->getEndLocationUntil(LHSRange, ',');
+  SourceLocation EndLoc;
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getFileLoc(StartLoc);
+    EndLoc = LHSRange.getEnd();
+    TransAssert(EndLoc.isMacroID() && "EndLoc is not from a macro!");
+    LHSRange = SourceRange(StartLoc, SrcManager->getFileLoc(EndLoc));
+  }
+  EndLoc = RewriteHelper->getEndLocationUntil(LHSRange, ',');
   TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
 
   LHSStr += ";";
