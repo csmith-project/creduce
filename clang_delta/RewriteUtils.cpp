@@ -661,6 +661,12 @@ bool RewriteUtils::replaceExprNotInclude(const Expr *E,
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation StartLoc = ExprRange.getBegin();
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getFileLoc(StartLoc);
+    SourceLocation EndLoc = ExprRange.getEnd();
+    TransAssert(EndLoc.isMacroID() && "EndLoc is not from a macro!");
+    ExprRange = SourceRange(StartLoc, SrcManager->getFileLoc(EndLoc));
+  }
   TransAssert((TheRewriter->getRangeSize(ExprRange) != -1) && 
               "Bad expr range!");
 
