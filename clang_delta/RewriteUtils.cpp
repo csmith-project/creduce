@@ -1422,6 +1422,10 @@ bool RewriteUtils::removeFieldDecl(const FieldDecl *FD)
     EndLoc = CurlyEndLoc.getLocWithOffset(-1);
   }
 
+  // If EndLoc is invalid, just remove one char to avoid crash
+  if (EndLoc.isInvalid()) {
+    EndLoc = StartLoc;
+  }
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
 }
 
