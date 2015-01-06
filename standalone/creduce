@@ -1,0 +1,11 @@
+#!/bin/sh
+
+DRIVER=$(readlink -f $0)
+DIR=`dirname $DRIVER`
+LIBEXEC=$DIR/libexec
+LIBS=$DIR/copied-libs
+
+export PATH=$LIBEXEC:"$PATH"
+export LD_LIBRARY_PATH=$LIBS:"$LD_LIBRARY_PATH"
+
+$DIR/bin/creduce $@
