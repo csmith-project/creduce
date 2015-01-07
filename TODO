@@ -4,6 +4,11 @@
 
 C-Reduce TODO list:
 
+avoid problem where topformflat adds a blank line before #include
+directives
+
+avoid spurious "system" calls in passes
+
 write some documentation about creating a c-reduce pass: side effects,
 directory restrictions, etc.
 
@@ -22,7 +27,7 @@ make it again possible to run just selected passes
 clang_delta TODO list:
 
 replace for-loops with expressions guessed from initializers
-  guess that it executes 0 and 1 times 
+  guess that it executes 0 and 1 times
 
 change operators to other operators, e.g., replace / with +
 
@@ -52,7 +57,7 @@ traditional line-based reduction.
 
  * remove anything that's not a %d or whatever from the format string
 
- * remove a %d directive and also the corresponding argument from a printf 
+ * remove a %d directive and also the corresponding argument from a printf
 
 - constant folding
 
