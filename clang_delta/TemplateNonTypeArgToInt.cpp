@@ -156,7 +156,8 @@ void TemplateNonTypeArgToInt::handleOneTemplateArgumentLoc(
   if (ValidInstanceNum == TransformationCounter) {
     TheExpr = ArgLoc.getLocInfo().getAsExpr();
     llvm::APSInt Result;
-    if (TheExpr->EvaluateAsInt(Result, *Context)) {
+    if (!TheExpr->isValueDependent() &&
+        TheExpr->EvaluateAsInt(Result, *Context)) {
       IntString = Result.toString(10);
     }
   }
