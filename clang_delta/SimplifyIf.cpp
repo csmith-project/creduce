@@ -94,6 +94,10 @@ bool SimplifyIfCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 //     foo(bar())
 bool SimplifyIfStatementVisitor::VisitIfStmt(IfStmt *IS)
 {
+  if (IS->getLocStart().isMacroID()) {
+    return false;
+  }
+
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->ValidInstanceNum == 
       ConsumerInstance->TransformationCounter) {
