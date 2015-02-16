@@ -354,7 +354,11 @@ bool PointerLevelRewriteVisitor::VisitBinaryOperator(BinaryOperator *BO)
   }
   else if (Ty->isStructureType() || Ty->isUnionType() || 
            Ty->isIntegerType()) {
-    return ConsumerInstance->RewriteHelper->removeAStarAfter(Lhs);
+    if (const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(Lhs))
+      return ConsumerInstance->RewriteHelper->removeArraySubscriptExpr(
+               ASE->getIdx());
+    else
+      return ConsumerInstance->RewriteHelper->removeAStarAfter(Lhs);
   }
   return true;
 }
