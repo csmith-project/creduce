@@ -773,6 +773,14 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::Builtin: // fall-through
     return NULL;
 
+  case Type::Auto: {
+    const AutoType *AutoTy = dyn_cast<AutoType>(Ty);
+    const Type *AT = AutoTy->getDeducedType().getTypePtrOrNull();
+    if (!AT)
+      return NULL;
+    return getBaseDeclFromType(AT);
+  }
+
   default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");
