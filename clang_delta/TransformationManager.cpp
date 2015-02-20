@@ -35,7 +35,7 @@
 #undef PACKAGE_STRING
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
-#include "llvm/Config/config.h"
+#include "llvm/Config/llvm-config.h"
 
 #include "Transformation.h"
 
@@ -124,7 +124,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance->createASTContext();
 
   assert(CurrentTransformationImpl && "Bad transformation instance!");
-  ClangInstance->setASTConsumer(CurrentTransformationImpl);
+  ClangInstance->setASTConsumer(std::unique_ptr<clang::ASTConsumer>(CurrentTransformationImpl));
   Preprocessor &PP = ClangInstance->getPreprocessor();
   PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
                                          PP.getLangOpts());
@@ -163,10 +163,10 @@ llvm::raw_ostream *TransformationManager::getOutStream()
   if (OutputFileName.empty())
     return &(llvm::outs());
 
-  std::string ES;
+  std::error_code ES;
   llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
       OutputFileName.c_str(), ES, llvm::sys::fs::F_RW);
-  assert(ES == "" && "Cannot open output file!");
+  assert(!ES && "Cannot open output file!");
   return Out;
 }
 
