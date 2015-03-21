@@ -31,8 +31,10 @@ sub count_instances ($$) {
     (my $cfile, my $which) = @_;
     open INF, "$clang_delta --query-instances=$which $cfile |" or die;
     my $line = <INF>;
-    die unless $line =~ /Available transformation instances: ([0-9]+)$/;
-    my $n = $1;
+    my $n = 0;
+    if ($line =~ /Available transformation instances: ([0-9]+)$/) {
+      $n = $1;
+    }
     close INF;
     return $n;
 }
