@@ -153,7 +153,7 @@ bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
   if (FD->getBuiltinID())
     T = FD->getReturnType().getTypePtr();
   else 
-    T = CE->getCallReturnType().getTypePtr();
+    T = CE->getCallReturnType(*(ConsumerInstance->Context)).getTypePtr();
   if (T->isVoidType())
     return true;
 

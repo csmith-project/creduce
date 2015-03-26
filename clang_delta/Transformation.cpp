@@ -462,8 +462,8 @@ const Type* Transformation::getBaseType(const Type *T)
 const FunctionDecl *Transformation::lookupFunctionDeclInGlobal(
         DeclarationName &DName, const DeclContext *Ctx)
 {
-  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
-  for (DeclContext::lookup_const_iterator I = Result.begin(), E = Result.end();
+  DeclContext::lookup_result Result = Ctx->lookup(DName);
+  for (DeclContext::lookup_iterator I = Result.begin(), E = Result.end();
        I != E; ++I) {
     if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
       return FD;
@@ -534,8 +534,8 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromCtx(
 {
   if (dyn_cast<LinkageSpecDecl>(Ctx))
     return NULL;
-  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
-  for (DeclContext::lookup_const_iterator I = Result.begin(), E = Result.end();
+  DeclContext::lookup_result Result = Ctx->lookup(DName);
+  for (DeclContext::lookup_iterator I = Result.begin(), E = Result.end();
        I != E; ++I) {
     if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
       return FD;
