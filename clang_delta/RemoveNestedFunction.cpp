@@ -427,7 +427,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
   }
   //  return writeNewIntTmpVariable(VarStr);
-  QT = TheCallExpr->getCallReturnType(*Context);
+  QT = TheCallExpr->getCallReturnType();
   return writeNewTmpVariable(QT, VarStr);
 }
 

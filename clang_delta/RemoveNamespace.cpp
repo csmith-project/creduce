@@ -742,7 +742,7 @@ bool RemoveNamespace::hasNameConflict(const NamedDecl *ND,
     return false;
 
   DeclarationName Name = ND->getDeclName();
-  DeclContext::lookup_result Result = ParentCtx->lookup(Name);
+  DeclContext::lookup_const_result Result = ParentCtx->lookup(Name);
   return !Result.empty();
 }
 
