@@ -22,21 +22,6 @@
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
-/*
- * Avoid a bunch of warnings about redefinitions of PACKAGE_* symbols.
- *
- * The definitions of these symbols are produced by Autoconf et al.
- * For C-Reduce, we define these in <config.h>.
- * LLVM defines these symbols in "llvm/Config/config.h".
- * But we don't care anything about these symbols in this source file.
- */
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#include "llvm/Config/config.h"
-
 #include "Transformation.h"
 
 using namespace clang;
@@ -124,7 +109,8 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance->createASTContext();
 
   assert(CurrentTransformationImpl && "Bad transformation instance!");
-  ClangInstance->setASTConsumer(CurrentTransformationImpl);
+  ClangInstance->setASTConsumer(
+    std::unique_ptr<ASTConsumer>(CurrentTransformationImpl));
   Preprocessor &PP = ClangInstance->getPreprocessor();
   PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
                                          PP.getLangOpts());
@@ -163,10 +149,10 @@ llvm::raw_ostream *TransformationManager::getOutStream()
   if (OutputFileName.empty())
     return &(llvm::outs());
 
-  std::string ES;
+  std::error_code EC;
   llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
-      OutputFileName.c_str(), ES, llvm::sys::fs::F_RW);
-  assert(ES == "" && "Cannot open output file!");
+      OutputFileName, EC, llvm::sys::fs::F_RW);
+  assert(!EC && "Cannot open output file!");
   return Out;
 }
 
