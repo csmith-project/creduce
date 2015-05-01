@@ -1,4 +1,13 @@
 #!/bin/sh
+##
+## Copyright (c) 2015 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+##
+
+###############################################################################
 
 DRIVER=$(readlink -f $0)
 DIR=`dirname $DRIVER`
@@ -9,3 +18,7 @@ export PATH=$BINS:"$PATH"
 export LD_LIBRARY_PATH=$LIBS:"$LD_LIBRARY_PATH"
 
 $DIR/bin/creduce $@
+
+###############################################################################
+
+# End of file.
