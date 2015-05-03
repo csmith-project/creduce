@@ -35,12 +35,12 @@ Flex:
 GNU Indent:
   http://www.gnu.org/software/indent/
 
-LLVM/Clang 3.5.0:
-  http://llvm.org/releases/download.html#3.5.0
+LLVM/Clang 3.6.0:
+  http://llvm.org/releases/download.html#3.6.0
   (No need to compile it: the appropriate "Clang binaries" package is
   all you need.  If you use one of the binary packages, you may need to
   install additional packages that the binary package depends on.  For
-  example, the "Clang Ubuntu 14.04 Linux" binary package depends on
+  example, the "Clang for Ubuntu 14.04" binary package depends on
   "libedit2" and "libtinfo5".  You may need to install these, e.g.:
   "sudo apt-get install libedit-dev libtinfo-dev".)
 
@@ -94,10 +94,11 @@ GNU Make.
 --------------------------------------------------------------------
 Regarding LLVM versions:
 
-Released versions of C-Reduce, and also our master branch at Github, need to be
-compiled against specific released versions of LLVM, as noted in this file.
+Released versions of C-Reduce, and also our master branch at Github,
+need to be compiled against specific released versions of LLVM, as
+noted in this file.
 
-Our Github repo usually also has a branch called llvm-svn-compatible that
-supports building C-Reduce against the current LLVM SVN head.
+Our GitHub repo usually also has a branch called llvm-svn-compatible
+that supports building C-Reduce against the current LLVM SVN head.
 
 --------------------------------------------------------------------
