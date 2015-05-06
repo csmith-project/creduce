@@ -47,7 +47,7 @@ private:
 
   ReplaceClassWithBaseTemplateSpecVisitor *CollectionVisitor;
 
-  ReplaceClassWithBaseTemplateSpecRewriteVisitor *RewriteVisitor;;
+  ReplaceClassWithBaseTemplateSpecRewriteVisitor *RewriteVisitor;
 
   const clang::CXXRecordDecl *TheCXXRecord;
 
