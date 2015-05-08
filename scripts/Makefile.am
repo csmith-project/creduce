@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -15,6 +15,7 @@ dist_noinst_SCRIPTS = \
 	prep \
 	shorten \
 	test1_crash.sh \
+	test1_make_large_warnings.pl \
 	test1_wrong_code_framac.sh \
 	test1_wrong_code_kcc.sh
 

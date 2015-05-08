@@ -275,6 +275,7 @@ dist_noinst_SCRIPTS = \
 	prep \
 	shorten \
 	test1_crash.sh \
+	test1_make_large_warnings.pl \
 	test1_wrong_code_framac.sh \
 	test1_wrong_code_kcc.sh
 
