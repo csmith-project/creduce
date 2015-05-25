@@ -1199,13 +1199,19 @@ bool RewriteUtils::removeVarInitExpr(const VarDecl *VD)
   return !TheRewriter->RemoveText(SourceRange(InitStartLoc, InitEndLoc));
 }
 
+SourceLocation RewriteUtils::getMacroExpansionLoc(SourceLocation Loc) {
+  if (SrcManager->isMacroBodyExpansion(Loc))
+    return SrcManager->getFileLoc(Loc);
+  return Loc;
+}
+
 bool RewriteUtils::removeVarDecl(const VarDecl *VD,
                                  DeclGroupRef DGR)
 {
   SourceRange VarRange = VD->getSourceRange();
 
   if (DGR.isSingleDecl()) {
-    SourceLocation StartLoc = VarRange.getBegin();
+    SourceLocation StartLoc = getMacroExpansionLoc(VarRange.getBegin());
     SourceLocation EndLoc = getEndLocationUntil(VarRange, ';');
     // in case the previous EndLoc is invalid, for example,
     // VarRange could have bad EndLoc value

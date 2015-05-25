@@ -308,6 +308,8 @@ private:
 
   clang::SourceLocation getExpansionEndLoc(clang::SourceLocation EndLoc);
 
+  clang::SourceLocation getMacroExpansionLoc(clang::SourceLocation Loc);
+
   // Unimplemented
   RewriteUtils(const RewriteUtils &);
 
