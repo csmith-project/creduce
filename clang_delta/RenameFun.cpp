@@ -75,6 +75,12 @@ bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
     return true;
   }
 
+  // Skip functions outside of the main file
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
+
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   ConsumerInstance->addFun(CanonicalFD);
   if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
@@ -88,6 +94,12 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
   // It could happen, e.g., CE could refer to a DependentScopeDeclRefExpr
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
     return true;
+
+  // Skip functions outside of the main file
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
 
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
@@ -107,6 +119,12 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
   if (dyn_cast<CXXMethodDecl>(FD))
     return true;
 
+  // Skip functions outside of the main file
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
@@ -124,6 +142,12 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl);
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
     return true;
+
+  // Skip functions outside of the main file
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
 
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
