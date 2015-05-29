@@ -280,6 +280,7 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
 
     if (FD == TheFieldDecl) {
       InitExprs.push_back(Init);
+      //TODO: Is the (void)VecSz necessary?
       TransAssert((VecSz == 1) && "Bad IndexVector size!"); (void)VecSz;
     }
     else {
@@ -291,15 +292,29 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
 void RemoveUnusedStructField::removeOneInitExpr(const Expr *E)
 {
   TransAssert(NumFields && "NumFields cannot be zero!");
-  if (NumFields == 1) {
-    RewriteHelper->replaceExpr(E, "");
-    return;
-  }
 
   SourceRange ExpRange = E->getSourceRange();
   SourceLocation StartLoc = ExpRange.getBegin();
   SourceLocation EndLoc = ExpRange.getEnd();
-  if (IsFirstField) {
+
+  if (NumFields == 1) {
+    // The last field can optionally have a trailing comma
+    // If this is the only field also the comma has to be removed together with the field
+    SourceLocation NewEndLoc = RewriteHelper->getEndLocationUntil(ExpRange, '}');
+    NewEndLoc = NewEndLoc.getLocWithOffset(-1);
+
+    if(SrcManager->isBeforeInSLocAddrSpace(NewEndLoc, EndLoc))
+    {
+        TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
+    }
+    else
+    {
+        TheRewriter.RemoveText(SourceRange(StartLoc, NewEndLoc));
+    }
+
+    return;
+  }
+  else if (IsFirstField) {
     EndLoc = RewriteHelper->getEndLocationUntil(ExpRange, ',');
     TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
     return;
