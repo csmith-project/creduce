@@ -240,6 +240,7 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
   if (FD->isReferenced() || 
       FD->isMain() || 
+      FD->hasAttr<OpenCLKernelAttr>() ||
       ConsumerInstance->hasReferencedSpecialization(CanonicalFD) ||
       ConsumerInstance->isInlinedSystemFunction(CanonicalFD) ||
       ConsumerInstance->isInReferencedSet(CanonicalFD) ||
