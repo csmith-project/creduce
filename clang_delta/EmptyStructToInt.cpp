@@ -67,6 +67,10 @@ public:
 
   bool VisitElaboratedTypeLoc(ElaboratedTypeLoc Loc);
 
+  bool VisitRecordDecl(RecordDecl *RD);
+
+  bool VisitVarDecl(VarDecl *VD);
+
 private:
   EmptyStructToInt *ConsumerInstance;
 };
@@ -107,6 +111,7 @@ bool EmptyStructToIntASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 {
   const RecordDecl *RD = RTLoc.getDecl();
+
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
     SourceLocation LocStart = RTLoc.getLocStart();
     void *LocPtr = LocStart.getPtrEncoding();
@@ -177,6 +182,49 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   return true;
 }
 
+bool EmptyStructToIntRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
+{
+  //if (ConsumerInstance->isSpecialRecordDecl(RD))
+  //  return true;
+
+  // Skip forward declarations
+  const RecordDecl *RDDef = RD->getDefinition();
+  if (!RDDef)
+    return true;
+
+  // Skip the struct which will be deleted
+  // It is already in the list
+  if(RD == ConsumerInstance->TheRecordDecl)
+  {
+    return true;
+  }
+
+  unsigned Idx = 0;
+  for (RecordDecl::field_iterator I = RDDef->field_begin(),
+       E = RDDef->field_end(); I != E; ++I) {
+    const FieldDecl *FD = (*I);
+    const Type *FDTy = FD->getType().getTypePtr();
+    const RecordDecl *BaseRD = ConsumerInstance->getBaseRecordDef(FDTy);
+
+    // Handle all fields of struct type
+    if (BaseRD)
+      ConsumerInstance->handleOneRecordDecl(RDDef, BaseRD, FD, Idx);
+    Idx++;
+  }
+  return true;
+}
+
+bool EmptyStructToIntRewriteVisitor::VisitVarDecl(VarDecl *VD)
+{
+    if(!VD->hasInit())
+    {
+        return true;
+    }
+
+    ConsumerInstance->handleOneVarDecl(VD);
+    return true;
+}
+
 void EmptyStructToInt::Initialize(ASTContext &context) 
 {
   Transformation::Initialize(context);
@@ -211,6 +259,58 @@ void EmptyStructToInt::HandleTranslationUnit(ASTContext &Ctx)
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void EmptyStructToInt::handleOneRecordDecl(const RecordDecl *RD,
+                                           const RecordDecl *BaseRD,
+                                           const FieldDecl *FD,
+                                           unsigned int Idx)
+{
+    // Skip field if it is not ofthe type of one of the structs that are affected by the change
+    // Works recursively through chained structs
+    if(!RecordDeclToField[BaseRD] && BaseRD != TheRecordDecl)
+    {
+        return;
+    }
+
+    IndexVector *NewIdxVec = RecordDeclToField[RD];
+
+    if(!NewIdxVec)
+    {
+        NewIdxVec = new IndexVector();
+        RecordDeclToField[RD] = NewIdxVec;
+    }
+
+    NewIdxVec->push_back(Idx);
+}
+
+void EmptyStructToInt::handleOneVarDecl(const VarDecl *VD)
+{
+    const Type *Ty = VD->getType().getTypePtr();
+    const RecordDecl *RD = getBaseRecordDef(Ty);
+
+    // Skip all variables which are not of struct type
+    if(!RD)
+    {
+        return;
+    }
+
+    IndexVector *IdxVec = RecordDeclToField[RD];
+
+    // Skip variables for which the struct is not changed
+    if(!IdxVec && RD != TheRecordDecl)
+    {
+        return;
+    }
+
+    ExprVector InitExprs;
+
+    getInitExprs(Ty, VD->getInit(), IdxVec, InitExprs);
+
+    for(ExprVector::iterator I = InitExprs.begin(), E = InitExprs.end(); I != E; ++I)
+    {
+        RewriteHelper->replaceExpr(*I, "0");
+    }
 }
 
 void EmptyStructToInt::doAnalysis(void)
@@ -351,9 +451,112 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
   return true;
 }
 
+const RecordDecl *EmptyStructToInt::getBaseRecordDef(const Type *Ty)
+{
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
+  if (ArrayTy) {
+    Ty = getArrayBaseElemType(ArrayTy);
+  }
+
+  if (!Ty->isStructureType())
+    return NULL;
+
+  const RecordType *RT = Ty->getAsStructureType();
+  return RT->getDecl()->getDefinition();
+}
+
+void EmptyStructToInt::getInitExprs(const Type *Ty, 
+                                           const Expr *E,
+                                           const IndexVector *IdxVec,
+                                           ExprVector &InitExprs)
+{
+  const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
+  if (ArrayTy) {
+    const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
+    TransAssert(ILE && "Invalid array initializer!");
+    unsigned int NumInits = ILE->getNumInits();
+    Ty = ArrayTy->getElementType().getTypePtr();
+    
+    for (unsigned I = 0; I < NumInits; ++I) {
+      const Expr *Init = ILE->getInit(I);
+      getInitExprs(Ty, Init, IdxVec, InitExprs);
+    }
+    return;
+  }
+ 
+  const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
+  if (!ILE)
+    return;
+
+  const RecordType *RT = NULL;
+  if (Ty->isUnionType()) {
+    RT = Ty->getAsUnionType();
+  }
+  else if (Ty->isStructureType()) {
+    RT = Ty->getAsStructureType();
+  }
+  else {
+    TransAssert(0 && "Bad RecordType!");
+  }
+
+  const RecordDecl *RD = RT->getDecl();
+
+  if(RD->getCanonicalDecl() == TheRecordDecl)
+  {
+    InitExprs.push_back(E);
+  }
+  else
+  {
+    for(IndexVector::const_iterator FI = IdxVec->begin(), FE = IdxVec->end(); FI != FE; ++FI)
+    {
+      const FieldDecl *FD = getFieldDeclByIdx(RD, (*FI));
+      TransAssert(FD && "NULL FieldDecl!");
+
+      Ty = FD->getType().getTypePtr();
+
+      const RecordDecl *BaseRD = getBaseRecordDef(Ty);
+
+      unsigned int InitListIdx;
+
+      if(BaseRD->isUnion())
+      {
+        InitListIdx = 0;
+      }
+      else
+      {
+        InitListIdx = (*FI);
+      }
+
+      if(InitListIdx >= ILE->getNumInits())
+      {
+        return;
+      }
+
+      getInitExprs(Ty, ILE->getInit(InitListIdx), RecordDeclToField[BaseRD], InitExprs);
+    }
+  }
+}
+
+const FieldDecl *EmptyStructToInt::getFieldDeclByIdx(
+                   const RecordDecl *RD, unsigned int Idx)
+{
+  unsigned I = 0;
+  for (RecordDecl::field_iterator RI = RD->field_begin(),
+       RE = RD->field_end(); RI != RE; ++RI, ++I) {
+    if (I == Idx)
+      return (*RI);
+  }
+  return NULL;
+}
+
 EmptyStructToInt::~EmptyStructToInt(void)
 {
   delete CollectionVisitor;
   delete RewriteVisitor;
+
+  for (RecordDeclToFieldIdxVectorMap::iterator I = RecordDeclToField.begin(),
+       E = RecordDeclToField.end(); I != E; ++I) {
+    delete (*I).second;
+  }
 }
 
