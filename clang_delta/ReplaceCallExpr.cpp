@@ -143,6 +143,13 @@ bool ReplaceCallExprVisitor::VisitReturnStmt(ReturnStmt *RS)
 
 bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
 {
+  // Skip call expression outside of the main file
+  // At the moment only rewriting within the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(CE->getLocStart()))
+  {
+      return true;
+  }
+
   FunctionDecl *FD = CE->getDirectCallee();
   if (!FD)
     return true;
