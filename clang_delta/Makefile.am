@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -19,7 +19,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') \
+LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror[^ ]*//g' -e 's/-pedantic[^ ]*//g' -e 's/-Wpedantic[^ ]*//g'`) \
                    -fno-rtti -fno-exceptions
 LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)

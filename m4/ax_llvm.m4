@@ -1,6 +1,6 @@
 # -*- mode: m4 -*-
 #
-# Copyright (c) 2012, 2013, 2014 The University of Utah
+# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 # Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -74,7 +74,7 @@ AC_DEFUN([AX_LLVM],
   fi
   
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror//' | sed -e 's/-pedantic//'`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror[^ ]*//g' -e 's/-pedantic[^ ]*//g' -e 's/-Wpedantic[^ ]*//g'`
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs $2`
 

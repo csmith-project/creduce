@@ -413,7 +413,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-LLVMCXXFLAGS := $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror//') \
+LLVMCXXFLAGS := $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror[^ ]*//g' -e 's/-pedantic[^ ]*//g' -e 's/-Wpedantic[^ ]*//g'`) \
                    -fno-rtti -fno-exceptions
 
 LLVMLDFLAGS := $(shell "$(LLVM_CONFIG)" \--ldflags)
