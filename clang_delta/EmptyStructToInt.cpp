@@ -437,11 +437,18 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
 
   const DeclContext *Ctx = dyn_cast<DeclContext>(CXXDef);
   TransAssert(Ctx && "Invalid DeclContext!");
+  int count = 0;
   for (DeclContext::decl_iterator I = Ctx->decls_begin(),
        E = Ctx->decls_end(); I != E; ++I) {
+    if ((*I)->isReferenced())
+        return false;
     if (!(*I)->isImplicit())
-      return false;
+      ++count;
   }
+
+  if (count > 1)
+    return false;
+
   return true;
 }
 
