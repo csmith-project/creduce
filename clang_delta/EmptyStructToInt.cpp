@@ -194,8 +194,7 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
 
   // Skip the struct which will be deleted
   // It is already in the list
-  if(RD == ConsumerInstance->TheRecordDecl)
-  {
+  if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
     return true;
   }
 
@@ -216,13 +215,12 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
 
 bool EmptyStructToIntRewriteVisitor::VisitVarDecl(VarDecl *VD)
 {
-    if(!VD->hasInit())
-    {
-        return true;
-    }
-
-    ConsumerInstance->handleOneVarDecl(VD);
+  if (!VD->hasInit()) {
     return true;
+  }
+
+  ConsumerInstance->handleOneVarDecl(VD);
+  return true;
 }
 
 void EmptyStructToInt::Initialize(ASTContext &context) 
@@ -266,51 +264,47 @@ void EmptyStructToInt::handleOneRecordDecl(const RecordDecl *RD,
                                            const FieldDecl *FD,
                                            unsigned int Idx)
 {
-    // Skip field if it is not ofthe type of one of the structs that are affected by the change
-    // Works recursively through chained structs
-    if(!RecordDeclToField[BaseRD] && BaseRD != TheRecordDecl)
-    {
-        return;
-    }
+  // Skip field if it is not of the type of one of
+  // the structs that are affected by the change
+  // Works recursively through chained structs
+  if (!RecordDeclToField[BaseRD] && BaseRD != TheRecordDecl) {
+    return;
+  }
 
-    IndexVector *NewIdxVec = RecordDeclToField[RD];
+  IndexVector *NewIdxVec = RecordDeclToField[RD];
 
-    if(!NewIdxVec)
-    {
-        NewIdxVec = new IndexVector();
-        RecordDeclToField[RD] = NewIdxVec;
-    }
+  if (!NewIdxVec) {
+    NewIdxVec = new IndexVector();
+    RecordDeclToField[RD] = NewIdxVec;
+  }
 
-    NewIdxVec->push_back(Idx);
+  NewIdxVec->push_back(Idx);
 }
 
 void EmptyStructToInt::handleOneVarDecl(const VarDecl *VD)
 {
-    const Type *Ty = VD->getType().getTypePtr();
-    const RecordDecl *RD = getBaseRecordDef(Ty);
+  const Type *Ty = VD->getType().getTypePtr();
+  const RecordDecl *RD = getBaseRecordDef(Ty);
 
-    // Skip all variables which are not of struct type
-    if(!RD)
-    {
-        return;
-    }
+  // Skip all variables which are not of struct type
+  if (!RD) {
+    return;
+  }
 
-    IndexVector *IdxVec = RecordDeclToField[RD];
+  IndexVector *IdxVec = RecordDeclToField[RD];
 
-    // Skip variables for which the struct is not changed
-    if(!IdxVec && RD != TheRecordDecl)
-    {
-        return;
-    }
+  // Skip variables for which the struct is not changed
+  if (!IdxVec && RD != TheRecordDecl) {
+    return;
+  }
 
-    ExprVector InitExprs;
+  ExprVector InitExprs;
 
-    getInitExprs(Ty, VD->getInit(), IdxVec, InitExprs);
+  getInitExprs(Ty, VD->getInit(), IdxVec, InitExprs);
 
-    for(ExprVector::iterator I = InitExprs.begin(), E = InitExprs.end(); I != E; ++I)
-    {
-        RewriteHelper->replaceExpr(*I, "0");
-    }
+  for (ExprVector::iterator I = InitExprs.begin(), E = InitExprs.end(); I != E; ++I) {
+      RewriteHelper->replaceExpr(*I, "0");
+  }
 }
 
 void EmptyStructToInt::doAnalysis(void)
@@ -501,34 +495,27 @@ void EmptyStructToInt::getInitExprs(const Type *Ty,
 
   const RecordDecl *RD = RT->getDecl();
 
-  if(RD->getCanonicalDecl() == TheRecordDecl)
-  {
+  if (RD->getCanonicalDecl() == TheRecordDecl) {
     InitExprs.push_back(E);
   }
-  else
-  {
-    for(IndexVector::const_iterator FI = IdxVec->begin(), FE = IdxVec->end(); FI != FE; ++FI)
-    {
+  else {
+    for (IndexVector::const_iterator FI = IdxVec->begin(), FE = IdxVec->end(); FI != FE; ++FI) {
       const FieldDecl *FD = getFieldDeclByIdx(RD, (*FI));
       TransAssert(FD && "NULL FieldDecl!");
 
       Ty = FD->getType().getTypePtr();
 
       const RecordDecl *BaseRD = getBaseRecordDef(Ty);
-
       unsigned int InitListIdx;
 
-      if(BaseRD->isUnion())
-      {
+      if (BaseRD->isUnion()) {
         InitListIdx = 0;
       }
-      else
-      {
+      else {
         InitListIdx = (*FI);
       }
 
-      if(InitListIdx >= ILE->getNumInits())
-      {
+      if (InitListIdx >= ILE->getNumInits()) {
         return;
       }
 
