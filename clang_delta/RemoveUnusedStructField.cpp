@@ -303,13 +303,11 @@ void RemoveUnusedStructField::removeOneInitExpr(const Expr *E)
     SourceLocation NewEndLoc = RewriteHelper->getEndLocationUntil(ExpRange, '}');
     NewEndLoc = NewEndLoc.getLocWithOffset(-1);
 
-    if(SrcManager->isBeforeInSLocAddrSpace(NewEndLoc, EndLoc))
-    {
-        TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
+    if (SrcManager->isBeforeInSLocAddrSpace(NewEndLoc, EndLoc)) {
+      TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
     }
-    else
-    {
-        TheRewriter.RemoveText(SourceRange(StartLoc, NewEndLoc));
+    else {
+      TheRewriter.RemoveText(SourceRange(StartLoc, NewEndLoc));
     }
 
     return;
