@@ -423,8 +423,16 @@ SourceLocation RemoveUnusedFunction::getFunctionLocEnd(
                  SourceLocation LocEnd,
                  const FunctionDecl *FD)
 {
-  if (!FD->getDescribedFunctionTemplate())
-    return LocEnd;
+  if (!FD->getDescribedFunctionTemplate()) {
+    // Remove trailing ; if function has no body
+    if (!FD->hasBody()) {
+      return RewriteHelper->getLocationUntil(LocEnd, ';');
+    }
+    else {
+      return LocEnd;
+    }
+  }
+
   SourceLocation FDLoc = FD->getLocation();
   const char * const FDBuf = SrcManager->getCharacterData(FDLoc);
   const char * LocEndBuf = SrcManager->getCharacterData(LocEnd);
