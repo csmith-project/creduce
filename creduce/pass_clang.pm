@@ -43,6 +43,12 @@ sub check_prereqs () {
 	$clang_delta = $path;
 	return 1;
     }
+    # Check Windows
+    $path=$path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
+	$clang_delta = $path;
+	return 1;
+    }
     return 0;
 }
 

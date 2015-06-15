@@ -43,6 +43,12 @@ sub check_prereqs () {
 	$clex = $path;
 	return 1;
     }
+    # Check Windows
+    $path=$path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
+	$clex = $path;
+	return 1;
+    }
     return 0;
 }
 

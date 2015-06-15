@@ -45,6 +45,7 @@ sub find_external_program($$) {
 
 sub runit ($) {
     (my $cmd) = @_;
+    print $cmd;
     if ((system "$cmd") != 0) {
         my $res = $? >> 8;
         if ($res == 255) {

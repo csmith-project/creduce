@@ -194,7 +194,11 @@ sub run_test ($) {
     if ($VERBOSE) {
 	$res = runit "$test $fn";
     } else {
+    if ($^O eq "MSWin32") {
+	$res = runit "$test $fn > NUL 2>&1";
+    } else {
 	$res = runit "$test $fn >/dev/null 2>&1";
+    }
     }
     return ($res == 0);
 }
