@@ -440,10 +440,11 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
   int count = 0;
   for (DeclContext::decl_iterator I = Ctx->decls_begin(),
        E = Ctx->decls_end(); I != E; ++I) {
-    if ((*I)->isReferenced())
+    if (!(*I)->isImplicit()) {
+      if ((*I)->isReferenced())
         return false;
-    if (!(*I)->isImplicit())
       ++count;
+    }
   }
 
   if (count > 1)
