@@ -57,6 +57,10 @@ use File::Copy;
 # Load module `Sys::CPU' if it is available.
 eval { require Sys::CPU; Sys::CPU->import(); };
 
+if ($^O eq "MSWin32") {
+    require Win32::Process;
+}
+
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
@@ -155,7 +159,7 @@ sub print_pct ($) {
 
 # these are set at startup time and never change
 my $test;
-my $trial_num = 0;   
+my $trial_num = 0;
 
 my $toreduce;
 my $toreduce_orig;
@@ -184,7 +188,7 @@ sub make_tmpdir () {
 sub remove_tmpdirs () {
     return if $SAVE_TEMPS;
     while (my $dir = shift(@tmpdirs)) {
-	File::Path::rmtree ($dir, 0, 0);	
+	File::Path::remove_tree ($dir, {verbose => 0, safe => 0, error => \my $err});
     }
 }
 
@@ -194,11 +198,11 @@ sub run_test ($) {
     if ($VERBOSE) {
 	$res = runit "$test $fn";
     } else {
-    if ($^O eq "MSWin32") {
-	$res = runit "$test $fn > NUL 2>&1";
-    } else {
-	$res = runit "$test $fn >/dev/null 2>&1";
-    }
+        if($^O eq "MSWin32") {
+            $res = runit "$test $fn > NUL 2>&1";
+        } else {
+            $res = runit "$test $fn > /dev/null 2>&1";
+        }
     }
     return ($res == 0);
 }
@@ -229,7 +233,7 @@ sub delta_test ($$$$) {
     }
     if (defined($result)) {
 	print "(hit= $result)";
-    } else {    
+    } else {
 	$result = run_test ($fn);
     }
     return $result ? 1 : 0;
@@ -244,21 +248,21 @@ sub call_prereq_check ($) {
 }
 
 sub call_new ($$$) {
-    (my $method,my $fn,my $arg) = @_;    
+    (my $method,my $fn,my $arg) = @_;
     my $str = $method."::new";
     no strict "refs";
     return &${str}($fn,$arg);
 }
 
 sub call_advance ($$$$) {
-    (my $method,my $fn,my $arg,my $state) = @_;    
+    (my $method,my $fn,my $arg,my $state) = @_;
     my $str = $method."::advance";
     no strict "refs";
     return &${str}($fn,$arg,$state);
 }
 
 sub call_transform ($$$$) {
-    (my $method,my $fn,my $arg,my $state) = @_;    
+    (my $method,my $fn,my $arg,my $state) = @_;
     my $str = $method."::transform";
     no strict "refs";
     return &${str}($fn,$arg,$state);
@@ -273,20 +277,103 @@ sub call_transform ($$$$) {
 # already waited for that child or there never was a child due to a
 # cache hit)
 my @variants = ();
+my @procs = ();
 my $num_running = 0;
 
 sub killem() {
-    while (scalar(@variants) > 0) {
-	my $kidref = shift @variants;
-	die unless (scalar(@{$kidref})==5);
-	(my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
-	if ($pid != -1) {
-	    # kill the whole group
-	    kill ('TERM', -$pid); 
-	    waitpid ($pid, 0);
-	    $num_running--;
-	}
-	File::Path::rmtree ($tmpdir, 0, 0);	
+    if($^O eq "MSWin32") {
+        while (scalar(@procs) > 0) {
+            my $proc = shift @procs;
+            #Win32::Process::Open($proc, $pid, 0) || die;
+            $proc->Kill(1);
+            $proc->Wait(Win32::Process::INFINITE());
+            #Win32::Process::KillProcess($pid, 1);
+            $num_running--;
+        }
+        while (scalar(@variants) > 0) {
+        my $kidref = shift @variants;
+        die unless (scalar(@{$kidref})==5);
+        (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
+        File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
+        }
+    } else {
+        while (scalar(@variants) > 0) {
+        my $kidref = shift @variants;
+        die unless (scalar(@{$kidref})==5);
+        (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
+        if ($pid != -1) {
+            # kill the whole group
+            kill ('TERM', -$pid);
+            waitpid ($pid, 0);
+            $num_running--;
+        }
+        File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
+        }
+    }
+}
+
+sub c_fork($$$$) {
+    (my $delta_method, my $delta_arg, my $state, my $tmpfn) = @_;
+    if ($^O eq "MSWin32") {
+        my $fork_win = File::Spec->join("@perllibdir@", "fork_win.pm");
+        my $proc;
+        Win32::Process::Create($proc,
+                               File::Spec->join("@perlbindir@", "perl.exe"),
+                               "-- $fork_win $test $tmpfn $VERBOSE",
+                               0,
+                               Win32::Process::NORMAL_PRIORITY_CLASS() |
+                               Win32::Process::CREATE_NEW_PROCESS_GROUP(),
+                               ".") || die;
+        #Win32::Process::Create($proc,
+        #                       "C:/Windows/System32/cmd.exe",
+        #                       "/C $test $tmpfn",
+        #                       0,
+        #                       Win32::Process::NORMAL_PRIORITY_CLASS(),
+        #                       ".") || die;
+        push @procs, $proc;
+        return $proc->GetProcessID();
+    } else {
+        my $pid = fork();
+        die unless ($pid >= 0);
+        if ($pid==0) {
+            # put this process (the child) into a process group named by
+            # its pid so that we'll be able to kill its entire subtree
+            # later
+            setpgrp();
+            my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
+            exit ($delta_result);
+        }
+        return $pid;
+    }
+}
+
+sub c_wait() {
+    if ($^O eq "MSWin32") {
+        #return -1 if @variants == 0;
+        return -1 if @procs == 0;
+
+        #for (my $i=0; 1; $i = ($i + 1) % scalar(@variants)) {
+        while(1) {
+            #print "\nVariant $i\n";
+            #my $kidref = $variants[$i];
+            #die unless (scalar(@{$kidref})==5);
+            #(my $pid,my $newsh,my $tmpdir,my $tmpfn,my $res) = @{$kidref};
+            #next if $pid == -1; # Should not happen
+            #print "\nWait pid: $pid\n";
+            #my $proc;
+            my $proc = shift @procs;
+            #Win32::Process::Open($proc, $pid, 0) || die;
+            $proc->Wait(Win32::Process::INFINITE());
+            my $exit_code;
+            #print "\nSTILL_ACTIVE=", Win32::Process::STILL_ACTIVE(), "/", $proc->GetExitCode($exit_code), "\n";
+            if ($proc->GetExitCode($exit_code) != Win32::Process::STILL_ACTIVE()) {
+                $? = $exit_code << 8;
+                return $proc->GetProcessID();
+            }
+            push @procs, $proc;
+        }
+    } else {
+        return wait();
     }
 }
 
@@ -301,7 +388,7 @@ my %method_failed = ();
 # the parallelization strategy is described here:
 #   http://blog.regehr.org/archives/749
 sub delta_pass ($) {
-    (my $mref) = @_;    
+    (my $mref) = @_;
     my $delta_method = ${$mref}{"name"};
     my $delta_arg = ${$mref}{"arg"};
     $good_cnt = 0;
@@ -380,16 +467,7 @@ EOT
                         $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
                     }
                 }
-                my $pid = fork();
-                die unless ($pid >= 0);
-                if ($pid==0) {
-                    # put this process (the child) into a process group named by
-                    # its pid so that we'll be able to kill its entire subtree
-                    # later
-                    setpgrp();
-                    my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
-                    exit ($delta_result);
-                }
+                my $pid = c_fork($delta_method, $delta_arg, $state, $tmpfn);
                 my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);
                 push @variants, \@l;
                 chdir $ORIG_DIR or die;
@@ -432,15 +510,15 @@ EOT
 	    $method_failed{$delta_method}{$delta_arg}++;
 	}
 	print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
-	File::Path::rmtree ($tmpdir, 0, 0);	
+	File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
     }
 
-    if ($num_running>0) {	
+    if ($num_running>0) {
 	print "about to wait\n" if $DEBUG_SMP;
-	my $xpid = wait();
+	my $xpid = c_wait();
 	die if ($xpid==-1);
 	my $ret = $?;
-	my $delta_result = $ret >> 8;	    
+	my $delta_result = $ret >> 8;
 	print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
 	$num_running--;
 	my $found = 0;
@@ -674,7 +752,7 @@ sub pass_iterator ($) {
 	}
     }
     my @sorted_list = sort bypri @l;
-    return sub { 
+    return sub {
 	return (shift @sorted_list);
     }
 }
@@ -852,7 +930,6 @@ print "\n";
 
 # this should be the only time we touch the original file
 File::Copy::copy($toreduce_best,$toreduce) or die;
-
 print "reduced test case:\n\n";
 open INF, "<$toreduce" or die;
 while (<INF>) {

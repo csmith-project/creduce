@@ -30,5 +30,6 @@
     <CustomBuild Include="pass_peep.pm" />
     <CustomBuild Include="pass_special.pm" />
     <CustomBuild Include="pass_ternary.pm" />
+    <CustomBuild Include="fork_win.pm" />
   </ItemGroup>
 </Project>
