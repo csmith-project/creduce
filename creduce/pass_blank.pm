@@ -38,7 +38,7 @@ sub do_transform($$) {
     my ($cfile, $pattern) = @_;
 
     open INF, "<$cfile" or die;
-    my $tmpfile = POSIX::tmpnam();
+    my $tmpfile = File::Temp::tmpnam();
     open OUTF, ">$tmpfile" or die;
 
     my $matched;

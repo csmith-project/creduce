@@ -70,9 +70,9 @@ sub transform ($$$) {
     if (defined $sh{"flatten"}) {
 	delete $sh{"flatten"};
 	$sh{"start"} = 1;
-	my $tmpfile = POSIX::tmpnam();
+	my $tmpfile = File::Temp::tmpnam();
 	system "$topformflat $arg < $cfile > $tmpfile";
-	system "mv $tmpfile $cfile";	
+	File::Copy::move($tmpfile, $cfile);
 	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
 	return ($OK, \%sh);
     }
@@ -93,7 +93,7 @@ sub transform ($$$) {
 
     my $n=0;
     my $did_something=0;
-    my $tmpfile = POSIX::tmpnam();
+    my $tmpfile = File::Temp::tmpnam();
     open INF, "<$cfile" or die;
     open OUTF, ">$tmpfile" or die;
     while (my $line = <INF>) {
@@ -124,9 +124,9 @@ sub transform ($$$) {
     }
     
     if ($did_something) {
-	system "mv $tmpfile $cfile";
+	File::Copy::move($tmpfile, $cfile);
     } else {
-	system "rm $tmpfile";
+	unlink $tmpfile;
 	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;

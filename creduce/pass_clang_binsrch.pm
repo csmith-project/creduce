@@ -108,7 +108,7 @@ sub transform ($$$) {
     my $index = $sh{"index"};
     my $chunk = $sh{"chunk"};
     my $instances = $sh{"instances"};
-    my $tmpfile = POSIX::tmpnam();
+    my $tmpfile = File::Temp::tmpnam();
 
     print "TRANSFORM: index = $index, chunk = $chunk, instances = $instances\n" if $VERBOSE;
 
@@ -125,7 +125,7 @@ sub transform ($$$) {
 	my $res = run_clang_delta ("$cmd > $tmpfile");
 
 	if ($res==0) {
-	    system "mv $tmpfile $cfile";
+	    File::Copy::move($tmpfile, $cfile);
 	    return ($OK, \%sh);
 	} else {
 	    if ($res == -1) {
@@ -152,10 +152,10 @@ sub transform ($$$) {
 		print "please also let us know what version of C-Reduce you are using\n";
 		print "\n=======================================\n\n";
 	    }
-	    system "rm $tmpfile";
+	    unlink $tmpfile;
 	    return ($STOP, \%sh);
 	}    	
-	system "mv $tmpfile $cfile";
+	File::Copy::move($tmpfile, $cfile);
     } else {
       rechunk:
 	return ($STOP, \%sh) if ($sh{"chunk"} < 10);
