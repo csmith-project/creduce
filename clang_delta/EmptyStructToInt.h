@@ -41,6 +41,9 @@ public:
 
 private:
 
+  typedef llvm::DenseMap<const clang::RecordDecl *, IndexVector *>
+    RecordDeclToFieldIdxVectorMap;
+
   typedef llvm::SmallPtrSet<const clang::RecordDecl *, 5> RecordDeclSet;
 
   typedef llvm::SmallPtrSet<const clang::CXXRecordDecl *, 20> CXXRecordDeclSet;
@@ -51,6 +54,13 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
+  void handleOneRecordDecl(const clang::RecordDecl *RD,
+                           const clang::RecordDecl *BaseRD,
+                           const clang::FieldDecl *FD,
+                           unsigned int Idx);
+
+  void handleOneVarDecl(const clang::VarDecl *VD);
+
   bool isValidRecordDecl(const clang::RecordDecl *RD);
 
   bool pointToSelf(const clang::FieldDecl *FD);
@@ -58,6 +68,17 @@ private:
   void removeRecordDecls(void);
 
   void doAnalysis(void);
+
+  const clang::RecordDecl *getBaseRecordDef(const clang::Type *Ty);
+
+  void getInitExprs(const clang::Type *Ty, 
+                    const clang::Expr *E,
+                    const IndexVector *IdxVec,
+                    ExprVector &InitExprs);
+
+  const clang::FieldDecl *getFieldDeclByIdx(const clang::RecordDecl *RD, unsigned int Idx);
+
+  RecordDeclToFieldIdxVectorMap RecordDeclToField;
 
   RecordDeclSet VisitedRecordDecls;
 

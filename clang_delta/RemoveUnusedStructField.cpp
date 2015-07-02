@@ -291,15 +291,23 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
 void RemoveUnusedStructField::removeOneInitExpr(const Expr *E)
 {
   TransAssert(NumFields && "NumFields cannot be zero!");
-  if (NumFields == 1) {
-    RewriteHelper->replaceExpr(E, "");
-    return;
-  }
 
   SourceRange ExpRange = E->getSourceRange();
   SourceLocation StartLoc = ExpRange.getBegin();
   SourceLocation EndLoc = ExpRange.getEnd();
-  if (IsFirstField) {
+
+  if (NumFields == 1) {
+    // The last field can optionally have a trailing comma
+    // If this is the only field also the comma has to be removed
+    SourceLocation NewEndLoc =
+      RewriteHelper->getEndLocationUntil(ExpRange, '}');
+    NewEndLoc = NewEndLoc.getLocWithOffset(-1);
+
+    TheRewriter.RemoveText(SourceRange(StartLoc, NewEndLoc));
+
+    return;
+  }
+  else if (IsFirstField) {
     EndLoc = RewriteHelper->getEndLocationUntil(ExpRange, ',');
     TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
     return;
