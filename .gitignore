@@ -11,6 +11,7 @@ stamp-h1
 .deps/
 .libs/
 *.a
+*.exe
 *.la
 *.lo
 *.o
