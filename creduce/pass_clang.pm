@@ -66,7 +66,7 @@ sub transform ($$$) {
     print "$cmd\n" if $VERBOSE;
     my $res = run_clang_delta ("$cmd > $tmpfile");
     if ($res==0) {
-	system "mv $tmpfile $cfile";
+	move($tmpfile,$cfile);
 	return ($OK, \$index);
     } else {
 	if (($res == -1) || ($res == -2)) {
@@ -96,7 +96,7 @@ details that may help us reproduce the problem.
 
 EOT
         }
-        system "rm $tmpfile";
+        unlink $tmpfile;
         return ($STOP, \$index);
     }
 }
