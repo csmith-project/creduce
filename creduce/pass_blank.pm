@@ -52,7 +52,11 @@ sub do_transform($$) {
 
     close INF;
     close OUTF;
-    move($tmpfile, $cfile) if $matched;
+    if ($matched) {
+        move($tmpfile, $cfile);
+    } else {
+        unlink $tmpfile;
+    }
     return $matched;
 }
 
