@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use POSIX;
+use File::Copy;
 
 use creduce_config qw(TOPFORMFLAT);
 use creduce_utils;
@@ -72,7 +73,7 @@ sub transform ($$$) {
 	$sh{"start"} = 1;
 	my $tmpfile = POSIX::tmpnam();
 	system "$topformflat $arg < $cfile > $tmpfile";
-	system "mv $tmpfile $cfile";	
+	move($tmpfile,$cfile);
 	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
 	return ($OK, \%sh);
     }
@@ -118,15 +119,16 @@ sub transform ($$$) {
     if ($BACKWARD &&
 	!$did_something &&
 	$sh{"index"} >= 0) {
+	unlink $tmpfile;
 	my $newsh = advance ($cfile, 0, \%sh);
 	%sh = %{$newsh};
 	goto AGAIN;
     }
     
     if ($did_something) {
-	system "mv $tmpfile $cfile";
+	move($tmpfile,$cfile);
     } else {
-	system "rm $tmpfile";
+	unlink $tmpfile;
 	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;

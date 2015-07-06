@@ -66,14 +66,14 @@ sub transform ($$$) {
     print "$cmd\n" if $VERBOSE;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {
-	system "mv $tmpfile $cfile";
+	move($tmpfile,$cfile);
 	return ($OK, \$index);
     } else {
 	if ($res == -1) {
 	} else {
 	    # TODO -- log a crash like we do for clang-delta
 	}
-	system "rm $tmpfile";
+	unlink $tmpfile;
 	return ($STOP, \$index);
     }    
 }
