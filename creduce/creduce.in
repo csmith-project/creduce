@@ -318,7 +318,7 @@ sub c_fork($$$$) {
         my $fork_win = File::Spec->join("@perllibdir@", "fork_win.pm");
         my $proc;
         Win32::Process::Create($proc,
-                               File::Spec->join("@perlbindir@", "perl.exe"),
+                               "@perl@",
                                "-- $fork_win $test $tmpfn $VERBOSE",
                                0,
                                Win32::Process::NORMAL_PRIORITY_CLASS() |
