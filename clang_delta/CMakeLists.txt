@@ -15,8 +15,8 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Check LLVM version
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.7")
-  message(FATAL_ERROR "LLVM version must be >= 3.7")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.6")
+  message(FATAL_ERROR "LLVM version must be >= 3.6")
 endif()
 set(LLVM_VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
