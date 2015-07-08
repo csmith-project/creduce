@@ -12,9 +12,24 @@ project(creduce_perl)
 include(FindPerl)
 
 find_program(ASTYLE "astyle.exe")
+if(NOT ASTYLE)
+message(WARNING "astyle.exe could not be found! Set ASTYLE manually.")
+endif(NOT ASTYLE)
+
 find_program(CLANG_FORMAT "clang-format.exe")
+if(NOT CLANG_FORMAT)
+message(WARNING "clang-format.exe could not be found! Set CLANG_FORMAT manually.")
+endif(NOT CLANG_FORMAT)
+
 find_program(INDENT "indent.exe")
+if(NOT INDENT)
+message(WARNING "indent.exe could not be found! Set INDENT manually.")
+endif(NOT INDENT)
+
 find_program(TOPFORMFLAT "topformflat.exe")
+if(NOT TOPFORMFLAT)
+message(WARNING "topformflat.exe could not be found! Set TOPFORMFLAT manually.")
+endif(NOT TOPFORMFLAT)
 
 # Prepare creduce.pl
 file(READ "creduce.in" CREDUCE_CONTENT)
