@@ -68,7 +68,7 @@ sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
     my $tmpfile = File::Temp::tmpnam();
-    my $cmd = "$clex $which $index $cfile";
+    my $cmd = qq{"$clex" $which $index $cfile};
     print "$cmd\n" if $VERBOSE;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {

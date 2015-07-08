@@ -29,7 +29,7 @@ my $ORIG_DIR;
 
 sub count_instances ($$) {
     (my $cfile, my $which) = @_;
-    open INF, "$clang_delta --query-instances=$which $cfile |" or die;
+    open INF, qq{"$clang_delta" --query-instances=$which $cfile |} or die;
     my $line = <INF>;
     my $n = 0;
     if ($line =~ /Available transformation instances: ([0-9]+)$/) {
@@ -120,7 +120,7 @@ sub transform ($$$) {
 	
 	my $dec = $end - $index + 1;
 
-	my $cmd = "$clang_delta --transformation=$which --counter=$index --to-counter=$end $cfile";
+	my $cmd = qq{"$clang_delta" --transformation=$which --counter=$index --to-counter=$end $cfile};
 	print "$cmd\n" if $VERBOSE;
 	my $res = run_clang_delta ("$cmd > $tmpfile");
 

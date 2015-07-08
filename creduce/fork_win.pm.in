@@ -18,9 +18,9 @@ my $VERBOSE = $ARGV[2];
 my $res;
 
 if ($VERBOSE) {
-    $res = runit "$test $fn";
+    $res = runit qq{"$test" $fn};
 } else {
-    $res = runit "$test $fn > NUL 2>&1";
+    $res = runit qq{"$test" $fn > NUL 2>&1};
 }
 
 exit (($res == 0) ? 1 : 0);

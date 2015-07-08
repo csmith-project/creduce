@@ -319,7 +319,7 @@ sub c_fork($$$$) {
         my $proc;
         Win32::Process::Create($proc,
                                "@perl@",
-                               "-- $fork_win $test $tmpfn $VERBOSE",
+                               qq{-- "$fork_win" "$test" $tmpfn $VERBOSE},
                                0,
                                Win32::Process::NORMAL_PRIORITY_CLASS() |
                                Win32::Process::CREATE_NEW_PROCESS_GROUP(),
