@@ -27,70 +27,24 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CMAKE_BINARY_DIR})
 link_directories(${LLVM_LIBRARY_DIRS})
 
-# Get LLVM libraries for linking
-#llvm_map_components_to_libnames(LLVM_LIBS
-#  bitreader bitwriter core instrumentation ipo irreader
-#  linker mcparser objcarcopts option target)
-set(LLVM_LIBS
-clangFrontendTool.lib
-clangFrontend.lib
-clangDriver.lib
-clangSerialization.lib
-clangCodeGen.lib
-clangParse.lib
-clangSema.lib
-clangAnalysis.lib
-clangRewriteFrontend.lib
-clangRewrite.lib
-clangAST.lib
-clangBasic.lib
-clangEdit.lib
-clangLex.lib
-LLVMLTO.lib
-LLVMObjCARCOpts.lib
-LLVMLinker.lib
-LLVMBitWriter.lib
-LLVMIRReader.lib
-LLVMMIRParser.lib
-LLVMAsmParser.lib
-LLVMDebugInfoPDB.lib
-LLVMTableGen.lib
-LLVMOrcJIT.lib
-LLVMInstrumentation.lib
-LLVMOption.lib
-LLVMX86Disassembler.lib
-LLVMX86AsmParser.lib
-LLVMX86CodeGen.lib
-LLVMSelectionDAG.lib
-LLVMAsmPrinter.lib
-LLVMX86Desc.lib
-LLVMMCDisassembler.lib
-LLVMX86Info.lib
-LLVMX86AsmPrinter.lib
-LLVMX86Utils.lib
-LLVMMCJIT.lib
-LLVMDebugInfoDWARF.lib
-LLVMLineEditor.lib
-LLVMPasses.lib
-LLVMipo.lib
-LLVMVectorize.lib
-LLVMInterpreter.lib
-LLVMExecutionEngine.lib
-LLVMRuntimeDyld.lib
-LLVMCodeGen.lib
-LLVMTarget.lib
-LLVMScalarOpts.lib
-LLVMProfileData.lib
-LLVMObject.lib
-LLVMMCParser.lib
-LLVMBitReader.lib
-LLVMInstCombine.lib
-LLVMTransformUtils.lib
-LLVMipa.lib
-LLVMMC.lib
-LLVMAnalysis.lib
-LLVMCore.lib
-LLVMSupport.lib
+llvm_map_components_to_libnames(LLVM_LIBS
+  irreader
+  mcparser
+  option
+)
+
+set(CLANG_LIBS
+  clangRewrite
+  clangAnalysis
+  clangAST
+  clangBasic
+  clangDriver
+  clangEdit
+  clangFrontend
+  clangLex
+  clangParse
+  clangSema
+  clangSerialization
 )
 
 set(TRANSFORMATION_HEADERS
@@ -246,7 +200,7 @@ add_executable(clang_delta
   TransformationManager.cpp
 )
 
-target_link_libraries(clang_delta ${LLVM_LIBS})
+target_link_libraries(clang_delta ${LLVM_LIBS} ${CLANG_LIBS})
 
 install(TARGETS clang_delta
   RUNTIME DESTINATION "bin"
