@@ -30,11 +30,13 @@ dist_perllib_DATA = \
 	pass_peep.pm \
 	pass_ternary.pm
 nodist_perllib_DATA = \
-	creduce_config.pm
+	creduce_config.pm \
+	fork_win.pm
 
 EXTRA_DIST = \
 	creduce.in \
-	creduce_config.pm.in
+	creduce_config.pm.in \
+	fork_win.pm.in
 
 ###############################################################################
 
@@ -89,9 +91,22 @@ creduce_config.pm: Makefile
 
 creduce_config.pm: creduce_config.pm.in
 
+###
+
+fork_win_edit = sed \
+	-e 's|@perllibdir[@]|$(perllibdir)|g'
+
+fork_win.pm: Makefile
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(fork_win_edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
+
 CLEANFILES = \
 	creduce \
-	creduce_config.pm
+	creduce_config.pm \
+	fork_win.pm
 
 ###
 
