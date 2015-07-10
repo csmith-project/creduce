@@ -58,7 +58,7 @@ use File::Copy;
 eval { require Sys::CPU; Sys::CPU->import(); };
 
 if ($^O eq "MSWin32") {
-    require Win32::Process;
+    use Win32::Process;
 }
 
 use creduce_config qw(PACKAGE_STRING);
@@ -284,10 +284,12 @@ sub killem() {
     if($^O eq "MSWin32") {
         while (scalar(@procs) > 0) {
             my $proc = shift @procs;
-            #Win32::Process::Open($proc, $pid, 0) || die;
-            $proc->Kill(1);
+            # Kill process group
+            # Win32::Process::Info might be an alternative
+            # $proc->Kill(1); #does not kill the children
+            my $pid = $proc->GetProcessID();
+            system "TASKKILL /F /T /PID $pid > NUL 2>&1";
             $proc->Wait(Win32::Process::INFINITE());
-            #Win32::Process::KillProcess($pid, 1);
             $num_running--;
         }
         while (scalar(@variants) > 0) {
@@ -312,24 +314,21 @@ sub killem() {
     }
 }
 
-sub c_fork($$$$) {
+sub fork_helper($$$$) {
     (my $delta_method, my $delta_arg, my $state, my $tmpfn) = @_;
     if ($^O eq "MSWin32") {
-        my $fork_win = File::Spec->join("@perllibdir@", "fork_win.pm");
+        my $cmd = which("cmd.exe");
+        my $cmdline = qq{/C "$test" $tmpfn};
+        $cmdline .= "NUL 2>&1" unless $VERBOSE;
+
         my $proc;
         Win32::Process::Create($proc,
-                               "@perl@",
-                               qq{-- "$fork_win" "$test" $tmpfn $VERBOSE},
+                               $cmd,
+                               $cmdline,
                                0,
                                Win32::Process::NORMAL_PRIORITY_CLASS() |
                                Win32::Process::CREATE_NEW_PROCESS_GROUP(),
                                ".") || die;
-        #Win32::Process::Create($proc,
-        #                       "C:/Windows/System32/cmd.exe",
-        #                       "/C $test $tmpfn",
-        #                       0,
-        #                       Win32::Process::NORMAL_PRIORITY_CLASS(),
-        #                       ".") || die;
         push @procs, $proc;
         return $proc->GetProcessID();
     } else {
@@ -347,27 +346,17 @@ sub c_fork($$$$) {
     }
 }
 
-sub c_wait() {
+sub wait_helper() {
     if ($^O eq "MSWin32") {
-        #return -1 if @variants == 0;
         return -1 if @procs == 0;
 
-        #for (my $i=0; 1; $i = ($i + 1) % scalar(@variants)) {
         while(1) {
-            #print "\nVariant $i\n";
-            #my $kidref = $variants[$i];
-            #die unless (scalar(@{$kidref})==5);
-            #(my $pid,my $newsh,my $tmpdir,my $tmpfn,my $res) = @{$kidref};
-            #next if $pid == -1; # Should not happen
-            #print "\nWait pid: $pid\n";
-            #my $proc;
             my $proc = shift @procs;
-            #Win32::Process::Open($proc, $pid, 0) || die;
             $proc->Wait(Win32::Process::INFINITE());
+
             my $exit_code;
-            #print "\nSTILL_ACTIVE=", Win32::Process::STILL_ACTIVE(), "/", $proc->GetExitCode($exit_code), "\n";
             if ($proc->GetExitCode($exit_code) != Win32::Process::STILL_ACTIVE()) {
-                $? = $exit_code << 8;
+                $? = ($exit_code == 0) ? 1 << 8 : 0;
                 return $proc->GetProcessID();
             }
             push @procs, $proc;
@@ -467,7 +456,7 @@ EOT
                         $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
                     }
                 }
-                my $pid = c_fork($delta_method, $delta_arg, $state, $tmpfn);
+                my $pid = fork_helper($delta_method, $delta_arg, $state, $tmpfn);
                 my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);
                 push @variants, \@l;
                 chdir $ORIG_DIR or die;
@@ -515,7 +504,7 @@ EOT
 
     if ($num_running>0) {
 	print "about to wait\n" if $DEBUG_SMP;
-	my $xpid = c_wait();
+	my $xpid = wait_helper();
 	die if ($xpid==-1);
 	my $ret = $?;
 	my $delta_result = $ret >> 8;
