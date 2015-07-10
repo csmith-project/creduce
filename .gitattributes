@@ -1,4 +1,2 @@
-*		    text=auto
+*		text=auto
 git-hash.sh	export-subst
-*.vcxproj*	-text
-*.sln       -text
