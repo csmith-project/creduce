@@ -1,10 +1,8 @@
-# CMakeLists.txt (clang_delta)
-# Copyright (c) 2015, Moritz Pflanzer}
-# Imperial College London. All rights reserved.
+# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+# All rights reserved.
 #
-# This program is provided under a three-clause BSD license. For full
-# license terms please see the LICENSE file distributed with this
-# source code.
+# This file is distributed under the University of Illinois Open Source
+# License.  See the file COPYING for details.
 
 cmake_minimum_required(VERSION 2.8.12)
 project(clang_delta)
