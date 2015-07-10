@@ -91,7 +91,7 @@ creduce_config.pm: creduce_config.pm.in
 
 CLEANFILES = \
 	creduce \
-	creduce_config.pm翿
+	creduce_config.pm
 
 ###
 
