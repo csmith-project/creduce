@@ -4,93 +4,42 @@
 clang -pedantic -Wall -O0 "%1" >out.txt 2>&1
 if %errorlevel% neq 0 exit /B 1
 
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/incompatible redeclaration/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/ordered comparison between pointer/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/eliding middle term/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/end of non-void function/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/invalid in C99/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/specifies type/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/should return a value/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/too few argument/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/too many argument/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/return type of 'main/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/uninitialized/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/incompatible pointer to/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/incompatible integer to/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/type specifier missing/) {$found=1; exit}" out.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
+findstr /c:"incompatible redeclaration" out.txt > NUL 2>&1 || ^
+findstr /c:"ordered comparison between pointer" out.txt > NUL 2>&1 || ^
+findstr /c:"eliding middle term" out.txt > NUL 2>&1 || ^
+findstr /c:"end of non-void function" out.txt > NUL 2>&1 || ^
+findstr /c:"invalid in C99" out.txt > NUL 2>&1 || ^
+findstr /c:"specifies type" out.txt > NUL 2>&1 || ^
+findstr /c:"should return a value" out.txt > NUL 2>&1 || ^
+findstr /c:"too few argument" out.txt > NUL 2>&1 || ^
+findstr /c:"too many argument" out.txt > NUL 2>&1 || ^
+findstr /c:"return type of 'main" out.txt > NUL 2>&1 || ^
+findstr /c:"uninitialized" out.txt > NUL 2>&1 || ^
+findstr /c:"incompatible pointer to" out.txt > NUL 2>&1 || ^
+findstr /c:"incompatible integer to" out.txt > NUL 2>&1 || ^
+findstr /c:"type specifier missing" out.txt > NUL 2>&1
+if %errorlevel% equ 0 exit /B 1
 
 gcc -c -Wall -Wextra -O "%1" >outa.txt 2>&1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/uninitialized/) {$found=1; exit}" outa.txt > NUL 2>&1
 if %errorlevel% neq 0 exit /B 1
 
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/control reaches end/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
+findstr /c:"uninitialized" outa.txt > NUL 2>&1 || ^
+findstr /c:"control reaches end" outa.txt > NUL 2>&1 || ^
+findstr /c:"no semicolon at end" outa.txt > NUL 2>&1 || ^
+findstr /c:"incompatible pointer" outa.txt > NUL 2>&1 || ^
+findstr /c:"cast from pointer to integer" outa.txt > NUL 2>&1 || ^
+findstr /c:"ordered comparison of pointer with integer" outa.txt > NUL 2>&1 || ^
+findstr /c:"declaration does not declare anything" outa.txt > NUL 2>&1 || ^
+findstr /c:"expects type" outa.txt > NUL 2>&1 || ^
+findstr /c:"assumed to have one element" outa.txt > NUL 2>&1 || ^
+findstr /c:"division by zero" outa.txt > NUL 2>&1 || ^
+findstr /c:"pointer from integer" outa.txt > NUL 2>&1 || ^
+findstr /c:"incompatible implicit" outa.txt > NUL 2>&1 || ^
+findstr /c:"excess elements in struct initializer" outa.txt > NUL 2>&1 || ^
+findstr /c:"comparison between pointer and integer" outa.txt > NUL 2>&1
+if %errorlevel% equ 0 exit /B 1
 
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/no semicolon at end/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/incompatible pointer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/cast from pointer to integer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/ordered comparison of pointer with integer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/declaration does not declare anything/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/expects type/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/assumed to have one element/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/division by zero/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/pointer from integer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/incompatible implicit/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/excess elements in struct initializer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 1} else {exit 0}} if(/comparison between pointer and integer/) {$found=1; exit}" outa.txt > NUL 2>&1
-if %errorlevel% neq 0 exit /B 1
-
-perl -ne "END {if($found) {exit 0} else {exit 1}} if(/goto/) {$found=1; exit}" "%1" > NUL 2>&1
+findstr /c:"goto" "%1" > NUL 2>&1
 if %errorlevel% neq 0 exit /B 1
 
 :: Variant is interesting
