@@ -319,7 +319,7 @@ sub fork_helper($$$$) {
     if ($^O eq "MSWin32") {
         my $cmd = which("cmd.exe");
         my $cmdline = qq{/C "$test" $tmpfn};
-        $cmdline .= "NUL 2>&1" unless $VERBOSE;
+        $cmdline .= " > NUL 2>&1" unless $VERBOSE;
 
         my $proc;
         Win32::Process::Create($proc,
