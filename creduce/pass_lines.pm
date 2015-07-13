@@ -118,6 +118,7 @@ sub transform ($$$) {
     if ($BACKWARD &&
 	!$did_something &&
 	$sh{"index"} >= 0) {
+    unlink $tmpfile;
 	my $newsh = advance ($cfile, 0, \%sh);
 	%sh = %{$newsh};
 	goto AGAIN;

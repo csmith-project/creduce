@@ -131,6 +131,7 @@ sub transform ($$$) {
 	    if ($res == -1) {
 		# nothing?
 	    } elsif ($res == -2) {
+        unlink $tmpfile;
 		print "out of instances!\n" if $VERBOSE;
 		goto rechunk;
 	    } else {
