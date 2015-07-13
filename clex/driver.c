@@ -145,7 +145,7 @@ void collapse_toks (int tok_index)
       }
     }
   }
-  exit (-1);
+  exit (1);
 }
 
 // FIXME: have a C++ mode that avoids trying to rename C++ keywords?
@@ -175,7 +175,7 @@ void rename_toks (int tok_index)
     // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -220,7 +220,7 @@ void remove_asm_comment (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -271,7 +271,7 @@ void remove_asm_line (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -297,7 +297,7 @@ void shorten_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -325,7 +325,7 @@ void x_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -363,7 +363,7 @@ void shorten_int (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -388,7 +388,7 @@ void delete_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -433,7 +433,7 @@ void reverse_toks (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -457,7 +457,7 @@ void rm_toks (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -535,14 +535,14 @@ void rm_tok_pattern (int idx)
   if (matched && deleted) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     printf ("USAGE: %s command index file\n", argv[0]);
-    exit (-1);
+    exit (1);
   }
 
   char *cmd = argv[1];
@@ -582,7 +582,7 @@ int main(int argc, char *argv[]) {
     assert (n_toks > 1 && n_toks <= 8);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
-    exit (-50);
+    exit (50);
   }
 
   int tok_index;
