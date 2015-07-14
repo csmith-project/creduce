@@ -58,7 +58,7 @@ use File::Copy;
 eval { require Sys::CPU; Sys::CPU->import(); };
 
 if ($^O eq "MSWin32") {
-    use Win32::Process;
+    eval { require Win32::Process; Win32::Process->import(); };
 }
 
 use creduce_config qw(PACKAGE_STRING);
