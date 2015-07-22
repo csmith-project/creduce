@@ -1,0 +1,6 @@
+language: cpp
+
+before_install:
+  - sudo scripts/travis_deps.sh
+
+script: CXX=/usr/lib/llvm-3.6/bin/clang++ ./configure --with-llvm=/usr/lib/llvm-3.6 && make -j2
