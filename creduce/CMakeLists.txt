@@ -1,0 +1,71 @@
+# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+# All rights reserved.
+#
+# This file is distributed under the University of Illinois Open Source
+# License.  See the file COPYING for details.
+
+cmake_minimum_required(VERSION 2.8.12)
+project(creduce_perl)
+
+include(FindPerl)
+
+find_program(ASTYLE "astyle.exe")
+if(NOT ASTYLE)
+message(WARNING "astyle.exe could not be found! Set ASTYLE manually.")
+endif(NOT ASTYLE)
+
+find_program(CLANG_FORMAT "clang-format.exe")
+if(NOT CLANG_FORMAT)
+message(WARNING "clang-format.exe could not be found! Set CLANG_FORMAT manually.")
+endif(NOT CLANG_FORMAT)
+
+find_program(INDENT "indent.exe")
+if(NOT INDENT)
+message(WARNING "indent.exe could not be found! Set INDENT manually.")
+endif(NOT INDENT)
+
+find_program(TOPFORMFLAT "topformflat.exe")
+if(NOT TOPFORMFLAT)
+message(WARNING "topformflat.exe could not be found! Set TOPFORMFLAT manually.")
+endif(NOT TOPFORMFLAT)
+
+# Prepare creduce.pl
+file(READ "creduce.in" CREDUCE_CONTENT)
+string(REGEX REPLACE "\@perl\@" "${PERL_EXECUTABLE}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PERL\@" "${PERL_EXECUTABLE}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@perllibdir\@" "${CMAKE_INSTALL_PREFIX}/modules" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@prefix\@" "${CMAKE_INSTALL_PREFIX}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+file(WRITE "${PROJECT_BINARY_DIR}/creduce.pl" "${CREDUCE_CONTENT}")
+
+# Prepare creduce_config.pm
+file(READ "creduce_config.pm.in" CREDUCE_CONTENT)
+string(REGEX REPLACE "\@bindir\@" "${CMAKE_INSTALL_PREFIX}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@libexecdir\@" "${CMAKE_INSTALL_PREFIX}/bin" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PACKAGE_BUGREPORT\@" "${creduce_PACKAGE_BUGREPORT}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PACKAGE_NAME\@" "${creduce_PACKAGE_NAME}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PACKAGE_STRING\@" "${creduce_PACKAGE_STRING}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PACKAGE_URL\@" "${creduce_PACKAGE_URL}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@PACKAGE_VERSION\@" "${creduce_PACKAGE_VERSION}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@VERSION\@" "${creduce_VERSION}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@GIT_HASH\@" "${creduce_GIT_HASH}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@ASTYLE\@" "${ASTYLE}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@CLANG_FORMAT\@" "${CLANG_FORMAT}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@INDENT\@" "${INDENT}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REGEX REPLACE "\@TOPFORMFLAT\@" "${TOPFORMFLAT}" CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+file(WRITE "${PROJECT_BINARY_DIR}/modules/creduce_config.pm" "${CREDUCE_CONTENT}")
+
+install(PROGRAMS
+  "${PROJECT_BINARY_DIR}/creduce.pl"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}"
+)
+
+install(DIRECTORY
+  "${PROJECT_BINARY_DIR}/modules/"
+  DESTINATION "modules"
+)
+
+install(DIRECTORY
+  "${PROJECT_SOURCE_DIR}/"
+  DESTINATION "modules"
+  FILES_MATCHING PATTERN "*.pm"
+)

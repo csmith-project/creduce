@@ -43,6 +43,12 @@ sub check_prereqs () {
 	$clex = $path;
 	return 1;
     }
+    # Check Windows
+    $path=$path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
+	$clex = $path;
+	return 1;
+    }
     return 0;
 }
 
@@ -61,19 +67,19 @@ sub advance ($$$) {
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
-    my $tmpfile = POSIX::tmpnam();
-    my $cmd = "$clex $which $index $cfile";
+    my $tmpfile = File::Temp::tmpnam();
+    my $cmd = qq{"$clex" $which $index $cfile};
     print "$cmd\n" if $VERBOSE;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {
-	system "mv $tmpfile $cfile";
+	File::Copy::move($tmpfile, $cfile);
 	return ($OK, \$index);
     } else {
 	if ($res == -1) {
 	} else {
 	    # TODO -- log a crash like we do for clang-delta
 	}
-	system "rm $tmpfile";
+	unlink $tmpfile;
 	return ($STOP, \$index);
     }    
 }

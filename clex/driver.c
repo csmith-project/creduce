@@ -145,7 +145,7 @@ void collapse_toks (int tok_index)
       }
     }
   }
-  exit (-1);
+  exit (1);
 }
 
 // FIXME: have a C++ mode that avoids trying to rename C++ keywords?
@@ -175,7 +175,7 @@ void rename_toks (int tok_index)
     // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -220,7 +220,7 @@ void remove_asm_comment (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -271,7 +271,7 @@ void remove_asm_line (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -297,7 +297,7 @@ void shorten_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -325,7 +325,7 @@ void x_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -363,7 +363,7 @@ void shorten_int (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -388,7 +388,7 @@ void delete_string (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -400,7 +400,13 @@ void reverse_toks (int idx)
   int matched = 0;
   int which = 0;
   int i;
+
+#ifdef _MSC_VER
+  int *saved = calloc(N, sizeof(int));
+#else
   int saved[N];
+#endif
+
   int nsaved = 0;
   for (i=0; i<toks; i++) {
     if (which>=idx && which<idx+n_toks) {
@@ -419,10 +425,15 @@ void reverse_toks (int idx)
       which++;
     }
   }
+
+#ifdef _MSC_VER
+  free(saved);
+#endif
+
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -446,7 +457,7 @@ void rm_toks (int idx)
   if (matched) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
@@ -464,13 +475,23 @@ void rm_tok_pattern (int idx)
 {
   int i;
   int n_patterns = 1<<(n_toks-1);
+
+#ifdef _MSC_VER
+  unsigned char *patterns = calloc(n_patterns, sizeof(unsigned char));
+#else
   unsigned char patterns[n_patterns];
+#endif
+
   for (i=0; i<n_patterns; i++) {
     patterns[i] = 1 | ((unsigned)i << 1);
   }
 
   int n_pattern = idx & (n_patterns-1);
   unsigned char pat = patterns[n_pattern];	
+
+#ifdef _MSC_VER
+  free(patterns);
+#endif
 
   if (0) {
     printf ("pattern = ");
@@ -514,14 +535,14 @@ void rm_tok_pattern (int idx)
   if (matched && deleted) {
     exit (0);
   } else {
-    exit (-1);
+    exit (1);
   }
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     printf ("USAGE: %s command index file\n", argv[0]);
-    exit (-1);
+    exit (1);
   }
 
   char *cmd = argv[1];
@@ -561,7 +582,7 @@ int main(int argc, char *argv[]) {
     assert (n_toks > 1 && n_toks <= 8);
   } else {
     printf ("error: unknown mode '%s'\n", cmd);
-    exit (-50);
+    exit (50);
   }
 
   int tok_index;

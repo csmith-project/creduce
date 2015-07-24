@@ -38,7 +38,7 @@ sub do_transform($$) {
     my ($cfile, $pattern) = @_;
 
     open INF, "<$cfile" or die;
-    my $tmpfile = POSIX::tmpnam();
+    my $tmpfile = File::Temp::tmpnam();
     open OUTF, ">$tmpfile" or die;
 
     my $matched;
@@ -52,7 +52,11 @@ sub do_transform($$) {
 
     close INF;
     close OUTF;
-    move($tmpfile, $cfile) if $matched;
+    if ($matched) {
+        File::Copy::move($tmpfile, $cfile);
+    } else {
+        unlink $tmpfile;
+    }
     return $matched;
 }
 
