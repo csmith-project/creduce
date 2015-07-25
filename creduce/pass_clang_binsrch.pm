@@ -29,7 +29,7 @@ my $ORIG_DIR;
 
 sub count_instances ($$) {
     (my $cfile, my $which) = @_;
-    open INF, "$clang_delta --query-instances=$which $cfile |" or die;
+    open INF, qq{"$clang_delta" --query-instances=$which $cfile |} or die;
     my $line = <INF>;
     my $n = 0;
     if ($line =~ /Available transformation instances: ([0-9]+)$/) {
@@ -52,6 +52,12 @@ sub check_prereqs () {
 	$path = "$FindBin::Bin/../clang_delta/clang_delta";
     }
     if ((-e $path) && (-x $path)) {
+	$clang_delta = $path;
+	return 1;
+    }
+    # Check Windows
+    $path=$path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
 	$clang_delta = $path;
 	return 1;
     }
@@ -102,7 +108,7 @@ sub transform ($$$) {
     my $index = $sh{"index"};
     my $chunk = $sh{"chunk"};
     my $instances = $sh{"instances"};
-    my $tmpfile = POSIX::tmpnam();
+    my $tmpfile = File::Temp::tmpnam();
 
     print "TRANSFORM: index = $index, chunk = $chunk, instances = $instances\n" if $VERBOSE;
 
@@ -114,17 +120,18 @@ sub transform ($$$) {
 	
 	my $dec = $end - $index + 1;
 
-	my $cmd = "$clang_delta --transformation=$which --counter=$index --to-counter=$end $cfile";
+	my $cmd = qq{"$clang_delta" --transformation=$which --counter=$index --to-counter=$end $cfile};
 	print "$cmd\n" if $VERBOSE;
 	my $res = run_clang_delta ("$cmd > $tmpfile");
 
 	if ($res==0) {
-	    system "mv $tmpfile $cfile";
+	    File::Copy::move($tmpfile, $cfile);
 	    return ($OK, \%sh);
 	} else {
 	    if ($res == -1) {
 		# nothing?
 	    } elsif ($res == -2) {
+        unlink $tmpfile;
 		print "out of instances!\n" if $VERBOSE;
 		goto rechunk;
 	    } else {
@@ -146,10 +153,10 @@ sub transform ($$$) {
 		print "please also let us know what version of C-Reduce you are using\n";
 		print "\n=======================================\n\n";
 	    }
-	    system "rm $tmpfile";
+	    unlink $tmpfile;
 	    return ($STOP, \%sh);
 	}    	
-	system "mv $tmpfile $cfile";
+	File::Copy::move($tmpfile, $cfile);
     } else {
       rechunk:
 	return ($STOP, \%sh) if ($sh{"chunk"} < 10);
