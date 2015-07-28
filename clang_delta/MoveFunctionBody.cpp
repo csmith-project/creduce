@@ -43,6 +43,14 @@ bool MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D)
       continue;
     }
 
+    // Skip functions which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!SrcManager->isInMainFile(FD->getLocStart()))
+    {
+      PrevFunctionDecl = NULL;
+      continue;
+    }
+
     FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
     if (FD->isThisDeclarationADefinition()) {
       FunctionDecl *FDDecl = AllValidFunctionDecls[CanonicalFD];
