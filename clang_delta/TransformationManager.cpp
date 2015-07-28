@@ -64,6 +64,15 @@ bool TransformationManager::isCLangOpt()
           .C99);
 }
 
+bool TransformationManager::isOpenCLLangOpt()
+{
+  TransAssert(TransformationManager::Instance && "Invalid Instance!");
+  TransAssert(TransformationManager::Instance->ClangInstance &&
+              "Invalid ClangInstance!");
+  return (TransformationManager::Instance->ClangInstance->getLangOpts()
+          .OpenCL);
+}
+
 bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
 {
   if (ClangInstance) {
