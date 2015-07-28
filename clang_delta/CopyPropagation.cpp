@@ -414,6 +414,14 @@ void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
       hasSameStringRep(CopyE, DominatedE))
     return;
 
+  // Skip expressions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(CopyE->getLocStart()) ||
+     !SrcManager->isInMainFile(DominatedE->getLocStart()))
+  {
+    return;
+  }
+
   ExprSet *ESet = DominatedMap[CopyE];
   if (!ESet) {
     ESet = new ExprSet();
