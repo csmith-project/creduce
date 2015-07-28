@@ -139,6 +139,13 @@ void RemovePointer::doAnalysis(void)
     if (AllInvalidPointerVarDecls.count(VD))
       continue;
 
+    // Skip declarations which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!SrcManager->isInMainFile(VD->getLocStart()))
+    {
+      continue;
+    }
+
     ValidInstanceNum++;
     if (TransformationCounter == ValidInstanceNum)
       TheVarDecl = VD;
