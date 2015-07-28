@@ -70,6 +70,13 @@ bool ExistingVarCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
   ParmVarDecl *PD = dyn_cast<ParmVarDecl>(VD);
   if (PD) {
+    // Skip parameters which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocStart()))
+    {
+      return true;
+    }
+
     ConsumerInstance->validateParam(PD);
     return true;
   }
