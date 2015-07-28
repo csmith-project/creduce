@@ -84,13 +84,6 @@ bool ReplaceUndefFuncRewriteVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool ReplaceUndefFuncRewriteVisitor::VisitCallExpr(CallExpr *CE)
 {
-  // Only calls within the main file can considered
-  // Only rewriting within the main file is supported
-  if(!ConsumerInstance->SrcManager->isInMainFile(CE->getLocStart()))
-  {
-    return true;
-  }
-
   FunctionDecl *FD = CE->getDirectCallee();
   // skip CXXMethodDecl for now
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
@@ -154,24 +147,26 @@ void ReplaceUndefinedFunction::doAnalysis(void)
 
 void ReplaceUndefinedFunction::handleOneFunctionDecl(const FunctionDecl *FD)
 {
-  // Only functions in the main file can be considred as replaced function
-  // Only rewriting within the main file is supported
-  if(SrcManager->isInMainFile(FD->getLocation()))
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(FD->getLocStart()))
   {
-    QualType FDQualTy = FD->getType();
-    for (FunctionSetMap::iterator I = ReplaceableFunctions.begin(),
-         E = ReplaceableFunctions.end(); I != E; ++I) {
-      const FunctionDecl *ReplaceableFD = (*I).first;
-      FunctionDeclSet *FDSet = (*I).second;
-      QualType QualTy = ReplaceableFD->getType();
+    return;
+  }
 
-      if (!Context->hasSameType(FDQualTy, QualTy))
-        continue;
+  QualType FDQualTy = FD->getType();
+  for (FunctionSetMap::iterator I = ReplaceableFunctions.begin(),
+       E = ReplaceableFunctions.end(); I != E; ++I) {
+    const FunctionDecl *ReplaceableFD = (*I).first;
+    FunctionDeclSet *FDSet = (*I).second;
+    QualType QualTy = ReplaceableFD->getType();
 
-      TransAssert(FDSet && "NULL FDSet");
-      FDSet->insert(FD);
-      return;
-    }
+    if (!Context->hasSameType(FDQualTy, QualTy))
+      continue;
+
+    TransAssert(FDSet && "NULL FDSet");
+    FDSet->insert(FD);
+    return;
   }
 
   FunctionDeclSet *FDSet = new FunctionDeclSet();
