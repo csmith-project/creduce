@@ -94,6 +94,13 @@ bool CombLocalVarCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
     DeclStmt *DS = dyn_cast<DeclStmt>(*I);
     if (!DS)
       continue;
+    // Skip declarations which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!ConsumerInstance->SrcManager->isInMainFile(DS->getLocStart()))
+    {
+      continue;
+    }
+
     const Type *T = getTypeFromDeclStmt(DS);
     if (!T)
       continue;
