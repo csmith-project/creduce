@@ -489,6 +489,13 @@ void ReducePointerLevel::doAnalysis(void)
          I != E; ++I) {
       if (!ValidDecls.count(*I))
         continue;
+      // Skip declarations which are not in the main file
+      // Rewriting outside of the main file is currently not supported
+      if(!SrcManager->isInMainFile((*I)->getLocStart()))
+      {
+        continue;
+      }
+
       ValidInstanceNum++;
       if (TransformationCounter == ValidInstanceNum)
         TheDecl = *I;
