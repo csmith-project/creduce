@@ -115,6 +115,13 @@ void ReduceArraySize::doAnalysis(void)
     if (!DimVec)
       continue;
 
+    // Skip declarations which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!SrcManager->isInMainFile(VD->getLocStart()))
+    {
+      continue;
+    }
+
     DimValueVector *OrigDimVec = OrigVarDeclToDim[VD];
     TransAssert(OrigDimVec && "Null OrigDimVec!");
 
