@@ -71,7 +71,8 @@ void ReplaceDependentName::Initialize(ASTContext &context)
 
 void ReplaceDependentName::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
