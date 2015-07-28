@@ -48,6 +48,13 @@ private:
 bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
        FunctionDecl *FD)
 {
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
+
   if (FD->isThisDeclarationADefinition() && 
       !FD->isDeleted() &&
       !FD->isDefaulted() &&
