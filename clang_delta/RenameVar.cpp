@@ -73,6 +73,13 @@ bool RNVCollectionVisitor::VisitVarDecl(VarDecl *VD)
   if (PV)
     return true;
 
+  // Skip variables which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocStart()))
+  {
+    return true;
+  }
+
   VarDecl *CanonicalVD = VD->getCanonicalDecl();
   ConsumerInstance->addVar(CanonicalVD);
   return true;
