@@ -118,14 +118,19 @@ bool SimplifyCommaExprStmtVisitor::VisitDoStmt(DoStmt *DS)
 bool SimplifyCommaExprStmtVisitor::VisitBinaryOperator(
        BinaryOperator *BO)
 {
-  BinaryOperator::Opcode Op = BO->getOpcode();
-  if (Op == clang::BO_Comma) {
-    ConsumerInstance->ValidInstanceNum++;
-    if (ConsumerInstance->ValidInstanceNum == 
-        ConsumerInstance->TransformationCounter) {
-      ConsumerInstance->TheBinaryOperator = BO;
-      ConsumerInstance->TheStmt = CurrentStmt;
-      ConsumerInstance->NeedParen = NeedParen;
+  // Only handle commas which are in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(ConsumerInstance->SrcManager->isInMainFile(BO->getLocStart()))
+  {
+    BinaryOperator::Opcode Op = BO->getOpcode();
+    if (Op == clang::BO_Comma) {
+      ConsumerInstance->ValidInstanceNum++;
+      if (ConsumerInstance->ValidInstanceNum == 
+          ConsumerInstance->TransformationCounter) {
+        ConsumerInstance->TheBinaryOperator = BO;
+        ConsumerInstance->TheStmt = CurrentStmt;
+        ConsumerInstance->NeedParen = NeedParen;
+      }
     }
   }
 
