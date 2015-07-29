@@ -78,7 +78,8 @@ void RenameClass::Initialize(ASTContext &context)
 
 void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

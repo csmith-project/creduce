@@ -168,7 +168,8 @@ void InstantiateTemplateParam::Initialize(ASTContext &context)
 
 void InstantiateTemplateParam::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

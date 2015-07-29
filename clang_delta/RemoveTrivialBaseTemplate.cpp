@@ -60,7 +60,8 @@ void RemoveTrivialBaseTemplate::Initialize(ASTContext &context)
 
 void RemoveTrivialBaseTemplate::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

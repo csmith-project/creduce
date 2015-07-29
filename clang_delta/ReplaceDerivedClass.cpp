@@ -73,7 +73,8 @@ void ReplaceDerivedClass::Initialize(ASTContext &context)
 
 void ReplaceDerivedClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
