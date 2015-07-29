@@ -79,6 +79,13 @@ private:
 
 bool SimplifyStructCollectionVisitor::VisitRecordDecl(RecordDecl *RD)
 {
+  // Skip records which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(RD->getLocStart()))
+  {
+    return true;
+  }
+
   if (!RD->isThisDeclarationADefinition() || !RD->isStruct())
     return true;
   if (ConsumerInstance->isSpecialRecordDecl(RD))
@@ -116,6 +123,13 @@ bool SimplifyStructCollectionVisitor::VisitRecordDecl(RecordDecl *RD)
 
 bool SimplifyStructRewriteVisitor::VisitVarDecl(VarDecl *VD)
 {
+  // Skip variables which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocStart()))
+  {
+    return true;
+  }
+
   if (!ConsumerInstance->ConstField && !ConsumerInstance->VolatileField)
     return true;
 
@@ -147,6 +161,13 @@ bool SimplifyStructRewriteVisitor::VisitVarDecl(VarDecl *VD)
 
 bool SimplifyStructRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
 {
+  // Skip records which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(RD->getLocStart()))
+  {
+    return true;
+  }
+
   RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());
   if (CanonicalRD != ConsumerInstance->TheRecordDecl)
     return true;
@@ -178,6 +199,13 @@ bool SimplifyStructRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
 
 bool SimplifyStructRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 {
+  // Skip type locations which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(RTLoc.getLocStart()))
+  {
+    return true;
+  }
+
   const Type *Ty = RTLoc.getTypePtr();
   if (Ty->isUnionType())
     return true;
@@ -200,6 +228,13 @@ bool SimplifyStructRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 
 bool SimplifyStructRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 {
+  // Skip expressions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ME->getLocStart()))
+  {
+    return true;
+  }
+
   ValueDecl *OrigDecl = ME->getMemberDecl();
   FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
