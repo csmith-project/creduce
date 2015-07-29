@@ -11,6 +11,8 @@
 #ifndef TRANSFORMATION_MANAGER_H
 #define TRANSFORMATION_MANAGER_H
 
+#define CREDUCE_LIBCLC_INCLUDE_PATH "CREDUCE_LIBCLC_INCLUDE_PATH"
+
 #include <string>
 #include <map>
 #include <cassert>

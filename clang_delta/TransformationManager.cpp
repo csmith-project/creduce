@@ -88,6 +88,31 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
     // It results an empty AST for the caller. 
     Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_CXX);
   }
+  else if(IK == IK_OpenCL)
+  {
+      //Commandline parameters
+      std::vector<const char*> args;
+      args.push_back("-x");
+      args.push_back("cl");
+      args.push_back("-Dcl_clang_storage_class_specifiers");
+
+      const char *clcPath = getenv(CREDUCE_LIBCLC_INCLUDE_PATH);
+
+      ClangInstance->createFileManager();
+
+      if(clcPath != NULL && ClangInstance->hasFileManager() && ClangInstance->getFileManager().getDirectory(clcPath, false) != NULL)
+      {
+          args.push_back("-I");
+          args.push_back(clcPath);
+      }
+
+      args.push_back("-include");
+      args.push_back("clc/clc.h");
+      args.push_back("-fno-builtin");
+
+      CompilerInvocation::CreateFromArgs(Invocation, &args[0], &args[0] + args.size(), ClangInstance->getDiagnostics());
+      Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_OpenCL);
+  }
   else {
     ErrorMsg = "Unsupported file type!";
     return false;
