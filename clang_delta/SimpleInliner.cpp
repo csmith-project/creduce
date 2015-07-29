@@ -355,6 +355,13 @@ void SimpleInliner::doAnalysis(void)
     if (!hasValidArgExprs(*CI))
       continue;
 
+    // Skip calss which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!SrcManager->isInMainFile((*CI)->getLocStart()))
+    {
+      continue;
+    }
+
     ValidInstanceNum++;
     if (TransformationCounter == ValidInstanceNum) {
       // It's possible the direct callee is not a definition
