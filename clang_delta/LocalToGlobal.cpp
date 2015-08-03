@@ -139,7 +139,13 @@ void LocalToGlobal::Initialize(ASTContext &context)
 
 void LocalToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
-  FunctionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (TransformationManager::isOpenCLLangOpt()) {
+    ValidInstanceNum = 0;
+  }
+  else {
+    FunctionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  }
+
   if (QueryInstanceOnly)
     return;
 
