@@ -87,7 +87,8 @@ void TemplateNonTypeArgToInt::Initialize(ASTContext &context)
 
 void TemplateNonTypeArgToInt::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

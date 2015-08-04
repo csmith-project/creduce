@@ -81,7 +81,8 @@ void RemoveUnusedOuterClass::Initialize(ASTContext &context)
 
 void RemoveUnusedOuterClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

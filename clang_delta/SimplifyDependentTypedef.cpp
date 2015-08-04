@@ -114,7 +114,8 @@ void SimplifyDependentTypedef::Initialize(ASTContext &context)
 
 void SimplifyDependentTypedef::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
 

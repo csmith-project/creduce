@@ -84,7 +84,8 @@ void RemoveUnresolvedBase::Initialize(ASTContext &context)
 
 void RemoveUnresolvedBase::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

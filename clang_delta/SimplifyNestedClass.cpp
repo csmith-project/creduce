@@ -105,7 +105,8 @@ void SimplifyNestedClass::Initialize(ASTContext &context)
 
 void SimplifyNestedClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

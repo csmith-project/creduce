@@ -250,7 +250,8 @@ void ReduceClassTemplateParameter::Initialize(ASTContext &context)
 
 void ReduceClassTemplateParameter::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

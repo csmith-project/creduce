@@ -96,7 +96,8 @@ void ReplaceClassWithBaseTemplateSpec::Initialize(ASTContext &context)
 
 void ReplaceClassWithBaseTemplateSpec::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

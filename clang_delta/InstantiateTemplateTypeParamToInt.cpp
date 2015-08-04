@@ -204,7 +204,8 @@ void InstantiateTemplateTypeParamToInt::Initialize(ASTContext &context)
 
 void InstantiateTemplateTypeParamToInt::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

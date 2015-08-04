@@ -82,7 +82,8 @@ void RemoveBaseClass::Initialize(ASTContext &context)
 
 void RemoveBaseClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

@@ -103,7 +103,13 @@ void ParamToGlobal::Initialize(ASTContext &context)
 
 void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
-  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (TransformationManager::isOpenCLLangOpt()) {
+    ValidInstanceNum = 0;
+  }
+  else {
+    CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  }
+
   if (QueryInstanceOnly)
     return;
 

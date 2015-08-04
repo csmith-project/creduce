@@ -203,7 +203,8 @@ void TemplateArgToInt::Initialize(ASTContext &context)
 
 void TemplateArgToInt::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

@@ -37,6 +37,8 @@ public:
 
   static bool isCLangOpt();
 
+  static bool isOpenCLLangOpt();
+
   static int ErrorInvalidCounter;
 
   bool doTransformation(std::string &ErrorMsg, int &ErrorCode);
