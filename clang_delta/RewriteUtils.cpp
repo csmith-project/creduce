@@ -560,8 +560,17 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     // transformation like:
     //   int * *y;
     SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD);
+    if (NewStartLoc.isMacroID()) {
+      NewStartLoc = SrcManager->getSpellingLoc(NewStartLoc);
+      const char *StartBuf = SrcManager->getCharacterData(NewStartLoc);
+      // Make sure we have at least one space before the name.
+      if (*StartBuf == ' ')
+        NewStartLoc = NewStartLoc.getLocWithOffset(1);
+    }
 
     SourceLocation NewEndLoc = getEndLocationUntil(VarRange, ',');
+    if (NewEndLoc.isMacroID())
+      NewEndLoc = SrcManager->getSpellingLoc(NewEndLoc);
     
     return 
       !(TheRewriter->RemoveText(SourceRange(NewStartLoc, NewEndLoc)));
@@ -573,6 +582,10 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
 
   SourceLocation PrevDeclEndLoc = getEndLocationUntil(PrevDeclRange, ',');
 
+  if (VarEndLoc.isMacroID())
+    VarEndLoc = SrcManager->getSpellingLoc(VarEndLoc);
+  if (PrevDeclEndLoc.isMacroID())
+    PrevDeclEndLoc = SrcManager->getSpellingLoc(PrevDeclEndLoc);
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
 

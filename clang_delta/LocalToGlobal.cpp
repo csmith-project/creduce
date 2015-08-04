@@ -260,8 +260,15 @@ bool LToGASTVisitor::VisitDeclRefExpr(DeclRefExpr *VarRefExpr)
     return true;
 
   SourceRange ExprRange = VarRefExpr->getSourceRange();
-  return 
-    !(ConsumerInstance->TheRewriter.ReplaceText(ExprRange,
-        ConsumerInstance->TheNewDeclName));
+  SourceLocation StartLoc = ExprRange.getBegin();
+  SourceLocation EndLoc = ExprRange.getEnd();
+  if (StartLoc.isMacroID()) {
+    StartLoc = ConsumerInstance->SrcManager->getSpellingLoc(StartLoc);
+    EndLoc = ConsumerInstance->SrcManager->getSpellingLoc(EndLoc);
+  }
+
+  return
+    !(ConsumerInstance->TheRewriter.ReplaceText(
+        SourceRange(StartLoc, EndLoc), ConsumerInstance->TheNewDeclName));
 }
 
