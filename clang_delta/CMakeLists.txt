@@ -34,16 +34,16 @@ llvm_map_components_to_libnames(LLVM_LIBS
 
 set(CLANG_LIBS
   clangRewrite
-  clangAnalysis
-  clangAST
-  clangBasic
-  clangDriver
-  clangEdit
   clangFrontend
-  clangLex
   clangParse
   clangSema
   clangSerialization
+  clangAnalysis
+  clangEdit
+  clangLex
+  clangAST
+  clangDriver
+  clangBasic
 )
 
 set(TRANSFORMATION_HEADERS
@@ -199,7 +199,7 @@ add_executable(clang_delta
   TransformationManager.cpp
 )
 
-target_link_libraries(clang_delta ${LLVM_LIBS} ${CLANG_LIBS})
+target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
 
 install(TARGETS clang_delta
   RUNTIME DESTINATION "bin"
