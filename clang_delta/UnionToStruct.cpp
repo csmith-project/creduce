@@ -313,6 +313,8 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
 
     const Expr *IE = VD->getInit();
     const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
+    if (!ILE)
+      return;
     // handle a special case where we have code like this:
     //   union U a[][1] = {};
     // In this case, it's safe to keep the empty initializer
@@ -339,26 +341,25 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
     return;
   }
 
-  const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
-  TransAssert(ILE && "Bad InitListExpr!");
+  if (const InitListExpr *ILE = dyn_cast<InitListExpr>(IE)) {
+    if (ILE->getNumInits() != 1) {
+      RewriteHelper->removeVarInitExpr(VD);
+      return;
+    }
 
-  if (ILE->getNumInits() != 1) {
-    RewriteHelper->removeVarInitExpr(VD);
-    return;
+    const Expr *FirstE = ILE->getInit(0);
+    const Type *ExprTy = FirstE->getType().getTypePtr();
+    std::string NewInitStr;
+
+    if (ExprTy->isPointerType()) {
+      getInitStrWithPointerType(FirstE, NewInitStr);
+    }
+    else {
+      getInitStrWithNonPointerType(FirstE, NewInitStr);
+    }
+
+    RewriteHelper->replaceExpr(FirstE, NewInitStr);
   }
-
-  const Expr *FirstE = ILE->getInit(0);
-  const Type *ExprTy = FirstE->getType().getTypePtr();
-  std::string NewInitStr;
-
-  if (ExprTy->isPointerType()) {
-    getInitStrWithPointerType(FirstE, NewInitStr);
-  }
-  else {
-    getInitStrWithNonPointerType(FirstE, NewInitStr);
-  }
-
-  RewriteHelper->replaceExpr(FirstE, NewInitStr);
 }
 
 void UnionToStruct::rewriteOneFunctionDecl(const FunctionDecl *FD)
