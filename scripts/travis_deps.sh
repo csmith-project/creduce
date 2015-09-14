@@ -34,6 +34,7 @@ apt-get update -qq
 # Install LLVM 3.7.  See file "INSTALL".
 apt-get install -y -qq \
     llvm-3.7 \
+    llvm-3.7-dev \
     clang-3.7 \
     libclang-3.7-dev \
     clang-format-3.7 \
