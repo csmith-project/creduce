@@ -34,6 +34,7 @@ apt-get update -qq
 # Install LLVM development branch (aka "3.8").  See file "INSTALL".
 apt-get install -y -qq \
     llvm-3.8 \
+    llvm-3.8-dev \
     clang-3.8 \
     libclang-3.8-dev \
     clang-format-3.8 \
