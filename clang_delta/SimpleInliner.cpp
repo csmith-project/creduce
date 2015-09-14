@@ -390,7 +390,7 @@ void SimpleInliner::createReturnVar(void)
 {
   const Type *FDType = CurrentFD->getReturnType().getTypePtr();
   const Type *CallExprType =
-    TheCallExpr->getCallReturnType().getTypePtr();
+    TheCallExpr->getCallReturnType(CurrentFD->getASTContext()).getTypePtr();
 
   // We don't need tmp var
   if (FDType->isVoidType() && CallExprType->isVoidType()) {

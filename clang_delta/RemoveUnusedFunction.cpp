@@ -648,8 +648,8 @@ RemoveUnusedFunction::lookupFunctionDeclShallow(const DeclarationName &DName,
 {
   if (dyn_cast<LinkageSpecDecl>(Ctx))
     return NULL;
-  DeclContext::lookup_const_result Result = Ctx->lookup(DName);
-  for (DeclContext::lookup_const_iterator I = Result.begin(), E = Result.end();
+  DeclContext::lookup_result Result = Ctx->lookup(DName);
+  for (auto I = Result.begin(), E = Result.end();
        I != E; ++I) {
     if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I))
       return FD;

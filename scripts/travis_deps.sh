@@ -21,22 +21,23 @@ apt-get install -y -qq \
     python-software-properties \
     wget
 
-# Set up for installing LLVM 3.6.
+# Set up for installing LLVM 3.7.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.6 main'
+    'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main'
 wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 3.6.  See file "INSTALL".
+# Install LLVM 3.7.  See file "INSTALL".
 apt-get install -y -qq \
-    llvm-3.6 \
-    clang-3.6 \
-    libclang-3.6-dev \
-    clang-format-3.6 \
+    llvm-3.7 \
+    llvm-3.7-dev \
+    clang-3.7 \
+    libclang-3.7-dev \
+    clang-format-3.7 \
     libedit-dev
 
 # Install other C-Reduce dependencies.  See file "INSTALL".
