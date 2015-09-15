@@ -1,6 +1,6 @@
 # Files made by `configure' and friends.
 Makefile
-autom4te.cache
+autom4te.cache/**
 config.h
 config.log
 config.status
