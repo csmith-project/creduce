@@ -655,14 +655,13 @@ bool RewriteUtils::replaceExpr(const Expr *E,
       return false;
     StartLoc = SrcManager->getFileLoc(StartLoc);
     SourceLocation EndLoc = ExprRange.getEnd();
-    if (!SrcManager->isMacroBodyExpansion(EndLoc))
-      return false;
-
-    // FIXME: handle cases below:
-    // #define macro bar(1,2);
-    // int bar(int p1, int p2) { return p1 + p2; }
-    // void foo(void) { int x = macro }
-    EndLoc = getExpansionEndLoc(EndLoc);
+    if (SrcManager->isMacroBodyExpansion(EndLoc)) {
+      // FIXME: handle cases below:
+      // #define macro bar(1,2);
+      // int bar(int p1, int p2) { return p1 + p2; }
+      // void foo(void) { int x = macro }
+      EndLoc = getExpansionEndLoc(EndLoc);
+    }
     return !(TheRewriter->ReplaceText(SourceRange(StartLoc, EndLoc), ES));
   }
 
