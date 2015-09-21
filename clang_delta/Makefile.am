@@ -210,6 +210,7 @@ clang_delta_SOURCES = \
 	UnionToStruct.h
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	README.txt \
 	test_transformation
 

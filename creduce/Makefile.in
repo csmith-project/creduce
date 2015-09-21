@@ -326,6 +326,7 @@ nodist_perllib_DATA = \
 	creduce_config.pm
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	creduce.in \
 	creduce_config.pm.in
 

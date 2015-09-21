@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -10,6 +10,7 @@
 
 dist_noinst_SCRIPTS = \
 	run_tests \
+	test0.bat \
 	test0.sh \
 	test1.sh \
 	test2.sh \

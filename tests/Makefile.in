@@ -272,6 +272,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 dist_noinst_SCRIPTS = \
 	run_tests \
+	test0.bat \
 	test0.sh \
 	test1.sh \
 	test2.sh \
