@@ -423,7 +423,8 @@ sub delta_pass ($) {
 	    $stopped = 1;
 	} else {
 	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
-            if (compare ($toreduce_best, $tmpfn) == 0) {
+            if (compare ($toreduce_best, $tmpfn) == 0 &&
+		$delta_method ne "pass_indent") {
                 my $n = int(rand(1000000));
                 my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
                 File::Copy::copy($toreduce_best, $crashfile) or die;
