@@ -72,9 +72,19 @@ AC_DEFUN([AX_LLVM],
   if test $? -ne 0; then
     LLVM_SYSLIBS=""
   fi
+
+  # The subparts of the `sed' invocation below remove compiler command-line
+  # options of the following forms:
+  #   -W...         --- warning options
+  #   -w            --- inhibits all warnings
+  #   -pedantic...  --- pedantic warning options
+  #   -g...         --- debugging options
+  #   -O...         --- optimization options
   
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -e 's/-Werror[^ ]*//g' -e 's/-pedantic[^ ]*//g' -e 's/-Wpedantic[^ ]*//g'`
+changequote(<<, >>)dnl
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -E -e 's/(^|[ \t])-W[^ \t]*//g' -e 's/(^|[ \t])-w[[:>:]]//g' -e 's/(^|[ \t])-pedantic[^ \t]*//g' -e 's/(^|[ \t])-g[^ \t]*//g' -e 's/(^|[ \t])-O([[:>:]]|[0-9s][^ \t]*)//g'`
+changequote([, ])dnl
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs $2`
 
