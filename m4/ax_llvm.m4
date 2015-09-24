@@ -87,7 +87,7 @@ AC_DEFUN([AX_LLVM],
   #   -g...         --- debugging options
   #   -O...         --- optimization options
   #
-  # The `sed | grep | xargs' pipeline is intended to be portable.  We use
+  # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
   # `grep' for matching because writing fancy, portable `sed' expressions is
   # difficult.  For example, some implementations use "\b" to match word
   # boundaries while others use "[[:<:]]" and "[[:>:]]".  The Autoconf
@@ -97,7 +97,7 @@ AC_DEFUN([AX_LLVM],
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
 changequote(<<, >>)dnl
   LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | dnl
-    sed -e 's/[ \t][ \t]*/\n/g' | dnl
+    tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' | dnl
     grep -v -e '^-W' dnl
             -e '^-w$' dnl
             -e '^-pedantic' dnl

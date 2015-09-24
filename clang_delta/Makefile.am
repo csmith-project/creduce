@@ -26,12 +26,12 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 #   -g...         --- debugging options
 #   -O...         --- optimization options
 #
-# The `sed | grep | xargs' pipeline is intended to be portable.  We use `grep'
-# for matching because writing fancy, portable `sed' expressions is difficult.
-# For example, some implementations use "\b" to match word boundaries while
-# others use "[[:<:]]" and "[[:>:]]".  The Autoconf documentation says that
-# anchored matches in `sed' are not portable.  Give up; use `grep' instead.
-# Bonus: better readability!
+# The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
+# `grep' for matching because writing fancy, portable `sed' expressions is
+# difficult.  For example, some implementations use "\b" to match word
+# boundaries while others use "[[:<:]]" and "[[:>:]]".  The Autoconf
+# documentation says that anchored matches in `sed' are not portable.  Give up;
+# use `grep' instead.  Bonus: better readability!
 #
 # The funny quoting in `LLVMLIBS' avoids a warning from Automake:
 #   ...: linker flags such as `--libs' belong in `clang_delta_LDFLAGS'
@@ -41,7 +41,7 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 #
 LLVMCXXFLAGS	:= $(shell \
 		     "$(LLVM_CONFIG)" --cxxflags | \
-		     sed -e 's/[ \t][ \t]*/\n/g' | \
+		     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' | \
 		     grep -v -e '^-W' \
 			     -e '^-w$$' \
 			     -e '^-pedantic' \

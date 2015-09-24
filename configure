@@ -15921,7 +15921,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   #   -g...         --- debugging options
   #   -O...         --- optimization options
   #
-  # The `sed | grep | xargs' pipeline is intended to be portable.  We use
+  # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
   # `grep' for matching because writing fancy, portable `sed' expressions is
   # difficult.  For example, some implementations use "\b" to match word
   # boundaries while others use "[[:<:]]" and "[[:>:]]".  The Autoconf
@@ -15929,7 +15929,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   # up; use `grep' instead.  Bonus: better readability!
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     sed -e 's/[ \t][ \t]*/\n/g' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]' |     xargs`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]' |     xargs`
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
