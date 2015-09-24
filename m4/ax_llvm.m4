@@ -73,17 +73,38 @@ AC_DEFUN([AX_LLVM],
     LLVM_SYSLIBS=""
   fi
 
-  # The subparts of the `sed' invocation below remove compiler command-line
+  # When setting `LLVM_CPPFLAGS', we weed out command-line options that might
+  # be troublesome (e.g., -W options that are supported by `CXX', or -W options
+  # that turn warnings into errors).  We also weed out options that might
+  # override choices that *we* want to control (e.g., debug and optimization
+  # options).
+  #
+  # The subparts of the `grep' invocation below remove compiler command-line
   # options of the following forms:
   #   -W...         --- warning options
   #   -w            --- inhibits all warnings
   #   -pedantic...  --- pedantic warning options
   #   -g...         --- debugging options
   #   -O...         --- optimization options
+  #
+  # The `sed | grep | xargs' pipeline is intended to be portable.  We use
+  # `grep' for matching because writing fancy, portable `sed' expressions is
+  # difficult.  For example, some implementations use "\b" to match word
+  # boundaries while others use "[[:<:]]" and "[[:>:]]".  The Autoconf
+  # documentation says that anchored matches in `sed' are not portable.  Give
+  # up; use `grep' instead.  Bonus: better readability!
   
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
 changequote(<<, >>)dnl
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | sed -E -e 's/(^|[ \t])-W[^ \t]*//g' -e 's/(^|[ \t])-w[[:>:]]//g' -e 's/(^|[ \t])-pedantic[^ \t]*//g' -e 's/(^|[ \t])-g[^ \t]*//g' -e 's/(^|[ \t])-O([[:>:]]|[0-9s][^ \t]*)//g'`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags | dnl
+    sed -e 's/[ \t][ \t]*/\n/g' | dnl
+    grep -v -e '^-W' dnl
+            -e '^-w$' dnl
+            -e '^-pedantic' dnl
+            -e '^-g' dnl
+            -e '^-O$' dnl
+            -e '^-O[0-9s]' | dnl
+    xargs`
 changequote([, ])dnl
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs $2`
