@@ -15,6 +15,7 @@ use warnings;
 
 use POSIX;
 
+use Cwd 'abs_path';
 use File::Copy;
 use File::Spec;
 
@@ -30,7 +31,7 @@ my $ORIG_DIR;
 sub check_prereqs () {
     $ORIG_DIR = getcwd();
     my $path;
-    if ($FindBin::RealBin eq bindir) {
+    if ($FindBin::RealBin eq abs_path(bindir)) {
 	# This script is in the installation directory.
 	# Use the installed `clex'.
 	$path = libexecdir . "/clex";
