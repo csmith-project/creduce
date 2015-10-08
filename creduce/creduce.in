@@ -103,7 +103,7 @@ my @options = (
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
-    ["--timing",              "const",   1, \$TIMING,          "Print timestaps about reduction progress"],
+    ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
 );
 
 my $help = creduce_config::PACKAGE_STRING . " -- C and C++ program reducer";
