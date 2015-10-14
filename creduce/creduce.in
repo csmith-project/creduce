@@ -106,15 +106,37 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
 );
 
-my $help = creduce_config::PACKAGE_STRING . " -- C and C++ program reducer";
+my $PKG = creduce_config::PACKAGE_STRING;
+my $help = <<HELP;
+$PKG -- a C and C++ program reducer
+
+C-Reduce requires an "interestingness test": an executable program
+(most often a shell script) that returns 0 when a partially reduced
+file is interesting (a candidate for further reduction) and returns
+non-zero when a partially reduced file is not interesting (not a
+candidate for further reduction -- all uninteresting files are
+discarded).
+
+The interestingness test is run in a fresh temporary directory
+containing only the partially reduced file. Thus, when it examines the
+partially reduced file, it should do so using a relative path. On the
+other hand, any other files that the interestingness test refers to
+should be referenced using absolute paths, so that the interestingness
+test will work correctly regardless of where it is run.
+
+More details can be found in this C-Reduce tutorial:
+  https://embed.cs.utah.edu/creduce/using/
+HELP
+
 my $usage_text = <<USAGE;
-usage: creduce [options] test_script.sh file.c
-       creduce --help to list options
+usage: creduce [options] interestingness_test file_to_reduce
+       creduce --help for more information
+
 USAGE
 
 sub usage() {
     print $usage_text;
-    die;
+    exit();
 }
 
 Getopt::Tabular::SetHelp ($help, $usage_text);
