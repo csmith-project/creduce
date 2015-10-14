@@ -117,12 +117,17 @@ non-zero when a partially reduced file is not interesting (not a
 candidate for further reduction -- all uninteresting files are
 discarded).
 
-The interestingness test is run in a fresh temporary directory
-containing only the partially reduced file. Thus, when it examines the
-partially reduced file, it should do so using a relative path. On the
-other hand, any other files that the interestingness test refers to
-should be referenced using absolute paths, so that the interestingness
-test will work correctly regardless of where it is run.
+C-Reduce runs the interestingness test in a fresh temporary directory
+containing only a partially reduced file. Thus, when the
+interestingness test examines the partially reduced file, it must do
+so using a relative path. On the other hand, any other files that the
+interestingness test refers to should be referenced using absolute
+paths, so that the interestingness test will work correctly regardless
+of where it is run.
+
+If at all possible, run C-Reduce on preprocessed code, generated for
+example using:
+  gcc -E file.c
 
 More details can be found in this C-Reduce tutorial:
   https://embed.cs.utah.edu/creduce/using/
@@ -183,9 +188,8 @@ sub print_pct ($) {
 my $test;
 my $trial_num = 0;
 
-my $toreduce;
-my $toreduce_orig;
-my $toreduce_base;
+my $toreduce_original;
+my $toreduce_fileonly;
 my $dir_base;
 my $suffix;
 
@@ -233,8 +237,8 @@ sub sanity_check () {
     print "sanity check... " if $VERBOSE;
     my $tmpdir = make_tmpdir();
     chdir $tmpdir or die;
-    File::Copy::copy($toreduce_best,$toreduce) or die;
-    if (!run_test($toreduce)) {
+    File::Copy::copy($toreduce_best,$toreduce_fileonly) or die;
+    if (!run_test($toreduce_fileonly)) {
 	chdir $ORIG_DIR;
 	die "test (and sanity check) fails";
     }
@@ -411,8 +415,7 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    my $orig_tmpfn = $toreduce;
-    File::Copy::copy($toreduce_best,$orig_tmpfn) or die;
+    my $orig_tmpfn = $toreduce_fileonly;
     my $state = call_new ($delta_method,$orig_tmpfn,$delta_arg);
 
     if ($SANITY) {
@@ -825,16 +828,10 @@ $test = File::Spec->rel2abs(shift @ARGV);
 usage() unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
-$toreduce = shift @ARGV;
-usage() unless defined($toreduce);
-check_file_attributes("file", $toreduce, "efrw");
-
-print "===< $$ >===\n";
-print "running $NPROCS interestingness test(s) in parallel\n";
-
-# Put scratch files ($toreduce_best, $toreduce_orig) in the current
-# working directory.
-($toreduce_base, $dir_base, $suffix) = fileparse($toreduce, '\.[^.]*');
+$toreduce_original = File::Spec->rel2abs(shift @ARGV);
+check_file_attributes("file", $toreduce_original, "efrw");
+($toreduce_fileonly) = fileparse($toreduce_original);
+(my $toreduce_base, $dir_base, $suffix) = fileparse($toreduce_original, '\.[^.]*');
 
 $ORIG_DIR = getcwd();
 
@@ -844,17 +841,23 @@ $ORIG_DIR = getcwd();
 # Note: On Cygwin, Cwd::abs_path() doesn't work for nonexistent files.  Bah.
 #
 $toreduce_best  = File::Spec->rel2abs("$toreduce_base.best");
-$toreduce_orig = "$toreduce_base.orig";
 
-File::Copy::copy($toreduce,$toreduce_orig) or die;
-File::Copy::copy($toreduce,$toreduce_best) or die;
+# make a backup of the file we're reducing-- this is often useful when
+# reductions go wrong
+if (! -e "$toreduce_base.orig") {
+    File::Copy::copy($toreduce_original,"$toreduce_base.orig") or die;
+}
+File::Copy::copy($toreduce_original,$toreduce_best) or die;
 
-my $file_size = -s $toreduce;
+my $file_size = -s $toreduce_original;
 $orig_file_size = $file_size;
 
 # unconditionally do this just once since otherwise output is
 # confusing when the initial test fails
 sanity_check();
+
+print "===< $$ >===\n";
+print "running $NPROCS interestingness test(s) in parallel\n";
 
 # some passes we run first since they often make good headway quickliy
 if (not $SKIP_FIRST) {
@@ -867,7 +870,7 @@ if (not $SKIP_FIRST) {
 
 # iterate to global fixpoint
 print "MAIN PASSES\n" if $VERBOSE;
-$file_size = -s $toreduce;
+$file_size = -s $toreduce_original;
 
 while (1) {
     my $next = pass_iterator("pri");
@@ -885,7 +888,7 @@ while (1) {
 	printf "running preprocessor command '$CPP'\n";
 	my $res = runit ($CPP);
 	die unless ($res==0);
-	File::Copy::copy($toreduce,$toreduce_best) or die;
+	File::Copy::copy($toreduce_original,$toreduce_best) or die;
 	# reset the fixpoint detector 
 	$file_size = 1 + (-s $toreduce_best);
 	sanity_check();
@@ -941,9 +944,9 @@ foreach my $mref (sort byname @all_methods) {
 print "\n";
 
 # this should be the only time we touch the original file
-File::Copy::copy($toreduce_best,$toreduce) or die;
+File::Copy::copy($toreduce_best,$toreduce_original) or die;
 print "reduced test case:\n\n";
-open INF, "<$toreduce" or die;
+open INF, "<$toreduce_original" or die;
 while (<INF>) {
     print;
 }
