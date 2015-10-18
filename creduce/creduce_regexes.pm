@@ -78,6 +78,7 @@ $call = "$varnum\\s*$RE{balanced}{-parens=>'()'}";
 @delimited_regexes_to_replace = (
     ["($varnumexp)\\s*:", ""],
     ["goto\\s+($varnum);", ""],
+    ["class", "struct"],
     ["char", "int"],
     ["short", "int"],
     ["long", "int"],
