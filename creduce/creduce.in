@@ -26,11 +26,9 @@
 #   ensure that identifiers first appear in sorted order
 #   identifiers are dense
 #   reduce the non-header-file part first, and use PCHs
-# add a multidelta?
 # maybe: fix the caching code and then benchmark on some large reductions
 #   measure hits by pass
 #   consider turning on caching only for passes that benefit
-# use IPC::Run3 instead of system?
 # merge adjacent strings?
 # support adding/removing passes via the command line
 # maybe add a format string reduction pass that eliminates a format
@@ -76,7 +74,6 @@ if (defined(&Sys::CPU::cpu_count)) {
 }
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
-my $SANITY;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
 my $SLLOOWW = 0;
@@ -84,25 +81,21 @@ my $NODEFAULT;
 # if set, cache results of the delta test
 #
 my $CACHE = 0;
-my $FUZZ = 0;
-my $CPP;
 my $TIMING = 0;
 
 my @options = (
     # ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
-    ["--cpp",                 "string",  1, \$CPP,             "Command to preprocess the file being reduced; doing some reduction prior to preprocessing may result in faster reduction"],
-    ["--fuzz",                "const",   1, \$FUZZ,            "Make C-Reduce more effective as a fuzzer, but also slower (best used in conjunction with --skip-initial-passes)"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
+    ["--ignore-pass-bugs",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
+    ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
+    ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
-    ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
-    ["--sanity-checks",       "const",   1, \$SANITY,          "Ensure the delta test succeeds before starting each pass"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
-    ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
-    ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
 );
 
@@ -110,31 +103,41 @@ my $PKG = creduce_config::PACKAGE_STRING;
 my $help = <<HELP;
 $PKG -- a C and C++ program reducer
 
-C-Reduce requires an "interestingness test": an executable program
-(most often a shell script) that returns 0 when a partially reduced
-file is interesting (a candidate for further reduction) and returns
-non-zero when a partially reduced file is not interesting (not a
-candidate for further reduction -- all uninteresting files are
-discarded).
+C-Reduce requires an "interestingness test" and one or more files to
+reduce. Files are reduced in-place so they must be writable. The
+interestingness test is an executable program (usually a shell script)
+that returns 0 when a partially reduced file is interesting (a
+candidate for further reduction) and returns non-zero when a partially
+reduced file is not interesting (not a candidate for further reduction
+-- all uninteresting files are discarded).
 
 C-Reduce runs the interestingness test in a fresh temporary directory
-containing only a partially reduced file. Thus, when the
-interestingness test examines the partially reduced file, it must do
-so using a relative path. On the other hand, any other files that the
-interestingness test refers to should be referenced using absolute
-paths, so that the interestingness test will work correctly regardless
-of where it is run.
+containing only the partially reduced file(s). Thus, when the
+interestingness test examines a partially reduced file, it must do so
+using a relative path to the current working directory. On the other
+hand, when the interestingness test refers to any file that is not
+being reduced, this should be done using an absolute path.
+
+The interestingness test should not expect any command line arguments.
+It should be deterministic and might want to enforce resource limits
+on sub-commands that it invokes (e.g. using ulimit).
 
 If at all possible, run C-Reduce on preprocessed code, generated for
 example using:
   gcc -E file.c
 
-More details can be found in this C-Reduce tutorial:
+If you cannot reduce preprocessed code, you can either reduce just the
+non-preprocessed file or else perform a multi-file reduction on the
+file and its transitive includes (or any subset of them).
+
+If you haven't written an interestingness test before, please refer to
+this tutorial for additional guidance:
   https://embed.cs.utah.edu/creduce/using/
 HELP
+# ' balance for stupid emacs perl mode...
 
 my $usage_text = <<USAGE;
-usage: creduce [options] interestingness_test file_to_reduce
+usage: creduce [options] interestingness_test file_to_reduce [additional files to reduce...]
        creduce --help for more information
 
 USAGE
@@ -148,8 +151,7 @@ Getopt::Tabular::SetHelp ($help, $usage_text);
 Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
-# At this point, @ARGV should contain exactly two file names.
-usage() unless (@ARGV == 2);
+usage() unless (@ARGV >= 2);
 
 # delete cached results for program sizes this much larger than the
 # current size; this heuristic is designed to save RAM while also
@@ -176,30 +178,31 @@ sub process_foo {
 
 ######################################################################
 
-my $orig_file_size;
-
-sub print_pct ($) {
-    (my $l) = @_;
-    my $pct = 100 - ($l*100.0/$orig_file_size);
-    printf "(%.1f %%, $l bytes)\n", $pct;
-}
+my @orig_file_size;
+my $total_file_size = 0;
 
 # these are set at startup time and never change
 my $test;
 my $trial_num = 0;
-
-my $toreduce_original;
-my $toreduce_fileonly;
-my $dir_base;
-my $suffix;
-
 my $ORIG_DIR;
 
+my @toreduce_original;
+my @toreduce_fileonly;
+my @suffix;
 # global invariant: this filename always points to the best delta
 # variant we've seen so far
-my $toreduce_best;
+my @toreduce_best;
 
 ######################################################################
+
+sub print_pct () {
+    my $s = 0;
+    foreach my $f (@toreduce_best) {
+	$s += -s $f;
+    }
+    my $pct = 100 - ($s * 100.0 / $total_file_size);
+    printf "(%.1f %%, $s bytes)\n", $pct;
+}
 
 my @tmpdirs;
 
@@ -218,29 +221,58 @@ sub remove_tmpdirs () {
     }
 }
 
-sub run_test ($) {
-    (my $fn) = @_;
+sub run_test () {
     my $res;
     if ($VERBOSE) {
-	$res = runit "$test $fn";
+	$res = runit "$test";
     } else {
         if($^O eq "MSWin32") {
-            $res = runit "$test $fn > NUL 2>&1";
+            $res = runit "$test > NUL 2>&1";
         } else {
-            $res = runit "$test $fn > /dev/null 2>&1";
+            $res = runit "$test > /dev/null 2>&1";
         }
     }
     return ($res == 0);
 }
 
+sub copy_files_here() {
+    for (my $i=0; $i<scalar(@toreduce_best); $i++) {
+	File::Copy::copy($toreduce_best[$i],$toreduce_fileonly[$i]) or die;
+    }
+}
+
 sub sanity_check () {
     print "sanity check... " if $VERBOSE;
     my $tmpdir = make_tmpdir();
+    print "tmpdir = $tmpdir\n" if ($VERBOSE);
     chdir $tmpdir or die;
-    File::Copy::copy($toreduce_best,$toreduce_fileonly) or die;
-    if (!run_test($toreduce_fileonly)) {
+    copy_files_here();
+    if (!run_test()) {
 	chdir $ORIG_DIR;
-	die "test (and sanity check) fails";
+	my $stuff = "";
+	foreach my $f (@toreduce_fileonly) {
+	    $stuff .= " $f";
+	}
+	print <<"EOT";
+
+C-Reduce cannot run because the interestingness test does not return
+zero. Please ensure that it does so not only in the directory where
+you are invoking C-Reduce, but also in an arbitrary temporary
+directory containing only the files that are being reduced. In other
+words, running these commands:
+
+  DIR=\`mktemp -d\`
+  cp$stuff \$DIR
+  cd \$DIR
+  $test
+  echo \$\?
+
+should result in "0" being echoed to the terminal.
+
+See "creduce --help" for more information.
+
+EOT
+        exit 1;
     }
     print "successful\n" if $VERBOSE;
     chdir $ORIG_DIR or die;
@@ -260,7 +292,7 @@ sub delta_test ($$$$) {
     if (defined($result)) {
 	print "(hit= $result)";
     } else {
-	$result = run_test ($fn);
+	$result = run_test();
     }
     return $result ? 1 : 0;
 }
@@ -392,6 +424,17 @@ sub wait_helper() {
     }
 }
 
+sub check_for_nonzero_size() {
+    my $nonzero = 0;
+    for (my $i=0; $i<scalar(@toreduce_best); $i++) {
+	if (-s $toreduce_best[$i] != 0) {
+	    $nonzero = 1;
+	    last;
+	}
+    }
+    die "filesize reached zero" unless $nonzero;
+}
+
 my $good_cnt;
 my $bad_cnt;
 my $pass_num = 0;
@@ -415,45 +458,41 @@ sub delta_pass ($) {
     print "\n" if $VERBOSE;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    my $orig_tmpfn = $toreduce_fileonly;
-    my $state = call_new ($delta_method,$orig_tmpfn,$delta_arg);
+    for (my $current_file_index=0; $current_file_index<scalar(@toreduce_fileonly); $current_file_index++) {
+	check_for_nonzero_size();
+	next if ((-s $toreduce_best[$current_file_index]) == 0);
+	my $state = call_new ($delta_method,$toreduce_fileonly[$current_file_index],$delta_arg);
+	my $since_success = 0;
+	my $stopped = 0;
 
-    if ($SANITY) {
-	sanity_check();
-    }
+      AGAIN:
 
-    my $since_success = 0;
-    my $stopped = 0;
-  AGAIN:
-    
-    # create child processes until:
-    # 1. we've created enough 
-    # 2. we get a STOP
-    # 3. we get a cache hit, in which case it's a better bet to just
-    #    look at the result instead of speculating more
-    while (!$stopped && $num_running < $NPROCS) {
-	my $tmpdir = make_tmpdir();
-	chdir $tmpdir or die;
-	my $tmpfn = File::Spec->rel2abs($orig_tmpfn);
-        if (-s $toreduce_best == 0) {
-            die "filesize reached zero";
-        }
-	File::Copy::copy($toreduce_best,$tmpfn) or die;
-	# creating the variant is done in the parent, it's only
-	# testing it that we parallelize
-	(my $delta_res, $state) = call_transform ($delta_method,$tmpfn,$delta_arg,$state);
-	die unless ($delta_res == $OK || $delta_res == $STOP);
-	if ($delta_res == $STOP) {
-	    chdir $ORIG_DIR or die;
-	    $stopped = 1;
-	} else {
-	    system "diff $toreduce_best $tmpfn" if ($PRINT_DIFF);
-            if (compare ($toreduce_best, $tmpfn) == 0 &&
-		$delta_method ne "pass_indent") {
-                my $n = int(rand(1000000));
-                my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
-                File::Copy::copy($toreduce_best, $crashfile) or die;
-                print <<"EOT";
+	# create child processes until:
+	# 1. we've created enough 
+	# 2. we get a STOP
+	# 3. we get a cache hit, in which case it's a better bet to just
+	#    look at the result instead of speculating more
+	while (!$stopped && $num_running < $NPROCS) {
+	    my $tmpdir = make_tmpdir();
+	    chdir $tmpdir or die;
+	    copy_files_here();
+	    # creating the variant is done in the parent, it's only
+	    # testing it that we parallelize
+	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly[$current_file_index]);
+	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
+	    die unless ($delta_res == $OK || $delta_res == $STOP);
+	    if ($delta_res == $STOP) {
+		chdir $ORIG_DIR or die;
+		$stopped = 1;
+	    } else {
+		system "diff $toreduce_best[$current_file_index] $toreduce" if ($PRINT_DIFF);
+		if (compare ($toreduce_best[$current_file_index], $toreduce) == 0 &&
+		    $delta_method ne "pass_indent") {
+		    if (!$IGNORE_PASS_BUGS) {
+			my $n = int(rand(1000000));
+			my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
+			File::Copy::copy($toreduce_best[$current_file_index], $crashfile) or die;
+			my $BAD_PASS_MSG = <<"EOT";
 
 
 =======================================
@@ -470,102 +509,100 @@ details that may help us reproduce the problem.
 =======================================
 
 EOT
-                chdir $ORIG_DIR or die;
-                $stopped = 1;
-            } else {
-                # FIXME: check the cache here
-                # FIXME: extend the plugin interface to optionally return a reference to the processed data
-                my $orig_state = $state;
-                $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-                if ($FUZZ) {
-                    while (rand()<0.5) {
-                        $state = call_advance ($delta_method,$tmpfn,$delta_arg,$state);
-                    }
-                }
-                my $pid = fork_helper($delta_method, $delta_arg, $state, $tmpfn);
-                my @l = ($pid, $orig_state, $tmpdir, $tmpfn, -99);
-                push @variants, \@l;
-                chdir $ORIG_DIR or die;
-                $num_running++;
-                print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
-            }
-        }
-    }
-
-    # starting at the front of the list, peel off all variants that
-    # aren't backed up by a running subprocess; this might be because
-    # there was a cache hit, or it might be because a subprocess has
-    # already terminated
-    while (scalar (@variants) > 0) {
-	my $kidref = $variants[0];
-	(my $pid,my $newsh,my $tmpdir,my $tmpfn,my $delta_result) = @{$kidref};
-	last if ($pid != -1);
-	my $trash = shift @variants;
-	# ok, now we have a result to work with
-	if ($delta_result) { 
-	    # now that the delta test succeeded, this becomes our new
-	    # best version -- this has to be done in the parent
-	    # process; we do not call advance() in this case since we
-	    # assume that a transformation opportunity has been
-	    # eliminated
-	    killem ();
-	    $good_cnt++;
-	    $since_success = 0;
-	    $method_worked{$delta_method}{$delta_arg}++;
-	    $state = $newsh;
-	    $stopped = 0;
-	    File::Copy::copy($tmpfn,$toreduce_best) or die;
-	    print "success " if $VERBOSE;
-	    print_pct(-s $toreduce_best);
-            print "timestamp ".time()." size ".(-s $toreduce_best)."\n" if $TIMING;
-	} else {
-	    print "failure\n" if $VERBOSE;
-	    $bad_cnt++;
-	    $since_success++;
-	    $method_failed{$delta_method}{$delta_arg}++;
-	}
-	print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
-	File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
-    }
-
-    if ($num_running>0) {
-	print "about to wait\n" if $DEBUG_SMP;
-	my $xpid = wait_helper();
-	die if ($xpid==-1);
-	my $ret = $?;
-	my $delta_result = $ret >> 8;
-	print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
-	$num_running--;
-	my $found = 0;
-	for (my $i=0; $i<scalar(@variants); $i++) {
-	    my $kidref = $variants[$i];
-	    die unless (scalar(@{$kidref})==5);
-	    (my $pid,my $newsh,my $tmpdir,my $tmpfn,my $res) = @{$kidref};
-	    if ($xpid==$pid) {
-		$found = 1;
-		my @l = (-1,$newsh,$tmpdir,$tmpfn,$delta_result);
-		splice (@variants, $i, 1, \@l);
-		last;
+                        print $BAD_PASS_MSG;
+		    }
+		    chdir $ORIG_DIR or die;
+		    $stopped = 1;
+		} else {
+		    # FIXME: check the cache here
+		    # FIXME: extend the plugin interface to optionally return a reference to the processed data
+		    my $orig_state = $state;
+		    $state = call_advance ($delta_method,$toreduce,$delta_arg,$state);
+		    my $pid = fork_helper($delta_method, $delta_arg, $state, $toreduce);
+		    my @l = ($pid, $orig_state, $tmpdir, $toreduce, -99);
+		    push @variants, \@l;
+		    chdir $ORIG_DIR or die;
+		    $num_running++;
+		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
+		}
 	    }
 	}
-	die unless $found;
-    }
 
-    # nasty heuristic for avoiding getting stuck by buggy passes that
-    # keep reporting success w/o making progress
-    if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
-	killem();
-	remove_tmpdirs();
-	return;
-    }
+	# starting at the front of the list, peel off all variants that
+	# aren't backed up by a running subprocess; this might be because
+	# there was a cache hit, or it might be because a subprocess has
+	# already terminated
+	while (scalar (@variants) > 0) {
+	    my $kidref = $variants[0];
+	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$kidref};
+	    last if ($pid != -1);
+	    my $trash = shift @variants;
+	    # ok, now we have a result to work with
+	    if ($delta_result) {
+		# now that the delta test succeeded, this becomes our new
+		# best version -- this has to be done in the parent
+		# process; we do not call advance() in this case since we
+		# assume that a transformation opportunity has been
+		# eliminated
+		killem ();
+		$good_cnt++;
+		$since_success = 0;
+		$method_worked{$delta_method}{$delta_arg}++;
+		$state = $newsh;
+		$stopped = 0;
+		File::Copy::copy($toreduce,$toreduce_best[$current_file_index]) or die;
+		print "success " if $VERBOSE;
+		print_pct();
+		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n" if $TIMING;
+	    } else {
+		print "failure\n" if $VERBOSE;
+		$bad_cnt++;
+		$since_success++;
+		$method_failed{$delta_method}{$delta_arg}++;
+	    }
+	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
+	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
+	}
 
-    # termination condition for this pass
-    if ($stopped && scalar(@variants)==0) {
-	remove_tmpdirs();
-	return;
-    }
+	if ($num_running>0) {
+	    print "about to wait\n" if $DEBUG_SMP;
+	    my $xpid = wait_helper();
+	    die if ($xpid==-1);
+	    my $ret = $?;
+	    my $delta_result = $ret >> 8;
+	    print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
+	    $num_running--;
+	    my $found = 0;
+	    for (my $k=0; $k<scalar(@variants); $k++) {
+		my $kidref = $variants[$k];
+		die unless (scalar(@{$kidref})==5);
+		(my $pid,my $newsh,my $tmpdir,my $toreduce,my $res) = @{$kidref};
+		if ($xpid==$pid) {
+		    $found = 1;
+		    my @l = (-1,$newsh,$tmpdir,$toreduce,$delta_result);
+		    splice (@variants, $k, 1, \@l);
+		    last;
+		}
+	    }
+	    die unless $found;
+	}
 
-    goto AGAIN;
+	# nasty heuristic for avoiding getting stuck by buggy passes that
+	# keep reporting success w/o making progress
+	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
+	    killem();
+	    remove_tmpdirs();
+	    next;
+	}
+
+	# termination condition for this pass
+	if ($stopped && scalar(@variants)==0) {
+	    remove_tmpdirs();
+	    next;
+	}
+
+	goto AGAIN;
+    }
 }
 
 sub line_delta_pass ($) {
@@ -828,29 +865,25 @@ $test = File::Spec->rel2abs(shift @ARGV);
 usage() unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
-$toreduce_original = File::Spec->rel2abs(shift @ARGV);
-check_file_attributes("file", $toreduce_original, "efrw");
-($toreduce_fileonly) = fileparse($toreduce_original);
-(my $toreduce_base, $dir_base, $suffix) = fileparse($toreduce_original, '\.[^.]*');
+while (@ARGV) {
+    my $f = File::Spec->rel2abs(shift @ARGV);
+    push @toreduce_original, $f;
+    check_file_attributes("file", $f, "efrw");
+    (my $fo) = fileparse($f);
+    push @toreduce_fileonly, $fo;
+    my $best = File::Spec->rel2abs("${fo}.best");
+    push @toreduce_best, $best;
+    # make a backup of the file(s) we're reducing-- this is often useful when
+    # reductions go wrong
+    if (! -e "${fo}.orig") {
+	File::Copy::copy($f,"${fo}.orig") or die;
+    }
+    File::Copy::copy($f,$best) or die;
+    push @orig_file_size, -s $f;
+    $total_file_size += -s $f;
+}
 
 $ORIG_DIR = getcwd();
-
-# absolute path so we can refer to this file from temporary working
-# dirs
-#
-# Note: On Cygwin, Cwd::abs_path() doesn't work for nonexistent files.  Bah.
-#
-$toreduce_best  = File::Spec->rel2abs("$toreduce_base.best");
-
-# make a backup of the file we're reducing-- this is often useful when
-# reductions go wrong
-if (! -e "$toreduce_base.orig") {
-    File::Copy::copy($toreduce_original,"$toreduce_base.orig") or die;
-}
-File::Copy::copy($toreduce_original,$toreduce_best) or die;
-
-my $file_size = -s $toreduce_original;
-$orig_file_size = $file_size;
 
 # unconditionally do this just once since otherwise output is
 # confusing when the initial test fails
@@ -870,44 +903,20 @@ if (not $SKIP_FIRST) {
 
 # iterate to global fixpoint
 print "MAIN PASSES\n" if $VERBOSE;
-$file_size = -s $toreduce_original;
 
 while (1) {
     my $next = pass_iterator("pri");
     while (my $item = $next->()) {
 	delta_pass ($item);
     }
-
-    if ($pass_num == 0 && defined ($CPP)) {
-
-	# regardless of how the phase ordering is setup, we want to
-	# run a line delta pass now as a last-ditch attempt to
-	# eliminate some #include directives
-        line_delta_pass (0);
-
-	printf "running preprocessor command '$CPP'\n";
-	my $res = runit ($CPP);
-	die unless ($res==0);
-	File::Copy::copy($toreduce_original,$toreduce_best) or die;
-	# reset the fixpoint detector 
-	$file_size = 1 + (-s $toreduce_best);
-	sanity_check();
-
-	# TODO: perhaps add a pass dedicated to eliminating line
-	# number markers and other CPP junk all at once; line delta 0
-	# will do the job, but not rapidly
-
-        line_delta_pass (0);
-        line_delta_pass (1);
-        line_delta_pass (2);
-        line_delta_pass (10);
-    }
-
     $pass_num++;
-    my $s = -s $toreduce_best;
-    print "Termination check: size was $file_size; now $s\n";
-    last if ($s >= $file_size);
-    $file_size = $s;
+    my $s = 0;
+    foreach my $f (@toreduce_best) {
+	$s += -s $f;
+    }
+    print "Termination check: size was $total_file_size; now $s\n";
+    last if ($s >= $total_file_size);
+    $total_file_size = $s;
 }
 
 # some passes we run last since they work best as cleanup
@@ -944,14 +953,16 @@ foreach my $mref (sort byname @all_methods) {
 print "\n";
 
 # this should be the only time we touch the original file
-File::Copy::copy($toreduce_best,$toreduce_original) or die;
-print "reduced test case:\n\n";
-open INF, "<$toreduce_original" or die;
-while (<INF>) {
-    print;
+for (my $i=0; $i<scalar(@toreduce_best); $i++) {
+    File::Copy::copy($toreduce_best[$i],$toreduce_original[$i]) or die;
+    print "'$toreduce_best[$i] reduced to:\n\n";
+    open INF, "<$toreduce_original[$i]" or die;
+    while (<INF>) {
+	print;
+    }
+    close INF;
+    print "\n";
 }
-close INF;
-print "\n";
 
 $timer->stop();
 my $time = int($timer->result());

@@ -1,0 +1,169 @@
+#!/usr/bin/perl -w
+
+use strict;
+use File::Spec;
+use File::Copy;
+use File::Basename;
+use Cwd;
+
+# TODO: handle #include_next?
+
+my @exts = (".c", ".cpp");
+my $CHECK = 1;
+
+# my $FILE = "hello.c";
+# my $COMP = "clang";
+# my $CPP = "";
+# my $CFLAGS = "";
+
+my $FILE = "hello.cpp";
+my $COMP = "g++";
+my $CPP = "-x c++";
+my $CFLAGS = "-std=c++11";
+
+my %map;
+my %rmap;
+my @includes;
+my %deps;
+my $newfile;
+
+# ask compiler for its include path
+open INF, "echo | $COMP $CFLAGS -v $CPP -E - 2>&1 |" or die;
+my $go = 0;
+while (my $line = <INF>) {
+    chomp $line;
+    if ($line eq "#include <...> search starts here:") {
+	$go = 1;
+	next;
+    }
+    if ($line eq "End of search list.") {
+	$go = 0;
+	next;
+    }
+    if ($go) {
+	$line =~ s/^\s*//;
+	$line =~ s/\s*$//;
+	my $p = Cwd::realpath($line);
+	push @includes, $p;
+	print "search path includes $p\n";
+	next;
+    }
+}
+close INF;
+
+# ask compiler for the list of dependencies
+open INF2, "$COMP $CFLAGS -c -w $CPP $FILE -M |" or die;
+my $base = basename($FILE, @exts);
+while (my $f = <INF2>) {
+    chomp $f;
+    $f =~ s/$base\.o://g;
+    $f =~ s/^\s*//;
+    $f =~ s/\s*\\\s*//g;
+    my @l = split /\s+/, $f;
+    foreach my $g (@l) {
+	if (!defined($newfile)) {
+	    $newfile = $g;
+	}
+	$deps{Cwd::realpath($g)} = 1;
+    }
+}
+close INF2;
+
+my %drops;
+
+sub process($$) {
+    (my $file, my $lref) = @_;
+    my @list = @{$lref};
+    my $found = 0;
+    my $path;
+    foreach my $dir (@includes) {
+	$path = File::Spec->catfile($dir, $file);
+	if (-e $path) {
+	    $found = 1;
+	    last;
+	}
+    }
+    if ($found) {
+	if (exists $map{$path}) {
+	    my $xx = $map{$path};
+	    print OUTF "#include \"$xx\" // $path\n";
+	} else {
+	    $drops{$path} = 1;
+	    print OUTF "// XXXXXX $file\n";
+	}		
+    } else {
+	print OUTF "// YYYYYY $file\n";
+    }
+}
+
+# make a local copy of a file with its include paths munged to refer
+# to other local files
+sub massage($$) {
+    (my $absfile, my $target) = @_;
+    open INF, "<$absfile" or die;
+    open OUTF, ">$target" or die;
+    my $n = 0;
+    my($fnxxx, $dir, $suffixxx) = fileparse($absfile);
+    my @dotincludes = @includes;
+    unshift @dotincludes, $dir;
+    while (my $line = <INF>) {
+	chomp $line;
+	$n++;
+	if ($line =~ /^(.*)#\s*include\s+\"(.*?)\"(.*)$/) {
+	    process($2, \@dotincludes);
+	    next;
+	}
+	if ($line =~ /^(.*)#\s*include\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes);
+	    next;
+	}
+	print OUTF $line."\n";
+    }
+    close INF;
+    close OUTF;
+}
+
+foreach my $dep (sort keys %deps) {
+    my($file, $dirs, $suffix) = fileparse($dep);
+
+    my $s1 = scalar(keys %map);
+    my $s2 = scalar(keys %rmap);
+
+    my $new = $file;
+    my $count = 0;
+    my $newnew = $new;
+    while (exists($rmap{$newnew})) {
+	$count++;
+	$newnew = $new."_".$count;
+	print "dup-- trying to rename $new to $newnew\n";
+    }
+    $map{$dep} = $newnew;
+    $rmap{$newnew} = $dep;
+
+    die unless ($s1 < scalar(keys %map));
+    die unless ($s2 < scalar(keys %rmap));
+}
+
+# copy over all dependencies
+my $out = "";
+foreach my $dep (sort keys %deps) {
+    massage($dep, $map{$dep});
+    $out .= "$map{$dep} ";
+}
+
+open OUTF, ">file_list.txt" or die;
+print OUTF "$out\n";
+close OUTF;
+
+print "dropped these not-deps:\n";
+foreach my $drop (keys %drops) {
+    print "  $drop\n";    
+}
+
+if ($CHECK) {
+    system "$COMP $CFLAGS -E $FILE | grep -v '^# ' > out1.txt";
+    system "$COMP $CFLAGS -E $newfile | grep -v '^# ' > out2.txt";
+    print "========== start of diffs: ==========\n";
+    system "diff out1.txt out2.txt";
+    print "========== end of diffs.   ==========\n";
+}

@@ -78,15 +78,16 @@ sub transform ($$$) {
     } else {
 	if (($res == -1) || ($res == -2)) {
 	} else {
-            my $n = int(rand(1000000));
-            my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
-            File::Copy::copy($cfile, $crashfile) or die;
-            open  CRASH, ">>$crashfile";
-            print CRASH "\n\n";
-            print CRASH "\/\/ this should reproduce the crash:\n";
-            print CRASH "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile\n";
-            close CRASH;
-            print <<"EOT";
+	    if ($IGNORE_PASS_BUGS) {
+		my $n = int(rand(1000000));
+		my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
+		File::Copy::copy($cfile, $crashfile) or die;
+		open  CRASH, ">>$crashfile";
+		print CRASH "\n\n";
+		print CRASH "\/\/ this should reproduce the crash:\n";
+		print CRASH "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile\n";
+		close CRASH;
+		print <<"EOT";
 
 
 =======================================
@@ -102,6 +103,7 @@ details that may help us reproduce the problem.
 =======================================
 
 EOT
+	    }
         }
         unlink $tmpfile;
         return ($STOP, \$index);

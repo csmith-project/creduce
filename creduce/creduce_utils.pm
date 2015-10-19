@@ -16,7 +16,7 @@ use Exporter::Lite;
 use File::Spec;
 use File::Which;
 
-@EXPORT      = qw($VERBOSE $OK $STOP
+@EXPORT      = qw($VERBOSE $IGNORE_PASS_BUGS $OK $STOP
 		  find_external_program
 		  runit 
                   run_clang_delta
@@ -25,6 +25,7 @@ use File::Which;
                   );
 
 $VERBOSE = 0;
+$IGNORE_PASS_BUGS = 0;
 
 $OK = 999999;
 $STOP = 111333;

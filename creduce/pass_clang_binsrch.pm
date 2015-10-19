@@ -132,27 +132,29 @@ sub transform ($$$) {
 	    if ($res == -1) {
 		# nothing?
 	    } elsif ($res == -2) {
-        unlink $tmpfile;
+		unlink $tmpfile;
 		print "out of instances!\n" if $VERBOSE;
 		goto rechunk;
 	    } else {
-		my $crashfile = $tmpfile;
-		$crashfile =~ s/\//_/g;
-		my ($suffix) = $cfile =~ /(\.[^.]+)$/;
-		$crashfile = "clang_delta_crash" . $crashfile . $suffix;
-		my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
-		File::Copy::copy($cfile, $crashfile_path);
-		open TMPF, ">>$crashfile_path";
-		print TMPF "\n\n";
-		print TMPF "\/\/ this should reproduce the crash:\n";
-		print TMPF "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile_path\n";
-		close TMPF;
-		print "\n\n=======================================\n\n";
-		print "OOPS: clang_delta crashed; please consider mailing\n";
-		print "${crashfile}\n";
-		print "to creduce-bugs\@flux.utah.edu and we will try to fix the bug\n";
-		print "please also let us know what version of C-Reduce you are using\n";
-		print "\n=======================================\n\n";
+		if (!$IGNORE_PASS_BUGS) {
+		    my $crashfile = $tmpfile;
+		    $crashfile =~ s/\//_/g;
+		    my ($suffix) = $cfile =~ /(\.[^.]+)$/;
+		    $crashfile = "clang_delta_crash" . $crashfile . $suffix;
+		    my $crashfile_path = File::Spec->join($ORIG_DIR, $crashfile);
+		    File::Copy::copy($cfile, $crashfile_path);
+		    open TMPF, ">>$crashfile_path";
+		    print TMPF "\n\n";
+		    print TMPF "\/\/ this should reproduce the crash:\n";
+		    print TMPF "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile_path\n";
+		    close TMPF;
+		    print "\n\n=======================================\n\n";
+		    print "OOPS: clang_delta crashed; please consider mailing\n";
+		    print "${crashfile}\n";
+		    print "to creduce-bugs\@flux.utah.edu and we will try to fix the bug\n";
+		    print "please also let us know what version of C-Reduce you are using\n";
+		    print "\n=======================================\n\n";
+		}
 	    }
 	    unlink $tmpfile;
 	    return ($STOP, \%sh);
