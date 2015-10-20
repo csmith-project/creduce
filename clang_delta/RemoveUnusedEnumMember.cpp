@@ -47,6 +47,13 @@ private:
 
 bool RemoveUnusedEnumMemberAnalysisVisitor::VisitEnumDecl(EnumDecl *ED)
 {
+  // Skip enums which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ED->getLocStart()))
+  {
+    return true;
+  }
+
   if (ED != ED->getCanonicalDecl())
     return true;
 

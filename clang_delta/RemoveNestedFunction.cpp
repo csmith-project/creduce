@@ -100,6 +100,13 @@ bool RNFStatementVisitor::VisitStmtExpr(StmtExpr *SE)
 
 bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
+  // Skip expressions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(CallE->getLocStart()))
+  {
+    return true;
+  }
+
   if (const CXXOperatorCallExpr *OpE = dyn_cast<CXXOperatorCallExpr>(CallE)) {
     if (ConsumerInstance->isInvalidOperator(OpE))
       return true;

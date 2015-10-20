@@ -115,6 +115,13 @@ bool ReplaceArrayIndexVarCollectionVisitor::VisitVarDecl(VarDecl *VD)
 
 bool ReplaceArrayIndexVarCollectionVisitor::VisitForStmt(ForStmt *FS)
 {
+  // Skip loops outside of the main file
+  // They cannot be rewriten at the moment
+  if(!ConsumerInstance->SrcManager->isInMainFile(FS->getForLoc()))
+  {
+    return true;
+  }
+
   const Expr *Inc = FS->getInc();
   if (!Inc)
     return true;

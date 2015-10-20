@@ -67,6 +67,13 @@ private:
 
 bool RVCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  // Skip all function that are not in the main file
+  // At the moment only rewriting within the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocation()))
+  {
+    return true;
+  }
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   if (ConsumerInstance->isNonVoidReturnFunction(CanonicalDecl)) {
     ConsumerInstance->ValidInstanceNum++;

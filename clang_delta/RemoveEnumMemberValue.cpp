@@ -47,6 +47,13 @@ private:
 
 bool RemoveEnumMemberValueAnalysisVisitor::VisitEnumConstantDecl(EnumConstantDecl *ECD)
 {
+  // Skip enums which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ECD->getLocStart()))
+  {
+    return true;
+  }
+
   if (!ECD->getInitExpr())
     return true;
 

@@ -94,6 +94,13 @@ private:
 
 bool RemoveArrayCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
+  // Skip declarations which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocStart()))
+  {
+    return true;
+  }
+
   ConsumerInstance->handleOneVarDecl(VD);
   return true;
 }
@@ -101,6 +108,13 @@ bool RemoveArrayCollectionVisitor::VisitVarDecl(VarDecl *VD)
 bool RemoveArrayCollectionVisitor::VisitArraySubscriptExpr(
        ArraySubscriptExpr *ASE)
 {
+  // Skip expressions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ASE->getLocStart()))
+  {
+    return true;
+  }
+
   // we only have one-dimension array, so we are safe here.
   const Expr *BaseE = ASE->getBase()->IgnoreParenCasts();
   

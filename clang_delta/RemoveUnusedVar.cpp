@@ -50,6 +50,13 @@ private:
 
 bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
 {
+  // Skip variables outside of the main file
+  // At the moment only rewriting of the main file is supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocation()))
+  {
+    return true;
+  }
+
   if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD) || 
       VD->isStaticDataMember())
     return true;

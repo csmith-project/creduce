@@ -67,6 +67,13 @@ bool BSCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
   if (!FD->isThisDeclarationADefinition())
     return true;
 
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
+
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);
   ConsumerInstance->StmtVisitor->TraverseDecl(FD);
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(NULL);

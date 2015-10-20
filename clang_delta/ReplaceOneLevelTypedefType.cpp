@@ -40,6 +40,7 @@ public:
     : ConsumerInstance(Instance)
   { }
 
+  // Visits all locations where a typedef'd type is used
   bool VisitTypedefTypeLoc(TypedefTypeLoc TLoc);
 
 private:
@@ -87,6 +88,8 @@ void ReplaceOneLevelTypedefType::analyzeTypeLocs()
   for (TypedefDeclToRefMap::iterator I = AllTypeDecls.begin(),
        E = AllTypeDecls.end(); I != E; ++I) {
     TypedefTypeLocVector *LocVec = (*I).second;
+
+    // Only deal with typedefs which are used once
     if (LocVec->size() > 1)
       continue;
     ValidInstanceNum++;
@@ -99,9 +102,7 @@ void ReplaceOneLevelTypedefType::analyzeTypeLocs()
 
 void ReplaceOneLevelTypedefType::rewriteTypedefType()
 {
-  std::string NewTyStr;
-  TheTypedefDecl->getUnderlyingType().getAsStringInternal(NewTyStr, 
-                                        Context->getPrintingPolicy());
+  std::string NewTyStr = TheTypedefDecl->getUnderlyingType().getAsString();
   SourceRange Range = TheTypeLoc.getSourceRange();
   TheRewriter.ReplaceText(Range, NewTyStr);
 }
@@ -122,17 +123,36 @@ void ReplaceOneLevelTypedefType::handleOneTypedefTypeLoc(TypedefTypeLoc TLoc)
 {
   const TypedefType *TdefTy = TLoc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
-  if (!TdefD || TdefD->getLocStart().isInvalid())
+
+  if (!TdefD || TdefD->getLocStart().isInvalid() || !SrcManager->isInMainFile(TdefD->getLocStart()))
     return;
+
+  // This can be used to process only the main file and those files which are (recursively) included from the main file
+  // It then replaces !SrcManager->isInMainFile(...)
+  // But at the moment only writing of the main file is supported
+  //FileID rootFile;
+  //SourceLocation usageLocation = TdefD->getLocStart();
+  //
+  //do
+  //{
+  //    rootFile = SrcManager->getFileID(usageLocation);
+  //    usageLocation = SrcManager->getIncludeLoc(rootFile);
+  //} while(usageLocation.isValid());
+
+  //if(rootFile != SrcManager->getMainFileID())
+  //    return;
+
   const TypedefDecl *CanonicalD = 
     dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl());
 
   TypedefTypeLocVector *LocVec = AllTypeDecls[CanonicalD];
+
   if (!LocVec) {
     LocVec = new TypedefTypeLocVector();
     TransAssert(LocVec && "NULL LocVec!");
     AllTypeDecls[CanonicalD] = LocVec;
   }
+
   LocVec->push_back(TLoc);
 }
 

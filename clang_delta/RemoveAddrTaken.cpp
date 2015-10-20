@@ -66,6 +66,13 @@ void RemoveAddrTakenCollectionVisitor::handleOneAddrTakenOp(
   if (ConsumerInstance->VisitedAddrTakenOps.count(UO))
     return;
 
+  // Skip operators which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(UO->getLocStart()))
+  {
+    return;
+  }
+
   ConsumerInstance->VisitedAddrTakenOps.insert(UO);
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->TransformationCounter == 

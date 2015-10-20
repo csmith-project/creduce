@@ -140,6 +140,13 @@ void ReduceArrayDim::HandleTranslationUnit(ASTContext &Ctx)
 
 void ReduceArrayDim::addOneVar(const VarDecl *VD)
 {
+  // Skip declarations which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(VD->getLocStart()))
+  {
+    return;
+  }
+
   const Type *Ty = VD->getType().getTypePtr();
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (!ArrayTy)

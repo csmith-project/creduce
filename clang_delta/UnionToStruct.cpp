@@ -167,6 +167,13 @@ void UnionToStruct::doAnalysis(void)
 {
   for (RecordDeclToDeclaratorDeclMap::iterator I = RecordToDeclarator.begin(),
        E = RecordToDeclarator.end(); I != E; ++I) {
+    // Skip records which are not in the main file
+    // Rewriting outside of the main file is currently not supported
+    if(!SrcManager->isInMainFile(I->first->getLocStart()))
+    {
+      continue;
+    }
+
     ValidInstanceNum++;
     if (ValidInstanceNum == TransformationCounter) {
       // TheRecordDecl = ((*I).first)->getDefinition();
@@ -178,6 +185,13 @@ void UnionToStruct::doAnalysis(void)
 
 void UnionToStruct::rewriteOneRecordDecl(const RecordDecl *RD)
 {
+  // Skip records which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(RD->getLocStart()))
+  {
+    return;
+  }
+
   TransAssert(RD && "NULL RecordDecl!");
   RewriteHelper->replaceUnionWithStruct(RD);
 }
@@ -195,6 +209,13 @@ void UnionToStruct::rewriteRecordDecls(void)
 
 void UnionToStruct::rewriteOneFieldDecl(const FieldDecl *FD)
 {
+  // Skip fields which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return;
+  }
+
   const DeclContext *Ctx = TheRecordDecl->getLexicalParent();
   // Skip the case where we have:
   // struct {
@@ -290,6 +311,13 @@ bool UnionToStruct::isTheFirstDecl(const VarDecl *VD)
 
 void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
 {
+  // Skip variables which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(VD->getLocStart()))
+  {
+    return;
+  }
+
   if (dyn_cast<ParmVarDecl>(VD)) {
     RewriteHelper->replaceUnionWithStruct(VD);
     return; 
@@ -364,6 +392,13 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
 
 void UnionToStruct::rewriteOneFunctionDecl(const FunctionDecl *FD)
 {
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return;
+  }
+
   RewriteHelper->replaceUnionWithStruct(FD);
 }
 

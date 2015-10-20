@@ -247,6 +247,13 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
       !ConsumerInstance->hasAtLeastOneValidLocation(CanonicalFD))
     return true;
 
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return true;
+  }
+
   ConsumerInstance->addOneFunctionDecl(CanonicalFD);
   return true;
 }

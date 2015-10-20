@@ -71,6 +71,13 @@ bool RemoveUnusedStructFieldVisitor::VisitFieldDecl(FieldDecl *FD)
       ConsumerInstance->isSpecialRecordDecl(RD))
     return true;
 
+  // Skip field if it is not in the main file
+  // At the moment only rewriting of the main file is supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(FD->getLocation()))
+  {
+    return true;
+  }
+
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->ValidInstanceNum == 
       ConsumerInstance->TransformationCounter) {
@@ -191,6 +198,13 @@ void RemoveUnusedStructField::handleOneVarDecl(const VarDecl *VD)
   const RecordDecl *RD = getBaseRecordDef(Ty);
   if (!RD)
     return;
+
+  // Skip variable if it is not in the main file
+  // At the moment only rewriting of the main file is supported
+  if(!SrcManager->isInMainFile(VD->getLocation()))
+  {
+      return;
+  }
 
   IndexVector *IdxVec = RecordDeclToField[RD];
   if (!IdxVec)

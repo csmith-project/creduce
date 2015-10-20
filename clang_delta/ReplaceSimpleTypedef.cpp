@@ -198,6 +198,13 @@ bool ReplaceSimpleTypedef::isValidType(const Type *Ty, const TypedefDecl *D)
 
 void ReplaceSimpleTypedef::handleOneTypedefDecl(const TypedefDecl *CanonicalD)
 {
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(CanonicalD->getLocStart()))
+  {
+    return;
+  }
+
   // omit some typedefs injected by Clang
   if (CanonicalD->getLocStart().isInvalid())
     return;

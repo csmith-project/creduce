@@ -56,6 +56,13 @@ private:
 
 bool CallExprToValueVisitor::VisitCallExpr(CallExpr *CE)
 {
+  // Skip call expressions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(CE->getLocStart()))
+  {
+    return true;
+  }
+
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->TransformationCounter != 
       ConsumerInstance->ValidInstanceNum)

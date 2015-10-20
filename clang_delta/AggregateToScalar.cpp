@@ -59,6 +59,13 @@ private:
 
 bool ATSCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
+  // Skip members which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ME->getLocStart()))
+  {
+    return true;
+  }
+
   ValueDecl *OrigDecl = ME->getMemberDecl();
   FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
@@ -87,6 +94,13 @@ bool ATSCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
   const Type *T = ASE->getType().getTypePtr();
   if (!T->isScalarType())
     return true;
+
+  // Skip subscripts which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!ConsumerInstance->SrcManager->isInMainFile(ASE->getLocStart()))
+  {
+    return true;
+  }
 
   ConsumerInstance->addOneExpr(ASE);
   return true;

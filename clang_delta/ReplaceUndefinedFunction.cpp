@@ -147,6 +147,13 @@ void ReplaceUndefinedFunction::doAnalysis(void)
 
 void ReplaceUndefinedFunction::handleOneFunctionDecl(const FunctionDecl *FD)
 {
+  // Skip functions which are not in the main file
+  // Rewriting outside of the main file is currently not supported
+  if(!SrcManager->isInMainFile(FD->getLocStart()))
+  {
+    return;
+  }
+
   QualType FDQualTy = FD->getType();
   for (FunctionSetMap::iterator I = ReplaceableFunctions.begin(),
        E = ReplaceableFunctions.end(); I != E; ++I) {

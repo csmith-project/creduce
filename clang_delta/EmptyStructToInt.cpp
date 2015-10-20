@@ -80,6 +80,13 @@ bool EmptyStructToIntASTVisitor::VisitRecordDecl(RecordDecl *RD)
   if (!ConsumerInstance->isValidRecordDecl(RD))
     return true;
  
+  // Skip all structs that are not in the main file
+  // At the moment only rewriting of the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(RD->getLocation()))
+  {
+    return true;
+  }
+
   const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());
   if (ConsumerInstance->VisitedRecordDecls.count(CanonicalRD))
     return true;
@@ -97,6 +104,13 @@ bool EmptyStructToIntASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
   if (!CanonicalRD->hasDefinition())
     return true;
 
+  // Skip all structs that are not in the main file
+  // At the moment only rewriting of the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(CXXRD->getLocation()))
+  {
+    return true;
+  }
+
   for (CXXRecordDecl::base_class_const_iterator I = 
        CanonicalRD->bases_begin(), E = CanonicalRD->bases_end(); I != E; ++I) {
     const CXXBaseSpecifier *BS = I;
@@ -110,6 +124,13 @@ bool EmptyStructToIntASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 
 bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 {
+  // Skip all definitions that are not in the main file
+  // At the moment only rewriting of the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(RTLoc.getLocStart()))
+  {
+    return true;
+  }
+
   const RecordDecl *RD = RTLoc.getDecl();
 
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
@@ -135,6 +156,13 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
        ElaboratedTypeLoc Loc)
 {
+  // Skip all definitions that are not in the main file
+  // At the moment only rewriting of the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(Loc.getLocStart()))
+  {
+    return true;
+  }
+
   const ElaboratedType *ETy = dyn_cast<ElaboratedType>(Loc.getTypePtr());
   const Type *NamedTy = ETy->getNamedType().getTypePtr();
   const RecordType *RDTy = NamedTy->getAs<RecordType>();
@@ -215,8 +243,16 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
 
 bool EmptyStructToIntRewriteVisitor::VisitVarDecl(VarDecl *VD)
 {
-  if (!VD->hasInit()) {
-    return true;
+  // Skip all definitions that are not in the main file
+  // At the moment only rewriting of the main file is possible
+  if(!ConsumerInstance->SrcManager->isInMainFile(VD->getLocation()))
+  {
+      return true;
+  }
+
+  if(!VD->hasInit())
+  {
+      return true;
   }
 
   ConsumerInstance->handleOneVarDecl(VD);
