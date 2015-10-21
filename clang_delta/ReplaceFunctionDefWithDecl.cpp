@@ -48,6 +48,9 @@ private:
 bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
        FunctionDecl *FD)
 {
+  if (ConsumerInstance->isInIncludedFile(FD))
+    return true;
+
   if (FD->isThisDeclarationADefinition() && 
       !FD->isDeleted() &&
       !FD->isDefaulted() &&

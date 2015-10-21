@@ -80,7 +80,8 @@ private:
 
 bool SimplifyIfCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (!FD->isThisDeclarationADefinition())
+  if (ConsumerInstance->isInIncludedFile(FD) ||
+      !FD->isThisDeclarationADefinition())
     return true;
 
   ConsumerInstance->StmtVisitor->TraverseDecl(FD);

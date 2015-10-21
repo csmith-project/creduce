@@ -153,6 +153,8 @@ void RemoveBaseClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
           continue;
       }
 
+      if (isInIncludedFile(*I))
+        continue;
       if (isDirectlyDerivedFrom(CanonicalRD, *I)) {
         Base = (*I);
         ValidInstanceNum++;

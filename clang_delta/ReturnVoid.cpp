@@ -67,6 +67,9 @@ private:
 
 bool RVCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  if (ConsumerInstance->isInIncludedFile(FD))
+    return true;
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   if (ConsumerInstance->isNonVoidReturnFunction(CanonicalDecl)) {
     ConsumerInstance->ValidInstanceNum++;

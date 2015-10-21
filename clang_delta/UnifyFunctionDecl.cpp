@@ -41,6 +41,9 @@ bool UnifyFunctionDecl::HandleTopLevelDecl(DeclGroupRef D)
     if (!FD)
       return true;    
 
+    if (isInIncludedFile(FD))
+      return true;
+
     if (!FD->hasBody())
       return true;
 

@@ -66,6 +66,9 @@ private:
 
 bool RemoveUnusedStructFieldVisitor::VisitFieldDecl(FieldDecl *FD)
 {
+  if(ConsumerInstance->isInIncludedFile(FD))
+    return true;
+
   const RecordDecl *RD = FD->getParent();
   if (FD->isReferenced() || !RD->isStruct() ||
       ConsumerInstance->isSpecialRecordDecl(RD))

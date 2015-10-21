@@ -116,8 +116,10 @@ SourceLocation ReplaceDependentName::getElaboratedTypeLocBegin(
 void ReplaceDependentName::handleOneElaboratedTypeLoc(
        const ElaboratedTypeLoc &TLoc)
 {
-  if (TLoc.getBeginLoc().isInvalid())
+  SourceLocation Loc = TLoc.getBeginLoc();
+  if (Loc.isInvalid() || isInIncludedFile(Loc))
     return;
+
   const ElaboratedType *ET = TLoc.getTypePtr();
   if ((ET->getKeyword() != ETK_Typename) && (ET->getKeyword() != ETK_None))
     return;
@@ -147,7 +149,8 @@ void ReplaceDependentName::handleOneElaboratedTypeLoc(
 void ReplaceDependentName::handleOneDependentNameTypeLoc(
        const DependentNameTypeLoc &TLoc)
 {
-  if (TLoc.getBeginLoc().isInvalid())
+  SourceLocation Loc = TLoc.getBeginLoc();
+  if (Loc.isInvalid() || isInIncludedFile(Loc))
     return;
 
   const DependentNameType *DNT = 

@@ -204,7 +204,8 @@ bool SimpleInlinerFunctionVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
 bool SimpleInlinerFunctionStmtVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (!FD->isThisDeclarationADefinition())
+  if (ConsumerInstance->isInIncludedFile(FD) ||
+      !FD->isThisDeclarationADefinition())
     return true;
 
   ConsumerInstance->CurrentFD = FD;

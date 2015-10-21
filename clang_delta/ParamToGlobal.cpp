@@ -172,6 +172,9 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
 
   TransAssert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
 
+  if (isInIncludedFile(FD))
+    return false;
+
   // Skip the case like foo(int, ...), because we cannot remove
   // the "int" there
   if (FD->isVariadic() && (FD->getNumParams() == 1)) {

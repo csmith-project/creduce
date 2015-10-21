@@ -46,6 +46,9 @@ bool MoveGlobalVar::HandleTopLevelDecl(DeclGroupRef D)
   DeclGroupRef::iterator I = D.begin();
   TransAssert((I != D.end()) && "Bad DeclGroupRef!");
 
+  if (isInIncludedFile(*I))
+    return true;
+
   const NamedDecl *ND = dyn_cast<NamedDecl>(*I);
   if (!TheFirstDecl && ND && isSpecialDecl(ND->getNameAsString()))
     return true;

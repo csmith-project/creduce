@@ -86,6 +86,9 @@ const Type *CombLocalVarCollectionVisitor::getTypeFromDeclStmt(DeclStmt *DS)
 
 bool CombLocalVarCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
 {
+  if (ConsumerInstance->isInIncludedFile(CS))
+    return true;
+
   ConsumerInstance->DeclStmts.clear();
 
   for (CompoundStmt::body_iterator I = CS->body_begin(), 

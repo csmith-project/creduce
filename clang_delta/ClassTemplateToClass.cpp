@@ -142,6 +142,9 @@ bool TemplateParameterTypeVisitor::isAUsedParameter(NamedDecl *ND)
 bool ClassTemplateToClassASTVisitor::VisitClassTemplateDecl(
        ClassTemplateDecl *D)
 {
+  if (ConsumerInstance->isInIncludedFile(D))
+    return true;
+
   ClassTemplateDecl *CanonicalD = D->getCanonicalDecl();
   if (ConsumerInstance->VisitedDecls.count(CanonicalD))
     return true;

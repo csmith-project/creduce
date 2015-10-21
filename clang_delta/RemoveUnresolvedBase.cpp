@@ -45,7 +45,7 @@ private:
 
 bool RemoveUnresolvedBaseASTVisitor::VisitCXXRecordDecl(CXXRecordDecl *CXXRD)
 {
-  if (!CXXRD->hasDefinition())
+  if (ConsumerInstance->isInIncludedFile(CXXRD) || !CXXRD->hasDefinition())
     return true;
 
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();

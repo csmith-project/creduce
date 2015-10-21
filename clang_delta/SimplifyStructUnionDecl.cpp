@@ -80,6 +80,9 @@ void SimplifyStructUnionDecl::Initialize(ASTContext &context)
 bool SimplifyStructUnionDecl::HandleTopLevelDecl(DeclGroupRef DGR) 
 {
   DeclGroupRef::iterator DI = DGR.begin();
+  if (isInIncludedFile(*DI))
+    return true;
+
   const RecordDecl *RD = dyn_cast<RecordDecl>(*DI);
   if (RD) {
     addOneRecordDecl(RD, DGR);

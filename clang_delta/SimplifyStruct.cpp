@@ -79,6 +79,8 @@ private:
 
 bool SimplifyStructCollectionVisitor::VisitRecordDecl(RecordDecl *RD)
 {
+  if (ConsumerInstance->isInIncludedFile(RD))
+    return true;
   if (!RD->isThisDeclarationADefinition() || !RD->isStruct())
     return true;
   if (ConsumerInstance->isSpecialRecordDecl(RD))

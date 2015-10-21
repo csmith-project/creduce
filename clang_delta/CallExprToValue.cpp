@@ -56,6 +56,9 @@ private:
 
 bool CallExprToValueVisitor::VisitCallExpr(CallExpr *CE)
 {
+  if (ConsumerInstance->isInIncludedFile(CE))
+    return true;
+
   ConsumerInstance->ValidInstanceNum++;
   if (ConsumerInstance->TransformationCounter != 
       ConsumerInstance->ValidInstanceNum)

@@ -197,6 +197,8 @@ bool ExtraReferenceVisitorWrapper::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  if (ConsumerInstance->isInIncludedFile(FD))
+    return true;
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   if (ConsumerInstance->VisitedFDs.count(CanonicalFD))
     return true;

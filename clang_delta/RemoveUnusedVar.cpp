@@ -50,6 +50,9 @@ private:
 
 bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
 {
+  if (ConsumerInstance->isInIncludedFile(VD))
+    return true;
+
   if (VD->isReferenced() || dyn_cast<ParmVarDecl>(VD) || 
       VD->isStaticDataMember())
     return true;

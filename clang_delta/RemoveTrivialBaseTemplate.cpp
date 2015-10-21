@@ -89,7 +89,8 @@ void RemoveTrivialBaseTemplate::HandleTranslationUnit(ASTContext &Ctx)
 void RemoveTrivialBaseTemplate::handleOneCXXRecordDecl(
        const CXXRecordDecl *CXXRD)
 {
-  if (isSpecialRecordDecl(CXXRD) || !CXXRD->hasDefinition())
+  if (isInIncludedFile(CXXRD) || isSpecialRecordDecl(CXXRD) ||
+      !CXXRD->hasDefinition())
     return;
 
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();

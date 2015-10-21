@@ -77,7 +77,8 @@ private:
 
 bool EmptyStructToIntASTVisitor::VisitRecordDecl(RecordDecl *RD)
 {
-  if (!ConsumerInstance->isValidRecordDecl(RD))
+  if (ConsumerInstance->isInIncludedFile(RD) ||
+      !ConsumerInstance->isValidRecordDecl(RD))
     return true;
  
   const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());

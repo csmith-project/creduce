@@ -233,6 +233,9 @@ void InstantiateTemplateTypeParamToInt::HandleTranslationUnit(ASTContext &Ctx)
 
 void InstantiateTemplateTypeParamToInt::handleOneTemplateDecl(const TemplateDecl *D)
 {
+  if (isInIncludedFile(D))
+    return;
+
   // doesn't handle TypeAliasTemplateDecl
   TransAssert((!dyn_cast<TypeAliasTemplateDecl>(D)) && 
               "Doesn't support TypeAliasTemplateDecl!");

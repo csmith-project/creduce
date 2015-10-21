@@ -270,6 +270,12 @@ protected:
 
   unsigned getNumExplicitDecls(const clang::CXXRecordDecl *CXXRD);
 
+  bool isInIncludedFile(clang::SourceLocation Loc) const;
+
+  bool isInIncludedFile(const clang::Decl *D) const;
+
+  bool isInIncludedFile(const clang::Stmt *S) const;
+
   const std::string Name;
 
   int TransformationCounter;

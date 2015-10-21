@@ -71,7 +71,8 @@ private:
 
 bool RNFCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (!FD->isThisDeclarationADefinition())
+  if (ConsumerInstance->isInIncludedFile(FD) ||
+      !FD->isThisDeclarationADefinition())
     return true;
 
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);

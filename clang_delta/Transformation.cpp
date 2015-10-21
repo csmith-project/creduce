@@ -1038,6 +1038,21 @@ unsigned Transformation::getNumExplicitDecls(const CXXRecordDecl *CXXRD)
   return Num;
 }
 
+bool Transformation::isInIncludedFile(SourceLocation Loc) const
+{
+  return SrcManager->getFileID(Loc) != SrcManager->getMainFileID();
+}
+
+bool Transformation::isInIncludedFile(const Decl *D) const
+{
+  return isInIncludedFile(D->getLocation());
+}
+
+bool Transformation::isInIncludedFile(const Stmt *S) const
+{
+  return isInIncludedFile(S->getLocStart());
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

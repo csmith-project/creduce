@@ -68,6 +68,8 @@ private:
 
 bool ReplaceSimpleTypedefCollectionVisitor::VisitTypedefDecl(TypedefDecl *TdefD)
 {
+  if (ConsumerInstance->isInIncludedFile(TdefD))
+    return true;
   TypedefDecl *CanonicalD = dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl());
   if (!ConsumerInstance->VisitedTypedefDecls.count(CanonicalD)) {
     ConsumerInstance->handleOneTypedefDecl(CanonicalD);
@@ -79,6 +81,9 @@ bool ReplaceSimpleTypedefCollectionVisitor::VisitTypedefDecl(TypedefDecl *TdefD)
 
 bool ReplaceSimpleTypedefRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc Loc)
 {
+  if (ConsumerInstance->isInIncludedFile(Loc.getBeginLoc()))
+    return true;
+
   const TypedefType *TdefTy = Loc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
   if (!TdefD || TdefD->getLocStart().isInvalid())

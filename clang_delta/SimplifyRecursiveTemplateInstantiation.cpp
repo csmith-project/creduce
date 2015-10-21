@@ -138,6 +138,8 @@ void
 SimplifyRecursiveTemplateInstantiation::handleTemplateSpecializationTypeLoc(
        const TemplateSpecializationTypeLoc &TLoc)
 {
+  if (isInIncludedFile(TLoc.getBeginLoc()))
+    return;
   for (unsigned I = 0; I < TLoc.getNumArgs(); ++I) {
     TemplateArgumentLoc ArgLoc = TLoc.getArgLoc(I);
     if (ArgLoc.getLocation().isInvalid())

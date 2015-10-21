@@ -51,7 +51,9 @@ private:
 bool ReplaceClassWithBaseTemplateSpecVisitor::VisitCXXRecordDecl(
        CXXRecordDecl *CXXRD)
 {
-  if (ConsumerInstance->isSpecialRecordDecl(CXXRD) || !CXXRD->hasDefinition())
+  if (ConsumerInstance->isInIncludedFile(CXXRD) ||
+      ConsumerInstance->isSpecialRecordDecl(CXXRD) ||
+      !CXXRD->hasDefinition())
     return true;
   ConsumerInstance->handleOneCXXRecordDecl(CXXRD->getDefinition());
   return true;

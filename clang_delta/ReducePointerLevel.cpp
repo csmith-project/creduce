@@ -118,7 +118,7 @@ bool PointerLevelCollectionVisitor::isVAArgField(DeclaratorDecl *DD)
 // I skipped IndirectFieldDecl for now
 bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
 {
-  if (isVAArgField(DD))
+  if (ConsumerInstance->isInIncludedFile(DD) || isVAArgField(DD))
     return true;
 
   // Only consider FieldDecl and VarDecl

@@ -38,7 +38,7 @@ bool MoveFunctionBody::HandleTopLevelDecl(DeclGroupRef D)
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     FunctionDecl *FD = dyn_cast<FunctionDecl>(*I);
-    if (!FD) {
+    if (!FD || isInIncludedFile(FD)) {
       PrevFunctionDecl = NULL;
       continue;
     }

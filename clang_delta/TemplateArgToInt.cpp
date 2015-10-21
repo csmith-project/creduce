@@ -263,7 +263,8 @@ void TemplateArgToInt::handleOneTemplateDecl(const TemplateDecl *D)
 void TemplateArgToInt::handleOneTemplateArgumentLoc(
        const TemplateArgumentLoc &ArgLoc)
 {
-  if (ArgLoc.getLocation().isInvalid())
+  if (ArgLoc.getLocation().isInvalid() ||
+      isInIncludedFile(ArgLoc.getLocation()))
     return;
   const TemplateArgument &Arg = ArgLoc.getArgument();
 

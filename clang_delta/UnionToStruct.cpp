@@ -389,6 +389,9 @@ void UnionToStruct::rewriteDeclarators(void)
 
 void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
 {
+  if (isInIncludedFile(DD))
+    return;
+
   if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(T))
     T = getArrayBaseElemType(ArrayTy);
 

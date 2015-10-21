@@ -140,6 +140,9 @@ void ReduceArrayDim::HandleTranslationUnit(ASTContext &Ctx)
 
 void ReduceArrayDim::addOneVar(const VarDecl *VD)
 {
+  if (isInIncludedFile(VD))
+    return;
+
   const Type *Ty = VD->getType().getTypePtr();
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (!ArrayTy)

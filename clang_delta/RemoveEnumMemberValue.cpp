@@ -45,9 +45,10 @@ private:
   RemoveEnumMemberValue *ConsumerInstance;
 };
 
-bool RemoveEnumMemberValueAnalysisVisitor::VisitEnumConstantDecl(EnumConstantDecl *ECD)
+bool RemoveEnumMemberValueAnalysisVisitor::VisitEnumConstantDecl(
+       EnumConstantDecl *ECD)
 {
-  if (!ECD->getInitExpr())
+  if (ConsumerInstance->isInIncludedFile(ECD) || !ECD->getInitExpr())
     return true;
 
   ConsumerInstance->ValidInstanceNum++;

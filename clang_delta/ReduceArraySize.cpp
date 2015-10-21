@@ -183,6 +183,9 @@ void ReduceArraySize::rewriteArrayVarDecl(void)
 
 void ReduceArraySize::handleOneVar(const VarDecl *VD)
 {
+  if (isInIncludedFile(VD))
+    return;
+
   const Type *Ty = VD->getType().getTypePtr();
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (!ArrayTy)

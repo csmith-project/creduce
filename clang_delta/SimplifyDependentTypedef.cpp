@@ -157,6 +157,9 @@ void SimplifyDependentTypedef::rewriteTypedefDecl(void)
 
 void SimplifyDependentTypedef::handleOneTypedefDecl(const TypedefDecl *D)
 {
+  if (isInIncludedFile(D))
+    return;
+
   const TypedefDecl *CanonicalD = dyn_cast<TypedefDecl>(D->getCanonicalDecl());
   TransAssert(CanonicalD && "Bad TypedefDecl!");
   if (VisitedTypedefDecls.count(CanonicalD))

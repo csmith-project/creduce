@@ -59,6 +59,9 @@ private:
 
 bool ATSCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 {
+  if (ConsumerInstance->isInIncludedFile(ME))
+    return true;
+
   ValueDecl *OrigDecl = ME->getMemberDecl();
   FieldDecl *FD = dyn_cast<FieldDecl>(OrigDecl);
 
@@ -84,6 +87,9 @@ bool ATSCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 
 bool ATSCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
+  if (ConsumerInstance->isInIncludedFile(ASE))
+    return true;
+
   const Type *T = ASE->getType().getTypePtr();
   if (!T->isScalarType())
     return true;

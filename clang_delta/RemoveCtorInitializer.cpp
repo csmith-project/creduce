@@ -47,6 +47,9 @@ private:
 bool RemoveCtorInitializerASTVisitor::VisitCXXConstructorDecl(
        CXXConstructorDecl *Ctor)
 {
+  if (ConsumerInstance->isInIncludedFile(Ctor))
+    return true;
+
   unsigned Idx = 0;
   for (CXXConstructorDecl::init_const_iterator I = Ctor->init_begin(),
        E = Ctor->init_end(); I != E; ++I) {

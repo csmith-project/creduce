@@ -61,7 +61,8 @@ bool RemoveUnusedOuterClassVisitor::VisitRecordTypeLoc(RecordTypeLoc TLoc)
 bool RemoveUnusedOuterClassVisitor::VisitCXXRecordDecl(
        CXXRecordDecl *CXXRD)
 {
-  if (ConsumerInstance->isSpecialRecordDecl(CXXRD) || 
+  if (ConsumerInstance->isInIncludedFile(CXXRD) ||
+      ConsumerInstance->isSpecialRecordDecl(CXXRD) ||
       !CXXRD->hasDefinition() ||
       dyn_cast<ClassTemplateSpecializationDecl>(CXXRD) ||
       CXXRD->hasUserDeclaredConstructor() ||

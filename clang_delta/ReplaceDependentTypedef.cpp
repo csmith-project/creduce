@@ -128,7 +128,7 @@ bool ReplaceDependentTypedef::isValidType(const QualType &QT)
 
 void ReplaceDependentTypedef::handleOneTypedefDecl(const TypedefDecl *D)
 {
-  if (D->getLocStart().isInvalid())
+  if (isInIncludedFile(D) || D->getLocStart().isInvalid())
     return;
 
   if (!isValidType(D->getUnderlyingType()))

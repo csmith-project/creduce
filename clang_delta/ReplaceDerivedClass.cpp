@@ -139,6 +139,8 @@ bool ReplaceDerivedClass::isEmptyClass(const CXXRecordDecl *CXXDef)
 
 void ReplaceDerivedClass::handleOneCXXRecordDecl(const CXXRecordDecl *CXXRD)
 {
+  if (isInIncludedFile(CXXRD))
+    return;
   const CXXRecordDecl *CXXDef = CXXRD->getDefinition();
   if (!CXXDef)
     return;

@@ -349,6 +349,9 @@ InstantiateTemplateParam::getTemplateArgumentString(const TemplateArgument &Arg,
 void InstantiateTemplateParam::handleOneTemplateSpecialization(
        const TemplateDecl *D, const TemplateArgumentList & ArgList)
 {
+  if (isInIncludedFile(D))
+    return;
+
   NamedDecl *ND = D->getTemplatedDecl();
   TemplateParameterSet ParamsSet;
   TemplateParameterVisitor ParameterVisitor(ParamsSet);

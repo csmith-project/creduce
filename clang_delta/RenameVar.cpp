@@ -68,6 +68,9 @@ private:
 
 bool RNVCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
+  if (ConsumerInstance->isInIncludedFile(VD))
+    return true;
+
   ParmVarDecl *PV = dyn_cast<ParmVarDecl>(VD);
   // Skip parameters
   if (PV)
