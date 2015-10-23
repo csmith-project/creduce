@@ -12,7 +12,7 @@ my @exts = (".c", ".cpp");
 my $CHECK = 1;
 
 my $FILE = "../hello.c";
-my $COMP = "clang";
+my $COMP = "gcc-5";
 my $CPP = "";
 my $CFLAGS = "";
 
@@ -175,7 +175,7 @@ The list of $n files that has been copied into the cwd has been saved
 as files_to_reduce.txt. Assuming that you have an interestingness test
 ready to go, you should be able to just run this command:
 
-  creduce ./test1.sh `cat files_to_reduce.txt`
+  creduce interestingness_test `cat files_to_reduce.txt`
 	
 EOT
 }
@@ -183,4 +183,3 @@ EOT
 open OUTF, ">files_to_reduce.txt" or die;
 print OUTF "$out\n";
 close OUTF;
-

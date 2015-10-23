@@ -87,7 +87,7 @@ my @options = (
     # ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
     # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--ignore-pass-bugs",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--shaddap",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
