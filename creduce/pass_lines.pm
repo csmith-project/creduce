@@ -20,27 +20,19 @@ use creduce_utils;
 
 my $topformflat;
 
-my $BACKWARD = 0;
-
-sub count_lines ($) {
-    (my $cfile) = @_;
-    open INF, "<$cfile" or die;
-    my $n=0;
-    $n++ while (<INF>);
-    close INF;
-    return $n;
-}
-
 sub check_prereqs () {
     $topformflat = find_external_program(creduce_config::TOPFORMFLAT,
 					 "topformflat");
     return defined($topformflat);
 }
 
+# unlike the previous version of pass_lines, this one always
+# progresses from the back of the file to the front
+
 sub new ($$) {
     (my $cfile, my $arg) = @_;
     my %sh;
-    $sh{"flatten"} = 1;
+    $sh{"start"} = 1;
     return \%sh;
 }
 
@@ -50,93 +42,69 @@ sub advance ($$$) {
 
     return \%sh if defined($sh{"start"});
 
-    if ($BACKWARD) {
-	$sh{"index"} -= $sh{"chunk"};
-    } else {
-	$sh{"index"} += $sh{"chunk"};
-    }
+    my $pos = $sh{"index"};
+    $sh{"index"} -= $sh{"chunk"};
+    my $i = $sh{"index"};
+    my $c = $sh{"chunk"};
+    print "advance from $pos to $i with chunk $c\n" if $VERBOSE;
     return \%sh;
-}
-
-sub round ($) {
-    (my $n) = @_;
-    return int ($n+0.5);
 }
 
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my %sh = %{$state};
 
-    if (defined $sh{"flatten"}) {
-	delete $sh{"flatten"};
-	$sh{"start"} = 1;
+    if (defined($sh{"start"})) {
+	delete $sh{"start"};
 	my $tmpfile = File::Temp::tmpnam();
 	system "$topformflat $arg < $cfile > $tmpfile";
 	File::Copy::move($tmpfile, $cfile);
 	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
+	open INF, "<$cfile" or die;
+	my @data = ();
+	while (my $line = <INF>) {
+	    push @data, $line;
+	}
+	close INF;
+	my $l = scalar(@data);
+	$sh{"index"} = $l;
+	$sh{"chunk"} = $l;
 	return ($OK, \%sh);
     }
 
-    if (defined($sh{"start"})) {
-	delete $sh{"start"};
-	my $chunk = count_lines($cfile);
-	$sh{"chunk"} = $chunk;
-	print "initial granularity = $chunk\n" if $VERBOSE;
-	if ($BACKWARD) {
-	    $sh{"index"} = $chunk;
-	} else {
-	    $sh{"index"} = 0;
-	}
-    }
-
-  AGAIN:
-
-    my $n=0;
-    my $did_something=0;
-    my $tmpfile = File::Temp::tmpnam();
     open INF, "<$cfile" or die;
-    open OUTF, ">$tmpfile" or die;
+    my @data = ();
     while (my $line = <INF>) {
-	if (($BACKWARD && (
-		 $n < ($sh{"index"} - $sh{"chunk"}) ||
-		 $n >= $sh{"index"}
-	     )) ||
-	    (!$BACKWARD && (
-		 $n >= ($sh{"index"} + $sh{"chunk"}) ||
-		 $n < $sh{"index"}
-	     ))) {
-	    print OUTF $line;
-	} else {
-	    $did_something++;
-	}
-	$n++;
+	push @data, $line;
     }
     close INF;
-    close OUTF;
 
-    # OI, STUPID HACK
-    if ($BACKWARD &&
-	!$did_something &&
-	$sh{"index"} >= 0) {
-    unlink $tmpfile;
-	my $newsh = advance ($cfile, 0, \%sh);
-	%sh = %{$newsh};
-	goto AGAIN;
-    }
-    
-    if ($did_something) {
-	File::Copy::move($tmpfile, $cfile);
-    } else {
-	unlink $tmpfile;
-	return ($STOP, \%sh) if ($sh{"chunk"} == 1);
-	my $newchunk = round ($sh{"chunk"} / 2.0);
-	$sh{"chunk"} = $newchunk;
-	print "granularity = $newchunk\n" if $VERBOSE;
-	if ($BACKWARD) {
-	    $sh{"index"} = count_lines($cfile);
-	} else {
-	    $sh{"index"} = 0;
+  AGAIN:
+    # don't bother unless there's at least half a chunk
+    if ($sh{"index"} > ($sh{"chunk"} / 2)) {
+	my $start = $sh{"index"} - $sh{"chunk"};
+	$start = 0 if ($start < 0);
+	my $lines = scalar(@data);
+	splice @data, $start, $sh{"chunk"};
+	my $newlines = scalar(@data);
+	my $c = $sh{"chunk"};
+	print "went from $lines lines to $newlines with chunk $c\n" if $VERBOSE;
+	# if we fell off the end we're done
+	if ($newlines >= $lines) {
+	    $sh{"index"} -= $sh{"chunk"};
+	    goto AGAIN;
 	}
+	open OUTF, ">$cfile" or die;
+	foreach my $line (@data) {
+	    print OUTF $line;
+	}
+	close OUTF;
+    } else {
+	return ($STOP, \%sh) if ($sh{"chunk"} <= 1);
+	my $newchunk = int ($sh{"chunk"} / 2.0);
+	$sh{"chunk"} = $newchunk;
+	print "granularity reduced to $newchunk\n" if $VERBOSE;
+	$sh{"index"} = scalar(@data);
 	goto AGAIN;
     }
 

@@ -6,28 +6,44 @@ use File::Copy;
 use File::Basename;
 use Cwd;
 
-# TODO: handle #include_next?
+# TODO might need to support __has_include_next, __has_include
 
 my @exts = (".c", ".cpp");
 my $CHECK = 1;
 
-my $FILE = "../hello.c";
-my $COMP = "gcc-5";
-my $CPP = "";
-my $CFLAGS = "";
+#my $FILE = "../hello.c";
+#my $COMP = "gcc-5";
+#my $CPP = "";
+#my $CFLAGS = "";
+#my $EXT = ".c";
 
-#my $FILE = "../hello.cpp";
-#my $COMP = "g++";
-#my $CPP = "-x c++";
-#my $CFLAGS = "-std=c++11";
+my $FILE = "../hello.cpp";
+my $COMP = "clang++";
+my $CPP = "-x c++";
+my $CFLAGS = "-std=c++11";
+my $EXT = ".cpp";
+
+#my $FILE = "../crypto/dso/dso_dl.c";
+#my $COMP = "clang";
+#my $CPP = "";
+#my $CFLAGS = "-O3 -I../crypto/ -I../ -I../crypto/modes -I../crypto/asn1 -I../crypto/evp -I../include -m64";
+#my $EXT = ".c";
+
+sub runit ($) {
+    my $cmd = shift;
+    print "[ $cmd ]\n";
+    die if ((system "$cmd") == -1);
+    my $exit_value  = $? >> 8;
+    return $exit_value;
+}
 
 my %map;
 my %rmap;
 my @includes;
 my %deps;
-my $newfile;
+my $srcfile_copy;
 
-# ask compiler for its include path
+# get the include path
 open INF, "echo | $COMP $CFLAGS -v $CPP -E - 2>&1 |" or die;
 my $go = 0;
 print "compiler search path:\n";
@@ -52,9 +68,10 @@ while (my $line = <INF>) {
 }
 close INF;
 
-# ask compiler for the list of dependencies
+# get the list of dependencies
 open INF2, "$COMP $CFLAGS -c -w $CPP $FILE -M |" or die;
 my $base = basename($FILE, @exts);
+open OF, ">orig_deps.txt" or die;
 while (my $f = <INF2>) {
     chomp $f;
     $f =~ s/$base\.o://g;
@@ -62,44 +79,62 @@ while (my $f = <INF2>) {
     $f =~ s/\s*\\\s*//g;
     my @l = split /\s+/, $f;
     foreach my $g (@l) {
-	if (!defined($newfile)) {
-	    $newfile = $g;
+	print OF "$g ";
+	# assume the actual src file is the first dependency
+	if (!defined($srcfile_copy)) {
+	    $srcfile_copy = basename($g);
 	}
 	$deps{Cwd::realpath($g)} = 1;
     }
 }
 close INF2;
+close OF;
 
-my %drops;
-
-sub process($$) {
-    (my $file, my $lref) = @_;
+sub process($$$) {
+    (my $file, my $lref, my $next) = @_;
     my @list = @{$lref};
+
+    print "looking for next after $next\n" if $next ne "";
+    
     my $found = 0;
     my $path;
     foreach my $dir (@includes) {
 	$path = File::Spec->catfile($dir, $file);
 	if (-e $path) {
-	    $found = 1;
-	    last;
+	    if ($next ne "" && $path eq $next) {
+		$next = "";
+	    } else {
+		$found = 1;
+		last;
+	    }
 	}
     }
+    # since we're not actually preprocessing, but rather going through
+    # each header file renaming include files, it is natural that
+    # we'll run into some files that don't exist on this system --
+    # this is no problem but we want to trigger an error if such a
+    # file ends up being needed after all
     if ($found) {
 	if (exists $map{$path}) {
-	    my $xx = $map{$path};
-	    print OUTF "#include \"$xx\" // $path\n";
+	    my $f = $map{$path};
+	    print OUTF "#include \"$f\" // $path\n";
 	} else {
-	    $drops{$path} = 1;
-	    print OUTF "// XXXXXX $file\n";
+	    # whoops this file wasn't listed as a dependency but what
+	    # the heck let's include it anyway -- this case gets hit
+	    # when there are symlinks under /usr/include
+	    my $f = Cwd::realpath($path);
+	    my($justf, $dir) = fileparse($f);
+	    print OUTF "#include \"$justf\" // backup plan for $f\n";
 	}		
     } else {
-	print OUTF "// YYYYYY $file\n";
+	print OUTF "#error localize_headers should not have tried to include $file $path\n";
     }
 }
 
 # make a local copy of a file with its include paths munged to refer
-# to other local files
-sub massage($$) {
+# to other copies -- when this is finished there should be no includes
+# outside of the cwd
+sub rewrite($$) {
     (my $absfile, my $target) = @_;
     open INF, "<$absfile" or die;
     open OUTF, ">$target" or die;
@@ -111,11 +146,15 @@ sub massage($$) {
 	chomp $line;
 	$n++;
 	if ($line =~ /^(.*)#\s*include\s+\"(.*?)\"(.*)$/) {
-	    process($2, \@dotincludes);
+	    process($2, \@dotincludes, "");
 	    next;
 	}
 	if ($line =~ /^(.*)#\s*include\s+\<(.*?)\>(.*)$/) {
-	    process($2, \@includes);
+	    process($2, \@includes, "");
+	    next;
+	}
+	if ($line =~ /^(.*)#\s*include_next\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes, $absfile);
 	    next;
 	}
 	print OUTF $line."\n";
@@ -148,14 +187,16 @@ foreach my $dep (sort keys %deps) {
 my $out = "";
 my $n = 0;
 foreach my $dep (sort keys %deps) {
-    massage($dep, $map{$dep});
+    rewrite($dep, $map{$dep});
     $out .= "$map{$dep} ";
     $n++;
 }
 
 if ($CHECK) {
-    system "$COMP $CFLAGS -E $FILE | grep -v '^# ' > out1.c";
-    system "$COMP $CFLAGS -E $newfile | grep -v '^# ' > out2.c";
+    runit ("$COMP $CFLAGS -E $FILE > out1$EXT");
+    runit ("grep -v '^# ' out1$EXT > out1strip$EXT");
+    runit ("$COMP $CFLAGS -E $srcfile_copy > out2$EXT");
+    runit ("grep -v '^# ' out2$EXT > out2strip$EXT");
     print <<EOT;
 
 Now we\'ll print the diffs between the preprocessed version of your
@@ -167,7 +208,7 @@ circumstances to creduce-bugs\@flux.utah.edu.
 
 ========== start of diffs ==========
 EOT
-    system "diff out1.c out2.c";
+    system "diff out1strip$EXT out2strip$EXT";
     print <<EOT;
 ========== end of diffs ==========
 

@@ -511,6 +511,7 @@ details that may help us reproduce the problem.
 EOT
                         print $BAD_PASS_MSG;
 		    }
+		    die;
 		    chdir $ORIG_DIR or die;
 		    $stopped = 1;
 		} else {
@@ -855,9 +856,13 @@ foreach my $mref (@all_methods) {
     my $mname = $method{"name"};
     die unless defined ($mname);
     next if defined ($prereqs_checked{$mname});
-    $prereqs_checked{$mname} = 1;
+    print "going to request mname: '$mname'\n";
+    # FIXME supposedly we can just require $mname; (without the eval)
+    # here but that doesn't work...
     eval "require $mname";
+    die $@ if $@;
     call_prereq_check($mname);
+    $prereqs_checked{$mname} = 1;
 }
 print "\n" if $VERBOSE;
 
@@ -869,6 +874,18 @@ while (@ARGV) {
     my $f = File::Spec->rel2abs(shift @ARGV);
     push @toreduce_original, $f;
     check_file_attributes("file", $f, "efrw");
+}
+
+sub bysize {
+    return (-s $b) <=> (-s $a);
+}
+
+# sort by size so pass_lines can hit the biggest files first
+@toreduce_original = sort bysize @toreduce_original;
+
+foreach my $f (@toreduce_original) {
+    my $s = -s $f;
+    print "$f $s\n";
     (my $fo) = fileparse($f);
     push @toreduce_fileonly, $fo;
     my $best = File::Spec->rel2abs("${fo}.best");
