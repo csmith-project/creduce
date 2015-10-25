@@ -170,10 +170,13 @@ void RemoveUnusedVar::removeVarDecl(void)
 
   llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI = 
     VarToDeclGroup.find(TheVarDecl);
-  TransAssert((DI != VarToDeclGroup.end()) &&
-              "Cannot find VarDeclGroup!");
-
-  RewriteHelper->removeVarDecl(TheVarDecl, (*DI).second);
+  if (DI == VarToDeclGroup.end()) {
+    // We don't know the decl group that the var decl belongs to.
+    RewriteHelper->removeVarDecl(TheVarDecl);
+  }
+  else {
+    RewriteHelper->removeVarDecl(TheVarDecl, (*DI).second);
+  }
 }
 
 RemoveUnusedVar::~RemoveUnusedVar(void)
