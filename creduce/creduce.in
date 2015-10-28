@@ -100,8 +100,9 @@ my @options = (
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
+my $COMMIT = creduce_config::GIT_HASH;
 my $help = <<HELP;
-$PKG -- a C and C++ program reducer
+$PKG ($COMMIT) -- a C and C++ program reducer
 
 C-Reduce requires an "interestingness test" and one or more files to
 reduce. Files are reduced in-place so they must be writable. The
