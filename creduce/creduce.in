@@ -857,7 +857,6 @@ foreach my $mref (@all_methods) {
     my $mname = $method{"name"};
     die unless defined ($mname);
     next if defined ($prereqs_checked{$mname});
-    print "going to request mname: '$mname'\n";
     # FIXME supposedly we can just require $mname; (without the eval)
     # here but that doesn't work...
     eval "require $mname";
@@ -886,7 +885,6 @@ sub bysize {
 
 foreach my $f (@toreduce_original) {
     my $s = -s $f;
-    print "$f $s\n";
     (my $fo) = fileparse($f);
     push @toreduce_fileonly, $fo;
     my $best = File::Spec->rel2abs("${fo}.best");
