@@ -971,7 +971,7 @@ print "\n";
 # this should be the only time we touch the original file
 for (my $i=0; $i<scalar(@toreduce_best); $i++) {
     File::Copy::copy($toreduce_best[$i],$toreduce_original[$i]) or die;
-    print "'$toreduce_best[$i] reduced to:\n\n";
+    print "'$toreduce_best[$i]' reduced to:\n\n";
     open INF, "<$toreduce_original[$i]" or die;
     while (<INF>) {
 	print;
