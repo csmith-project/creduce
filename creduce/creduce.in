@@ -95,7 +95,7 @@ my @options = (
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
-    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already reduced)"],
+    ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
 );
 
