@@ -19,7 +19,7 @@ Beyond the basic compile/build tools, C-Reduce depends on a set of
 third-party software packages, including LLVM.  On Ubuntu or Mint,
 the prerequisites other than LLVM can be installed like this:
 
-  sudo apt-get install indent astyle delta libbenchmark-timer-perl \
+  sudo apt-get install delta libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
     libregexp-common-perl libsys-cpu-perl flex build-essential \
     zlib1g-dev
@@ -27,17 +27,11 @@ the prerequisites other than LLVM can be installed like this:
 Otherwise, install these packages either manually or using the package
 manager:
 
-astyle: 
-  http://astyle.sourceforge.net/
-
 Berkeley delta:
   http://delta.tigris.org/
 
 Flex:
   http://flex.sourceforge.net/
-
-GNU Indent:
-  http://www.gnu.org/software/indent/
 
 LLVM/Clang 3.7.0:
   http://llvm.org/releases/download.html#3.7.0
@@ -66,6 +60,20 @@ For example, (perhaps as root):
 
 zlib:
   http://www.zlib.net/
+
+--------------------------------------------------------------------
+Optional prereqs:
+
+If GNU Indent and/or astyle are present, C-Reduce will use them. On
+Ubuntu:
+
+  sudo apt-get install indent astyle
+
+astyle:
+  http://astyle.sourceforge.net/
+
+GNU Indent:
+  http://www.gnu.org/software/indent/
 
 --------------------------------------------------------------------
 Building and installing C-Reduce:

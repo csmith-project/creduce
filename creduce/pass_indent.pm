@@ -30,7 +30,7 @@ sub check_prereqs () {
     $indent =
 	find_external_program(creduce_config::INDENT, "indent");
 
-    return defined ($astyle) && defined ($clang_format) && defined ($indent);
+    return defined ($clang_format);
 }
 
 sub new ($$) {
@@ -45,36 +45,51 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub invoke_indent ($) {
+    (my $cfile) = @_;
+    if ($^O eq "MSWin32") {
+	system qq{"$indent" $indent_opts $cfile > NUL 2>&1};
+    } else {
+	system qq{"$indent" $indent_opts $cfile >/dev/null 2>&1};
+    }
+}
+
+sub invoke_clang_format ($) {
+    (my $cfile) = @_;
+    if ($^O eq "MSWin32") {
+	system qq{"$clang_format" -i $cfile > NUL 2>&1};
+    } else {
+	system qq{"$clang_format" -i $cfile >/dev/null 2>&1};
+    }
+}
+
+sub invoke_astyle ($) {
+    (my $cfile) = @_;
+    if ($^O eq "MSWin32") {
+	system qq{"$astyle" $cfile > NUL 2>&1};
+    } else {
+	system qq{"$astyle" $cfile >/dev/null 2>&1};
+    }
+}
+
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my $index = ${$state};
     if (0) {
     } elsif ($arg eq "regular") {
 	return ($STOP, \$index) unless ($index == 0);
-	if ($^O eq "MSWin32") {
-	    system qq{"$indent" $indent_opts $cfile > NUL 2>&1};
+	if (defined ($indent)) {
+	    invoke_indent($cfile);
 	} else {
-	    system qq{"$indent" $indent_opts $cfile >/dev/null 2>&1};
+	    invoke_clang_format($cfile);
 	}
     } elsif ($arg eq "final") {
 	if ($index == 0) {
-	    if ($^O eq "MSWin32") {
-		system qq{"$indent" $cfile > NUL 2>&1};
-	    } else {
-		system qq{"$indent" $cfile >/dev/null 2>&1};
-	    }
+	    invoke_indent($cfile);
 	} elsif ($index == 1) {
-	    if ($^O eq "MSWin32") {
-		system qq{"$astyle" $cfile > NUL 2>&1};
-	    } else {
-		system qq{"$astyle" $cfile >/dev/null 2>&1};
-	    }
+	    invoke_astyle($cfile);
 	} elsif ($index == 2) {
-	    if ($^O eq "MSWin32") {
-		system qq{"$clang_format" -i $cfile > NUL 2>&1};
-	    } else {
-		system qq{"$clang_format" -i $cfile >/dev/null 2>&1};
-	    }
+	    invoke_clang_format($cfile);
 	} else {
 	    return ($STOP, \$index);
 	}
