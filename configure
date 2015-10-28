@@ -16326,7 +16326,8 @@ fi
 # these are not found at configure time.  Let the user install the dependencies
 # later.
 #
-missing_runtime_prereq=no
+missing_required_runtime_prereq=no
+missing_optional_runtime_prereq=no
 #
 # creduce/creduce.in
 #
@@ -16415,7 +16416,7 @@ $as_echo "ok" >&6; };
     :
 
     PERL_MODULES=no
-    missing_runtime_prereq=yes
+    missing_required_runtime_prereq=yes
 
   fi
 else
@@ -16468,7 +16469,7 @@ fi
 
 
 if test "x$ASTYLE" = "xno"; then :
-  missing_runtime_prereq=yes
+  missing_optional_runtime_prereq=yes
 fi
 #
 
@@ -16515,7 +16516,7 @@ fi
 
 
 if test "x$CLANG_FORMAT" = "xno"; then :
-  missing_runtime_prereq=yes
+  missing_required_runtime_prereq=yes
 fi
 #
 
@@ -16561,7 +16562,7 @@ fi
 
 
 if test "x$INDENT" = "xno"; then :
-  missing_runtime_prereq=yes
+  missing_optional_runtime_prereq=yes
 fi
 #
 # creduce/pass_lines.pm
@@ -16609,7 +16610,7 @@ fi
 
 
 if test "x$TOPFORMFLAT" = "xno"; then :
-  missing_runtime_prereq=yes
+  missing_required_runtime_prereq=yes
 fi
 
 ###############################################################################
@@ -19143,7 +19144,9 @@ fi
 # Warn about things that will be needed at run time, but which we did not find
 # at configure time.
 #
-if test "$missing_runtime_prereq" = "yes"; then :
+# First warn about required run-time dependencies...
+#
+if test "$missing_required_runtime_prereq" = "yes"; then :
   $as_echo "## ------------------------------------------------------------------------ ##
 ## WARNING: You cannot run C-Reduce until you install missing dependencies! ##
 ## ------------------------------------------------------------------------ ##"
@@ -19151,42 +19154,60 @@ fi
 
 if test "$PERL_MODULES" = "no"; then :
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Perl modules required by C-Reduce" >&5
-$as_echo "$as_me: WARNING: You must install Perl modules required by C-Reduce" >&2;}
-
-fi
-if test "x$ASTYLE" = "xno"; then :
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Artistic Style before running C-Reduce" >&5
-$as_echo "$as_me: WARNING: You must install Artistic Style before running C-Reduce" >&2;}
-    ASTYLE=astyle
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Perl modules required by C-Reduce." >&5
+$as_echo "$as_me: WARNING: You must install Perl modules required by C-Reduce." >&2;}
 
 fi
 if test "x$CLANG_FORMAT" = "xno"; then :
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install clang-format before running C-Reduce" >&5
-$as_echo "$as_me: WARNING: You must install clang-format before running C-Reduce" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install \`clang-format' before running C-Reduce." >&5
+$as_echo "$as_me: WARNING: You must install \`clang-format' before running C-Reduce." >&2;}
     CLANG_FORMAT=clang-format
-
-fi
-if test "x$INDENT" = "xno"; then :
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install GNU Indent before running C-Reduce" >&5
-$as_echo "$as_me: WARNING: You must install GNU Indent before running C-Reduce" >&2;}
-    INDENT=indent
 
 fi
 if test "x$TOPFORMFLAT" = "xno"; then :
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Berkeley Delta before running C-Reduce" >&5
-$as_echo "$as_me: WARNING: You must install Berkeley Delta before running C-Reduce" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install Berkeley Delta before running C-Reduce." >&5
+$as_echo "$as_me: WARNING: You must install Berkeley Delta before running C-Reduce." >&2;}
     TOPFORMFLAT=topformflat
 
 fi
 
-if test "$missing_runtime_prereq" = "yes"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Read the INSTALL file for info about C-Reduce dependencies" >&5
-$as_echo "$as_me: WARNING: Read the INSTALL file for info about C-Reduce dependencies" >&2;}
+if test "$missing_required_runtime_prereq" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Read the INSTALL file for info about C-Reduce dependencies." >&5
+$as_echo "$as_me: WARNING: Read the INSTALL file for info about C-Reduce dependencies." >&2;}
+fi
+
+# ...and then warn about optional run-time dependencies.
+#
+if test "$missing_optional_runtime_prereq" = "yes"; then :
+  $as_echo "## ------------------------------------------------------------------------ ##
+## NOTE: The following optional C-Reduce dependencies were not found.       ##
+## ------------------------------------------------------------------------ ##"
+fi
+
+if test "x$ASTYLE" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: Artistic Style (\`astyle') was not found." >&5
+$as_echo "$as_me: Artistic Style (\`astyle') was not found." >&6;}
+    ASTYLE=astyle
+
+fi
+if test "x$INDENT" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: GNU Indent (\`indent') was not found." >&5
+$as_echo "$as_me: GNU Indent (\`indent') was not found." >&6;}
+    INDENT=indent
+
+fi
+
+if test "$missing_optional_runtime_prereq" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: C-Reduce will use these tools if you install them in the future." >&5
+$as_echo "$as_me: C-Reduce will use these tools if you install them in the future." >&6;}
+fi
+if test "$missing_optional_runtime_prereq" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Read the INSTALL file for info about C-Reduce dependencies." >&5
+$as_echo "$as_me: Read the INSTALL file for info about C-Reduce dependencies." >&6;}
 fi
 
 ###############################################################################
