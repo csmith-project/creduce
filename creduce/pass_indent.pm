@@ -86,9 +86,9 @@ sub transform ($$$) {
     } elsif ($arg eq "final") {
 	if ($index == 0) {
 	    invoke_indent($cfile);
-	} elsif ($index == 1) {
+	} elsif ($index == 1 && defined ($astyle)) {
 	    invoke_astyle($cfile);
-	} elsif ($index == 2) {
+	} elsif ($index == 2 && defined ($indent)) {
 	    invoke_clang_format($cfile);
 	} else {
 	    return ($STOP, \$index);
