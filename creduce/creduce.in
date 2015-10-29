@@ -84,19 +84,19 @@ my $CACHE = 0;
 my $TIMING = 0;
 
 my @options = (
-    # ["--add-pass",            "call",    0, \&process_foo,     "Also run the specified pass; requires three sub-arguments: pass sub-pass priority"],
-    # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
     ["--shaddap",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
-    ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Do not run the default passes"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
+    ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
+    ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
+    # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -162,9 +162,8 @@ my $CACHE_PRUNE_SIZE = 5000;
 
 my @custom_methods;
 
-sub process_foo {
+sub add_pass {
     my ($opt, $args, $dest) = @_;
-    my $x = scalar(@$args);
     my $name = shift @$args;
     my $subpass = shift @$args;
     my $pri = shift @$args;
