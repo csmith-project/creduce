@@ -14,17 +14,37 @@ use strict;
 use warnings;
 
 use POSIX;
+
+use Cwd 'abs_path';
 use File::Compare;
 
-use creduce_config qw(TOPFORMFLAT);
+use creduce_config qw(bindir libexecdir);
 use creduce_utils;
 
 my $topformflat;
 
 sub check_prereqs () {
-    $topformflat = find_external_program(creduce_config::TOPFORMFLAT,
-					 "topformflat");
-    return defined($topformflat);
+    my $path;
+    if ($FindBin::RealBin eq abs_path(bindir)) {
+	# This script is in the installation directory.
+	# Use the installed `topformflat'.
+	$path = libexecdir . "/topformflat";
+    } else {
+	# Assume that this script is in the C-Reduce build tree.
+	# Use the `topformflat' that is also in the build tree.
+	$path = "$FindBin::Bin/../delta/topformflat";
+    }
+    if ((-e $path) && (-x $path)) {
+	$topformflat = $path;
+	return 1;
+    }
+    # Check Windows
+    $path = $path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
+	$topformflat = $path;
+	return 1;
+    }
+    return 0;
 }
 
 # unlike the previous version of pass_lines, this one always

@@ -19,16 +19,13 @@ Beyond the basic compile/build tools, C-Reduce depends on a set of
 third-party software packages, including LLVM.  On Ubuntu or Mint,
 the prerequisites other than LLVM can be installed like this:
 
-  sudo apt-get install delta libbenchmark-timer-perl \
+  sudo apt-get install libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
     libregexp-common-perl libsys-cpu-perl flex build-essential \
     zlib1g-dev
 
 Otherwise, install these packages either manually or using the package
 manager:
-
-Berkeley delta:
-  http://delta.tigris.org/
 
 Flex:
   http://flex.sourceforge.net/

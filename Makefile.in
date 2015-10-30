@@ -297,7 +297,6 @@ SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
-TOPFORMFLAT = @TOPFORMFLAT@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
@@ -361,6 +360,7 @@ SUBDIRS = \
 	clang_delta \
 	clex \
 	creduce \
+	delta \
 	scripts \
 	tests
 

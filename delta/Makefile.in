@@ -91,8 +91,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
-libexec_PROGRAMS = clex$(EXEEXT) strlex$(EXEEXT)
-subdir = clex
+libexec_PROGRAMS = topformflat$(EXEEXT)
+subdir = delta
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
 	$(top_srcdir)/m4/ax_llvm.m4 \
@@ -111,16 +111,13 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
 PROGRAMS = $(libexec_PROGRAMS)
-am_clex_OBJECTS = clex-clex.$(OBJEXT) clex-driver.$(OBJEXT)
-clex_OBJECTS = $(am_clex_OBJECTS)
-clex_LDADD = $(LDADD)
+am_topformflat_OBJECTS = topformflat-topformflat.$(OBJEXT)
+topformflat_OBJECTS = $(am_topformflat_OBJECTS)
+topformflat_LDADD = $(LDADD)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_strlex_OBJECTS = strlex-strlex.$(OBJEXT) strlex-driver.$(OBJEXT)
-strlex_OBJECTS = $(am_strlex_OBJECTS)
-strlex_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -164,8 +161,8 @@ am__v_LEX_ = $(am__v_LEX_@AM_DEFAULT_V@)
 am__v_LEX_0 = @echo "  LEX     " $@;
 am__v_LEX_1 = 
 YLWRAP = $(top_srcdir)/autoconf/ylwrap
-SOURCES = $(clex_SOURCES) $(strlex_SOURCES)
-DIST_SOURCES = $(clex_SOURCES) $(strlex_SOURCES)
+SOURCES = $(topformflat_SOURCES)
+DIST_SOURCES = $(topformflat_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -191,7 +188,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/autoconf/depcomp \
-	$(top_srcdir)/autoconf/ylwrap clex.c strlex.c
+	$(top_srcdir)/autoconf/ylwrap topformflat.c
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -330,28 +327,16 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-clex_CPPFLAGS = \
+topformflat_CPPFLAGS = \
 	$(GIT_FLAG)
 
-clex_SOURCES = \
-	clex.l \
-	defs.h \
-	driver.c
-
-strlex_CPPFLAGS = \
-	$(GIT_FLAG)
-
-strlex_SOURCES = \
-	strlex.l \
-	defs.h \
-	driver.c
-
-EXTRA_DIST = \
-	CMakeLists.txt
+topformflat_SOURCES = \
+	topformflat.l
 
 
-# SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that
-# `clex.c' is out of date.  This is achieved by a sinful Automake hack.
+# SHORT STORY: Always rebuild `topformflat.c' from `topformflat.lex' if Make
+# thinks that `topformflat.c' is out of date.  This is achieved by a sinful
+# Automake hack.
 #
 am__skiplex := 
 all: all-am
@@ -367,9 +352,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu clex/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu delta/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu clex/Makefile
+	  $(AUTOMAKE) --gnu delta/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -437,13 +422,9 @@ clean-libexecPROGRAMS:
 	echo " rm -f" $$list; \
 	rm -f $$list
 
-clex$(EXEEXT): $(clex_OBJECTS) $(clex_DEPENDENCIES) $(EXTRA_clex_DEPENDENCIES) 
-	@rm -f clex$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(clex_OBJECTS) $(clex_LDADD) $(LIBS)
-
-strlex$(EXEEXT): $(strlex_OBJECTS) $(strlex_DEPENDENCIES) $(EXTRA_strlex_DEPENDENCIES) 
-	@rm -f strlex$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(strlex_OBJECTS) $(strlex_LDADD) $(LIBS)
+topformflat$(EXEEXT): $(topformflat_OBJECTS) $(topformflat_DEPENDENCIES) $(EXTRA_topformflat_DEPENDENCIES) 
+	@rm -f topformflat$(EXEEXT)
+	$(AM_V_CCLD)$(LINK) $(topformflat_OBJECTS) $(topformflat_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -451,10 +432,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-clex.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clex-driver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlex-driver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strlex-strlex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/topformflat-topformflat.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -477,61 +455,19 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-clex-clex.o: clex.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-clex.o -MD -MP -MF $(DEPDIR)/clex-clex.Tpo -c -o clex-clex.o `test -f 'clex.c' || echo '$(srcdir)/'`clex.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-clex.Tpo $(DEPDIR)/clex-clex.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='clex.c' object='clex-clex.o' libtool=no @AMDEPBACKSLASH@
+topformflat-topformflat.o: topformflat.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(topformflat_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT topformflat-topformflat.o -MD -MP -MF $(DEPDIR)/topformflat-topformflat.Tpo -c -o topformflat-topformflat.o `test -f 'topformflat.c' || echo '$(srcdir)/'`topformflat.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/topformflat-topformflat.Tpo $(DEPDIR)/topformflat-topformflat.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='topformflat.c' object='topformflat-topformflat.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-clex.o `test -f 'clex.c' || echo '$(srcdir)/'`clex.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(topformflat_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o topformflat-topformflat.o `test -f 'topformflat.c' || echo '$(srcdir)/'`topformflat.c
 
-clex-clex.obj: clex.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-clex.obj -MD -MP -MF $(DEPDIR)/clex-clex.Tpo -c -o clex-clex.obj `if test -f 'clex.c'; then $(CYGPATH_W) 'clex.c'; else $(CYGPATH_W) '$(srcdir)/clex.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-clex.Tpo $(DEPDIR)/clex-clex.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='clex.c' object='clex-clex.obj' libtool=no @AMDEPBACKSLASH@
+topformflat-topformflat.obj: topformflat.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(topformflat_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT topformflat-topformflat.obj -MD -MP -MF $(DEPDIR)/topformflat-topformflat.Tpo -c -o topformflat-topformflat.obj `if test -f 'topformflat.c'; then $(CYGPATH_W) 'topformflat.c'; else $(CYGPATH_W) '$(srcdir)/topformflat.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/topformflat-topformflat.Tpo $(DEPDIR)/topformflat-topformflat.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='topformflat.c' object='topformflat-topformflat.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-clex.obj `if test -f 'clex.c'; then $(CYGPATH_W) 'clex.c'; else $(CYGPATH_W) '$(srcdir)/clex.c'; fi`
-
-clex-driver.o: driver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-driver.o -MD -MP -MF $(DEPDIR)/clex-driver.Tpo -c -o clex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-driver.Tpo $(DEPDIR)/clex-driver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='clex-driver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
-
-clex-driver.obj: driver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT clex-driver.obj -MD -MP -MF $(DEPDIR)/clex-driver.Tpo -c -o clex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clex-driver.Tpo $(DEPDIR)/clex-driver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='clex-driver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o clex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
-
-strlex-strlex.o: strlex.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-strlex.o -MD -MP -MF $(DEPDIR)/strlex-strlex.Tpo -c -o strlex-strlex.o `test -f 'strlex.c' || echo '$(srcdir)/'`strlex.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-strlex.Tpo $(DEPDIR)/strlex-strlex.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='strlex.c' object='strlex-strlex.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-strlex.o `test -f 'strlex.c' || echo '$(srcdir)/'`strlex.c
-
-strlex-strlex.obj: strlex.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-strlex.obj -MD -MP -MF $(DEPDIR)/strlex-strlex.Tpo -c -o strlex-strlex.obj `if test -f 'strlex.c'; then $(CYGPATH_W) 'strlex.c'; else $(CYGPATH_W) '$(srcdir)/strlex.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-strlex.Tpo $(DEPDIR)/strlex-strlex.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='strlex.c' object='strlex-strlex.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-strlex.obj `if test -f 'strlex.c'; then $(CYGPATH_W) 'strlex.c'; else $(CYGPATH_W) '$(srcdir)/strlex.c'; fi`
-
-strlex-driver.o: driver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-driver.o -MD -MP -MF $(DEPDIR)/strlex-driver.Tpo -c -o strlex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-driver.Tpo $(DEPDIR)/strlex-driver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='strlex-driver.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-driver.o `test -f 'driver.c' || echo '$(srcdir)/'`driver.c
-
-strlex-driver.obj: driver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT strlex-driver.obj -MD -MP -MF $(DEPDIR)/strlex-driver.Tpo -c -o strlex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/strlex-driver.Tpo $(DEPDIR)/strlex-driver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='driver.c' object='strlex-driver.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(strlex_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o strlex-driver.obj `if test -f 'driver.c'; then $(CYGPATH_W) 'driver.c'; else $(CYGPATH_W) '$(srcdir)/driver.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(topformflat_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o topformflat-topformflat.obj `if test -f 'topformflat.c'; then $(CYGPATH_W) 'topformflat.c'; else $(CYGPATH_W) '$(srcdir)/topformflat.c'; fi`
 
 .l.c:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
@@ -661,8 +597,7 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f clex.c
-	-rm -f strlex.c
+	-rm -f topformflat.c
 clean: clean-am
 
 clean-am: clean-generic clean-libexecPROGRAMS clean-libtool \
@@ -754,35 +689,7 @@ uninstall-am: uninstall-libexecPROGRAMS
 .PRECIOUS: Makefile
 
 #
-# LONG STORY: We use AM_MAINTAINER_MODE in C-Reduce so as to avoid rebuilding
-# our `configure' and `Makefile.in' files unnecessarily.  (The mode is disabled
-# by default, meaning that `configure' avoids creating Makefile rules that
-# perform various "package maintenance activities.")
-#
-# Automake handles lex-derived C files specially when AM_MAINTAINER_MODE is
-# used.  It treats regeneration of the C file is a maintenance activity, not a
-# normal compilation activity.  Treating lex as a maintenance activity is a
-# pain in the ass for C-Reduce developers, because it means that they must do
-# something more than `make' when they change `clex.l' and want to recompile.
-#
-# Automake short-circuits the `.l' -> `.c' compilation step by testing if the
-# target `.c' file already exists.  This is implemented by the Make macro
-# `am__skiplex', which is prefixed to the usual command line for running lex:
-#
-#   am__skiplex = test -f $@ ||
-#
-# (This macro is not defined when AM_MAINTAINER_MODE is not used, nor is it
-# defined when maintainer mode is enabled by the user.  But I digress.)
-#
-# We don't want to treat running lex as a maintenance activity; we want to
-# treat it as a normal compilation activity.  We achieve this by redefining the
-# internal `am__skiplex' macro, thus avoiding the short-circuit described
-# above.  This implementation is icky and sinful because `am__skiplex' is
-# internal to Automake and undocumented.  It works with Automake 1.13.2.
-#
-# Treating lex/yacc as special makes some sense historically, when the builder
-# of a package could not be assumed to have working, installed copies of those
-# tools.  But I think it's a pretty obsolete viewpoint today.
+# LONG STORY: See the long story in "clex/Makefile.am".
 
 ###############################################################################
 

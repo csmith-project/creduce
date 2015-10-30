@@ -119,12 +119,6 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 AC_ARG_VAR([INDENT], [`indent' program])
 AC_PATH_PROG([INDENT], [indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
-#
-# creduce/pass_lines.pm
-#
-AC_ARG_VAR([TOPFORMFLAT], [`topformflat' (Berkeley Delta) program])
-AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
-AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_required_runtime_prereq=yes])
 
 ###############################################################################
 
@@ -133,6 +127,7 @@ AC_OUTPUT(
   clang_delta/Makefile
   clex/Makefile
   creduce/Makefile
+  delta/Makefile
   scripts/Makefile
   tests/Makefile
 )
@@ -155,11 +150,6 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"],
   [
     AC_MSG_WARN([You must install `clang-format' before running C-Reduce.])
     CLANG_FORMAT=clang-format
-  ])
-AS_IF([test "x$TOPFORMFLAT" = "xno"],
-  [
-    AC_MSG_WARN([You must install Berkeley Delta before running C-Reduce.])
-    TOPFORMFLAT=topformflat
   ])
 
 AS_IF([test "$missing_required_runtime_prereq" = "yes"],

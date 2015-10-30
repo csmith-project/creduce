@@ -14,6 +14,7 @@ SUBDIRS = \
 	clang_delta \
 	clex \
 	creduce \
+	delta \
 	scripts \
 	tests
 

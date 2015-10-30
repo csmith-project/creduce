@@ -1,0 +1,8 @@
+// file2.txt
+
+zebddwqra;
+;
+giraffe;
+bar;
+       
+something {};
