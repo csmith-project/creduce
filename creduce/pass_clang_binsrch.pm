@@ -77,7 +77,7 @@ sub advance ($$$) {
     my %sh = %{$state};
     return \%sh if defined($sh{"start"});
     $sh{"index"} += $sh{"chunk"};
-    if ($VERBOSE) {
+    if ($DEBUG) {
 	my $index = $sh{"index"};
 	my $chunk = $sh{"chunk"};
 	print "ADVANCE: index = $index, chunk = $chunk\n";
@@ -99,7 +99,7 @@ sub transform ($$$) {
 	my $instances = count_instances($cfile,$which);
 	$sh{"chunk"} = $instances;
 	$sh{"instances"} = $instances;
-	print "initial granularity = $instances\n" if $VERBOSE;
+	print "initial granularity = $instances\n" if $DEBUG;
 	$sh{"index"} = 1;
     }
 
@@ -111,7 +111,7 @@ sub transform ($$$) {
     my $instances = $sh{"instances"};
     my $tmpfile = File::Temp::tmpnam();
 
-    print "TRANSFORM: index = $index, chunk = $chunk, instances = $instances\n" if $VERBOSE;
+    print "TRANSFORM: index = $index, chunk = $chunk, instances = $instances\n" if $DEBUG;
 
     if ($index <= $instances) {
 	my $end = $index + $chunk;
@@ -122,7 +122,7 @@ sub transform ($$$) {
 	my $dec = $end - $index + 1;
 
 	my $cmd = qq{"$clang_delta" --transformation=$which --counter=$index --to-counter=$end $cfile};
-	print "$cmd\n" if $VERBOSE;
+	print "$cmd\n" if $DEBUG;
 	my $res = run_clang_delta ("$cmd > $tmpfile");
 
 	if ($res==0) {
@@ -133,7 +133,7 @@ sub transform ($$$) {
 		# nothing?
 	    } elsif ($res == -2) {
 		unlink $tmpfile;
-		print "out of instances!\n" if $VERBOSE;
+		print "out of instances!\n" if $DEBUG;
 		goto rechunk;
 	    } else {
 		if (!$IGNORE_PASS_BUGS) {
@@ -165,7 +165,7 @@ sub transform ($$$) {
 	return ($STOP, \%sh) if ($sh{"chunk"} < 10);
 	my $newchunk = round ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
-	print "granularity = $newchunk\n" if $VERBOSE;
+	print "granularity = $newchunk\n" if $DEBUG;
 	$sh{"index"} = 1;
 	goto AGAIN;
     }

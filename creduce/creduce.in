@@ -65,7 +65,6 @@ use creduce_utils;
 ######################################################################
 
 my $GIVEUP_CONSTANT = 1000;
-my $DEBUG_SMP = 0;
 my $NPROCS = 1;
 if (defined(&Sys::CPU::cpu_count)) {
     $NPROCS = Sys::CPU::cpu_count();
@@ -78,9 +77,6 @@ my $SKIP_FIRST;
 my $SAVE_TEMPS;
 my $SLLOOWW = 0;
 my $NODEFAULT;
-# if set, cache results of the delta test
-#
-my $CACHE = 0;
 my $TIMING = 0;
 
 my @options = (
@@ -88,7 +84,7 @@ my @options = (
     ["--shaddap",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
-    ["--verbose",             "const",   1, \$VERBOSE,         "Print debug information"],
+    ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
@@ -96,7 +92,6 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
-    # ["--cache",               "const",   1, \$CACHE,           "Cache results of delta tests"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -154,12 +149,6 @@ Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit 1;
 usage() unless (@ARGV >= 2);
 
-# delete cached results for program sizes this much larger than the
-# current size; this heuristic is designed to save RAM while also
-# permitting caching of larger results which is useful for some of the
-# passes that make (temporary) backwards progress
-my $CACHE_PRUNE_SIZE = 5000;
-
 my @custom_methods;
 
 sub add_pass {
@@ -180,6 +169,7 @@ sub add_pass {
 
 my @orig_file_size;
 my $total_file_size = 0;
+my $orig_total_file_size = 0;
 
 # these are set at startup time and never change
 my $test;
@@ -200,7 +190,7 @@ sub print_pct () {
     foreach my $f (@toreduce_best) {
 	$s += -s $f;
     }
-    my $pct = 100 - ($s * 100.0 / $total_file_size);
+    my $pct = 100 - ($s * 100.0 / $orig_total_file_size);
     printf "(%.1f %%, $s bytes)\n", $pct;
 }
 
@@ -221,15 +211,16 @@ sub remove_tmpdirs () {
     }
 }
 
-sub run_test () {
+# returns true if interesting, false otherwise
+sub delta_test () {
     my $res;
-    if ($VERBOSE) {
-	$res = runit "$test";
+    if ($DEBUG) {
+	$res = runit ("$test");
     } else {
         if($^O eq "MSWin32") {
-            $res = runit "$test > NUL 2>&1";
+            $res = runit ("$test > NUL 2>&1");
         } else {
-            $res = runit "$test > /dev/null 2>&1";
+            $res = runit ("$test > /dev/null 2>&1");
         }
     }
     return ($res == 0);
@@ -242,12 +233,12 @@ sub copy_files_here() {
 }
 
 sub sanity_check () {
-    print "sanity check... " if $VERBOSE;
+    print "sanity check... " if $DEBUG;
     my $tmpdir = make_tmpdir();
-    print "tmpdir = $tmpdir\n" if ($VERBOSE);
+    print "tmpdir = $tmpdir\n" if ($DEBUG);
     chdir $tmpdir or die;
     copy_files_here();
-    if (!run_test()) {
+    if (!delta_test()) {
 	chdir $ORIG_DIR;
 	my $stuff = "";
 	foreach my $f (@toreduce_fileonly) {
@@ -274,35 +265,19 @@ See "creduce --help" for more information.
 EOT
         exit 1;
     }
-    print "successful\n" if $VERBOSE;
+    print "successful\n" if $DEBUG;
     chdir $ORIG_DIR or die;
     remove_tmpdirs();
 }
 
 my $old_len = 1000000000;
-my %cache = ();
-
-sub delta_test ($$$$) {
-    (my $method, my $arg, my $state, my $fn) = @_;
-    my $result;
-    if ($CACHE) {
-	my $prog = read_file($fn);
-	$result = $cache{-s $fn}{$prog};
-    }
-    if (defined($result)) {
-	print "(hit= $result)";
-    } else {
-	$result = run_test();
-    }
-    return $result ? 1 : 0;
-}
 
 sub call_prereq_check ($) {
     (my $method) = @_;
     my $str = $method."::check_prereqs";
     no strict "refs";
     &${str}() or die "prereqs not found for pass $method";
-    print "successfully checked prereqs for $method\n" if $VERBOSE;
+    print "successfully checked prereqs for $method\n" if $DEBUG;
 }
 
 sub call_new ($$$) {
@@ -332,8 +307,7 @@ sub call_transform ($$$$) {
 # is incorrect and we have to empty out this list using killem() and
 # start again; elements of this list are tuples where the first
 # element is the pid of the child process (if running) or -1 (if we've
-# already waited for that child or there never was a child due to a
-# cache hit)
+# already waited for that child)
 my @variants = ();
 my @procs = ();
 my $num_running = 0;
@@ -351,33 +325,35 @@ sub killem() {
             $num_running--;
         }
         while (scalar(@variants) > 0) {
-        my $kidref = shift @variants;
-        die unless (scalar(@{$kidref})==5);
-        (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
-        File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
+	    my $kidref = shift @variants;
+	    die unless (scalar(@{$kidref})==5);
+	    (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
+	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
+		unless $SAVE_TEMPS;
         }
     } else {
         while (scalar(@variants) > 0) {
-        my $kidref = shift @variants;
-        die unless (scalar(@{$kidref})==5);
-        (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
-        if ($pid != -1) {
-            # kill the whole group
-            kill ('TERM', -$pid);
-            waitpid ($pid, 0);
-            $num_running--;
-        }
-        File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
+	    my $kidref = shift @variants;
+	    die unless (scalar(@{$kidref})==5);
+	    (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
+	    if ($pid != -1) {
+		# kill the whole group
+		kill ('TERM', -$pid);
+		waitpid ($pid, 0);
+		$num_running--;
+	    }
+	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
+		unless $SAVE_TEMPS;
         }
     }
 }
 
-sub fork_helper($$$$) {
-    (my $delta_method, my $delta_arg, my $state, my $tmpfn) = @_;
+sub fork_helper($) {
+    (my $tmpfn) = @_;
     if ($^O eq "MSWin32") {
         my $cmd = which("cmd.exe");
         my $cmdline = qq{/C "$test" $tmpfn};
-        $cmdline .= " > NUL 2>&1" unless $VERBOSE;
+        $cmdline .= " > NUL 2>&1" unless $DEBUG;
 
         my $proc;
         Win32::Process::Create($proc,
@@ -392,13 +368,17 @@ sub fork_helper($$$$) {
     } else {
         my $pid = fork();
         die unless ($pid >= 0);
-        if ($pid==0) {
+        if ($pid == 0) {
             # put this process (the child) into a process group named by
             # its pid so that we'll be able to kill its entire subtree
             # later
             setpgrp();
-            my $delta_result = delta_test ($delta_method,$delta_arg,$state,$tmpfn);
-            exit ($delta_result);
+	    # flip the T/F flag back into a 0/1
+            my $res = delta_test();
+	    print "delta_test() returned $res\n" if $DEBUG;
+            my $exitcode = $res ? 0 : 1;
+	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG;
+	    exit ($exitcode);
         }
         return $pid;
     }
@@ -420,7 +400,9 @@ sub wait_helper() {
             push @procs, $proc;
         }
     } else {
-        return wait();
+        my $cpid = wait();
+	die if ($cpid == -1);
+	return $cpid;
     }
 }
 
@@ -432,7 +414,23 @@ sub check_for_nonzero_size() {
 	    last;
 	}
     }
-    die "filesize reached zero" unless $nonzero;
+    if (!$nonzero) {
+	print "\n";
+	if (scalar(@toreduce_best) > 1) {
+	    print "All files being reduced have reached zero size; ";
+	} else {
+	    print "The file being reduced has reached zero size; ";
+	}
+	print <<EOT;
+our work here is done.
+
+If you did not want a zero size file, you must help C-Reduce out by
+making sure that your interestingness test does not find files like
+this to be interesting.
+
+EOT
+	exit();
+    }
 }
 
 my $good_cnt;
@@ -455,11 +453,12 @@ sub delta_pass ($) {
     die unless (scalar(@variants)==0);
     die unless ($num_running==0);
 
-    print "\n" if $VERBOSE;
+    check_for_nonzero_size();
+
+    print "\n" if $DEBUG;
     print "===< $delta_method :: $delta_arg >===\n";
 
     for (my $current_file_index=0; $current_file_index<scalar(@toreduce_fileonly); $current_file_index++) {
-	check_for_nonzero_size();
 	next if ((-s $toreduce_best[$current_file_index]) == 0);
 	my $state = call_new ($delta_method,$toreduce_fileonly[$current_file_index],$delta_arg);
 	my $since_success = 0;
@@ -467,17 +466,15 @@ sub delta_pass ($) {
 
       AGAIN:
 
-	# create child processes until:
-	# 1. we've created enough 
-	# 2. we get a STOP
-	# 3. we get a cache hit, in which case it's a better bet to just
-	#    look at the result instead of speculating more
+	# create child processes until either:
+	# 1. we exhaust the concurrency budget
+	# 2. the pass tells us to STOP
 	while (!$stopped && $num_running < $NPROCS) {
 	    my $tmpdir = make_tmpdir();
 	    chdir $tmpdir or die;
 	    copy_files_here();
 	    # creating the variant is done in the parent, it's only
-	    # testing it that we parallelize
+	    # testing variants that happens in parallel
 	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly[$current_file_index]);
 	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
 	    die unless ($delta_res == $OK || $delta_res == $STOP);
@@ -515,70 +512,32 @@ EOT
 		    chdir $ORIG_DIR or die;
 		    $stopped = 1;
 		} else {
-		    # FIXME: check the cache here
-		    # FIXME: extend the plugin interface to optionally return a reference to the processed data
-		    my $orig_state = $state;
-		    $state = call_advance ($delta_method,$toreduce,$delta_arg,$state);
-		    my $pid = fork_helper($delta_method, $delta_arg, $state, $toreduce);
-		    my @l = ($pid, $orig_state, $tmpdir, $toreduce, -99);
+		    my $pid = fork_helper ($toreduce);
+		    my @l = ($pid, $state, $tmpdir, $toreduce, -99);
 		    push @variants, \@l;
 		    chdir $ORIG_DIR or die;
 		    $num_running++;
-		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
+		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG;
+		    $state = call_advance ($delta_method, $toreduce, $delta_arg, $state);
 		}
 	    }
 	}
 
-	# starting at the front of the list, peel off all variants that
-	# aren't backed up by a running subprocess; this might be because
-	# there was a cache hit, or it might be because a subprocess has
-	# already terminated
-	while (scalar (@variants) > 0) {
-	    my $kidref = $variants[0];
-	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$kidref};
-	    last if ($pid != -1);
-	    my $trash = shift @variants;
-	    # ok, now we have a result to work with
-	    if ($delta_result) {
-		# now that the delta test succeeded, this becomes our new
-		# best version -- this has to be done in the parent
-		# process; we do not call advance() in this case since we
-		# assume that a transformation opportunity has been
-		# eliminated
-		killem ();
-		$good_cnt++;
-		$since_success = 0;
-		$method_worked{$delta_method}{$delta_arg}++;
-		$state = $newsh;
-		$stopped = 0;
-		File::Copy::copy($toreduce,$toreduce_best[$current_file_index]) or die;
-		print "success " if $VERBOSE;
-		print_pct();
-		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n" if $TIMING;
-	    } else {
-		print "failure\n" if $VERBOSE;
-		$bad_cnt++;
-		$since_success++;
-		$method_failed{$delta_method}{$delta_arg}++;
-	    }
-	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $VERBOSE;
-	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err});
-	}
-
-	if ($num_running>0) {
-	    print "about to wait\n" if $DEBUG_SMP;
+	if ($num_running > 0) {
+	    print "parent is waiting\n" if $DEBUG;
 	    my $xpid = wait_helper();
-	    die if ($xpid==-1);
-	    my $ret = $?;
-	    my $delta_result = $ret >> 8;
-	    print "child $xpid returned ${delta_result}\n" if $DEBUG_SMP;
+	    # UNIX 0/1 back to Perl T/F
+	    my $delta_result = (($? >> 8) == 0) ? 1 : 0;
+	    print "child $xpid had delta_result ${delta_result} (0 == uninteresting, 1 == interesting)\n"
+		if $DEBUG;
 	    $num_running--;
 	    my $found = 0;
+	    my $len = scalar (@variants);
 	    for (my $k=0; $k<scalar(@variants); $k++) {
 		my $kidref = $variants[$k];
 		die unless (scalar(@{$kidref})==5);
 		(my $pid,my $newsh,my $tmpdir,my $toreduce,my $res) = @{$kidref};
-		if ($xpid==$pid) {
+		if ($xpid == $pid) {
 		    $found = 1;
 		    my @l = (-1,$newsh,$tmpdir,$toreduce,$delta_result);
 		    splice (@variants, $k, 1, \@l);
@@ -586,6 +545,46 @@ EOT
 		}
 	    }
 	    die unless $found;
+	    die unless ($len == scalar (@variants));
+	}
+
+	# starting at the front of the list, peel off all variants that
+	# aren't backed up by a running subprocess
+	while (scalar (@variants) > 0) {
+	    my $kidref = $variants[0];
+	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$kidref};
+	    last if ($pid != -1);
+	    my $trash = shift @variants;
+	    # ok, now we have a result to work with
+	    if ($delta_result) {
+		# now that the delta test succeeded, this becomes our
+		# new best version -- we do not call advance() in this
+		# case since we assume that a transformation
+		# opportunity has been eliminated
+
+		# nuke all ongoing speculation
+		killem ();
+
+		# here is where we actually accept the new result-- we
+		# need to grab both the file and the pass state
+		$state = $newsh;
+		File::Copy::copy ($toreduce, $toreduce_best[$current_file_index]) or die;
+		
+		$good_cnt++;
+		$since_success = 0;
+		$method_worked{$delta_method}{$delta_arg}++;
+		print "delta test success " if $DEBUG;
+		print_pct();
+		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n" if $TIMING;
+	    } else {
+		print "delta test failure\n" if $DEBUG;
+		$bad_cnt++;
+		$since_success++;
+		$method_failed{$delta_method}{$delta_arg}++;
+	    }
+	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $DEBUG;
+	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
+		unless $SAVE_TEMPS;
 	}
 
 	# nasty heuristic for avoiding getting stuck by buggy passes that
@@ -863,7 +862,7 @@ foreach my $mref (@all_methods) {
     call_prereq_check($mname);
     $prereqs_checked{$mname} = 1;
 }
-print "\n" if $VERBOSE;
+print "\n" if $DEBUG;
 
 $test = File::Spec->rel2abs(shift @ARGV);
 usage() unless defined($test);
@@ -895,13 +894,13 @@ foreach my $f (@toreduce_original) {
     }
     File::Copy::copy($f,$best) or die;
     push @orig_file_size, -s $f;
+    $orig_total_file_size += -s $f;
     $total_file_size += -s $f;
 }
 
 $ORIG_DIR = getcwd();
 
-# unconditionally do this just once since otherwise output is
-# confusing when the initial test fails
+# no point proceeding if the test doesn't start out interesting
 sanity_check();
 
 print "===< $$ >===\n";
@@ -909,7 +908,7 @@ print "running $NPROCS interestingness test(s) in parallel\n";
 
 # some passes we run first since they often make good headway quickliy
 if (not $SKIP_FIRST) {
-    print "INITIAL PASSES\n" if $VERBOSE;
+    print "INITIAL PASSES\n" if $DEBUG;
     my $next = pass_iterator("first_pass_pri");
     while (my $item = $next->()) {
         delta_pass ($item);
@@ -917,7 +916,7 @@ if (not $SKIP_FIRST) {
 }
 
 # iterate to global fixpoint
-print "MAIN PASSES\n" if $VERBOSE;
+print "MAIN PASSES\n" if $DEBUG;
 
 while (1) {
     my $next = pass_iterator("pri");
@@ -935,7 +934,7 @@ while (1) {
 }
 
 # some passes we run last since they work best as cleanup
-print "CLEANUP PASS\n" if $VERBOSE;
+print "CLEANUP PASS\n" if $DEBUG;
 {
     my $next = pass_iterator("last_pass_pri");
     while (my $item = $next->()) {

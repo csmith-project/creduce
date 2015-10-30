@@ -8,19 +8,22 @@ use Cwd;
 
 # TODO might need to support __has_include_next, __has_include
 
-my @exts = (".c", ".cpp");
-my $CHECK = 1;
-
 #my $FILE = "../hello.c";
 #my $COMP = "gcc-5";
 #my $CPP = "";
 #my $CFLAGS = "";
 #my $EXT = ".c";
 
+#my $FILE = "../hello.cpp";
+#my $COMP = "clang++";
+#my $CPP = "-x c++";
+#my $CFLAGS = "-O3 -std=c++11";
+#my $EXT = ".cpp";
+
 my $FILE = "../hello.cpp";
-my $COMP = "clang++";
+my $COMP = "g++";
 my $CPP = "-x c++";
-my $CFLAGS = "-std=c++11";
+my $CFLAGS = "";
 my $EXT = ".cpp";
 
 #my $FILE = "../crypto/dso/dso_dl.c";
@@ -28,6 +31,9 @@ my $EXT = ".cpp";
 #my $CPP = "";
 #my $CFLAGS = "-O3 -I../crypto/ -I../ -I../crypto/modes -I../crypto/asn1 -I../crypto/evp -I../include -m64";
 #my $EXT = ".c";
+
+my @exts = (".c", ".cpp");
+my $CHECK = 1;
 
 sub runit ($) {
     my $cmd = shift;

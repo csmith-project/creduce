@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use POSIX;
+use File::Compare;
 
 use creduce_config qw(TOPFORMFLAT);
 use creduce_utils;
@@ -33,20 +34,21 @@ sub new ($$) {
     (my $cfile, my $arg) = @_;
     my %sh;
     $sh{"start"} = 1;
+    $sh{"debug"} = 0;
     return \%sh;
 }
 
 sub advance ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my %sh = %{$state};
-
-    return \%sh if defined($sh{"start"});
-
+    die if (defined($sh{"start"}));
     my $pos = $sh{"index"};
     $sh{"index"} -= $sh{"chunk"};
     my $i = $sh{"index"};
     my $c = $sh{"chunk"};
-    print "advance from $pos to $i with chunk $c\n" if $VERBOSE;
+    my $debug = $sh{"debug"};
+    $sh{"debug"}++;
+    print "***ADVANCE*** from $pos to $i with chunk $c (debug = $debug)\n" if $DEBUG;
     return \%sh;
 }
 
@@ -55,11 +57,24 @@ sub transform ($$$) {
     my %sh = %{$state};
 
     if (defined($sh{"start"})) {
+	my $debug = $sh{"debug"};
+	$sh{"debug"}++;
+	print "***TRANSFORM START (debug = $debug) ***\n" if $DEBUG;
 	delete $sh{"start"};
 	my $tmpfile = File::Temp::tmpnam();
 	system "$topformflat $arg < $cfile > $tmpfile";
+	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $DEBUG;
+	if (compare($cfile, $tmpfile) == 0) {
+	    # this is a gross hack to avoid tripping the
+	    # pass-didn't-modify-file check in the C-Reduce core, in
+	    # the (generally unlikely) case where topformflat didn't
+	    # change the file at all
+	    print "gross blank line hack\n" if $DEBUG;
+	    open OF, ">>$tmpfile" or die;
+	    print OF "\n";
+	    close OF;
+	}
 	File::Copy::move($tmpfile, $cfile);
-	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $VERBOSE;
 	open INF, "<$cfile" or die;
 	my @data = ();
 	while (my $line = <INF>) {
@@ -72,28 +87,38 @@ sub transform ($$$) {
 	return ($OK, \%sh);
     }
 
+    if ($DEBUG) {
+	my $c = $sh{"chunk"};
+	my $i = $sh{"index"};
+	my $debug = $sh{"debug"};
+	$sh{"debug"}++;
+	print "***TRANSFORM REGULAR chunk $c at $i (debug = $debug) ***\n";
+    }
+
     open INF, "<$cfile" or die;
     my @data = ();
     while (my $line = <INF>) {
 	push @data, $line;
+	chomp $line;
+	if ($DEBUG) {
+	    print "LINE PASS FILE DATA: '$line'\n";
+	}
     }
     close INF;
 
   AGAIN:
-    # don't bother unless there's at least half a chunk
-    if ($sh{"index"} > ($sh{"chunk"} / 2)) {
+    if ($sh{"index"} >= scalar(@data)) {
+	$sh{"index"} = scalar(@data);
+    }
+    if ($sh{"index"} >= 0 && scalar(@data) > 0) {
 	my $start = $sh{"index"} - $sh{"chunk"};
 	$start = 0 if ($start < 0);
 	my $lines = scalar(@data);
 	splice @data, $start, $sh{"chunk"};
 	my $newlines = scalar(@data);
 	my $c = $sh{"chunk"};
-	print "went from $lines lines to $newlines with chunk $c\n" if $VERBOSE;
-	# if we fell off the end we're done
-	if ($newlines >= $lines) {
-	    $sh{"index"} -= $sh{"chunk"};
-	    goto AGAIN;
-	}
+	print "went from $lines lines to $newlines with chunk $c\n" if $DEBUG;
+	die unless ($newlines < $lines);
 	open OUTF, ">$cfile" or die;
 	foreach my $line (@data) {
 	    print OUTF $line;
@@ -103,7 +128,7 @@ sub transform ($$$) {
 	return ($STOP, \%sh) if ($sh{"chunk"} <= 1);
 	my $newchunk = int ($sh{"chunk"} / 2.0);
 	$sh{"chunk"} = $newchunk;
-	print "granularity reduced to $newchunk\n" if $VERBOSE;
+	print "granularity reduced to $newchunk\n" if $DEBUG;
 	$sh{"index"} = scalar(@data);
 	goto AGAIN;
     }

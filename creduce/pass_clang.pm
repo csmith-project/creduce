@@ -70,7 +70,7 @@ sub transform ($$$) {
     my $index = ${$state};
     my $tmpfile = File::Temp::tmpnam();
     my $cmd = qq{"$clang_delta" --transformation=$which --counter=$index $cfile};
-    print "$cmd\n" if $VERBOSE;
+    print "$cmd\n" if $DEBUG;
     my $res = run_clang_delta ("$cmd > $tmpfile");
     if ($res==0) {
 	File::Copy::move($tmpfile, $cfile);
