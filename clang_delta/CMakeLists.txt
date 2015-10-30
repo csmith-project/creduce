@@ -13,14 +13,15 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Check LLVM version
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.6")
-  message(FATAL_ERROR "LLVM version must be >= 3.6")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.7")
+  message(FATAL_ERROR "LLVM version must be >= 3.7")
 endif()
 set(LLVM_VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
 # Add flags for LLVM
 add_definitions(${LLVM_DEFINITIONS})
-add_definitions(-DHAVE_CONFIG_H -DNDEBUG)
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS HAVE_CONFIG_H
+  $<$<CONFIG:Release>:NDEBUG> $<$<CONFIG:Debug>:ENABLE_TRANS_ASSERT>)
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CMAKE_BINARY_DIR})
 link_directories(${LLVM_LIBRARY_DIRS})
@@ -33,16 +34,16 @@ llvm_map_components_to_libnames(LLVM_LIBS
 
 set(CLANG_LIBS
   clangRewrite
-  clangAnalysis
-  clangAST
-  clangBasic
-  clangDriver
-  clangEdit
   clangFrontend
-  clangLex
   clangParse
   clangSema
   clangSerialization
+  clangAnalysis
+  clangEdit
+  clangLex
+  clangAST
+  clangDriver
+  clangBasic
 )
 
 set(TRANSFORMATION_HEADERS
@@ -198,7 +199,7 @@ add_executable(clang_delta
   TransformationManager.cpp
 )
 
-target_link_libraries(clang_delta ${LLVM_LIBS} ${CLANG_LIBS})
+target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
 
 install(TARGETS clang_delta
   RUNTIME DESTINATION "bin"

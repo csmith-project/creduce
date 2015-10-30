@@ -34,7 +34,8 @@ class RemoveUnusedEnumMemberAnalysisVisitor : public
   RecursiveASTVisitor<RemoveUnusedEnumMemberAnalysisVisitor> {
 public:
 
-  explicit RemoveUnusedEnumMemberAnalysisVisitor(RemoveUnusedEnumMember *Instance)
+  explicit RemoveUnusedEnumMemberAnalysisVisitor(
+             RemoveUnusedEnumMember *Instance)
     : ConsumerInstance(Instance)
   { }
 
@@ -47,12 +48,12 @@ private:
 
 bool RemoveUnusedEnumMemberAnalysisVisitor::VisitEnumDecl(EnumDecl *ED)
 {
-  if (ED != ED->getCanonicalDecl())
+  if (ConsumerInstance->isInIncludedFile(ED) || ED != ED->getCanonicalDecl())
     return true;
 
   EnumDecl::enumerator_iterator Previous = ED->enumerator_begin();
-  for (EnumDecl::enumerator_iterator I = ED->enumerator_begin(), E = ED->enumerator_end();
-      I != E; ++I) {
+  for (EnumDecl::enumerator_iterator I = ED->enumerator_begin(),
+       E = ED->enumerator_end(); I != E; ++I) {
     if (!(*I)->isReferenced()) {
       ConsumerInstance->ValidInstanceNum++;
       if (ConsumerInstance->ValidInstanceNum ==
@@ -103,16 +104,21 @@ void RemoveUnusedEnumMember::removeEnumConstantDecl()
 
   EnumDecl::enumerator_iterator Previous = TheEnumIteratorPrevious;
 
-  if (TheEnumIterator == TheEnumDecl->enumerator_begin() && Next == TheEnumDecl->enumerator_end()) {
+  if (TheEnumIterator == TheEnumDecl->enumerator_begin() &&
+      Next == TheEnumDecl->enumerator_end()) {
     // There is no "," here
     TheRewriter.RemoveText((*TheEnumIterator)->getSourceRange());
   } else if (Next == TheEnumDecl->enumerator_end()) {
     // Remove previous ","
-    TheRewriter.RemoveText(SourceRange((*Previous)->getLocEnd().getLocWithOffset(1), (*TheEnumIterator)->getLocEnd()));
+    TheRewriter.RemoveText(
+      SourceRange((*Previous)->getLocEnd().getLocWithOffset(1),
+                  (*TheEnumIterator)->getLocEnd()));
   }
   else {
     // Remove next ","
-    TheRewriter.RemoveText(SourceRange((*TheEnumIterator)->getLocStart(), (*Next)->getLocStart().getLocWithOffset(-1)));
+    TheRewriter.RemoveText(SourceRange(
+      (*TheEnumIterator)->getLocStart(),
+      (*Next)->getLocStart().getLocWithOffset(-1)));
   }
 }
 

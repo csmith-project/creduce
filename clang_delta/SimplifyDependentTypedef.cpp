@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -114,7 +114,8 @@ void SimplifyDependentTypedef::Initialize(ASTContext &context)
 
 void SimplifyDependentTypedef::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
 
@@ -156,6 +157,9 @@ void SimplifyDependentTypedef::rewriteTypedefDecl(void)
 
 void SimplifyDependentTypedef::handleOneTypedefDecl(const TypedefDecl *D)
 {
+  if (isInIncludedFile(D))
+    return;
+
   const TypedefDecl *CanonicalD = dyn_cast<TypedefDecl>(D->getCanonicalDecl());
   TransAssert(CanonicalD && "Bad TypedefDecl!");
   if (VisitedTypedefDecls.count(CanonicalD))

@@ -197,6 +197,8 @@ bool ExtraReferenceVisitorWrapper::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
+  if (ConsumerInstance->isInIncludedFile(FD))
+    return true;
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
   if (ConsumerInstance->VisitedFDs.count(CanonicalFD))
     return true;
@@ -240,6 +242,7 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
   if (FD->isReferenced() || 
       FD->isMain() || 
+      FD->hasAttr<OpenCLKernelAttr>() ||
       ConsumerInstance->hasReferencedSpecialization(CanonicalFD) ||
       ConsumerInstance->isInlinedSystemFunction(CanonicalFD) ||
       ConsumerInstance->isInReferencedSet(CanonicalFD) ||

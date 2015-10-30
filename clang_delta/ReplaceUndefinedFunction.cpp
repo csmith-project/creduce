@@ -65,7 +65,7 @@ private:
 
 bool ReplaceUndefFuncCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (FD->hasBody())
+  if (ConsumerInstance->isInIncludedFile(FD) || FD->hasBody())
     return true;
   ConsumerInstance->handleOneFunctionDecl(FD->getCanonicalDecl());
 

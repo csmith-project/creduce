@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2013 The University of Utah
+## Copyright (c) 2013, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -28,6 +28,9 @@ strlex_SOURCES = \
 	strlex.l \
 	defs.h \
 	driver.c
+
+EXTRA_DIST = \
+	CMakeLists.txt
 
 # SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that
 # `clex.c' is out of date.  This is achieved by a sinful Automake hack.

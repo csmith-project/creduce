@@ -104,7 +104,7 @@ private:
 
 bool RenameCXXMethodCollectionVisitor::VisitCXXRecordDecl(CXXRecordDecl *RD)
 {
-  if (!RD->hasDefinition())
+  if (ConsumerInstance->isInIncludedFile(RD) || !RD->hasDefinition())
     return true;
   const CXXRecordDecl *RDDef = RD->getDefinition();
   ConsumerInstance->handleOneCXXRecordDecl(RDDef);
@@ -113,6 +113,8 @@ bool RenameCXXMethodCollectionVisitor::VisitCXXRecordDecl(CXXRecordDecl *RD)
 
 bool RenameCXXMethodCollectionVisitor::VisitCXXMethodDecl(CXXMethodDecl *MD)
 {
+  if (ConsumerInstance->isInIncludedFile(MD))
+    return true;
   const CXXMethodDecl *CanonicalMD = MD->getCanonicalDecl();
   if(ConsumerInstance->NewMethodNames.find(CanonicalMD) != 
        ConsumerInstance->NewMethodNames.end())

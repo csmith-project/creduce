@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -60,7 +60,8 @@ void RemoveTrivialBaseTemplate::Initialize(ASTContext &context)
 
 void RemoveTrivialBaseTemplate::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
@@ -88,7 +89,8 @@ void RemoveTrivialBaseTemplate::HandleTranslationUnit(ASTContext &Ctx)
 void RemoveTrivialBaseTemplate::handleOneCXXRecordDecl(
        const CXXRecordDecl *CXXRD)
 {
-  if (isSpecialRecordDecl(CXXRD) || !CXXRD->hasDefinition())
+  if (isInIncludedFile(CXXRD) || isSpecialRecordDecl(CXXRD) ||
+      !CXXRD->hasDefinition())
     return;
 
   const CXXRecordDecl *CanonicalRD = CXXRD->getCanonicalDecl();

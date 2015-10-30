@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013 The University of Utah
+## Copyright (c) 2012, 2013, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -15,6 +15,7 @@ use warnings;
 
 use POSIX;
 
+use Cwd 'abs_path';
 use File::Copy;
 use File::Spec;
 
@@ -30,7 +31,7 @@ my $ORIG_DIR;
 sub check_prereqs () {
     $ORIG_DIR = getcwd();
     my $path;
-    if ($FindBin::RealBin eq bindir) {
+    if ($FindBin::RealBin eq abs_path(bindir)) {
 	# This script is in the installation directory.
 	# Use the installed `clex'.
 	$path = libexecdir . "/clex";
@@ -69,7 +70,7 @@ sub transform ($$$) {
     my $index = ${$state};
     my $tmpfile = File::Temp::tmpnam();
     my $cmd = qq{"$clex" $which $index $cfile};
-    print "$cmd\n" if $VERBOSE;
+    print "$cmd\n" if $DEBUG;
     my $res = runit ("$cmd > $tmpfile");
     if ($res==0) {
 	File::Copy::move($tmpfile, $cfile);

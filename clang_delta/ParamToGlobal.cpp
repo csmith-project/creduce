@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -103,7 +103,13 @@ void ParamToGlobal::Initialize(ASTContext &context)
 
 void ParamToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
-  CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (TransformationManager::isOpenCLLangOpt()) {
+    ValidInstanceNum = 0;
+  }
+  else {
+    CollectionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  }
+
   if (QueryInstanceOnly)
     return;
 
@@ -165,6 +171,9 @@ bool ParamToGlobal::isValidFuncDecl(FunctionDecl *FD)
   int ParamPos = 0;
 
   TransAssert(isa<FunctionDecl>(FD) && "Must be a FunctionDecl");
+
+  if (isInIncludedFile(FD))
+    return false;
 
   // Skip the case like foo(int, ...), because we cannot remove
   // the "int" there

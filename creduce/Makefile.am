@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013 The University of Utah
+## Copyright (c) 2012, 2013, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -23,6 +23,7 @@ dist_perllib_DATA = \
 	pass_clang.pm \
 	pass_clang_binsrch.pm \
 	pass_clex.pm \
+	pass_comments.pm \
 	pass_special.pm \
 	pass_indent.pm \
 	pass_ints.pm \
@@ -33,6 +34,7 @@ nodist_perllib_DATA = \
 	creduce_config.pm
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	creduce.in \
 	creduce_config.pm.in
 

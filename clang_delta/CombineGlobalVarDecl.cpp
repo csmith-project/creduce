@@ -54,7 +54,7 @@ bool CombineGlobalVarDecl::HandleTopLevelDecl(DeclGroupRef DGR)
 {
   DeclGroupRef::iterator DI = DGR.begin();
   VarDecl *VD = dyn_cast<VarDecl>(*DI);
-  if (!VD)
+  if (!VD || isInIncludedFile(VD))
     return true;
   SourceRange Range = VD->getSourceRange();
   if (Range.getBegin().isInvalid() || Range.getEnd().isInvalid())

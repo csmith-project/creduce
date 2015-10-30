@@ -267,7 +267,7 @@ void RemoveArray::addOneArraySubscriptExpr(ArraySubscriptExpr *ASE,
 
 void RemoveArray::handleOneVarDecl(const VarDecl *VD)
 {
-  if (VD->getAnyInitializer())
+  if (isInIncludedFile(VD) || VD->getAnyInitializer())
     return;
 
   const Type *Ty = VD->getType().getTypePtr();

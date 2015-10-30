@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -560,8 +560,17 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     // transformation like:
     //   int * *y;
     SourceLocation NewStartLoc = getVarDeclTypeLocEnd(VD);
+    if (NewStartLoc.isMacroID()) {
+      NewStartLoc = SrcManager->getSpellingLoc(NewStartLoc);
+      const char *StartBuf = SrcManager->getCharacterData(NewStartLoc);
+      // Make sure we have at least one space before the name.
+      if (*StartBuf == ' ')
+        NewStartLoc = NewStartLoc.getLocWithOffset(1);
+    }
 
     SourceLocation NewEndLoc = getEndLocationUntil(VarRange, ',');
+    if (NewEndLoc.isMacroID())
+      NewEndLoc = SrcManager->getSpellingLoc(NewEndLoc);
     
     return 
       !(TheRewriter->RemoveText(SourceRange(NewStartLoc, NewEndLoc)));
@@ -573,6 +582,10 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
 
   SourceLocation PrevDeclEndLoc = getEndLocationUntil(PrevDeclRange, ',');
 
+  if (VarEndLoc.isMacroID())
+    VarEndLoc = SrcManager->getSpellingLoc(VarEndLoc);
+  if (PrevDeclEndLoc.isMacroID())
+    PrevDeclEndLoc = SrcManager->getSpellingLoc(PrevDeclEndLoc);
   return !(TheRewriter->RemoveText(SourceRange(PrevDeclEndLoc, VarEndLoc)));
 }
 
@@ -642,14 +655,13 @@ bool RewriteUtils::replaceExpr(const Expr *E,
       return false;
     StartLoc = SrcManager->getFileLoc(StartLoc);
     SourceLocation EndLoc = ExprRange.getEnd();
-    if (!SrcManager->isMacroBodyExpansion(EndLoc))
-      return false;
-
-    // FIXME: handle cases below:
-    // #define macro bar(1,2);
-    // int bar(int p1, int p2) { return p1 + p2; }
-    // void foo(void) { int x = macro }
-    EndLoc = getExpansionEndLoc(EndLoc);
+    if (SrcManager->isMacroBodyExpansion(EndLoc)) {
+      // FIXME: handle cases below:
+      // #define macro bar(1,2);
+      // int bar(int p1, int p2) { return p1 + p2; }
+      // void foo(void) { int x = macro }
+      EndLoc = getExpansionEndLoc(EndLoc);
+    }
     return !(TheRewriter->ReplaceText(SourceRange(StartLoc, EndLoc), ES));
   }
 

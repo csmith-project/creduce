@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -61,7 +61,8 @@ bool RemoveUnusedOuterClassVisitor::VisitRecordTypeLoc(RecordTypeLoc TLoc)
 bool RemoveUnusedOuterClassVisitor::VisitCXXRecordDecl(
        CXXRecordDecl *CXXRD)
 {
-  if (ConsumerInstance->isSpecialRecordDecl(CXXRD) || 
+  if (ConsumerInstance->isInIncludedFile(CXXRD) ||
+      ConsumerInstance->isSpecialRecordDecl(CXXRD) ||
       !CXXRD->hasDefinition() ||
       dyn_cast<ClassTemplateSpecializationDecl>(CXXRD) ||
       CXXRD->hasUserDeclaredConstructor() ||
@@ -81,7 +82,8 @@ void RemoveUnusedOuterClass::Initialize(ASTContext &context)
 
 void RemoveUnusedOuterClass::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

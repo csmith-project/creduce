@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013 The University of Utah
+## Copyright (c) 2012, 2013, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -16,7 +16,7 @@ use Exporter::Lite;
 use File::Spec;
 use File::Which;
 
-@EXPORT      = qw($VERBOSE $OK $STOP
+@EXPORT      = qw($DEBUG $IGNORE_PASS_BUGS $OK $STOP
 		  find_external_program
 		  runit 
                   run_clang_delta
@@ -24,7 +24,8 @@ use File::Which;
 		  read_file write_file
                   );
 
-$VERBOSE = 0;
+$DEBUG = 0;
+$IGNORE_PASS_BUGS = 0;
 
 $OK = 999999;
 $STOP = 111333;

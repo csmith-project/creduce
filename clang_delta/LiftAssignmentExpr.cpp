@@ -76,7 +76,8 @@ private:
 
 bool AssignExprCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (!FD->isThisDeclarationADefinition())
+  if (!FD->isThisDeclarationADefinition() ||
+      ConsumerInstance->isInIncludedFile(FD))
     return true;
 
   ConsumerInstance->StmtVisitor->setCurrentFunctionDecl(FD);

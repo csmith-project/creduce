@@ -13,13 +13,42 @@ libexec_PROGRAMS = clang_delta
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
+# When setting `LLVMCXXFLAGS', we weed out command-line options that might be
+# troublesome (e.g., -W options that are supported by `CXX', or -W options that
+# turn warnings into errors).  We also weed out options that might override
+# choices that *we* want to control (e.g., debug and optimization options).
+#
+# The subparts of the `grep' invocation below remove compiler command-line
+# options of the following forms:
+#   -W...         --- warning options
+#   -w            --- inhibits all warnings
+#   -pedantic...  --- pedantic warning options
+#   -g...         --- debugging options
+#   -O...         --- optimization options
+#
+# The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
+# `grep' for matching because writing fancy, portable `sed' expressions is
+# difficult.  For example, some implementations use "\b" to match word
+# boundaries while others use "[[:<:]]" and "[[:>:]]".  The Autoconf
+# documentation says that anchored matches in `sed' are not portable.  Give up;
+# use `grep' instead.  Bonus: better readability!
+#
 # The funny quoting in `LLVMLIBS' avoids a warning from Automake:
 #   ...: linker flags such as `--libs' belong in `clang_delta_LDFLAGS'
 # The warning comes about because Automake doesn't understand $(shell).
 # Avoid the warning by making `--ldflags' and `--libs' not look like
 # linker options.
 #
-LLVMCXXFLAGS	:= $(shell "$(LLVM_CONFIG)" --cxxflags | sed -e 's/-Werror[^ ]*//g' -e 's/-pedantic[^ ]*//g' -e 's/-Wpedantic[^ ]*//g') \
+LLVMCXXFLAGS	:= $(shell \
+		     "$(LLVM_CONFIG)" --cxxflags | \
+		     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' | \
+		     grep -v -e '^-W' \
+			     -e '^-w$$' \
+			     -e '^-pedantic' \
+			     -e '^-g' \
+			     -e '^-O$$' \
+			     -e '^-O[0-9s]' | \
+		     xargs) \
                    -fno-rtti -fno-exceptions
 LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
@@ -210,6 +239,7 @@ clang_delta_SOURCES = \
 	UnionToStruct.h
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	README.txt \
 	test_transformation
 

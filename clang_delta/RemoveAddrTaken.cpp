@@ -63,7 +63,8 @@ private:
 void RemoveAddrTakenCollectionVisitor::handleOneAddrTakenOp(
        const UnaryOperator *UO)
 {
-  if (ConsumerInstance->VisitedAddrTakenOps.count(UO))
+  if (ConsumerInstance->isInIncludedFile(UO) ||
+      ConsumerInstance->VisitedAddrTakenOps.count(UO))
     return;
 
   ConsumerInstance->VisitedAddrTakenOps.insert(UO);

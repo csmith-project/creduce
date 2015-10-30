@@ -9,24 +9,24 @@ project(creduce_perl)
 
 include(FindPerl)
 
-find_program(ASTYLE "astyle.exe")
+find_program(ASTYLE "astyle${CMAKE_EXECUTABLE_SUFFIX}")
 if(NOT ASTYLE)
-message(WARNING "astyle.exe could not be found! Set ASTYLE manually.")
+message(WARNING "astyle${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set ASTYLE manually.")
 endif(NOT ASTYLE)
 
-find_program(CLANG_FORMAT "clang-format.exe")
+find_program(CLANG_FORMAT "clang-format${CMAKE_EXECUTABLE_SUFFIX}")
 if(NOT CLANG_FORMAT)
-message(WARNING "clang-format.exe could not be found! Set CLANG_FORMAT manually.")
+message(WARNING "clang-format${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set CLANG_FORMAT manually.")
 endif(NOT CLANG_FORMAT)
 
-find_program(INDENT "indent.exe")
+find_program(INDENT "indent${CMAKE_EXECUTABLE_SUFFIX}")
 if(NOT INDENT)
-message(WARNING "indent.exe could not be found! Set INDENT manually.")
+message(WARNING "indent${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set INDENT manually.")
 endif(NOT INDENT)
 
-find_program(TOPFORMFLAT "topformflat.exe")
+find_program(TOPFORMFLAT "topformflat${CMAKE_EXECUTABLE_SUFFIX}")
 if(NOT TOPFORMFLAT)
-message(WARNING "topformflat.exe could not be found! Set TOPFORMFLAT manually.")
+message(WARNING "topformflat${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set TOPFORMFLAT manually.")
 endif(NOT TOPFORMFLAT)
 
 # Prepare creduce.pl

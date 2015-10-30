@@ -143,6 +143,8 @@ bool ReplaceCallExprVisitor::VisitReturnStmt(ReturnStmt *RS)
 
 bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
 {
+  if (ConsumerInstance->isInIncludedFile(CE))
+    return true;
   FunctionDecl *FD = CE->getDirectCallee();
   if (!FD)
     return true;

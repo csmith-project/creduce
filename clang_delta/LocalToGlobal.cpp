@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -139,7 +139,13 @@ void LocalToGlobal::Initialize(ASTContext &context)
 
 void LocalToGlobal::HandleTranslationUnit(ASTContext &Ctx)
 {
-  FunctionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  if (TransformationManager::isOpenCLLangOpt()) {
+    ValidInstanceNum = 0;
+  }
+  else {
+    FunctionVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
+  }
+
   if (QueryInstanceOnly)
     return;
 
@@ -254,8 +260,15 @@ bool LToGASTVisitor::VisitDeclRefExpr(DeclRefExpr *VarRefExpr)
     return true;
 
   SourceRange ExprRange = VarRefExpr->getSourceRange();
-  return 
-    !(ConsumerInstance->TheRewriter.ReplaceText(ExprRange,
-        ConsumerInstance->TheNewDeclName));
+  SourceLocation StartLoc = ExprRange.getBegin();
+  SourceLocation EndLoc = ExprRange.getEnd();
+  if (StartLoc.isMacroID()) {
+    StartLoc = ConsumerInstance->SrcManager->getSpellingLoc(StartLoc);
+    EndLoc = ConsumerInstance->SrcManager->getSpellingLoc(EndLoc);
+  }
+
+  return
+    !(ConsumerInstance->TheRewriter.ReplaceText(
+        SourceRange(StartLoc, EndLoc), ConsumerInstance->TheNewDeclName));
 }
 

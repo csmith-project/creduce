@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -313,6 +313,8 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
 
     const Expr *IE = VD->getInit();
     const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
+    if (!ILE)
+      return;
     // handle a special case where we have code like this:
     //   union U a[][1] = {};
     // In this case, it's safe to keep the empty initializer
@@ -339,26 +341,25 @@ void UnionToStruct::rewriteOneVarDecl(const VarDecl *VD)
     return;
   }
 
-  const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
-  TransAssert(ILE && "Bad InitListExpr!");
+  if (const InitListExpr *ILE = dyn_cast<InitListExpr>(IE)) {
+    if (ILE->getNumInits() != 1) {
+      RewriteHelper->removeVarInitExpr(VD);
+      return;
+    }
 
-  if (ILE->getNumInits() != 1) {
-    RewriteHelper->removeVarInitExpr(VD);
-    return;
+    const Expr *FirstE = ILE->getInit(0);
+    const Type *ExprTy = FirstE->getType().getTypePtr();
+    std::string NewInitStr;
+
+    if (ExprTy->isPointerType()) {
+      getInitStrWithPointerType(FirstE, NewInitStr);
+    }
+    else {
+      getInitStrWithNonPointerType(FirstE, NewInitStr);
+    }
+
+    RewriteHelper->replaceExpr(FirstE, NewInitStr);
   }
-
-  const Expr *FirstE = ILE->getInit(0);
-  const Type *ExprTy = FirstE->getType().getTypePtr();
-  std::string NewInitStr;
-
-  if (ExprTy->isPointerType()) {
-    getInitStrWithPointerType(FirstE, NewInitStr);
-  }
-  else {
-    getInitStrWithNonPointerType(FirstE, NewInitStr);
-  }
-
-  RewriteHelper->replaceExpr(FirstE, NewInitStr);
 }
 
 void UnionToStruct::rewriteOneFunctionDecl(const FunctionDecl *FD)
@@ -388,6 +389,9 @@ void UnionToStruct::rewriteDeclarators(void)
 
 void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
 {
+  if (isInIncludedFile(DD))
+    return;
+
   if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(T))
     T = getArrayBaseElemType(ArrayTy);
 

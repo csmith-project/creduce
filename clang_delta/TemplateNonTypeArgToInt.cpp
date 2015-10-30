@@ -87,7 +87,8 @@ void TemplateNonTypeArgToInt::Initialize(ASTContext &context)
 
 void TemplateNonTypeArgToInt::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
@@ -210,6 +211,8 @@ bool TemplateNonTypeArgToInt::isValidParameter(const NamedDecl *ND)
       
 void TemplateNonTypeArgToInt::handleOneTemplateDecl(const TemplateDecl *D)
 {
+  if (isInIncludedFile(D))
+    return;
   TemplateParameterIdxSet *ValidParamIdx = new TemplateParameterIdxSet();
   TemplateParameterList *TPList = D->getTemplateParameters();
   unsigned Idx = 0;

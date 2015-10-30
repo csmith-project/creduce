@@ -365,6 +365,8 @@ SUBDIRS = \
 	tests
 
 EXTRA_DIST = \
+	CMakeLists.txt \
+	cmake_config.h.in \
 	git-hash.sh
 
 all: config.h

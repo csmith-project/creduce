@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -47,6 +47,9 @@ private:
 bool RemoveCtorInitializerASTVisitor::VisitCXXConstructorDecl(
        CXXConstructorDecl *Ctor)
 {
+  if (ConsumerInstance->isInIncludedFile(Ctor))
+    return true;
+
   unsigned Idx = 0;
   for (CXXConstructorDecl::init_const_iterator I = Ctor->init_begin(),
        E = Ctor->init_end(); I != E; ++I) {
@@ -99,7 +102,8 @@ void RemoveCtorInitializer::Initialize(ASTContext &context)
 
 void RemoveCtorInitializer::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

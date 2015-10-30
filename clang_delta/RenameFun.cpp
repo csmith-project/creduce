@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -76,6 +76,10 @@ bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
   }
 
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
+  if (ConsumerInstance->isInIncludedFile(FD) ||
+      ConsumerInstance->isInIncludedFile(CanonicalFD))
+    return true;
+
   ConsumerInstance->addFun(CanonicalFD);
   if (!ConsumerInstance->hasValidPostfix(FD->getNameAsString()))
     ConsumerInstance->HasValidFuns = true;
@@ -84,6 +88,8 @@ bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 {
+  if (ConsumerInstance->isInIncludedFile(CE))
+    return true;
   FunctionDecl *FD = CE->getDirectCallee();
   // It could happen, e.g., CE could refer to a DependentScopeDeclRefExpr
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
@@ -104,7 +110,7 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
 bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (dyn_cast<CXXMethodDecl>(FD))
+  if (ConsumerInstance->isInIncludedFile(FD) || dyn_cast<CXXMethodDecl>(FD))
     return true;
 
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
@@ -120,6 +126,9 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
+  if (ConsumerInstance->isInIncludedFile(DRE))
+    return true;
+
   ValueDecl *OrigDecl = DRE->getDecl();
   FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl);
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
@@ -242,7 +251,7 @@ void RenameFun::addFun(const FunctionDecl *FD)
 {
   std::string Name = FD->getNameAsString();
   // Skip special functions
-  if (isSpecialFun(Name))
+  if (isSpecialFun(Name) || FD->hasAttr<OpenCLKernelAttr>())
     FunToNameMap[FD] = Name;
 
   if (FunToNameMap.find(FD) != FunToNameMap.end())

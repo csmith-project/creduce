@@ -68,6 +68,9 @@ private:
 
 bool ExistingVarCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
+  if (ConsumerInstance->isInIncludedFile(VD))
+    return true;
+ 
   ParmVarDecl *PD = dyn_cast<ParmVarDecl>(VD);
   if (PD) {
     ConsumerInstance->validateParam(PD);

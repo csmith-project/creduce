@@ -289,7 +289,7 @@ void ReducePointerPairs::doRewriting(const VarDecl *VD)
 
 bool ReducePointerPairs::isValidVD(const VarDecl *VD)
 {
-  if (dyn_cast<ParmVarDecl>(VD))
+  if (isInIncludedFile(VD) || dyn_cast<ParmVarDecl>(VD))
     return false;
 
   const Type *Ty = VD->getType().getTypePtr();

@@ -1,0 +1,232 @@
+#!/usr/bin/perl -w
+
+use strict;
+use File::Spec;
+use File::Copy;
+use File::Basename;
+use Cwd;
+
+# TODO might need to support __has_include_next, __has_include
+
+#my $FILE = "../hello.c";
+#my $COMP = "gcc";
+#my $CPP = "";
+#my $CFLAGS = "-O";
+#my $EXT = ".c";
+
+#my $FILE = "../hello.cpp";
+#my $COMP = "clang++";
+#my $CPP = "-x c++";
+#my $CFLAGS = "-O3 -std=c++11";
+#my $EXT = ".cpp";
+
+my $FILE = "../hello.cpp";
+my $COMP = "g++";
+my $CPP = "-x c++";
+my $CFLAGS = "";
+my $EXT = ".cpp";
+
+#my $FILE = "../crypto/dso/dso_dl.c";
+#my $COMP = "clang";
+#my $CPP = "";
+#my $CFLAGS = "-O3 -I../crypto/ -I../ -I../crypto/modes -I../crypto/asn1 -I../crypto/evp -I../include -m64";
+#my $EXT = ".c";
+
+my @exts = (".c", ".cpp");
+my $CHECK = 1;
+
+sub runit ($) {
+    my $cmd = shift;
+    print "[ $cmd ]\n";
+    die if ((system "$cmd") == -1);
+    my $exit_value  = $? >> 8;
+    return $exit_value;
+}
+
+my %map;
+my %rmap;
+my @includes;
+my %deps;
+my $srcfile_copy;
+
+# get the include path
+open INF, "echo | $COMP $CFLAGS -v $CPP -E - 2>&1 |" or die;
+my $go = 0;
+print "compiler search path:\n";
+while (my $line = <INF>) {
+    chomp $line;
+    if ($line eq "#include <...> search starts here:") {
+	$go = 1;
+	next;
+    }
+    if ($line eq "End of search list.") {
+	$go = 0;
+	next;
+    }
+    if ($go) {
+	$line =~ s/^\s*//;
+	$line =~ s/\s*$//;
+	my $p = Cwd::realpath($line);
+	push @includes, $p;
+	print "  $p\n";
+	next;
+    }
+}
+close INF;
+
+# get the list of dependencies
+open INF2, "$COMP $CFLAGS -c -w $CPP $FILE -M |" or die;
+my $base = basename($FILE, @exts);
+open OF, ">orig_deps.txt" or die;
+while (my $f = <INF2>) {
+    chomp $f;
+    $f =~ s/$base\.o://g;
+    $f =~ s/^\s*//;
+    $f =~ s/\s*\\\s*//g;
+    my @l = split /\s+/, $f;
+    foreach my $g (@l) {
+	print OF "$g ";
+	# assume the actual src file is the first dependency
+	if (!defined($srcfile_copy)) {
+	    $srcfile_copy = basename($g);
+	}
+	$deps{Cwd::realpath($g)} = 1;
+    }
+}
+close INF2;
+close OF;
+
+sub process($$$) {
+    (my $file, my $lref, my $next) = @_;
+    my @list = @{$lref};
+
+    print "looking for next after $next\n" if $next ne "";
+    
+    my $found = 0;
+    my $path;
+    foreach my $dir (@includes) {
+	$path = File::Spec->catfile($dir, $file);
+	if (-e $path) {
+	    if ($next ne "" && $path eq $next) {
+		$next = "";
+	    } else {
+		$found = 1;
+		last;
+	    }
+	}
+    }
+    # since we're not actually preprocessing, but rather going through
+    # each header file renaming include files, it is natural that
+    # we'll run into some files that don't exist on this system --
+    # this is no problem but we want to trigger an error if such a
+    # file ends up being needed after all
+    if ($found) {
+	if (exists $map{$path}) {
+	    my $f = $map{$path};
+	    print OUTF "#include \"$f\" // $path\n";
+	} else {
+	    # whoops this file wasn't listed as a dependency but what
+	    # the heck let's include it anyway -- this case gets hit
+	    # when there are symlinks under /usr/include
+	    my $f = Cwd::realpath($path);
+	    my($justf, $dir) = fileparse($f);
+	    print OUTF "#include \"$justf\" // backup plan for $f\n";
+	}		
+    } else {
+	print OUTF "#error localize_headers should not have tried to include $file $path\n";
+    }
+}
+
+# make a local copy of a file with its include paths munged to refer
+# to other copies -- when this is finished there should be no includes
+# outside of the cwd
+sub rewrite($$) {
+    (my $absfile, my $target) = @_;
+    open INF, "<$absfile" or die;
+    open OUTF, ">$target" or die;
+    my $n = 0;
+    my($fnxxx, $dir, $suffixxx) = fileparse($absfile);
+    my @dotincludes = @includes;
+    unshift @dotincludes, $dir;
+    while (my $line = <INF>) {
+	chomp $line;
+	$n++;
+	if ($line =~ /^(.*)#\s*include\s+\"(.*?)\"(.*)$/) {
+	    process($2, \@dotincludes, "");
+	    next;
+	}
+	if ($line =~ /^(.*)#\s*include\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes, "");
+	    next;
+	}
+	if ($line =~ /^(.*)#\s*include_next\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes, $absfile);
+	    next;
+	}
+	print OUTF $line."\n";
+    }
+    close INF;
+    close OUTF;
+}
+
+foreach my $dep (sort keys %deps) {
+    my($file, $dirs, $suffix) = fileparse($dep);
+
+    my $s1 = scalar(keys %map);
+    my $s2 = scalar(keys %rmap);
+
+    my $new = $file;
+    my $count = 0;
+    my $newnew = $new;
+    while (exists($rmap{$newnew})) {
+	$count++;
+	$newnew = $new."_".$count;
+    }
+    $map{$dep} = $newnew;
+    $rmap{$newnew} = $dep;
+
+    die unless ($s1 < scalar(keys %map));
+    die unless ($s2 < scalar(keys %rmap));
+}
+
+# copy over all dependencies
+my $out = "";
+my $n = 0;
+foreach my $dep (sort keys %deps) {
+    rewrite($dep, $map{$dep});
+    $out .= "$map{$dep} ";
+    $n++;
+}
+
+if ($CHECK) {
+    runit ("$COMP $CFLAGS -E $FILE > out1$EXT");
+    runit ("grep -v '^# ' out1$EXT > out1strip$EXT");
+    runit ("$COMP $CFLAGS -E $srcfile_copy > out2$EXT");
+    runit ("grep -v '^# ' out2$EXT > out2strip$EXT");
+    print <<EOT;
+
+Now we\'ll print the diffs between the preprocessed version of your
+original file (which you can find as out1.c) and the preprocessed
+version of the file emitted by this script (out2.c). If the diffs
+are empty then localize_headers most likely worked properly. If there
+are diffs, something went wrong and you might want to report the
+circumstances to creduce-bugs\@flux.utah.edu.
+
+========== start of diffs ==========
+EOT
+    system "diff out1strip$EXT out2strip$EXT";
+    print <<EOT;
+========== end of diffs ==========
+
+The list of $n files that has been copied into the cwd has been saved
+as files_to_reduce.txt. Assuming that you have an interestingness test
+ready to go, you should be able to just run this command:
+
+  creduce interestingness_test `cat files_to_reduce.txt`
+	
+EOT
+}
+
+open OUTF, ">files_to_reduce.txt" or die;
+print OUTF "$out\n";
+close OUTF;

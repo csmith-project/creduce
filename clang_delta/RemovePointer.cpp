@@ -170,6 +170,9 @@ void RemovePointer::invalidateOneVarDecl(const DeclRefExpr *DRE)
 
 void RemovePointer::handleOneVarDecl(const VarDecl *VD)
 {
+  if (isInIncludedFile(VD))
+    return;
+
   if (dyn_cast<ParmVarDecl>(VD))
     return;
 

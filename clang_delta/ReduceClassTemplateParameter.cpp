@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -183,6 +183,9 @@ bool ReduceClassTemplateParameterRewriteVisitor::
 bool ReduceClassTemplateParameterASTVisitor::VisitClassTemplateDecl(
        ClassTemplateDecl *D)
 {
+  if (ConsumerInstance->isInIncludedFile(D))
+    return true;
+
   ClassTemplateDecl *CanonicalD = D->getCanonicalDecl();
   if (ConsumerInstance->VisitedDecls.count(CanonicalD))
     return true;
@@ -250,7 +253,8 @@ void ReduceClassTemplateParameter::Initialize(ASTContext &context)
 
 void ReduceClassTemplateParameter::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {

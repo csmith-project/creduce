@@ -115,6 +115,9 @@ bool ReplaceArrayIndexVarCollectionVisitor::VisitVarDecl(VarDecl *VD)
 
 bool ReplaceArrayIndexVarCollectionVisitor::VisitForStmt(ForStmt *FS)
 {
+  if (ConsumerInstance->isInIncludedFile(FS))
+    return true;
+
   const Expr *Inc = FS->getInc();
   if (!Inc)
     return true;

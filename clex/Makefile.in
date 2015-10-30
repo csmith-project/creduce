@@ -347,6 +347,9 @@ strlex_SOURCES = \
 	defs.h \
 	driver.c
 
+EXTRA_DIST = \
+	CMakeLists.txt
+
 
 # SHORT STORY: Always rebuild `clex.c' from `clex.l' if Make thinks that
 # `clex.c' is out of date.  This is achieved by a sinful Automake hack.

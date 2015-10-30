@@ -410,6 +410,9 @@ bool CopyPropagation::hasSameStringRep(const Expr *CopyE,
 void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
                                           const Expr *DominatedE)
 {
+  if (isInIncludedFile(CopyE) || isInIncludedFile(DominatedE))
+    return;
+
   if ((CopyE == DominatedE) || isRefToTheSameVar(CopyE, DominatedE) ||
       hasSameStringRep(CopyE, DominatedE))
     return;

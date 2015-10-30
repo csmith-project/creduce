@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -66,6 +66,9 @@ private:
 
 bool RemoveUnusedStructFieldVisitor::VisitFieldDecl(FieldDecl *FD)
 {
+  if(ConsumerInstance->isInIncludedFile(FD))
+    return true;
+
   const RecordDecl *RD = FD->getParent();
   if (FD->isReferenced() || !RD->isStruct() ||
       ConsumerInstance->isSpecialRecordDecl(RD))

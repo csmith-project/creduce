@@ -120,6 +120,8 @@ void ReplaceOneLevelTypedefType::removeTypedefs()
 
 void ReplaceOneLevelTypedefType::handleOneTypedefTypeLoc(TypedefTypeLoc TLoc)
 {
+  if (isInIncludedFile(TLoc.getBeginLoc()))
+    return;
   const TypedefType *TdefTy = TLoc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
   if (!TdefD || TdefD->getLocStart().isInvalid())

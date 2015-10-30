@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -77,7 +77,8 @@ private:
 
 bool EmptyStructToIntASTVisitor::VisitRecordDecl(RecordDecl *RD)
 {
-  if (!ConsumerInstance->isValidRecordDecl(RD))
+  if (ConsumerInstance->isInIncludedFile(RD) ||
+      !ConsumerInstance->isValidRecordDecl(RD))
     return true;
  
   const RecordDecl *CanonicalRD = dyn_cast<RecordDecl>(RD->getCanonicalDecl());

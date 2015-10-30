@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -99,7 +99,8 @@ void SimplifyRecursiveTemplateInstantiation::Initialize(ASTContext &context)
 void
 SimplifyRecursiveTemplateInstantiation::HandleTranslationUnit(ASTContext &Ctx)
 {
-  if (TransformationManager::isCLangOpt()) {
+  if (TransformationManager::isCLangOpt() ||
+      TransformationManager::isOpenCLLangOpt()) {
     ValidInstanceNum = 0;
   }
   else {
@@ -137,6 +138,8 @@ void
 SimplifyRecursiveTemplateInstantiation::handleTemplateSpecializationTypeLoc(
        const TemplateSpecializationTypeLoc &TLoc)
 {
+  if (isInIncludedFile(TLoc.getBeginLoc()))
+    return;
   for (unsigned I = 0; I < TLoc.getNumArgs(); ++I) {
     TemplateArgumentLoc ArgLoc = TLoc.getArgLoc(I);
     if (ArgLoc.getLocation().isInvalid())
