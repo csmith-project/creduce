@@ -135,6 +135,8 @@ AC_OUTPUT(
   creduce/Makefile
   scripts/Makefile
   tests/Makefile
+  third_party/Makefile
+  third_party/delta/Makefile
 )
 
 ###############################################################################
