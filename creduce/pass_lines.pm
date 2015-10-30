@@ -32,7 +32,7 @@ sub check_prereqs () {
     } else {
 	# Assume that this script is in the C-Reduce build tree.
 	# Use the `topformflat' that is also in the build tree.
-	$path = "$FindBin::Bin/../third_party/delta/topformflat";
+	$path = "$FindBin::Bin/../delta/topformflat";
     }
     if ((-e $path) && (-x $path)) {
 	$topformflat = $path;

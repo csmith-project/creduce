@@ -127,10 +127,9 @@ AC_OUTPUT(
   clang_delta/Makefile
   clex/Makefile
   creduce/Makefile
+  delta/Makefile
   scripts/Makefile
   tests/Makefile
-  third_party/Makefile
-  third_party/delta/Makefile
 )
 
 ###############################################################################
