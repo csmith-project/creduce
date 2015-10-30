@@ -9,9 +9,9 @@ use Cwd;
 # TODO might need to support __has_include_next, __has_include
 
 #my $FILE = "../hello.c";
-#my $COMP = "gcc-5";
+#my $COMP = "gcc";
 #my $CPP = "";
-#my $CFLAGS = "";
+#my $CFLAGS = "-O";
 #my $EXT = ".c";
 
 #my $FILE = "../hello.cpp";

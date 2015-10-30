@@ -34,7 +34,6 @@ sub new ($$) {
     (my $cfile, my $arg) = @_;
     my %sh;
     $sh{"start"} = 1;
-    $sh{"debug"} = 0;
     return \%sh;
 }
 
@@ -46,9 +45,7 @@ sub advance ($$$) {
     $sh{"index"} -= $sh{"chunk"};
     my $i = $sh{"index"};
     my $c = $sh{"chunk"};
-    my $debug = $sh{"debug"};
-    $sh{"debug"}++;
-    print "***ADVANCE*** from $pos to $i with chunk $c (debug = $debug)\n" if $DEBUG;
+    print "***ADVANCE*** from $pos to $i with chunk $c\n" if $DEBUG;
     return \%sh;
 }
 
@@ -57,9 +54,7 @@ sub transform ($$$) {
     my %sh = %{$state};
 
     if (defined($sh{"start"})) {
-	my $debug = $sh{"debug"};
-	$sh{"debug"}++;
-	print "***TRANSFORM START (debug = $debug) ***\n" if $DEBUG;
+	print "***TRANSFORM START***\n" if $DEBUG;
 	delete $sh{"start"};
 	my $tmpfile = File::Temp::tmpnam();
 	system "$topformflat $arg < $cfile > $tmpfile";
@@ -90,26 +85,22 @@ sub transform ($$$) {
     if ($DEBUG) {
 	my $c = $sh{"chunk"};
 	my $i = $sh{"index"};
-	my $debug = $sh{"debug"};
-	$sh{"debug"}++;
-	print "***TRANSFORM REGULAR chunk $c at $i (debug = $debug) ***\n";
+	print "***TRANSFORM REGULAR chunk $c at $i***\n";
     }
 
     open INF, "<$cfile" or die;
     my @data = ();
     while (my $line = <INF>) {
 	push @data, $line;
-	chomp $line;
 	if ($DEBUG) {
+	    chomp $line;
 	    print "LINE PASS FILE DATA: '$line'\n";
 	}
     }
     close INF;
 
   AGAIN:
-    if ($sh{"index"} >= scalar(@data)) {
-	$sh{"index"} = scalar(@data);
-    }
+    $sh{"index"} = scalar(@data) if ($sh{"index"} > scalar(@data));
     if ($sh{"index"} >= 0 && scalar(@data) > 0) {
 	my $start = $sh{"index"} - $sh{"chunk"};
 	$start = 0 if ($start < 0);
@@ -119,11 +110,19 @@ sub transform ($$$) {
 	my $c = $sh{"chunk"};
 	print "went from $lines lines to $newlines with chunk $c\n" if $DEBUG;
 	die unless ($newlines < $lines);
-	open OUTF, ">$cfile" or die;
+	my $tmpfile = File::Temp::tmpnam();
+	open OUTF, ">$tmpfile" or die;
 	foreach my $line (@data) {
 	    print OUTF $line;
 	}
 	close OUTF;
+	if (compare($cfile, $tmpfile) == 0) {
+	    print "did not change file\n";
+	    unlink $tmpfile;
+	    $sh{"index"} -= $sh{"chunk"};
+	    goto AGAIN;
+	}
+	File::Copy::move($tmpfile, $cfile);
     } else {
 	return ($STOP, \%sh) if ($sh{"chunk"} <= 1);
 	my $newchunk = int ($sh{"chunk"} / 2.0);

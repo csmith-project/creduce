@@ -569,6 +569,7 @@ EOT
 		# need to grab both the file and the pass state
 		$state = $newsh;
 		File::Copy::copy ($toreduce, $toreduce_best[$current_file_index]) or die;
+		$stopped = 0;
 		
 		$good_cnt++;
 		$since_success = 0;
@@ -612,7 +613,8 @@ sub line_delta_pass ($) {
 }
 
 my @all_methods = (
-    { "name" => "pass_blank",    "arg" => "0",                                     "first_pass_pri" =>   1, },
+    { "name" => "pass_comments", "arg" => "0",                       "pri" => 450,   "first_pass_pri" =>  0, },
+    { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  1, },
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>  2, },
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" =>  3, },
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
@@ -968,14 +970,13 @@ print "\n";
 
 # this should be the only time we touch the original file
 for (my $i=0; $i<scalar(@toreduce_best); $i++) {
-    File::Copy::copy($toreduce_best[$i],$toreduce_original[$i]) or die;
-    print "'$toreduce_best[$i]' reduced to:\n\n";
+    File::Copy::copy($toreduce_best[$i], $toreduce_original[$i]) or die;
+    print "\n          '$toreduce_best[$i]' reduced to:\n";
     open INF, "<$toreduce_original[$i]" or die;
     while (<INF>) {
 	print;
     }
     close INF;
-    print "\n";
 }
 
 $timer->stop();
