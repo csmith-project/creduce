@@ -1,0 +1,6 @@
+// file1.txt
+
+zebra;
+foo;
+giraffe;
+cow;

@@ -1,0 +1,8 @@
+#!/bin/bash
+# -*-sh-*-
+if gcc -o a.out $1 &> cmp_out; then
+    if ! ./a.out &> run_out; then
+        exit 0;                 # Success.
+    fi
+fi
+exit 1;                         # Failure.

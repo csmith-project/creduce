@@ -1,0 +1,61 @@
+see License.txt for copyright and terms of use
+
+         The Readme for the Delta Interesting File Minimizer
+                          version 2003.7.14
+
+**** Authors and maintainers
+
+Daniel S. Wilkerson <dsw@cs.berkeley.edu>
+Scott McPeak        <smcpeak@cs.berkeley.edu>
+
+**** Introduction
+
+Delta assists you in minimizing "interesting" files subject to a test
+of their interestingness.  A common such situation is when attempting
+to isolate a small failure-inducing substring of a large input that
+causes your program to exhibit a bug.  Our implementation is based on
+the algorithm found here: http://www.st.cs.uni-sb.de/dd/ .  Please see
+doc/using_delta.txt for documentation.
+
+**** Installation
+
+% tar xvzf delta.tar.gz
+% cd delta
+% make
+% make check #optional
+
+The resulting executables end up in delta/bin.  Thus, put delta/bin on
+your path, copy them to a directory on your path, or simply use them
+in place.
+
+**** Requirements
+
+  Perl5
+  GNU make
+  gcc (including cpp)
+
+To rebuild the distribution from scratch you also need flex.
+
+We have not set up configuration to look for other C compilers yet.
+You can get much of the functionality even if you only have Perl5.
+Other make-s may work.  Please see the documentation.
+
+**** Acknowledgments
+
+The program delta was written by Daniel S. Wilkerson with suggestions
+from Scott McPeak; Daniel also wrote the documentation
+using_delta.txt.
+
+The programs multidelta and topformflat were written by Scott McPeak.
+
+The authors would like to thank the following people for their bug
+submissions, debugging assistance, and suggestions on features and
+documentation.
+
+        Westley Weimer
+        Rob Johnson
+        Simon Goldsmith
+
+**** License, Copyright, and Lack of Warranty
+
+See License.txt for copyright and terms of use.

@@ -1,0 +1,19 @@
+#!/bin/sh
+# see delta/License.txt for copyright and terms of use
+
+# The test script for this test of multidelta.
+
+# Demonstrate the difference between the multidelta_all_files
+# environment variable and the arugment list.
+echo
+echo "multidelta_all_files:$multidelta_all_files:"
+echo "argument list:$@:"
+
+exec >/dev/null 2>&1
+set -e
+
+# file 1 should have "foo"
+grep "foo" file1.txt || exit
+
+# file 2 should have "bar"
+grep "bar" file2.txt || exit
