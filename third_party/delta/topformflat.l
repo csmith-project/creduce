@@ -92,7 +92,7 @@ int threshold = 0;
 
 void emit()
 {
-  printf("%.*s", yyleng, yytext);
+  printf("%.*s", (int) yyleng, yytext);
 }
 
 void diag(char const *str)
