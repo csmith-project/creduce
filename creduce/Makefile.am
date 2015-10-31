@@ -29,7 +29,8 @@ dist_perllib_DATA = \
 	pass_ints.pm \
 	pass_lines.pm \
 	pass_peep.pm \
-	pass_ternary.pm
+	pass_ternary.pm \
+	pass_unifdef.pm
 nodist_perllib_DATA = \
 	creduce_config.pm
 

@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2015 The University of Utah
+## Copyright (c) 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -8,21 +8,18 @@
 
 ###############################################################################
 
-ACLOCAL_AMFLAGS = -I m4
+libexec_PROGRAMS = unifdef
 
-SUBDIRS = \
-	clang_delta \
-	clex \
-	creduce \
-	delta \
-	scripts \
-	tests \
-	unifdef
+GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
+GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
-EXTRA_DIST = \
-	CMakeLists.txt \
-	cmake_config.h.in \
-	git-hash.sh
+unifdef_CPPFLAGS = \
+	$(GIT_FLAG)
+
+unifdef_SOURCES = \
+	unifdef.c \
+	unifdef.h \
+	version.h
 
 ###############################################################################
 

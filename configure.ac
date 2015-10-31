@@ -130,6 +130,7 @@ AC_OUTPUT(
   delta/Makefile
   scripts/Makefile
   tests/Makefile
+  unifdef/Makefile
 )
 
 ###############################################################################

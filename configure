@@ -16564,7 +16564,7 @@ fi
 
 ###############################################################################
 
-ac_config_files="$ac_config_files Makefile clang_delta/Makefile clex/Makefile creduce/Makefile delta/Makefile scripts/Makefile tests/Makefile"
+ac_config_files="$ac_config_files Makefile clang_delta/Makefile clex/Makefile creduce/Makefile delta/Makefile scripts/Makefile tests/Makefile unifdef/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -17691,6 +17691,7 @@ do
     "delta/Makefile") CONFIG_FILES="$CONFIG_FILES delta/Makefile" ;;
     "scripts/Makefile") CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
+    "unifdef/Makefile") CONFIG_FILES="$CONFIG_FILES unifdef/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
