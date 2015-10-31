@@ -25,6 +25,7 @@ dist_perllib_DATA = \
 	pass_clex.pm \
 	pass_comments.pm \
 	pass_special.pm \
+	pass_includes.pm \
 	pass_indent.pm \
 	pass_ints.pm \
 	pass_lines.pm \

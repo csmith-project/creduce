@@ -613,6 +613,7 @@ sub line_delta_pass ($) {
 }
 
 my @all_methods = (
+    { "name" => "pass_includes", "arg" => "0",                       "first_pass_pri" =>  0, },
     { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,   "first_pass_pri" =>  0, },
     { "name" => "pass_comments", "arg" => "0",                       "pri" => 451,   "first_pass_pri" =>  0, },
     { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  1, },

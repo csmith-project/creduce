@@ -81,7 +81,7 @@ sub transform ($$$) {
     my $n_index = int($index / 2);
     return ($STOP, \$index) unless ($n_index < scalar(@deflist));
     my $def = $deflist[$n_index];
-    my $cmd = "$unifdef $options $DU$def -o $tmpfile $cfile";
+    my $cmd = "$unifdef $options $DU$def -o $tmpfile $cfile >/dev/null 2>&1";
     print "$cmd\n" if $DEBUG;
     my $res = runit ($cmd);
     # die unless ($res == 0);
