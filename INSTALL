@@ -16,13 +16,20 @@ you will need a development environment that supports these languages.
 C-Reduce's build system requires GNU Make (*not* BSD Make).
 
 Beyond the basic compile/build tools, C-Reduce depends on a set of
-third-party software packages, including LLVM.  On Ubuntu or Mint,
-the prerequisites other than LLVM can be installed like this:
+third-party software packages, including LLVM.
+
+On Ubuntu or Mint, the prerequisites other than LLVM can be installed
+like this:
 
   sudo apt-get install libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
     libregexp-common-perl libsys-cpu-perl flex build-essential \
     zlib1g-dev
+
+On OS X, Perlbrew provides an easy and flexible way to get Perl and
+Perl modules installed:
+
+  http://perlbrew.pl/
 
 Otherwise, install these packages either manually or using the package
 manager:
@@ -61,10 +68,18 @@ zlib:
 --------------------------------------------------------------------
 Optional prereqs:
 
-If GNU Indent and/or astyle are present, C-Reduce will use them. On
-Ubuntu:
+If GNU Indent and/or astyle are present, C-Reduce will use them.
+
+On Ubuntu:
 
   sudo apt-get install indent astyle
+
+On OS X (with Homebrew installed):
+
+  brew install astyle gnu-indent
+
+Otherwise, install these packages either manually or using the package
+manager:
 
 astyle:
   http://astyle.sourceforge.net/
