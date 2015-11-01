@@ -42,7 +42,7 @@ and parameters caused by callees are not captured. \n";
 static RegisterTransformation<ReplaceCallExpr>
          Trans("replace-callexpr", DescriptionMsg);
 
-class ReplaceCallExprVisitor : public 
+class ReplaceCallExprVisitor : public
   RecursiveASTVisitor<ReplaceCallExprVisitor> {
 
 public:
@@ -75,7 +75,7 @@ private:
   ReturnStmt *CurrentReturnStmt;
 };
 
-class ExprCountVisitor : public 
+class ExprCountVisitor : public
   RecursiveASTVisitor<ExprCountVisitor> {
 
 public:
@@ -115,7 +115,7 @@ bool ReplaceCallExprVisitor::isValidReturnStmt(ReturnStmt *RS)
   if (T->isVoidType())
     return false;
 
-  
+
   CurrentReturnStmt = RS;
   bool RV = isValidExpr(E);
   CurrentReturnStmt = NULL;
@@ -154,7 +154,7 @@ bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
   // try to get returntype from FD (probably not really accurate thought)
   if (FD->getBuiltinID())
     T = FD->getReturnType().getTypePtr();
-  else 
+  else
     T = CE->getCallReturnType(FD->getASTContext()).getTypePtr();
   if (T->isVoidType())
     return true;
@@ -166,7 +166,7 @@ bool ReplaceCallExprVisitor::VisitCallExpr(CallExpr *CE)
 bool ReplaceCallExprVisitor::isValidValueDecl(const ValueDecl *ValueD)
 {
   const VarDecl *VarD = dyn_cast<VarDecl>(ValueD);
-  
+
   if (!VarD || VarD->isLocalVarDecl())
     return false;
 
@@ -238,7 +238,7 @@ bool ReplaceCallExprVisitor::isValidExpr(const Expr *E)
 
   case Expr::ConditionalOperatorClass: {
     const ConditionalOperator *CE = cast<ConditionalOperator>(E);
-    return (isValidExpr(CE->getCond()) && 
+    return (isValidExpr(CE->getCond()) &&
             isValidExpr(CE->getTrueExpr()) &&
             isValidExpr(CE->getFalseExpr()));
   }
@@ -281,7 +281,7 @@ bool ReplaceCallExprVisitor::isValidExpr(const Expr *E)
   return false;
 }
 
-void ReplaceCallExpr::Initialize(ASTContext &context) 
+void ReplaceCallExpr::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new ReplaceCallExprVisitor(this);
@@ -344,7 +344,7 @@ void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
   else {
     V = (*I).second;
   }
-  
+
   TransAssert((std::find(V->begin(), V->end(), DE) == V->end()) &&
               "Duplicated ParmRef!");
   V->push_back(DE);
@@ -361,7 +361,7 @@ void ReplaceCallExpr::getParmPosVector(ParameterPosVector &PosVector,
   ParmRefsVector *PVector = (*RI).second;
 
   FunctionDecl *FD = CE->getDirectCallee();
-  for (ParmRefsVector::const_iterator PI = PVector->begin(), 
+  for (ParmRefsVector::const_iterator PI = PVector->begin(),
        PE = PVector->end(); PI != PE; ++PI) {
 
     const ValueDecl *OrigDecl = (*PI)->getDecl();
@@ -391,12 +391,12 @@ bool ReplaceCallExpr::hasUnmatchedParmArg(const ParameterPosVector &PosVector,
 }
 
 // A heuristic way to check if replacing CallExpr could cause
-// code bloat. 
+// code bloat.
 bool ReplaceCallExpr::hasBadEffect(const ParameterPosVector &PosVector,
                                    ReturnStmt *RS, CallExpr *CE)
 {
   ExprCountVisitor ECVisitor;
-  
+
   Expr *RVExpr = RS->getRetValue();
   TransAssert(RVExpr && "Bad Return Expr!");
   ECVisitor.TraverseStmt(RVExpr);
@@ -420,7 +420,7 @@ bool ReplaceCallExpr::hasBadEffect(const ParameterPosVector &PosVector,
   }
 
   // Adjust the size of RVExpr
-  for (ParameterPosVector::const_iterator I = PosVector.begin(), 
+  for (ParameterPosVector::const_iterator I = PosVector.begin(),
        E = PosVector.end(); I != E; ++I) {
     unsigned int Pos = (*I);
     TransAssert((Pos < ArgNum) && "Bad ParmPos!");
@@ -435,9 +435,9 @@ void ReplaceCallExpr::doAnalysis(void)
 {
   for (SmallVector<CallExpr *, 10>::iterator CI = AllCallExprs.begin(),
        CE = AllCallExprs.end(); CI != CE; ++CI) {
-    FunctionDecl *CalleeDecl = (*CI)->getDirectCallee(); 
+    FunctionDecl *CalleeDecl = (*CI)->getDirectCallee();
     TransAssert(CalleeDecl && "Bad CalleeDecl!");
-        
+
     DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
       FuncToReturnStmts.find(CalleeDecl);
     if (I == FuncToReturnStmts.end())
@@ -467,7 +467,7 @@ void ReplaceCallExpr::doAnalysis(void)
   }
 }
 
-void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE, 
+void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE,
                                        std::string &ParmRefStr)
 {
   const ValueDecl *OrigDecl = DE->getDecl();
@@ -479,7 +479,7 @@ void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE,
   unsigned int Pos = 0;
   for(FunctionDecl::param_const_iterator I = FD->param_begin(),
       E = FD->param_end(); I != E; ++I) {
-    TransAssert((Pos < TheCallExpr->getNumArgs()) && 
+    TransAssert((Pos < TheCallExpr->getNumArgs()) &&
                 "Unmatched Parm and Arg!");
     if (PD != (*I)) {
       Pos++;
@@ -491,9 +491,9 @@ void ReplaceCallExpr::getNewParmRefStr(const DeclRefExpr *DE,
     ParmRefStr = "(" + ParmRefStr + ")";
 
     const Type *ParmT = PD->getType().getTypePtr();
-    const Type *CanParmT = Context->getCanonicalType(ParmT); 
+    const Type *CanParmT = Context->getCanonicalType(ParmT);
     const Type *ArgT = Arg->getType().getTypePtr();
-    const Type *CanArgT = Context->getCanonicalType(ArgT); 
+    const Type *CanArgT = Context->getCanonicalType(ArgT);
     if (CanParmT != CanArgT) {
       std::string TypeCastStr = PD->getType().getAsString();
       ParmRefStr = "(" + TypeCastStr + ")" + ParmRefStr;
@@ -522,20 +522,20 @@ void ReplaceCallExpr::insertParmRef
 
   if (I == E)
     SortedParmRefs.push_back(ParmOffPair);
-  else 
+  else
     SortedParmRefs.insert(I, ParmOffPair);
 }
 
-void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf, 
+void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
        DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap,
        std::vector< std::pair<const DeclRefExpr *, int> > &SortedParmRefs)
 {
-  for(DenseMap<const DeclRefExpr *, std::string>::iterator 
+  for(DenseMap<const DeclRefExpr *, std::string>::iterator
       I = ParmRefToStrMap.begin(), E = ParmRefToStrMap.end(); I != E; ++I) {
 
     const DeclRefExpr *ParmRef = (*I).first;
     SourceLocation ParmRefLocStart = ParmRef->getLocStart();
-    const char *ParmRefStartBuf = 
+    const char *ParmRefStartBuf =
       SrcManager->getCharacterData(ParmRefLocStart);
 
     int Off = ParmRefStartBuf - StartBuf;
@@ -543,7 +543,7 @@ void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
     insertParmRef(SortedParmRefs, ParmRef, Off);
   }
 }
-       
+
 void ReplaceCallExpr::replaceParmRefs(std::string &RetStr, const Expr *RetE,
        DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap)
 {
@@ -567,7 +567,7 @@ void ReplaceCallExpr::replaceParmRefs(std::string &RetStr, const Expr *RetE,
     RetStr.replace(Off, ParmRefSize, NewStr);
     Delta += (NewStr.size() - ParmRefSize);
   }
-}  
+}
 
 void ReplaceCallExpr::replaceCallExpr(void)
 {
@@ -578,11 +578,11 @@ void ReplaceCallExpr::replaceCallExpr(void)
 
   DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
     ReturnStmtToParmRefs.find(TheReturnStmt);
-  
+
   if (I != ReturnStmtToParmRefs.end()) {
     ParmRefsVector *PVector = (*I).second;
     TransAssert(PVector);
-    for (ParmRefsVector::const_iterator I = PVector->begin(), 
+    for (ParmRefsVector::const_iterator I = PVector->begin(),
          E = PVector->end(); I != E; ++I) {
       std::string ParmRefStr("");
       getNewParmRefStr((*I), ParmRefStr);
@@ -602,13 +602,13 @@ ReplaceCallExpr::~ReplaceCallExpr(void)
 {
   delete CollectionVisitor;
 
-  for (DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator 
+  for (DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator
        I = FuncToReturnStmts.begin(), E = FuncToReturnStmts.end();
        I != E; ++I) {
     delete (*I).second;
   }
 
-  for (DenseMap<ReturnStmt *, ParmRefsVector *>::iterator 
+  for (DenseMap<ReturnStmt *, ParmRefsVector *>::iterator
        I = ReturnStmtToParmRefs.begin(), E = ReturnStmtToParmRefs.end();
        I != E; ++I) {
     delete (*I).second;

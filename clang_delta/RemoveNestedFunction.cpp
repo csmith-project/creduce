@@ -50,7 +50,7 @@ public:
 
 private:
   RemoveNestedFunction *ConsumerInstance;
-  
+
 };
 
 class RNFStatementVisitor : public CommonStatementVisitor<RNFStatementVisitor> {
@@ -91,7 +91,7 @@ bool RNFStatementVisitor::VisitStmtExpr(StmtExpr *SE)
 
   CallExpr *CallE = ConsumerInstance->CallExprQueue.back();
   CurrentStmt = CallE;
-  
+
   for (clang::CompoundStmt::body_iterator I = CS->body_begin(),
        E = CS->body_end(); I != E; ++I) {
     TraverseStmt(*I);
@@ -99,22 +99,22 @@ bool RNFStatementVisitor::VisitStmtExpr(StmtExpr *SE)
   return false;
 }
 
-bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE) 
+bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
 {
   if (const CXXOperatorCallExpr *OpE = dyn_cast<CXXOperatorCallExpr>(CallE)) {
     if (ConsumerInstance->isInvalidOperator(OpE))
       return true;
   }
 
-  if ((std::find(ConsumerInstance->ValidCallExprs.begin(), 
-                 ConsumerInstance->ValidCallExprs.end(), CallE) 
-          == ConsumerInstance->ValidCallExprs.end()) && 
+  if ((std::find(ConsumerInstance->ValidCallExprs.begin(),
+                 ConsumerInstance->ValidCallExprs.end(), CallE)
+          == ConsumerInstance->ValidCallExprs.end()) &&
       !ConsumerInstance->CallExprQueue.empty()) {
 
     ConsumerInstance->ValidInstanceNum++;
     ConsumerInstance->ValidCallExprs.push_back(CallE);
 
-    if (ConsumerInstance->ValidInstanceNum == 
+    if (ConsumerInstance->ValidInstanceNum ==
         ConsumerInstance->TransformationCounter) {
       ConsumerInstance->TheFuncDecl = CurrentFuncDecl;
       ConsumerInstance->TheStmt = CurrentStmt;
@@ -135,23 +135,23 @@ bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
   return true;
 }
 
-void RemoveNestedFunction::Initialize(ASTContext &context) 
+void RemoveNestedFunction::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   NestedInvocationVisitor = new RNFCollectionVisitor(this);
   StmtVisitor = new RNFStatementVisitor(this);
-  NameQueryWrap = 
+  NameQueryWrap =
     new TransNameQueryWrap(RewriteHelper->getTmpVarNamePrefix());
 }
 
-bool RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D) 
+bool RemoveNestedFunction::HandleTopLevelDecl(DeclGroupRef D)
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I) {
     NestedInvocationVisitor->TraverseDecl(*I);
   }
   return true;
 }
- 
+
 void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (QueryInstanceOnly)
@@ -241,7 +241,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     //   template<typename T> int foo2(int p) {return p;}
     //   template<typename T>
     //   void bar(void) { foo1<T>(foo2<T>(1)); }
-    // foo2<T>(1) has BuiltinType and hence 
+    // foo2<T>(1) has BuiltinType and hence
     // TheCallExpr->getCallReturnType() will segfault.
     // In this case, we have to lookup a corresponding function decl
 
@@ -258,13 +258,13 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     }
     if (!FD) {
       DeclContextSet VisitedCtxs;
-      FD = 
+      FD =
         lookupFunctionDecl(DName, TheFuncDecl->getLookupParent(), VisitedCtxs);
     }
     // give up and generate a tmp var of int type, e.g.:
     // template <class T> struct S {
     //   T x;
-    //   template <class A> void foo(A &a0) { x(y(a0)); } 
+    //   template <class A> void foo(A &a0) { x(y(a0)); }
     // };
     if (!FD)
       return writeNewIntTmpVariable(VarStr);
@@ -286,21 +286,21 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     return writeNewTmpVariable(QT, VarStr);
   }
 
-  if (const CXXTemporaryObjectExpr *CXXTE = 
+  if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
     QT = CXXCtor->getThisType(ASTCtx);
     return writeNewTmpVariable(QT, VarStr);
   }
 
-  if (const CXXTemporaryObjectExpr *CXXTE = 
+  if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
     QT = CXXCtor->getThisType(ASTCtx);
     return writeNewTmpVariable(QT, VarStr);
   }
 
-  if (const CXXDependentScopeMemberExpr *ME = 
+  if (const CXXDependentScopeMemberExpr *ME =
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
 
     if (ME->isImplicitAccess())
@@ -334,8 +334,8 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       QT = FD->getReturnType();
       return writeNewTmpVariable(QT, VarStr);
     }
-    
-    // handle other cases where lookupDeclContext is different from 
+
+    // handle other cases where lookupDeclContext is different from
     // the current CXXRecord, e.g.,
     const Type *Ty = ME->getBaseType().getTypePtr();
     if (const DeclContext *Ctx = getBaseDeclFromType(Ty)) {
@@ -358,9 +358,9 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
         // }
         // in this case, seems it's hard to retrieve the instantiated type
         // of f's return type, because `D<T> G' is dependent. I tried
-        // findSpecialization from ClassTemplateDecl, but it didn't work. 
+        // findSpecialization from ClassTemplateDecl, but it didn't work.
         // So use a really ugly way, i.e., manipulating strings...
-        const TemplateSpecializationType *TST = 
+        const TemplateSpecializationType *TST =
           Ty->getAs<TemplateSpecializationType>();
         TransAssert(TST && "Invalid TemplateSpecialization Type!");
 
@@ -383,7 +383,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       }
     }
     else {
-      // template <typename> struct D { 
+      // template <typename> struct D {
       // D f();
       // D operator[] (int);
       // };
@@ -395,7 +395,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       // In this case, G[0] is of BuiltinType.
       // But why does clang represent a dependent type as BuiltinType here?
 
-      TransAssert((Ty->getAs<BuiltinType>() || 
+      TransAssert((Ty->getAs<BuiltinType>() ||
                    Ty->getAs<TemplateTypeParmType>() ||
                    Ty->getAs<TypedefType>() ||
                    Ty->getAs<DependentNameType>())
@@ -405,7 +405,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       //  - how can we find a correct DeclContext where we could lookup f?
       //  - can we obtain the dependent template argument from BuiltinType?
       // Probably we cannot do these? Comments from lib/AST/ASTContext.cpp:
-      // 
+      //
       // Placeholder type for type-dependent expressions whose type is
       // completely unknown. No code should ever check a type against
       // DependentTy and users should never see it; however, it is here to
@@ -420,7 +420,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
   //   T1 x; T2 y;
   //   template <class A> void foo(A &a0) { x(y(a0)); }
   // };
-  if (const TemplateTypeParmType *PT = 
+  if (const TemplateTypeParmType *PT =
       dyn_cast<TemplateTypeParmType>(CalleeType)) {
     const TemplateTypeParmDecl *PD = PT->getDecl();
     std::string DStr = PD->getNameAsString();
@@ -436,7 +436,7 @@ bool RemoveNestedFunction::addNewAssignStmt(void)
 {
   return RewriteHelper->addNewAssignStmtBefore(TheStmt,
                                               getTmpVarName(),
-                                              TheCallExpr, 
+                                              TheCallExpr,
                                               NeedParen);
 
 }
@@ -449,7 +449,7 @@ bool RemoveNestedFunction::replaceCallExpr(void)
 bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
 {
   OverloadedOperatorKind K = OpE->getOperator();
-  // ISSUE: overloaded Equal-family operators cause bad recursion, 
+  // ISSUE: overloaded Equal-family operators cause bad recursion,
   //        omit it for now.
   switch (K) {
   case OO_Equal:
