@@ -8,11 +8,11 @@ use Cwd;
 
 # TODO might need to support __has_include_next, __has_include
 
-#my $FILE = "../hello.c";
-#my $COMP = "gcc";
-#my $CPP = "";
-#my $CFLAGS = "-O";
-#my $EXT = ".c";
+my $FILE = "../hello.c";
+my $COMP = "gcc";
+my $CPP = "";
+my $CFLAGS = "-O";
+my $EXT = ".c";
 
 #my $FILE = "../hello.cpp";
 #my $COMP = "clang++";
@@ -20,11 +20,11 @@ use Cwd;
 #my $CFLAGS = "-O3 -std=c++11";
 #my $EXT = ".cpp";
 
-my $FILE = "../hello.cpp";
-my $COMP = "g++";
-my $CPP = "-x c++";
-my $CFLAGS = "";
-my $EXT = ".cpp";
+#my $FILE = "../hello.cpp";
+#my $COMP = "g++";
+#my $CPP = "-x c++";
+#my $CFLAGS = "";
+#my $EXT = ".cpp";
 
 #my $FILE = "../crypto/dso/dso_dl.c";
 #my $COMP = "clang";
