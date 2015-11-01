@@ -51,6 +51,7 @@ use Benchmark::Timer;
 use File::Spec;
 use File::Temp;
 use File::Copy;
+use Term::ReadKey;
 
 # Load module `Sys::CPU' if it is available.
 eval { require Sys::CPU; Sys::CPU->import(); };
@@ -129,6 +130,8 @@ file and its transitive includes (or any subset of them).
 If you haven't written an interestingness test before, please refer to
 this tutorial for additional guidance:
   https://embed.cs.utah.edu/creduce/using/
+
+Press "s" at any time to skip to the next pass.
 HELP
 # ' balance for stupid emacs perl mode...
 
@@ -449,6 +452,7 @@ sub delta_pass ($) {
     my $delta_arg = ${$mref}{"arg"};
     $good_cnt = 0;
     $bad_cnt = 0;
+    my $skip = 0;
 
     die unless (scalar(@variants)==0);
     die unless ($num_running==0);
@@ -469,7 +473,16 @@ sub delta_pass ($) {
 	# create child processes until either:
 	# 1. we exhaust the concurrency budget
 	# 2. the pass tells us to STOP
-	while (!$stopped && $num_running < $NPROCS) {
+	# 3. the "s" key on the terminal is pressed
+	ReadMode 3;
+	my $key = ReadKey(-1);
+	ReadMode 0;
+	if (defined($key) && $key eq "s") {
+	    print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
+	    $stopped = 1;
+	    $skip = 1;
+	}
+	while (!($stopped || $skip) && $num_running < $NPROCS) {
 	    my $tmpdir = make_tmpdir();
 	    chdir $tmpdir or die;
 	    copy_files_here();
@@ -597,7 +610,7 @@ EOT
 	}
 
 	# termination condition for this pass
-	if ($stopped && scalar(@variants)==0) {
+	if (($skip || $stopped) && scalar(@variants)==0) {
 	    remove_tmpdirs();
 	    next;
 	}

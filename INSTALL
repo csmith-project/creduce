@@ -21,7 +21,7 @@ third-party software packages, including LLVM.
 On Ubuntu or Mint, the prerequisites other than LLVM can be installed
 like this:
 
-  sudo apt-get install libbenchmark-timer-perl \
+  sudo apt-get install libbenchmark-timer-perl libterm-readkey-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
     libregexp-common-perl libsys-cpu-perl flex build-essential \
     zlib1g-dev
@@ -53,6 +53,7 @@ Perl modules:
   Getopt::Tabular
   Regexp::Common
   Sys::CPU (optional, but recommended)
+  Term::ReadKey
 
 For example, (perhaps as root):
   cpan -i 'Benchmark::Timer'
@@ -61,6 +62,7 @@ For example, (perhaps as root):
   cpan -i 'Getopt::Tabular'
   cpan -i 'Regexp::Common'
   cpan -i 'Sys::CPU'
+  cpan -i 'Term::ReadKey'
 
 zlib:
   http://www.zlib.net/
