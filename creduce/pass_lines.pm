@@ -77,14 +77,15 @@ sub transform ($$$) {
 	print "***TRANSFORM START***\n" if $DEBUG;
 	delete $sh{"start"};
 	my $tmpfile = File::Temp::tmpnam();
-	system "$topformflat $arg < $cfile > $tmpfile";
-	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $DEBUG;
+	my $cmd = "$topformflat $arg < $cfile | grep -v '^\\s*\$' > $tmpfile";
+	print $cmd if $DEBUG;
+	runit ($cmd);
 	if (compare($cfile, $tmpfile) == 0) {
 	    # this is a gross hack to avoid tripping the
 	    # pass-didn't-modify-file check in the C-Reduce core, in
 	    # the (generally unlikely) case where topformflat didn't
 	    # change the file at all
-	    print "gross blank line hack\n" if $DEBUG;
+	    print "gross blank line hack!\n" if $DEBUG;
 	    open OF, ">>$tmpfile" or die;
 	    print OF "\n";
 	    close OF;
