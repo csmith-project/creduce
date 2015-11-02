@@ -51,10 +51,18 @@ use Benchmark::Timer;
 use File::Spec;
 use File::Temp;
 use File::Copy;
-use Term::ReadKey;
 
-# Load module `Sys::CPU' if it is available.
-eval { require Sys::CPU; Sys::CPU->import(); };
+# Load and use the Sys::CPU module if available, don't complain otherwise
+my $NPROCS = 1;
+if (eval { require Sys::CPU; }) {
+    $NPROCS = Sys::CPU::cpu_count();
+    # Yang's data suggests that speedup peaks at 8 cores
+    $NPROCS = 8 if ($NPROCS > 8);
+}
+
+# Load and use the Term::ReadKey module if available, don't complain otherwise
+my $SKIP_KEY_OFF = 0;
+$SKIP_KEY_OFF = 1 unless eval { require Term::ReadKey; };
 
 if ($^O eq "MSWin32") {
     eval { require Win32::Process; Win32::Process->import(); };
@@ -66,12 +74,6 @@ use creduce_utils;
 ######################################################################
 
 my $GIVEUP_CONSTANT = 1000;
-my $NPROCS = 1;
-if (defined(&Sys::CPU::cpu_count)) {
-    $NPROCS = Sys::CPU::cpu_count();
-    # Yang's data suggests that speedup peaks at 8 cores
-    $NPROCS = 8 if ($NPROCS > 8);
-}
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SKIP_FIRST;
@@ -93,6 +95,7 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
+    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when 's' is pressed"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -473,14 +476,15 @@ sub delta_pass ($) {
 	# create child processes until either:
 	# 1. we exhaust the concurrency budget
 	# 2. the pass tells us to STOP
-	# 3. the "s" key on the terminal is pressed
-	ReadMode 3;
-	my $key = ReadKey(-1);
-	ReadMode 0;
-	if (defined($key) && $key eq "s") {
-	    print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
-	    $stopped = 1;
-	    $skip = 1;
+	# 3. $SKIP_KEY_OFF is not set and the "s" key on the terminal is pressed
+	if (!$SKIP_KEY_OFF) {
+	    Term::ReadKey::ReadMode(3);
+	    my $key = Term::ReadKey::ReadKey(-1);
+	    Term::ReadKey::ReadMode(0);
+	    if (defined($key) && $key eq "s") {
+		print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
+		$skip = 1;
+	    }
 	}
 	while (!($stopped || $skip) && $num_running < $NPROCS) {
 	    my $tmpdir = make_tmpdir();

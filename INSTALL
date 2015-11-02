@@ -21,9 +21,9 @@ third-party software packages, including LLVM.
 On Ubuntu or Mint, the prerequisites other than LLVM can be installed
 like this:
 
-  sudo apt-get install libbenchmark-timer-perl libterm-readkey-perl \
+  sudo apt-get install libbenchmark-timer-perl \
     libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
-    libregexp-common-perl libsys-cpu-perl flex build-essential \
+    libregexp-common-perl flex build-essential \
     zlib1g-dev
 
 On OS X, Perlbrew provides an easy and flexible way to get Perl and
@@ -52,8 +52,6 @@ Perl modules:
   File::Which
   Getopt::Tabular
   Regexp::Common
-  Sys::CPU (optional, but recommended)
-  Term::ReadKey
 
 For example, (perhaps as root):
   cpan -i 'Benchmark::Timer'
@@ -61,8 +59,6 @@ For example, (perhaps as root):
   cpan -i 'File::Which'
   cpan -i 'Getopt::Tabular'
   cpan -i 'Regexp::Common'
-  cpan -i 'Sys::CPU'
-  cpan -i 'Term::ReadKey'
 
 zlib:
   http://www.zlib.net/
@@ -70,17 +66,24 @@ zlib:
 --------------------------------------------------------------------
 Optional prereqs:
 
-If GNU Indent and/or astyle are present, C-Reduce will use them.
+GNU Indent, astyle, Term::ReadKey, and Sys::CPU are optional; C-Reduce
+will use whichever of them are installed.
+
+In particular, we recommend installing Sys::CPU; without this module
+C-Reduce will not use multiple cores unless explicitly requested to do
+so with the -n command line option.
 
 On Ubuntu:
 
-  sudo apt-get install indent astyle
+  sudo apt-get install indent astyle libterm-readkey-perl libsys-cpu-perl
 
-On OS X (with Homebrew installed):
+On OS X (with Homebrew + Perlbrew installed):
 
   brew install astyle gnu-indent
+  cpan -i 'Term::ReadKey'
+  cpan -i 'Sys::CPU'
 
-Otherwise, install these packages either manually or using the package
+Otherwise, install the packages either manually or using the package
 manager:
 
 astyle:
