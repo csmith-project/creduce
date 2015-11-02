@@ -8,17 +8,23 @@ use Cwd;
 
 # TODO might need to support __has_include_next, __has_include
 
-my $FILE = "../hello.c";
-my $COMP = "gcc";
-my $CPP = "";
-my $CFLAGS = "-O";
-my $EXT = ".c";
-
-#my $FILE = "../hello.cpp";
-#my $COMP = "clang++";
+#my $FILE = "stl.cpp";
+#my $COMP = "g++";
 #my $CPP = "-x c++";
-#my $CFLAGS = "-O3 -std=c++11";
+#my $CFLAGS = "-D__FC_MACHDEP_X86_32 -std=c++11 -I /home/regehr/tis-install/share/frama-c/frama-clang/libc++ -I /home/regehr/tis-install/share/frama-c/libc -I /home/regehr/tis-install/share/frama-c";
 #my $EXT = ".cpp";
+
+#my $FILE = "../hello.c";
+#my $COMP = "gcc";
+#my $CPP = "";
+#my $CFLAGS = "-O";
+#my $EXT = ".c";
+
+my $FILE = "../hello.cpp";
+my $COMP = "clang++";
+my $CPP = "-x c++";
+my $CFLAGS = "";
+my $EXT = ".cpp";
 
 #my $FILE = "../hello.cpp";
 #my $COMP = "g++";

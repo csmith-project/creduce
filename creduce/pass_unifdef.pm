@@ -63,16 +63,13 @@ sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
     my %defs;
-    open INF, "$unifdef -s $cfile |" or die;
+    open INF, "$unifdef -s $cfile 2>/dev/null |" or die;
     while (my $line = <INF>) {
 	chomp $line;
 	$defs{$line} = 1;
     }
     close INF;
     my @deflist = sort keys %defs;
-    foreach my $def (@deflist) {
-	print "symbol: $def\n" if $DEBUG;
-    }
     my $tmpfile = File::Temp::tmpnam();
   AGAIN:
     print "index = $index\n" if $DEBUG;

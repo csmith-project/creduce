@@ -113,7 +113,7 @@ sub transform ($$$) {
     my @data = ();
     while (my $line = <INF>) {
 	push @data, $line;
-	if ($DEBUG) {
+	if ($DEBUG && 0) {
 	    chomp $line;
 	    print "LINE PASS FILE DATA: '$line'\n";
 	}
@@ -122,7 +122,7 @@ sub transform ($$$) {
 
   AGAIN:
     $sh{"index"} = scalar(@data) if ($sh{"index"} > scalar(@data));
-    if ($sh{"index"} >= 0 && scalar(@data) > 0) {
+    if ($sh{"index"} >= 0 && scalar(@data) > 0 && $sh{"chunk"} > 0) {
 	my $start = $sh{"index"} - $sh{"chunk"};
 	$start = 0 if ($start < 0);
 	my $lines = scalar(@data);
@@ -130,7 +130,6 @@ sub transform ($$$) {
 	my $newlines = scalar(@data);
 	my $c = $sh{"chunk"};
 	print "went from $lines lines to $newlines with chunk $c\n" if $DEBUG;
-	die unless ($newlines < $lines);
 	my $tmpfile = File::Temp::tmpnam();
 	open OUTF, ">$tmpfile" or die;
 	foreach my $line (@data) {
@@ -138,7 +137,7 @@ sub transform ($$$) {
 	}
 	close OUTF;
 	if (compare($cfile, $tmpfile) == 0) {
-	    print "did not change file\n";
+	    print "did not change file\n" if $DEBUG;
 	    unlink $tmpfile;
 	    $sh{"index"} -= $sh{"chunk"};
 	    goto AGAIN;
