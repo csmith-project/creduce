@@ -10,10 +10,16 @@ use Cwd;
 # TODO might need to support __has_include_next, __has_include
 
 sub usage() {
-    print "usage: $0 compiler 'compiler args' source-file\n";
+    print "usage: $0 [-debug] compiler 'compiler args' source-file\n";
     print "the file should not be in the cwd\n";
     print "the file will be assumed to be C++ unless it ends with .c\n";
     exit(-1);
+}
+
+my $debug = 0;
+if ($ARGV[0] eq "-debug") {
+    shift @ARGV;
+    $debug = 1;
 }
 
 usage() unless scalar(@ARGV)==3;
@@ -28,9 +34,11 @@ my $CPP;
 if ($FILE =~ /\.c$/) {
     $EXT = ".c";
     $CPP = "";
+    print "looks like '$FILE' is C code\n";
 } else {
     $EXT = ".cpp";
     $CPP = "-x c++";
+    print "looks like '$FILE' is C++ code (if not you'll need to edit this script)\n";
 }
 
 # localize_headers clang -O2 ../hello.c
@@ -69,8 +77,6 @@ sub runit ($) {
     return $exit_value;
 }
 
-my %map;
-my %rmap;
 my @includes;
 my %deps;
 my $srcfile_copy;
@@ -122,15 +128,20 @@ while (my $f = <INF2>) {
 close INF2;
 close OF;
 
-sub process($$$) {
-    (my $file, my $lref, my $next) = @_;
+my %map;
+my %rmap;
+
+sub process($$$$) {
+    (my $file, my $lref, my $next, my $line) = @_;
     my @list = @{$lref};
+
+    print OUTF "# 0 // original line: \"$line\"\n" if $debug;
 
     print "looking for next after $next\n" if $next ne "";
     
     my $found = 0;
     my $path;
-    foreach my $dir (@includes) {
+    foreach my $dir (@list) {
 	$path = File::Spec->catfile($dir, $file);
 	if (-e $path) {
 	    if ($next ne "" && $path eq $next) {
@@ -149,16 +160,21 @@ sub process($$$) {
     if ($found) {
 	if (exists $map{$path}) {
 	    my $f = $map{$path};
-	    print OUTF "#include \"$f\" // $path\n";
+	    print OUTF "#include \"$f\"";
+	    print OUTF " // $path" if $debug;
+	    print OUTF "\n";
 	} else {
 	    # whoops this file wasn't listed as a dependency but what
 	    # the heck let's include it anyway -- this case gets hit
 	    # when there are symlinks under /usr/include
 	    my $f = Cwd::realpath($path);
 	    my($justf, $dir) = fileparse($f);
-	    print OUTF "#include \"$justf\" // backup plan for $f\n";
-	}		
+	    print OUTF "#include \"$justf\"";
+	    print OUTF " // backup plan for $f" if $debug;
+	    print OUTF "\n";
+	}
     } else {
+	print "not found '$file'\n";
 	print OUTF "#error localize_headers should not have tried to include $file $path\n";
     }
 }
@@ -177,16 +193,16 @@ sub rewrite($$) {
     while (my $line = <INF>) {
 	chomp $line;
 	$n++;
-	if ($line =~ /^(.*)#\s*include\s+\"(.*?)\"(.*)$/) {
-	    process($2, \@dotincludes, "");
+	if ($line =~ /^(\s*)#\s*include\s+\"(.*?)\"(.*)$/) {
+	    process($2, \@dotincludes, "", $line);
 	    next;
 	}
-	if ($line =~ /^(.*)#\s*include\s+\<(.*?)\>(.*)$/) {
-	    process($2, \@includes, "");
+	if ($line =~ /^(\s*)#\s*include\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes, "", $line);
 	    next;
 	}
-	if ($line =~ /^(.*)#\s*include_next\s+\<(.*?)\>(.*)$/) {
-	    process($2, \@includes, $absfile);
+	if ($line =~ /^(\s*)#\s*include_next\s+\<(.*?)\>(.*)$/) {
+	    process($2, \@includes, $absfile, $line);
 	    next;
 	}
 	print OUTF $line."\n";
@@ -216,18 +232,28 @@ foreach my $dep (sort keys %deps) {
 }
 
 # copy over all dependencies
-my $out = "";
+my $all_deps = "";
 my $n = 0;
 foreach my $dep (sort keys %deps) {
     rewrite($dep, $map{$dep});
-    $out .= "$map{$dep} ";
+    $all_deps .= "$map{$dep} ";
     $n++;
 }
 
-runit ("$COMP $CFLAGS -E $FILE > out1$EXT");
+print "\'files_to_reduce.txt\' contains a list of all files copied to this dir\n";
+
+open OUTF, ">files_to_reduce.txt" or die;
+print OUTF "$all_deps\n";
+close OUTF;
+
+my $res;
+
+$res = runit ("$COMP $CFLAGS -E $FILE > out1$EXT");
+die unless $res == 0;
 runit ("grep -v '^# ' out1$EXT | grep -v '^\\s*\$' > out1strip$EXT");
 
-runit ("$COMP $CFLAGS -E $srcfile_copy > out2$EXT");
+$res = runit ("$COMP $CFLAGS -E $srcfile_copy > out2$EXT");
+die unless $res == 0;
 runit ("grep -v '^# ' out2$EXT | grep -v '^\\s*\$' > out2strip$EXT");
 
 print "\n";
@@ -237,14 +263,11 @@ print "transformed src file, preprocessed, is in out2$EXT, stripped of # lines a
 print "\n";
 
 if (compare("out1strip$EXT", "out2strip$EXT") == 0) {
-    print "the stripped files are the same, which means this script had some chance of working\n";
-    print "\nreduce like this:\n";
-    print "     creduce interestingness_test `cat files_to_reduce.txt`\n\n";
+    print "the stripped files are the same, which means this script might well have worked\n";
 } else {
-    print "the stripped files are different-- THIS SCRIPT HAS FAILED\n";
-    print "you can still see if the interestingness test succeeds but it's unlikely\n\n";
+    print "the stripped files are different -- this script might have worked, but please\n";
+    print "inspect the diffs manually\n";
 }
 
-open OUTF, ">files_to_reduce.txt" or die;
-print OUTF "$out\n";
-close OUTF;
+print "\nreduce like this:\n";
+print "     creduce interestingness_test `cat files_to_reduce.txt`\n\n";
