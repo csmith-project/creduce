@@ -441,8 +441,6 @@ EOT
     }
 }
 
-my $good_cnt;
-my $bad_cnt;
 my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
@@ -455,8 +453,6 @@ sub delta_pass ($) {
     (my $mref) = @_;
     my $delta_method = ${$mref}{"name"};
     my $delta_arg = ${$mref}{"arg"};
-    $good_cnt = 0;
-    $bad_cnt = 0;
     my $skip = 0;
 
     die unless (scalar(@variants)==0);
@@ -570,11 +566,9 @@ EOT
 	# starting at the front of the list, peel off all variants that
 	# aren't backed up by a running subprocess
 	while (scalar (@variants) > 0) {
-	    my $kidref = $variants[0];
-	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$kidref};
-	    last if ($pid != -1);
+	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$variants[0]};
+	    last unless ($pid == -1);
 	    my $trash = shift @variants;
-	    # ok, now we have a result to work with
 	    if ($delta_result) {
 		# now that the delta test succeeded, this becomes our
 		# new best version -- we do not call advance() in this
@@ -584,31 +578,33 @@ EOT
 		# nuke all ongoing speculation
 		killem ();
 
-		# here is where we actually accept the new result-- we
+		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
 		$state = $newsh;
 		File::Copy::copy ($toreduce, $toreduce_best[$current_file_index]) or die;
+
+		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
 		
-		$good_cnt++;
 		$since_success = 0;
 		$method_worked{$delta_method}{$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n" if $TIMING;
+		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n"
+		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
-		$bad_cnt++;
 		$since_success++;
 		$method_failed{$delta_method}{$delta_arg}++;
 	    }
-	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $DEBUG;
+	    print "[${pass_num} ${delta_method} :: ${delta_arg}] " if $DEBUG;
 	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
 		unless $SAVE_TEMPS;
 	}
 
-	# nasty heuristic for avoiding getting stuck by buggy passes that
-	# keep reporting success w/o making progress
+	# nasty heuristic for avoiding getting stuck by buggy passes
+	# that keep reporting success w/o making progress -- FIXME
+	# report a bug here
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
 	    remove_tmpdirs();
