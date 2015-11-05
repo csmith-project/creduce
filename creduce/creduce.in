@@ -523,7 +523,6 @@ details that may help us reproduce the problem.
 EOT
                         print $BAD_PASS_MSG;
 		    }
-		    die;
 		    chdir $ORIG_DIR or die;
 		    $stopped = 1;
 		} else {
