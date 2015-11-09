@@ -1,0 +1,278 @@
+<html>
+<head>
+<title> Minimizing Interesting Files with Delta </title>
+</head>
+
+<body>
+<h1> Minimizing Interesting Files with Delta </h1>
+
+<p>Daniel S. Wilkerson
+
+<p>Delta assists you in minimizing "interesting" files, subject to a test
+of their interestingness.  A common such situation is when attempting
+to isolate a small failure-inducing substring of a large input that
+causes your program to demonstrate a bug.  Our implementation is based
+on the algorithm found here: http://www.st.cs.uni-sb.de/dd/
+
+<p>Three tools are provided: delta, multidelta, and topformflat.  Delta
+is the script which does the minimizing.  Topformflat is a utility
+flattens languages with balanced delimiters, such as most common
+programming languages, so that all nesting below a specified depth is
+one one line.  Multidelta is a wrapper that runs delta for you but on
+multiple files using delta and topformflat underneath to change
+nesting granularity before it is fed into delta.  Its UI is arguably
+probably more what you actually want, since for example it allows you
+to run on multiple input files.
+
+<h2>Delta</h2>
+
+<p>Delta is an implementation of the delta debugging algorithm:
+http://www.st.cs.uni-sb.de/dd/.  In short, you supply delta with <ol>
+
+<li>a test shell script which decides if its input file is
+"interesting" and
+
+<li>an initial interesting input file.
+
+</ol>
+
+<p>Delta uses heuristics to find a sub-file of your input file that is
+still "interesting" according to your test.
+
+<p>Usually "interesting" means a file causing a particular error as input
+to a program.  For debugging or bug-reporting purposes you would like
+to find the smallest such file.  An appropriate test here would run
+the program on the file and grep for the error message, returning
+success (0) if found, and failure (non-zero) otherwise.
+
+<p>Note that we use C programs as example input because delta was
+developed for debugging language tools like compilers, so often the
+input was some C program and it was interesting if it crashed _our_
+program, a compiler.
+
+<h2>An example</h2>
+
+<p>Here is a rather contrived example minimizing a C input file.  In this
+case "interesting" means that the file compiles and when run returns
+false.  This example is in delta/test/delta0.
+
+<p>The input file (below "in.c"):
+
+<pre>
+#include <stdio.h>
+int main(int argc, char **argv) {
+    int a = 0;
+    printf("Hello, World!\n");
+    a++;
+    a--;
+    a+=2;
+    a++;
+    a--;
+    a++;
+    return a >= 3;} // Brace here prevents main from lacking a return.
+</pre>
+
+<p>The script test that decides interestingness.  It is probably best if
+your test produces no output, so putting a &>/dev/null at the end of
+your grep, as I have here, is recommended.
+
+<p>Note that delta passes the name of the file to your script, so you can
+use it, as I have here; however when testing multiple files, perhaps
+it is best to use the Multidelta style and just hard-code in the
+filenames.  Multidelta minimizes in-place, which makes passing in the
+name unnecessary.
+
+<p>The test script (below "testit"):
+
+<pre>
+#!/bin/sh
+# -*-sh-*-
+if gcc $1 &> cmp_out; then
+    if ! ./a.out &> run_out; then
+        exit 0;                 # Success.
+    fi
+fi
+exit 1;                         # Failure.
+</pre>
+
+<P>Put both of these files into a new directory and make your test
+executable, and run as follows:
+
+<pre>
+delta -test=testit -quiet -cp_minimal=min.c < in.c
+</pre>
+
+<p>When delta returns, you will notice a file "min.c" in the directory
+which is smaller than "in.c" and yet still passes the
+interestingness test.
+
+<p>You will also notice a tmp* directory (tmp0 if it is the first run)
+that contains all the files that were found to be interesting during
+the search.  Delta runs quickly on this small example, but for longer
+runs you might want to tail -f tmp0/log in another window to watch the
+interesting events of the progression of the search.  If you remove
+the -quiet flag, you will get a very detailed transcript to standard
+out of the search process, probably more than you want to know, but
+fun to watch.
+
+<p>There are other features and modes to delta.  Below is the usage
+message which you can get by typing: delta -help .  (Usage messages
+reproduced here omit the initial header line and distribution version
+number.)
+
+<pre>
+    usage: bin/delta [options] start-file
+
+    -test=<testscript>       Specify the test script
+    -suffix=<suffix>         Candidate filename suffix [.c]
+    -dump_input              Dump input after reading
+    -cp_minimal=<filename>   Copy the minimal successful test to the
+                             current directory
+    -granularity=line        Use lines as the granularity (default)
+    -granularity=top_form    Use C top-level forms as the granularity
+                             (currently only works with CIL output)
+    -log=<file>              Log file for main events
+    -quiet                   Say nothing
+    -verbose                 Get more verbose output
+    -in_place                Overwrite start-file with inputs
+
+    -help                    Get help
+
+    The test program accepts a single argument, the name of the candidate
+    file to test.  It is run within a directory containing only that file,
+    and it can make temporary files/directories in that directory.  It
+    should return zero for a candidate that exhibits the desired property,
+    and nonzero for one that does not.
+
+    Example test program (delta will retain a line containing "foo"):
+      #!/bin/sh
+      grep 'foo' <"$1" >/dev/null
+</pre>
+
+<h2>Granularity</h2>
+
+<p>Delta has a notion of the granularity of the file: the smallest atomic
+elements of which the file is seen as a sequence.  The default is the
+line granularity: in this mode, delta will attempt to delete entire
+lines, but will never try deleting a smaller element than that.  You
+can filter a program through topformflat to produce a file where the
+line-granularity only goes to a specified nesting depth (if your file
+is in a nested language).  Multidelta does this for you.
+
+<p>In general, use semantic granularity appropriate to the input
+language.  Delta has a much easier time searching the space if the
+atomic chunks in the granularity match up with semantically-atomic
+chunks in your input language.  That is, if you are minimizing C
+files, start with the C top-level form granularity.  Only after that
+minimize with a finer level of granularity.  This allows delta to try
+removing entire function definitions, rather than removing single
+lines which is much less likely to produce a meaningful, and therefore
+interesting, C file.  If you have some other kind of file, you should
+probably write the equivalent of topformflat for it.  If your hack is
+general and reusable, please send it to us.
+
+<h2>1-minimality</h2>
+
+<p>An "interesting" sequence is 1-minimal iff it does not remain
+interesting if any one element is removed.  Delta is guaranteed to
+find a 1-minimal file from your input file, where it is considered a
+sequence of elements at the granularity you specified.
+
+<p>Note that the space of interesting files is usually quite complex, and
+delta is doing only a rather simple local walk through it.  Therefore
+it is easy for delta to get stuck someplace that is locally 1-minimal,
+but globally non-minimum.  One often therefore gets better results if
+delta is run again on its output, with gradually finer granularity, if
+that is an option.
+
+<h2>Topformflat</h2>
+
+<p>Topformflat is a filter written by Scott McPeak that will print its
+input with the line granularity matching a specified nesting depth.
+It is useful for making the granularity of an input file start of very
+coarse for the first runs of delta and then gradually increasing it.
+Multidelta will run topformflat for you with a given nesting depth if
+you ask for it on the command line.  Here is the usage message which
+you can get by typing: topformflat .
+
+<pre>
+usage: bin/topformflat [threshold] <input.c >output.c
+  The threshold (default: 0) specifies at what nesting level
+  of braces will line breaks be allowed (or inserted).  By
+  starting with 0, you get all top-level forms, one per line
+  (roughly).  Increasing the threshold leads to finer-grained
+  structure on each line.  The intent is to use the delta
+  minimizer on each level of granularity.
+</pre>
+
+<h2>Multidelta</h2>
+
+<p>Multidelta was written as a wrapper for delta by Scott McPeak.  It
+allows you to easily minimize collections of files by minimizing each
+one individually for you using delta underneath.  It also
+automatically pre-process the input with the C pre-processor (cpp) and
+then filters it through topformflat for you before running delta.
+(Thus, it is rather oriented towards C programs as input.)  Below is
+the usage message which you can get by typing: multidelta .
+
+<pre>
+usage: bin/multidelta [options] test-script file [file [...]]
+</pre>
+
+<p>The collection of input files is minimized as much as possible, such
+that the test-script continues to return true.
+
+<p>When the script is run with a source file as an argument, it should do
+any single-file integrity checks on that file.  Then, it should
+proceed to check the entire build, on the assumption that all other
+files have already passed their integrity checks.
+
+<p>When the script is run with no arguments, it should check integrity of
+all files and then check the build.
+
+<p>So that the script does not need to have the list of input files
+hard-coded in, the environment variable "multidelta_all_files" is
+always set to a space-separated list of the filenames no matter how
+the script is run.
+
+<pre>
+Options:
+  -level=n       When topformflattening, flatten to level n [$level].
+  -u             Undo the last invocation, by copying the *.bak files
+                   onto the original copies.
+  -cpp           Before flattening run through the cpp preprocessor.
+</pre>
+
+<h2>Stopping</h2>
+
+<p>A new feature of delta and multidelta is that it is possible to
+stop it!
+
+<p>Delta now both distinguishes between a signal and a non-zero result
+code from the tests script, halting altogether in the case of a
+signal.  Multidelta has always stopped if delta returns anything other
+than zero and still does.  The consequence of this is that you can
+just type control-C at the terminal and everything should stop
+immediately.  However, not sure what state the partially minimized
+file will be left in; for a safe way to stop, see the next paragraph.
+Thanks to Scott McPeak for pointing out how easy this was to do.
+
+<p>Delta has always stopped if a file DELTA-STOP appears in the
+current directory, however for some unexplained reason, I only checked
+for this when it increased the granularity of the search.  Now it
+checks at every run of the external script.  If DELTA-STOP comes into
+existence, delta and multidelta should stop before obliterating the
+current version of the file to be tested.
+
+<h2>Notes</h2>
+
+<p>At some point probably delta should be made into a Perl module that
+could be used by any Perl program and any remaining desirable features
+of its UI that have not yet been subsumed by multidelta should be; But
+it works for now.
+
+<p>Yes, I wrote a script to re-run delta lots of times, but it seems that
+people prefer to do that manually.
+
+</body>
+</html>

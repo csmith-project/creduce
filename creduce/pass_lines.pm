@@ -14,17 +14,37 @@ use strict;
 use warnings;
 
 use POSIX;
+
+use Cwd 'abs_path';
 use File::Compare;
 
-use creduce_config qw(TOPFORMFLAT);
+use creduce_config qw(bindir libexecdir);
 use creduce_utils;
 
 my $topformflat;
 
 sub check_prereqs () {
-    $topformflat = find_external_program(creduce_config::TOPFORMFLAT,
-					 "topformflat");
-    return defined($topformflat);
+    my $path;
+    if ($FindBin::RealBin eq abs_path(bindir)) {
+	# This script is in the installation directory.
+	# Use the installed `topformflat'.
+	$path = libexecdir . "/topformflat";
+    } else {
+	# Assume that this script is in the C-Reduce build tree.
+	# Use the `topformflat' that is also in the build tree.
+	$path = "$FindBin::Bin/../delta/topformflat";
+    }
+    if ((-e $path) && (-x $path)) {
+	$topformflat = $path;
+	return 1;
+    }
+    # Check Windows
+    $path = $path . ".exe";
+    if (($^O eq "MSWin32") && (-e $path) && (-x $path)) {
+	$topformflat = $path;
+	return 1;
+    }
+    return 0;
 }
 
 # unlike the previous version of pass_lines, this one always
@@ -57,14 +77,15 @@ sub transform ($$$) {
 	print "***TRANSFORM START***\n" if $DEBUG;
 	delete $sh{"start"};
 	my $tmpfile = File::Temp::tmpnam();
-	system "$topformflat $arg < $cfile > $tmpfile";
-	print "ran $topformflat $arg < $cfile > $tmpfile\n" if $DEBUG;
+	my $cmd = "$topformflat $arg < $cfile | grep -v '^\\s*\$' > $tmpfile";
+	print $cmd if $DEBUG;
+	runit ($cmd);
 	if (compare($cfile, $tmpfile) == 0) {
 	    # this is a gross hack to avoid tripping the
 	    # pass-didn't-modify-file check in the C-Reduce core, in
 	    # the (generally unlikely) case where topformflat didn't
 	    # change the file at all
-	    print "gross blank line hack\n" if $DEBUG;
+	    print "gross blank line hack!\n" if $DEBUG;
 	    open OF, ">>$tmpfile" or die;
 	    print OF "\n";
 	    close OF;
@@ -92,7 +113,7 @@ sub transform ($$$) {
     my @data = ();
     while (my $line = <INF>) {
 	push @data, $line;
-	if ($DEBUG) {
+	if ($DEBUG && 0) {
 	    chomp $line;
 	    print "LINE PASS FILE DATA: '$line'\n";
 	}
@@ -101,7 +122,7 @@ sub transform ($$$) {
 
   AGAIN:
     $sh{"index"} = scalar(@data) if ($sh{"index"} > scalar(@data));
-    if ($sh{"index"} >= 0 && scalar(@data) > 0) {
+    if ($sh{"index"} >= 0 && scalar(@data) > 0 && $sh{"chunk"} > 0) {
 	my $start = $sh{"index"} - $sh{"chunk"};
 	$start = 0 if ($start < 0);
 	my $lines = scalar(@data);
@@ -109,7 +130,6 @@ sub transform ($$$) {
 	my $newlines = scalar(@data);
 	my $c = $sh{"chunk"};
 	print "went from $lines lines to $newlines with chunk $c\n" if $DEBUG;
-	die unless ($newlines < $lines);
 	my $tmpfile = File::Temp::tmpnam();
 	open OUTF, ">$tmpfile" or die;
 	foreach my $line (@data) {
@@ -117,7 +137,7 @@ sub transform ($$$) {
 	}
 	close OUTF;
 	if (compare($cfile, $tmpfile) == 0) {
-	    print "did not change file\n";
+	    print "did not change file\n" if $DEBUG;
 	    unlink $tmpfile;
 	    $sh{"index"} -= $sh{"chunk"};
 	    goto AGAIN;

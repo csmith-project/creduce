@@ -41,7 +41,7 @@ Therefore, in the above example, foo() will not be propagated. \n";
 static RegisterTransformation<CopyPropagation>
          Trans("copy-propagation", DescriptionMsg);
 
-class CopyPropCollectionVisitor : public 
+class CopyPropCollectionVisitor : public
         RecursiveASTVisitor<CopyPropCollectionVisitor> {
 public:
 
@@ -81,7 +81,7 @@ private:
   // In this case, we cannot copy-propagate a constant to i
   bool BeingIncDec;
 
-  // For MemberExpr and ArraySubscriptExpr, we don't want to 
+  // For MemberExpr and ArraySubscriptExpr, we don't want to
   // track the partial element. For example, a[0][0][0],
   // VisitArraySubscriptExpr will visit:
   //   a[0][0][0]
@@ -144,7 +144,7 @@ bool CopyPropCollectionVisitor::VisitUnaryOperator(UnaryOperator *UO)
     BeingAddrTaken = true;
     return true;
   }
-  
+
   if (UO->isIncrementDecrementOp())
     BeingIncDec = true;
 
@@ -204,7 +204,7 @@ bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
   return true;
 }
 
-bool 
+bool
 CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
 {
   if (BeingWritten || BeingAddrTaken || BeingPartial) {
@@ -212,7 +212,7 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
   }
 
   if (!BeingPartial)
-    BeingPartial = true;;
+    BeingPartial = true;
 
   const Expr *CopyE = ConsumerInstance->ArraySubToExpr[ASE];
   if (!CopyE) {
@@ -223,7 +223,7 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
       return true;
     }
   }
-  
+
   if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
     BeingIncDec = false;
     return true;
@@ -233,19 +233,19 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
   return true;
 }
 
-void CopyPropagation::Initialize(ASTContext &context) 
+void CopyPropagation::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new CopyPropCollectionVisitor(this);
 }
 
-bool CopyPropagation::HandleTopLevelDecl(DeclGroupRef D) 
+bool CopyPropagation::HandleTopLevelDecl(DeclGroupRef D)
 {
   for (DeclGroupRef::iterator I = D.begin(), E = D.end(); I != E; ++I)
     CollectionVisitor->TraverseDecl(*I);
   return true;
 }
- 
+
 void CopyPropagation::HandleTranslationUnit(ASTContext &Ctx)
 {
   if (QueryInstanceOnly)
@@ -358,7 +358,7 @@ void CopyPropagation::updateExpr(const Expr *E, const Expr *CopyE)
     return;
   }
 
-  default: 
+  default:
     TransAssert(0 && "Uncatched Expr!");
   }
 
@@ -407,7 +407,7 @@ bool CopyPropagation::hasSameStringRep(const Expr *CopyE,
   return (CopyStr == DominatedStr);
 }
 
-void CopyPropagation::addOneDominatedExpr(const Expr *CopyE, 
+void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
                                           const Expr *DominatedE)
 {
   if (isInIncludedFile(CopyE) || isInIncludedFile(DominatedE))
@@ -429,7 +429,7 @@ void CopyPropagation::addOneDominatedExpr(const Expr *CopyE,
   }
   ESet->insert(DominatedE);
 }
-  
+
 void CopyPropagation::doCopyPropagation(void)
 {
   std::string CopyStr("");

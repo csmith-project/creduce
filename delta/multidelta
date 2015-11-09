@@ -1,0 +1,169 @@
+#!/usr/bin/perl -w
+# multidelta; see License.txt for copyright and terms of use
+
+# ****************
+# driver for delta, which works with multiple input files
+# Scott McPeak smcpeak@cs.berkeley.edu
+
+# the goal here is to be able to minimize in-place: given
+# a fragment of a build process which exhibits some failure,
+# minimize the relevant files without disturbing the build
+# process fragment itself
+
+use strict 'subs';
+use FindBin;
+
+$delta          = "$FindBin::Bin/delta";
+$topformflat    = "$FindBin::Bin/topformflat";
+$log            = "multidelta.log";
+
+$level          = 0;
+$undo           = 0;
+$cpp            = 0;            # bool: use the cpp preprocessor?
+
+if (@ARGV == 0) {
+  print(<<"EOF");
+Multidelta version 2003.7.14
+
+usage: $0 [options] test-script file [file [...]]
+
+The collection of input files is minimized as much as possible, such
+that the test-script continues to return true.
+
+When the script is run with a source file as an argument, it should do
+any single-file integrity checks on that file.  Then, it should
+proceed to check the entire build, on the assumption that all other
+files have already passed their integrity checks.
+
+When the script is run with no arguments, it should check integrity of
+all files and then check the build.
+
+So that the script does not need to have the list of input files
+hard-coded in, the environment variable "multidelta_all_files" is
+always set to a space-separated list of the filenames no matter how
+the script is run.
+
+Options:
+  -level=n       When topformflattening, flatten to level n [$level].
+  -u             Undo the last invocation, by copying the *.bak files
+                   onto the original copies.
+  -cpp           Before flattening run through the cpp preprocessor.
+
+EOF
+  exit(0);
+}
+
+die "$topformflat doesn't exit or isn't executable.  Did you run 'make'?\n"
+    unless (-x $topformflat);
+
+while ($ARGV[0] =~ m"^-") {
+  if ($ARGV[0] =~ m"^-level=") {
+    ($level) = ($ARGV[0] =~ m"=(\d+)");
+  }
+  elsif ($ARGV[0] eq "-u") {
+    $undo = 1;
+  }
+  elsif ($ARGV[0] eq "-cpp") {
+    $cpp = 1;
+  }
+  else {
+    die ("unknown option: $ARGV[0]\n");
+  }
+  shift(@ARGV);
+}
+
+$script = $ARGV[0];
+shift(@ARGV);
+@files = @ARGV;
+for my $f(@files) {
+    die "Input file contains a space '$f'\n"
+        if $f=~/ /;             # multidelta_all_files won't work if filenames contain spaces.
+}
+# So the script knows all the files even if it is called in a mode
+# where not all of them are passed in.
+$ENV{"multidelta_all_files"} = join(" ", @files);
+
+
+if ($undo) {
+  # copy the .bak files back
+  for $fn (@files) {
+    diagnostic("reverting to backup copy of $fn");
+    run("cp -f ${fn}.bak $fn");
+  }
+  exit(0);
+}
+
+
+diagnostic("verify the script passes now");
+if (simpleRun($script) != 0) {
+  die "Initial test fails\n";
+}
+
+# for every input file, make a backup copy, and produce
+# another version with all comments and preprocessor
+# directives stripped, and toplevel forms flattened
+for $fn (@files) {
+  diagnostic("making a backup copy of $fn");
+  run("cp -f $fn ${fn}.bak");
+
+  if ($cpp) {
+      diagnostic("preprocessing and flattening $fn");
+      # -P: don't emit #line directives
+      run("cpp -P ${fn}.bak | $topformflat $level >$fn");
+  } else {
+      diagnostic("flattening $fn");
+      run("$topformflat $level <${fn}.bak >$fn");
+  }
+}
+
+diagnostic("verify still passes script");
+if (simpleRun($script) != 0) {
+  $actions = "topformflat";
+  if ($cpp) {
+    $actions = "cpp and " . $actions;
+  }
+  die "Test fails after $actions\n";
+}
+
+# one by one, apply delta
+for $fn (@files) {
+  diagnostic("applying delta to $fn");
+  run("$delta -in_place -test=$script $fn");
+
+  if (-f "DELTA-STOP") {
+    diagnostic("Stopping because DELTA-STOP exists");
+    exit 1;
+  }
+}
+
+print("multidelta is finished\n");
+exit(0);
+
+
+# -------------------- subroutines --------------------
+sub diagnostic {
+  print(@_, "\n");
+
+  open (LOG, ">>$log");
+  print LOG (@_, "\n");
+  close (LOG);
+}
+
+sub simpleRun {
+  my $ret = system(@_);
+  # from perldoc -f system
+  my $signal = $ret & 127;
+  my $exitValue = $ret >> 8;
+  if ($signal) {
+    die "$0 exiting due to signal $signal\n";
+  }
+  return $exitValue;
+}
+
+sub run {
+  diagnostic(@_);
+  my $exitValue = simpleRun(@_);
+  if ($exitValue) {
+    die "stopping because delta exited with exit value $exitValue: " . join(' ', @_) . "\n";
+  }
+}

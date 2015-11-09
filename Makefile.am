@@ -14,8 +14,10 @@ SUBDIRS = \
 	clang_delta \
 	clex \
 	creduce \
+	delta \
 	scripts \
-	tests
+	tests \
+	unifdef
 
 EXTRA_DIST = \
 	CMakeLists.txt \

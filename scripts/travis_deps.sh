@@ -44,13 +44,13 @@ apt-get install -y -qq \
 apt-get install -y -qq \
     indent \
     astyle \
-    delta \
     libbenchmark-timer-perl \
     libexporter-lite-perl \
     libfile-which-perl \
     libgetopt-tabular-perl \
     libregexp-common-perl \
     libsys-cpu-perl \
+    libterm-readkey-perl \
     flex \
     build-essential \
     libz-dev

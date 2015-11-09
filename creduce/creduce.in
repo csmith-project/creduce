@@ -52,8 +52,17 @@ use File::Spec;
 use File::Temp;
 use File::Copy;
 
-# Load module `Sys::CPU' if it is available.
-eval { require Sys::CPU; Sys::CPU->import(); };
+# Load and use the Sys::CPU module if available, don't complain otherwise
+my $NPROCS = 1;
+if (eval { require Sys::CPU; }) {
+    $NPROCS = Sys::CPU::cpu_count();
+    # Yang's data suggests that speedup peaks at 8 cores
+    $NPROCS = 8 if ($NPROCS > 8);
+}
+
+# Load and use the Term::ReadKey module if available, don't complain otherwise
+my $SKIP_KEY_OFF = 0;
+$SKIP_KEY_OFF = 1 unless eval { require Term::ReadKey; };
 
 if ($^O eq "MSWin32") {
     eval { require Win32::Process; Win32::Process->import(); };
@@ -65,12 +74,6 @@ use creduce_utils;
 ######################################################################
 
 my $GIVEUP_CONSTANT = 1000;
-my $NPROCS = 1;
-if (defined(&Sys::CPU::cpu_count)) {
-    $NPROCS = Sys::CPU::cpu_count();
-    # Yang's data suggests that speedup peaks at 8 cores
-    $NPROCS = 8 if ($NPROCS > 8);
-}
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SKIP_FIRST;
@@ -78,6 +81,7 @@ my $SAVE_TEMPS;
 my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
+my $DEBUG_SMP = 0;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
@@ -92,6 +96,7 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
+    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when 's' is pressed"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -129,6 +134,9 @@ file and its transitive includes (or any subset of them).
 If you haven't written an interestingness test before, please refer to
 this tutorial for additional guidance:
   https://embed.cs.utah.edu/creduce/using/
+
+Press "s" at any time to skip to the next pass (this feature is
+disabled unless Term::ReadKey is installed).
 HELP
 # ' balance for stupid emacs perl mode...
 
@@ -377,7 +385,7 @@ sub fork_helper($) {
             my $res = delta_test();
 	    print "delta_test() returned $res\n" if $DEBUG;
             my $exitcode = $res ? 0 : 1;
-	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG;
+	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG_SMP;
 	    exit ($exitcode);
         }
         return $pid;
@@ -433,8 +441,6 @@ EOT
     }
 }
 
-my $good_cnt;
-my $bad_cnt;
 my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
@@ -447,8 +453,7 @@ sub delta_pass ($) {
     (my $mref) = @_;
     my $delta_method = ${$mref}{"name"};
     my $delta_arg = ${$mref}{"arg"};
-    $good_cnt = 0;
-    $bad_cnt = 0;
+    my $skip = 0;
 
     die unless (scalar(@variants)==0);
     die unless ($num_running==0);
@@ -469,7 +474,17 @@ sub delta_pass ($) {
 	# create child processes until either:
 	# 1. we exhaust the concurrency budget
 	# 2. the pass tells us to STOP
-	while (!$stopped && $num_running < $NPROCS) {
+	# 3. $SKIP_KEY_OFF is not set and the "s" key on the terminal is pressed
+	if (!$SKIP_KEY_OFF) {
+	    Term::ReadKey::ReadMode(3);
+	    my $key = Term::ReadKey::ReadKey(-1);
+	    Term::ReadKey::ReadMode(0);
+	    if (defined($key) && $key eq "s") {
+		print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
+		$skip = 1;
+	    }
+	}
+	while (!($stopped || $skip) && $num_running < $NPROCS) {
 	    my $tmpdir = make_tmpdir();
 	    chdir $tmpdir or die;
 	    copy_files_here();
@@ -508,7 +523,6 @@ details that may help us reproduce the problem.
 EOT
                         print $BAD_PASS_MSG;
 		    }
-		    die;
 		    chdir $ORIG_DIR or die;
 		    $stopped = 1;
 		} else {
@@ -517,19 +531,19 @@ EOT
 		    push @variants, \@l;
 		    chdir $ORIG_DIR or die;
 		    $num_running++;
-		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG;
+		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
 		    $state = call_advance ($delta_method, $toreduce, $delta_arg, $state);
 		}
 	    }
 	}
 
 	if ($num_running > 0) {
-	    print "parent is waiting\n" if $DEBUG;
+	    print "parent is waiting\n" if $DEBUG_SMP;
 	    my $xpid = wait_helper();
 	    # UNIX 0/1 back to Perl T/F
 	    my $delta_result = (($? >> 8) == 0) ? 1 : 0;
 	    print "child $xpid had delta_result ${delta_result} (0 == uninteresting, 1 == interesting)\n"
-		if $DEBUG;
+		if $DEBUG_SMP;
 	    $num_running--;
 	    my $found = 0;
 	    my $len = scalar (@variants);
@@ -551,11 +565,9 @@ EOT
 	# starting at the front of the list, peel off all variants that
 	# aren't backed up by a running subprocess
 	while (scalar (@variants) > 0) {
-	    my $kidref = $variants[0];
-	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$kidref};
-	    last if ($pid != -1);
+	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$variants[0]};
+	    last unless ($pid == -1);
 	    my $trash = shift @variants;
-	    # ok, now we have a result to work with
 	    if ($delta_result) {
 		# now that the delta test succeeded, this becomes our
 		# new best version -- we do not call advance() in this
@@ -565,31 +577,33 @@ EOT
 		# nuke all ongoing speculation
 		killem ();
 
-		# here is where we actually accept the new result-- we
+		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
 		$state = $newsh;
 		File::Copy::copy ($toreduce, $toreduce_best[$current_file_index]) or die;
+
+		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
 		
-		$good_cnt++;
 		$since_success = 0;
 		$method_worked{$delta_method}{$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n" if $TIMING;
+		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n"
+		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
-		$bad_cnt++;
 		$since_success++;
 		$method_failed{$delta_method}{$delta_arg}++;
 	    }
-	    print "[${pass_num} ${delta_method} :: ${delta_arg} s:$good_cnt f:$bad_cnt] " if $DEBUG;
+	    print "[${pass_num} ${delta_method} :: ${delta_arg}] " if $DEBUG;
 	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
 		unless $SAVE_TEMPS;
 	}
 
-	# nasty heuristic for avoiding getting stuck by buggy passes that
-	# keep reporting success w/o making progress
+	# nasty heuristic for avoiding getting stuck by buggy passes
+	# that keep reporting success w/o making progress -- FIXME
+	# report a bug here
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
 	    remove_tmpdirs();
@@ -597,7 +611,7 @@ EOT
 	}
 
 	# termination condition for this pass
-	if ($stopped && scalar(@variants)==0) {
+	if (($skip || $stopped) && scalar(@variants)==0) {
 	    remove_tmpdirs();
 	    next;
 	}
@@ -613,25 +627,29 @@ sub line_delta_pass ($) {
 }
 
 my @all_methods = (
-    { "name" => "pass_comments", "arg" => "0",                       "pri" => 450,   "first_pass_pri" =>  0, },
+    { "name" => "pass_include_includes", "arg" => "0",               "pri" => 100, },
+    { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  0, },
+    { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,  "first_pass_pri" =>  0, },
+    { "name" => "pass_comments", "arg" => "0",                       "pri" => 451,  "first_pass_pri" =>  0, },
     { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  1, },
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>  2, },
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" =>  3, },
-    { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
-    { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" => 34, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
-    { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  22, },
+    #{ "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  23, },
     { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  24, },
-    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  25, },
+    #{ "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  25, },
     { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  27, },
     { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  28, },
-    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  29, },
+    #{ "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  29, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  30, },
     { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  31, },
-    { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  32, },
+    #{ "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  32, },
+
+    { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
+    { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" => 34, },
 
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  35, },
     { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  36, },
@@ -970,8 +988,8 @@ print "\n";
 
 # this should be the only time we touch the original file
 for (my $i=0; $i<scalar(@toreduce_best); $i++) {
-    File::Copy::copy($toreduce_best[$i], $toreduce_original[$i]) or die;
-    print "\n          '$toreduce_best[$i]' reduced to:\n";
+    File::Copy::move($toreduce_best[$i], $toreduce_original[$i]) or die;
+    print "\n          '$toreduce_original[$i]' reduced to:\n";
     open INF, "<$toreduce_original[$i]" or die;
     while (<INF>) {
 	print;

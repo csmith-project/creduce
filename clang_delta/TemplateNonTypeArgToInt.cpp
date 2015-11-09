@@ -123,7 +123,7 @@ bool TemplateNonTypeArgToInt::isValidTemplateArgument(
   }
 
   case TemplateArgument::Expression: {
-    const Expr *E = Arg.getAsExpr();
+    const Expr *E = Arg.getAsExpr()->IgnoreParenCasts();
     if (dyn_cast<IntegerLiteral>(E) || dyn_cast<CXXBoolLiteralExpr>(E))
       return false;
     if (const UnaryOperator *UO = dyn_cast<UnaryOperator>(E)) {

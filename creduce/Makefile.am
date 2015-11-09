@@ -25,11 +25,14 @@ dist_perllib_DATA = \
 	pass_clex.pm \
 	pass_comments.pm \
 	pass_special.pm \
+	pass_include_includes.pm \
+	pass_includes.pm \
 	pass_indent.pm \
 	pass_ints.pm \
 	pass_lines.pm \
 	pass_peep.pm \
-	pass_ternary.pm
+	pass_ternary.pm \
+	pass_unifdef.pm
 nodist_perllib_DATA = \
 	creduce_config.pm
 
@@ -79,8 +82,7 @@ creduce_config_edit = sed \
 	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g' \
 	-e 's|@ASTYLE[@]|$(ASTYLE)|g' \
 	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g' \
-	-e 's|@INDENT[@]|$(INDENT)|g' \
-	-e 's|@TOPFORMFLAT[@]|$(TOPFORMFLAT)|g'
+	-e 's|@INDENT[@]|$(INDENT)|g'
 
 creduce_config.pm: Makefile
 	rm -f $@ $@.tmp

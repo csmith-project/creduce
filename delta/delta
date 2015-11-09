@@ -1,0 +1,517 @@
+#!/usr/bin/perl -w
+# delta; see License.txt for copyright and terms of use
+
+use strict;
+
+# ****************
+# Implementation of the delta debugging algorithm:
+# http://www.st.cs.uni-sb.de/dd/
+# Daniel S. Wilkerson dsw@cs.berkeley.edu
+
+# Notes:
+
+# The test script should not depend on the current directory to work.
+
+# Note that 1-minimality does not imply idempotency, so we could
+# re-run once it is stuck, perhaps with some randomization.
+
+
+# Global State ****************
+
+my @chunks = ();                # Once input, is read only.
+my @markers = ();               # Delimits a dynamic subsequence of @chunks being considered.
+my %test_cache = ();            # Cached test results.
+
+# Mark boundaries that uniquely determine the marked contents.  This
+# is used as a shorter key to hash on than the contents themselves.
+# Since Perl hashes retain their keys if you don't do this you get a
+# horrible memory leak in the test_cache.
+my $mark_signature;
+
+# End of the last marker rendered to the tmp file.  Used to figure out
+# if the next one abuts it or not.
+my $last_mark_stop;
+my @current_markers;            # Markers to be rendered to $tmpinput if answer not in cache.
+
+my $tmpinput;                   # Temporary file to render marked subsequence to.
+my $last_successful_tmpinput;   # Last one to past the test.
+
+my $tmp_index = 0;              # Cache the last index used to make a tmp file.
+my $tmpdir_index = 0;           # Cache the last index used to make a tmp directory.
+my $tmpdir;                     # Temporary directory for external programs.
+my $logfile = "log";            # File in $tmpdir where log of successful runs is written.
+chomp (my $this_dir = `pwd`);   # The current directory.
+my $starttime = time;           # The time we started.
+
+my $granularity = "line";       # What is the size of an input chunk?
+my $dump_input = 0;             # Dump out the input after reading it in.
+my $cp_minimal;                 # Copy the minimal successful test to the current dir.
+my $verbose = 0;                # Be more verbose.
+my $quiet = 0;                  # Prints go to /dev/null.
+my $suffix = ".c";              # For now, our input files are .c files.
+my $test;                       # The script to run as the test.
+
+# when true, all operations on input file are in-place:
+#   - don't make a new directory
+#   - overwrite the original input file with our constructed inputs
+my $in_place = 0;
+my $start_file;                 # name of input/output file for in_place
+
+my $help_message = <<"END"
+
+    Delta version 2003.7.14
+    delta implements the delta-debugging algorithm:
+      http://www.st.cs.uni-sb.de/dd/
+    Implemented by Daniel Wilkerson.
+
+    usage: $0 [options] start-file
+
+    -test=<testscript>       Specify the test script.
+    -suffix=<suffix>         Candidate filename suffix [$suffix]
+    -dump_input              Dump input after reading
+    -cp_minimal=<filename>   Copy the minimal successful test to the
+                             current directory
+    -granularity=line        Use lines as the granularity (default)
+    -granularity=top_form    Use C top-level forms as the granularity
+                             (currently only works with CIL output)
+    -log=<file>              Log file for main events
+    -quiet                   Say nothing
+    -verbose                 Get more verbose output
+    -in_place                Overwrite start-file with inputs
+
+    -help                    Get help
+
+    The test program accepts a single argument, the name of the candidate
+    file to test.  It is run within a directory containing only that file,
+    and it can make temporary files/directories in that directory.  It
+    should return zero for a candidate that exhibits the desired property,
+    and nonzero for one that does not.
+
+    Example test program (delta will retain a line containing "foo"):
+      #!/bin/sh
+      grep 'foo' <"\$1" >/dev/null
+
+END
+;
+
+# Functions ****************
+
+sub output(@) {
+    print @_ unless $quiet;
+}
+
+# Return true if the current_markers pass the interesting test.
+sub test {
+    if (-f "DELTA-STOP") {
+        output "Stopping because DELTA-STOP file exists\n";
+        exit 1;
+    }
+
+    my $cached_result = $test_cache{$mark_signature};
+    if (defined $cached_result) {
+        output "\tcached\n";
+        return $cached_result;
+    }
+
+    render_tmpinput();
+
+    my $ret;
+    my $input;
+    if (!$in_place) {
+      output " $tmpinput";
+      my $arena = "$tmpdir/arena";
+      die if system "rm -rf $arena/*";    # sm: added -r so I can make directories in the arena
+      $input = "$tmpdir/$tmpinput";
+      my $arena_input = "input$suffix";
+      link $input, "$arena/$arena_input";
+      # $test gets fully qualified in parse_command_line()
+      $ret = system "cd $arena; $test $arena_input";
+    }
+    else {
+      # for in_place, the test program is free to ignore the argument
+      # (since it will be known ahead of time) but I'll pass it anyway
+      $ret = system "$test $start_file";
+      $input = $start_file;
+    }
+
+    # from perldoc -f system
+    my $signal = $ret & 127;
+    my $exitValue = $ret >> 8;
+
+    if ($signal) {
+        die "$0 exiting due to signal $signal\n";
+    }
+    my $result = ! $exitValue;
+
+    # Keep around info only for successful runs.
+    if ($result) {
+        my $size = (split " ", `wc -l $input`)[0];
+        output "\tSUCCESS, lines: $size ****************\n";
+        log_msg_time("$tmpinput, lines: $size");
+        if (!$in_place) {
+          $last_successful_tmpinput = $tmpinput;
+        }
+        else {
+          # make a single copy of the latest successful file
+          $last_successful_tmpinput = "${start_file}.ok";
+          die "cp failed" if system("cp ${start_file} $last_successful_tmpinput");
+        }
+    } else {
+        output "\n";
+        unlink $input unless $in_place;
+    }
+    return $test_cache{$mark_signature} = $result;
+}
+
+# given @current_markers, create a new file by writing the proper
+# subset of @chunks to a file; yield its name in $tmpinput
+sub render_tmpinput {
+    if ($in_place) {
+      # I can't just say $tmpinput = $start_file and be done with it,
+      # because in many places $tmpdir/ is prefixed (and I don't want
+      # to say $tmpdir="." because I want $start_file to possibly be
+      # an absolute path.
+      open TMPINPUT, ">$start_file" or die $!;
+      $tmpinput = $start_file;
+    }
+    else {
+      $tmpinput = unused_tempfile();
+      open TMPINPUT, ">${tmpdir}/$tmpinput" or die $!;
+    }
+    foreach my $marker (@current_markers) {
+        for (my $i=$marker->{start}; $i<$marker->{stop}; ++$i) {
+            print TMPINPUT $chunks[$i];
+        }
+    }
+    close TMPINPUT or die $!;   # NOTE: Leave $tmpinput defined.
+}
+
+sub start_marking {
+    @current_markers = ();
+    $mark_signature = "";
+    undef $last_mark_stop;
+}
+
+sub mark {
+    my ($marker) = @_;
+    push @current_markers, $marker;
+    if (defined $last_mark_stop) {
+        if ($last_mark_stop < $marker->{start}) {
+            $mark_signature .= $last_mark_stop . "]";
+            $mark_signature .= "[" . $marker->{start} . ",";
+        } elsif ($last_mark_stop == $marker->{start}) {
+            # This marker abuts the previous one.
+        } else {die}
+    } else {
+        $mark_signature .= "[" . $marker->{start} . ",";
+    }
+    $last_mark_stop = $marker->{stop};
+}
+
+sub stop_marking {
+    $mark_signature .= $last_mark_stop . "]" if defined $last_mark_stop;
+    output $mark_signature;
+}
+
+sub unused_tempfile {
+    die unless defined $tmpdir;
+    my $filename;
+    do {
+        $filename = sprintf("%03d", $tmp_index) . $suffix;
+        $tmp_index++;
+    } while -e "${tmpdir}/$filename";
+    return $filename;
+}
+
+sub unused_tempdir {
+  my $dirname;
+  for (; $dirname = "tmp${tmpdir_index}", -e $dirname; ++$tmpdir_index) {}
+  return $dirname;
+}
+
+sub select_tmpdir {
+    $tmpdir = unused_tempdir() unless defined $tmpdir;
+    die if -e $tmpdir;
+    mkdir $tmpdir, 0777 or die $!;
+    mkdir "${tmpdir}/arena", 0777 or die $!;
+}
+
+sub parse_command_line {
+    my $str;
+    my @non_flags = ();
+    while(defined ($str = shift @ARGV)) {
+        if ($str=~/^-([^=]+)(=(.+))?/) {
+            my ($flag, $argument) = ($1, $3);
+            if ($flag eq "help") {
+                output $help_message;
+                exit 0;
+            } elsif ($flag eq "dump_input") {
+                $dump_input++;
+            } elsif ($flag eq "verbose") {
+                $verbose++;
+            } elsif ($flag eq "quiet") {
+                $quiet++;
+            } elsif ($flag eq "granularity") {
+                if ($argument eq "line" || $argument eq "top_form") {
+                    $granularity = $argument;
+                }
+            } elsif ($flag eq "cp_minimal") {
+                $cp_minimal = $argument;
+            } elsif ($flag eq "test") {
+                $test = $argument;
+            } elsif ($flag eq "suffix") {
+                $suffix = $argument;
+            } elsif ($flag eq "log") {
+                $logfile = $argument;
+            } elsif ($flag eq "in_place") {
+                $in_place = 1;
+            } else {die "Illegal flag: $flag \n"}
+        } else {push @non_flags, $str;}
+    }
+    # Cleaning up.
+    die "You specified both verbose and quiet." if $verbose && $quiet;
+    push @ARGV, @non_flags;
+
+    # fully qualify $test if it's not already
+    die "You must specify a test script.\n" unless defined $test;
+    if ($test !~ m"^/") {
+      $test = "$this_dir/$test";
+    }
+
+    # sm: I like a usage string when I give no arguments but it doesn't
+    # make sense to read interactively (stdin is a tty)
+    if ((@ARGV == 0) && (-t STDIN)) {
+      output $help_message;
+      exit(0);
+    }
+
+    if ($in_place) {
+      if (@ARGV != 1) {
+        die "Must give exactly one explicit input file for -in_place."
+      }
+      $start_file = $ARGV[0];
+    }
+}
+
+sub render_settings {
+    my $out = "delta settings:\n";
+    if (!$in_place) {
+        $out .= "\ttemporary directory: $tmpdir\n";
+    }
+    $out .= "\tgranularity: $granularity\n";
+    my $input_str;
+    if (scalar @ARGV > 0) {
+        $input_str = join " ", @ARGV;
+    } else {
+        $input_str = "<stdin>";
+    }
+    $out .= "\tinput: $input_str\n";
+    return $out;
+}
+
+sub read_input_chunks {
+    if ($granularity eq "line") {
+        while (<>) {push @chunks, $_;} # Read one line at a time.
+    } elsif ($granularity eq "top_form") {
+        # Read chunks of C top-level forms.  I assume that any line
+        # starting with '//# ' followed by a line that does not start
+        # with a whitespace is a good boundary for a top-level form.
+        # I'm sure you could do this in one line with the proper
+        # setting to the regex that is the line seperator.
+        my $chunk = "";
+        my $a = <>;
+        while (<>) {
+            if ($a=~m|^//\# | and $_=~m|^\S|) {
+                push @chunks, $chunk;
+                $chunk = $a;
+            } else {
+                $chunk .= $a;
+            }
+            $a = $_;
+        }
+        $chunk .= $a;
+        push @chunks, $chunk;
+    } else {die "Illegal granularity setting: $granularity\n"}
+}
+
+sub dump_input {
+  output "Dumping input ****************\n";
+  if ($granularity eq "line") {
+      foreach my $chunk (@chunks) {output $chunk;}
+  } elsif ($granularity eq "top_form") {
+      foreach my $chunk (@chunks) {output "\t-----\n", $chunk}
+  } else {die "Illegal granularity setting: $granularity\n"}
+  output "****************\n";
+}
+
+sub check_initial_input {
+    die "The input must consist of at least one chunk." unless @chunks;
+    start_marking();
+    mark($markers[0]);
+    stop_marking();
+    die "\n\t**************** FAIL: The initial input does not pass the test.\n\n"
+        unless test();
+}
+
+sub dump_markers {
+  my $i = 0;
+  foreach my $marker (@markers) {
+    output "\t$i [", $marker->{start}, ", ", $marker->{stop}, "]\n";
+    ++$i;
+  }
+}
+
+sub increase_granularity {
+  output "\nIncrease granularity\n";
+  output "Before ";
+  dump_markers();
+  my @newmarkers = ();
+  my $split_one = 0;
+  foreach my $marker (@markers) {
+    my $half = int (($marker->{start} + $marker->{stop}) / 2);
+    if ($half == $marker->{start} or $half == $marker->{stop}) {
+      push @newmarkers, $marker;
+    } else {
+      ++$split_one;
+      push @newmarkers, {start=>$marker->{start}, stop=>$half};
+      push @newmarkers, {start=>$half, stop=>$marker->{stop}};
+    }
+  }
+  @markers = @newmarkers;
+  output "After ";
+  dump_markers();
+  output "\n";
+  return $split_one;
+}
+
+sub dhms_from_seconds {
+    my ($total_seconds) = @_;
+    my $sec = $total_seconds % 60;
+
+    my $total_minutes = ($total_seconds - $sec) / 60;
+    die unless $total_minutes == (int $total_minutes);
+    my $min = $total_minutes % 60;
+
+    my $total_hours = ($total_minutes - $min) / 60;
+    die unless $total_hours == (int $total_hours);
+    my $hours = $total_hours % 24;
+
+    my $days = ($total_hours - $hours) / 24;
+    die unless $days == (int $days);
+
+    return ($days, $hours, $min, $sec);
+}
+
+sub timestamp {
+    my $now = time;             # Get a timestamp in seconds.
+    my $elapsed = $now - $starttime; # Make relative to start time.
+    my ($d,$h,$m,$s) = dhms_from_seconds($elapsed); # Convert to more familiar format.
+    my $elapsed_dhms = sprintf("%02d:%02d:%02d", $h, $m, $s); # Format.
+    if ($d > 0) {
+        my $day_str = "$d day";
+        $day_str .= "s" if $d > 1;
+        $day_str .= ", ";
+        $elapsed_dhms = $day_str . $elapsed_dhms;
+    }
+    my $timestr = scalar localtime($now); # Format as abolute.
+    return sprintf("%d sec/%s\t%s", $elapsed, $elapsed_dhms, $timestr);
+}
+
+sub log_msg {
+    my ($message) = @_;
+    open LOG, ">>${logfile}" or die $!;
+    print LOG $message, "\n";
+    close LOG or die $!;
+}
+
+sub log_msg_time {
+    my ($message) = @_;
+    log_msg(sprintf("%-39s %s", $message, timestamp()));
+}
+
+sub done {
+    output "Could not increase granularity; we are done.\n";
+    output "A log of successful runs is in ${logfile}\n";
+    if (defined $cp_minimal) {
+        output "Copying minimal run to $cp_minimal\n";
+        die "cp failed" if system "cp ${tmpdir}/${last_successful_tmpinput} $cp_minimal";
+    }
+    if ($in_place) {
+        die "cp failed" if system("cp $last_successful_tmpinput $start_file");
+    }
+    log_msg_time("delta done");
+    exit 0;
+}
+
+# Main ****************
+
+parse_command_line();
+select_tmpdir() unless $in_place;
+if (!$in_place) {
+  $logfile = "${tmpdir}/$logfile" if $logfile!~m|^/|; # Make absolute.
+}
+my $settings = render_settings();
+log_msg($settings);
+if ($verbose) {
+    output "\nDelta debugging algorithm, implemented by Daniel S. Wilkerson.\n";
+    output $settings, "\n";
+}
+log_msg_time("delta start");
+
+read_input_chunks();
+dump_input() if $dump_input;
+$markers[0] = {start=>0, stop=>(scalar @chunks)}; # Initialize one marker.
+check_initial_input();          # This is a vital step!  Don't omit it!
+
+big_loop: {
+
+    # NOTE: this paragraph is part of the strict delta algorithm, but
+    # it is not actually necessary, so by default I implement
+    # something that is a little different from the published
+    # algorithm.  Un-comment this paragraph to have the algorithm
+    # strictly as published.
+
+    # Test the single markers.
+#      foreach my $test_marker (@markers) {
+#          start_marking();
+#          mark($test_marker);
+#          stop_marking();
+#          if (test()) {
+#              @markers = ($test_marker); # Get rid of all markers but this one.
+#              if (increase_granularity()) {redo big_loop;}
+#              else {done()}
+#          }
+#      }
+
+    # Test the complements to single markers.
+  complement_loop: {
+        my %excluded = ();
+        # Try them in reverse.  In both the above "positive" loop and
+        # this "negative" loop, the things you are throwing away start
+        # at the end of the data, thus the two strategies are
+        # consistent.
+        foreach my $excluded_marker (reverse @markers) {
+            start_marking();
+            foreach my $marker (@markers) {
+                next if $marker eq $excluded_marker;
+                next if $excluded{$marker};
+                mark($marker);
+            }
+            stop_marking();
+            if (test()) {
+                die "Can't happen" if $excluded{$excluded_marker};
+                $excluded{$excluded_marker}++;
+            }
+        }
+        # If any were excluded, record this fact into @markers.
+        my @excluded_keys = keys %excluded;
+        if (@excluded_keys) {
+            @markers = grep {!$excluded{$_}} @markers;
+            redo complement_loop; # Retry at the same granularity.
+        }
+    }
+
+    # None of them worked, increase the granularity.
+    if (increase_granularity()) {redo big_loop;}
+    else {done()}
+}

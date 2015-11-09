@@ -48,7 +48,7 @@ private:
 
   SimplifyNestedClassVisitor *CollectionVisitor;
 
-  SimplifyNestedClassRewriteVisitor *RewriteVisitor;;
+  SimplifyNestedClassRewriteVisitor *RewriteVisitor;
 
   const clang::CXXRecordDecl *TheBaseCXXRD;
 

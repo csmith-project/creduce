@@ -96,14 +96,25 @@ AX_PROG_PERL_MODULES(
     File::Which
     Getopt::Tabular
     Regexp::Common
-    Sys::CPU
   ],
   [
-    PERL_MODULES=yes
+    REQUIRED_PERL_MODULES=yes
   ],
   [
-    PERL_MODULES=no
+    REQUIRED_PERL_MODULES=no
     missing_required_runtime_prereq=yes
+  ])
+AX_PROG_PERL_MODULES(
+  [
+    Sys::CPU
+    Term::ReadKey
+  ],
+  [
+    OPTIONAL_PERL_MODULES=yes
+  ],
+  [
+    OPTIONAL_PERL_MODULES=no
+    missing_optional_runtime_prereq=yes
   ])
 #
 # creduce/pass_indent.pm
@@ -119,12 +130,6 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 AC_ARG_VAR([INDENT], [`indent' program])
 AC_PATH_PROG([INDENT], [indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
-#
-# creduce/pass_lines.pm
-#
-AC_ARG_VAR([TOPFORMFLAT], [`topformflat' (Berkeley Delta) program])
-AC_PATH_PROG([TOPFORMFLAT], [topformflat], [no])
-AS_IF([test "x$TOPFORMFLAT" = "xno"], [missing_required_runtime_prereq=yes])
 
 ###############################################################################
 
@@ -133,8 +138,10 @@ AC_OUTPUT(
   clang_delta/Makefile
   clex/Makefile
   creduce/Makefile
+  delta/Makefile
   scripts/Makefile
   tests/Makefile
+  unifdef/Makefile
 )
 
 ###############################################################################
@@ -147,7 +154,7 @@ AC_OUTPUT(
 AS_IF([test "$missing_required_runtime_prereq" = "yes"],
   AS_BOX([WARNING: You cannot run C-Reduce until you install missing dependencies!]))
 
-AS_IF([test "$PERL_MODULES" = "no"],
+AS_IF([test "$REQUIRED_PERL_MODULES" = "no"],
   [
     AC_MSG_WARN([You must install Perl modules required by C-Reduce.])
   ])
@@ -155,11 +162,6 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"],
   [
     AC_MSG_WARN([You must install `clang-format' before running C-Reduce.])
     CLANG_FORMAT=clang-format
-  ])
-AS_IF([test "x$TOPFORMFLAT" = "xno"],
-  [
-    AC_MSG_WARN([You must install Berkeley Delta before running C-Reduce.])
-    TOPFORMFLAT=topformflat
   ])
 
 AS_IF([test "$missing_required_runtime_prereq" = "yes"],
@@ -170,6 +172,10 @@ AS_IF([test "$missing_required_runtime_prereq" = "yes"],
 AS_IF([test "$missing_optional_runtime_prereq" = "yes"],
   AS_BOX([NOTE: The following optional C-Reduce dependencies were not found.      ]))
 
+AS_IF([test "$OPTIONAL_PERL_MODULES" = "no"],
+  [
+    AC_MSG_NOTICE([One or more useful Perl modules were not found.])
+  ])
 AS_IF([test "x$ASTYLE" = "xno"],
   [
     AC_MSG_NOTICE([Artistic Style (`astyle') was not found.])
