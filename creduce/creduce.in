@@ -15,24 +15,6 @@
 #
 ####################################################################
 
-## TODO:
-# correctly preserve the set of files for reporting a multi-file bug
-#   easy-- just copy the working directory into the cwd
-# specify passes using a config file
-# debug clex crashes, add crash reporting for it?
-# maybe implement passes to:
-#   delete function bodies using the line delta algorithm
-#   ensure that identifiers first appear in sorted order
-#   identifiers are dense
-#   reduce the non-header-file part first, and use PCHs
-# maybe: fix the caching code and then benchmark on some large reductions
-#   measure hits by pass
-#   consider turning on caching only for passes that benefit
-# merge adjacent strings?
-# support adding/removing passes via the command line
-# maybe add a format string reduction pass that eliminates a format
-#   specifier and also the corresponding argument
-
 use strict;
 use warnings;
 require 5.10.0;
