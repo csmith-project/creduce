@@ -157,7 +157,7 @@ sub transform ($$$) {
 		}
 	    }
 	    unlink $tmpfile;
-	    return ($STOP, \%sh);
+	    return ($ERROR, \%sh);
 	}    	
 	File::Copy::move($tmpfile, $cfile);
     } else {

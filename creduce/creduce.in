@@ -16,10 +16,9 @@
 ####################################################################
 
 ## TODO:
+# correctly preserve the set of files for reporting a multi-file bug
+#   easy-- just copy the working directory into the cwd
 # specify passes using a config file
-# add support for reducing non-preprocessed code
-#   remove comments
-#   remove preprocessor directives after preprocessing
 # debug clex crashes, add crash reporting for it?
 # maybe implement passes to:
 #   delete function bodies using the line delta algorithm
@@ -82,10 +81,12 @@ my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
 my $DEBUG_SMP = 0;
+my $DIE_ON_PASS_BUG = 0;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--shaddap",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--shaddap",             "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
@@ -492,8 +493,12 @@ sub delta_pass ($) {
 	    # testing variants that happens in parallel
 	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly[$current_file_index]);
 	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
-	    die unless ($delta_res == $OK || $delta_res == $STOP);
-	    if ($delta_res == $STOP) {
+	    die "Unexpected return code from pass: this is a C-Reduce bug"
+		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
+	    # FIXME would be great if clang_delta became robust enough that we could afford to die when it fails
+	    die "Pass asked main C-Reduce to die, so doing that" if
+		$delta_res == $ERROR && $delta_method ne "pass_clang" && $delta_method ne "pass_clang_binsrch";		
+	    if ($delta_res == $STOP || $delta_res == $ERROR) {
 		chdir $ORIG_DIR or die;
 		$stopped = 1;
 	    } else {
@@ -525,6 +530,7 @@ EOT
 		    }
 		    chdir $ORIG_DIR or die;
 		    $stopped = 1;
+		    die "Pass didn't change test case" if $DIE_ON_PASS_BUG;
 		} else {
 		    my $pid = fork_helper ($toreduce);
 		    my @l = ($pid, $state, $tmpdir, $toreduce, -99);
@@ -607,6 +613,8 @@ EOT
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
 	    remove_tmpdirs();
+	    print "OOPS: pass got stuck!\n" unless $IGNORE_PASS_BUGS;
+	    die if $DIE_ON_PASS_BUG;
 	    next;
 	}
 

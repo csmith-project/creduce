@@ -71,14 +71,16 @@ sub transform ($$$) {
     my $tmpfile = File::Temp::tmpnam();
     my $cmd = qq{"$clex" $which $index $cfile};
     print "$cmd\n" if $DEBUG;
-    my $res = runit ("$cmd > $tmpfile");
-    if ($res==0) {
+    system ("$cmd > $tmpfile");
+    my $res = $? >> 8;
+    if ($res == 51) {
 	File::Copy::move($tmpfile, $cfile);
 	return ($OK, \$index);
     } else {
-	if ($res == -1) {
-	} else {
-	    # TODO -- log a crash like we do for clang-delta
+	if ($res != 71) {
+	    print "OOPS clex command '$cmd' returned unexpected value $res\n"
+		unless $IGNORE_PASS_BUGS;
+	    return ($ERROR, \$index);
 	}
 	unlink $tmpfile;
 	return ($STOP, \$index);

@@ -17,6 +17,9 @@
 
 #include "defs.h"
 
+const int OK = 51;
+const int STOP = 71;
+
 struct tok_t {
   char *str;
   enum tok_kind kind;
@@ -70,7 +73,7 @@ void print_toks(void) {
   for (i = 0; i < toks; i++) {
     printf("%s", tok_list[i].str);
   }
-  exit(0);
+  exit(OK);
 }
 
 void number_tokens(int ignore_renamed, int *max_id_seen_p, int *max_tok_p) {
@@ -145,11 +148,11 @@ void collapse_toks(int tok_index) {
             printf("%s", tok_list[k].str);
           }
         }
-        exit(0);
+        exit(OK);
       }
     }
   }
-  exit(1);
+  exit(STOP);
 }
 
 // FIXME: have a C++ mode that avoids trying to rename C++ keywords?
@@ -176,9 +179,9 @@ void rename_toks(int tok_index) {
   }
   if (matched) {
     // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -219,9 +222,9 @@ void remove_asm_comment(int idx) {
     printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -268,9 +271,9 @@ void remove_asm_line(int idx) {
     printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -293,9 +296,9 @@ void shorten_string(int idx) {
     printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -320,9 +323,9 @@ void x_string(int idx) {
     printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -353,9 +356,9 @@ void shorten_int(int idx) {
     printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -378,9 +381,9 @@ void delete_string(int idx) {
       printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -422,9 +425,9 @@ void reverse_toks(int idx) {
 #endif
 
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -445,9 +448,9 @@ void rm_toks(int idx) {
       printf("%s", tok_list[i].str);
   }
   if (matched) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
@@ -523,16 +526,16 @@ void rm_tok_pattern(int idx) {
       printf("%s", tok_list[i].str);
   }
   if (matched && deleted) {
-    exit(0);
+    exit(OK);
   } else {
-    exit(1);
+    exit(STOP);
   }
 }
 
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     printf("USAGE: %s command index file\n", argv[0]);
-    exit(1);
+    exit(STOP);
   }
 
   char *cmd = argv[1];
@@ -572,7 +575,7 @@ int main(int argc, char *argv[]) {
     assert(n_toks > 1 && n_toks <= 8);
   } else {
     printf("error: unknown mode '%s'\n", cmd);
-    exit(50);
+    assert(0);
   }
 
   int tok_index;

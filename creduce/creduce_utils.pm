@@ -16,7 +16,7 @@ use Exporter::Lite;
 use File::Spec;
 use File::Which;
 
-@EXPORT      = qw($DEBUG $IGNORE_PASS_BUGS $OK $STOP
+@EXPORT      = qw($DEBUG $IGNORE_PASS_BUGS $OK $STOP $ERROR
 		  find_external_program
 		  runit 
                   run_clang_delta
@@ -29,6 +29,7 @@ $IGNORE_PASS_BUGS = 0;
 
 $OK = 999999;
 $STOP = 111333;
+$ERROR = 223334;
 
 sub find_external_program($$) {
     my ($configured_path, $program_name) = @_;
