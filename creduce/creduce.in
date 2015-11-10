@@ -79,7 +79,7 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
-    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when 's' is pressed"],
+    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
