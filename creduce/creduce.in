@@ -28,7 +28,6 @@ use File::Which;
 use Getopt::Tabular;
 use POSIX;
 use Regexp::Common;
-use Benchmark::Timer;
 use File::Spec;
 use File::Temp;
 use File::Copy;
@@ -867,9 +866,6 @@ sub sigHandler {
     die "$sigName caught, terminating $$\n";
 }
 
-my $timer = Benchmark::Timer->new();
-$timer->start();
-
 my %prereqs_checked;
 foreach my $mref (@all_methods) {
     my %method = %{$mref};
@@ -992,9 +988,5 @@ foreach my $fn (sort byrsize @toreduce) {
     }
     close INF;
 }
-
-$timer->stop();
-my $time = int($timer->result());
-print "elapsed time: $time seconds\n";
 
 ######################################################################
