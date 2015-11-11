@@ -177,12 +177,11 @@ my $orig_total_file_size = 0;
 
 # these are set at startup time and never change
 my $test;
-my $trial_num = 0;
 my $ORIG_DIR;
 
 my @toreduce_orig;
-my @toreduce_fileonly;
-my @suffix;
+my %toreduce_fileonly;
+my %suffix;
 
 ######################################################################
 
@@ -228,8 +227,8 @@ sub delta_test () {
 }
 
 sub copy_files_here() {
-    for (my $i=0; $i<scalar(@toreduce_orig); $i++) {
-	File::Copy::copy($toreduce_orig[$i],$toreduce_fileonly[$i]) or die;
+    foreach my $f (@toreduce_orig) {
+	File::Copy::copy($f,$toreduce_fileonly{$f}) or die;
     }
 }
 
@@ -242,7 +241,7 @@ sub sanity_check () {
     if (!delta_test()) {
 	chdir $ORIG_DIR;
 	my $stuff = "";
-	foreach my $f (@toreduce_fileonly) {
+	foreach my $f (sort keys %toreduce_fileonly) {
 	    $stuff .= " $f";
 	}
 	print <<"EOT";
@@ -409,8 +408,8 @@ sub wait_helper() {
 
 sub check_for_nonzero_size() {
     my $nonzero = 0;
-    for (my $i=0; $i<scalar(@toreduce_orig); $i++) {
-	if (-s $toreduce_orig[$i] != 0) {
+    foreach my $fn (@toreduce_orig) {
+	if (-s $fn != 0) {
 	    $nonzero = 1;
 	    last;
 	}
@@ -456,9 +455,10 @@ sub delta_pass ($) {
     print "\n" if $DEBUG;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    for (my $current_file_index=0; $current_file_index<scalar(@toreduce_fileonly); $current_file_index++) {
-	next if ((-s $toreduce_orig[$current_file_index]) == 0);
-	my $state = call_new ($delta_method,$toreduce_fileonly[$current_file_index],$delta_arg);
+    @toreduce_orig = sort bysize @toreduce_orig;
+    foreach my $fn (@toreduce_orig) {
+	next unless (-s $fn > 0);
+	my $state = call_new ($delta_method,$toreduce_fileonly{$fn},$delta_arg);
 	my $since_success = 0;
 	my $stopped = 0;
 
@@ -483,7 +483,7 @@ sub delta_pass ($) {
 	    copy_files_here();
 	    # creating the variant is done in the parent, it's only
 	    # testing variants that happens in parallel
-	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly[$current_file_index]);
+	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly{$fn});
 	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
 	    die "Unexpected return code from pass: this is a C-Reduce bug"
 		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
@@ -494,13 +494,13 @@ sub delta_pass ($) {
 		chdir $ORIG_DIR or die;
 		$stopped = 1;
 	    } else {
-		system "diff $toreduce_orig[$current_file_index] $toreduce" if ($PRINT_DIFF);
-		if (compare ($toreduce_orig[$current_file_index], $toreduce) == 0 &&
+		system "diff $fn $toreduce" if ($PRINT_DIFF);
+		if (compare ($fn, $toreduce) == 0 &&
 		    $delta_method ne "pass_indent") {
 		    if (!$IGNORE_PASS_BUGS) {
 			my $n = int(rand(1000000));
 			my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
-			File::Copy::copy($toreduce_orig[$current_file_index], $crashfile) or die;
+			File::Copy::copy($fn, $crashfile) or die;
 			my $BAD_PASS_MSG = <<"EOT";
 
 
@@ -578,7 +578,7 @@ EOT
 		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
 		$state = $newsh;
-		File::Copy::copy ($toreduce, $toreduce_orig[$current_file_index]) or die;
+		File::Copy::copy ($toreduce, $fn) or die;
 
 		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
@@ -587,7 +587,7 @@ EOT
 		$method_worked{$delta_method}{$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $toreduce_orig[$current_file_index])."\n"
+		print "timestamp ".time()." size ".(-s $fn)."\n"
 		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
@@ -898,13 +898,14 @@ sub bysize {
     return (-s $b) <=> (-s $a);
 }
 
-# sort by size so pass_lines can hit the biggest files first
-@toreduce_orig = sort bysize @toreduce_orig;
+sub byrsize {
+    return (-s $a) <=> (-s $b);
+}
 
 foreach my $f (@toreduce_orig) {
     my $s = -s $f;
     (my $fo) = fileparse($f);
-    push @toreduce_fileonly, $fo;
+    $toreduce_fileonly{$f} = $fo;
     # optionally, make a backup of the file(s) we're reducing-- this
     # is useful when reductions go wrong
     if ($BACKUP && (! -e "${fo}.orig")) {
@@ -983,9 +984,9 @@ foreach my $mref (sort byname @all_methods) {
 
 print "\n";
 
-for (my $i=0; $i<scalar(@toreduce_orig); $i++) {
-    print "\n          '$toreduce_orig[$i]' reduced to:\n";
-    open INF, "<$toreduce_orig[$i]" or die;
+foreach my $fn (sort byrsize @toreduce_orig) {
+    print "\n          '$fn' reduced to:\n";
+    open INF, "<$fn" or die;
     while (<INF>) {
 	print;
     }
