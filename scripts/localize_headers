@@ -112,11 +112,9 @@ close OF;
 my %map;
 my %rmap;
 
-sub substitute($$$$$) {
-    (my $from, my $file, my $lref, my $next, my $line) = @_;
+sub substitute($$$$) {
+    (my $file, my $lref, my $next, my $line) = @_;
     my @list = @{$lref};
-
-    print OUTF "# 0 // original line: \"$line\"\n" if $debug;
 
     print "  we're trying to localize '$file'\n" if $debug;
     print "    looking for next after $next\n" if $debug && $next ne "";
@@ -133,19 +131,14 @@ sub substitute($$$$$) {
 		if (exists $map{$path}) {
 		    my $f = $map{$path};
 		    print "    found: -> '$dir' '$f'\n" if $debug;
+		    print OUTF "#pragma \"$path\"\n";
 		    print OUTF "#include \"$f\"";
-		    print OUTF " // $path" if $debug;
 		    print OUTF "\n";
 		    return;
 		}
 	    }
 	}
     }
-    # since we're not actually preprocessing, but rather going through
-    # each header file renaming include files, it is natural that
-    # we'll run into some files that don't exist on this system --
-    # this is no problem but we want to trigger an error if such a
-    # file ends up being included incorrectly
     print "not found '$file'\n" if $debug;
     print OUTF "#error localize_headers should not have tried to include $file\n";
 }
@@ -165,15 +158,15 @@ sub rewrite($$) {
 	chomp $line;
 	$n++;
 	if ($line =~ /^\s*#\s*include\s+\"(.*?)\"/) {
-	    substitute($absfile, $1, \@dotincludes, "", $line);
+	    substitute($1, \@dotincludes, "", $line);
 	    next;
 	}
 	if ($line =~ /^\s*#\s*include\s+\<(.*?)\>/) {
-	    substitute($absfile, $1, \@includes, "", $line);
+	    substitute($1, \@includes, "", $line);
 	    next;
 	}
 	if ($line =~ /^\s*#\s*include_next\s+\<(.*?)\>/) {
-	    substitute($absfile, $1, \@includes, $absfile, $line);
+	    substitute($1, \@includes, $absfile, $line);
 	    next;
 	}
 	print OUTF $line."\n";
