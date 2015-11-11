@@ -171,7 +171,6 @@ sub add_pass {
 
 ######################################################################
 
-my @orig_file_size;
 my $total_file_size = 0;
 my $orig_total_file_size = 0;
 
@@ -180,7 +179,7 @@ my $test;
 my $ORIG_DIR;
 
 my @toreduce_orig;
-my %toreduce_fileonly;
+my %fileonly;
 my %suffix;
 
 ######################################################################
@@ -228,7 +227,7 @@ sub delta_test () {
 
 sub copy_files_here() {
     foreach my $f (@toreduce_orig) {
-	File::Copy::copy($f,$toreduce_fileonly{$f}) or die;
+	File::Copy::copy($f,$fileonly{$f}) or die;
     }
 }
 
@@ -241,7 +240,7 @@ sub sanity_check () {
     if (!delta_test()) {
 	chdir $ORIG_DIR;
 	my $stuff = "";
-	foreach my $f (sort keys %toreduce_fileonly) {
+	foreach my $f (sort keys %fileonly) {
 	    $stuff .= " $f";
 	}
 	print <<"EOT";
@@ -458,7 +457,7 @@ sub delta_pass ($) {
     @toreduce_orig = sort bysize @toreduce_orig;
     foreach my $fn (@toreduce_orig) {
 	next unless (-s $fn > 0);
-	my $state = call_new ($delta_method,$toreduce_fileonly{$fn},$delta_arg);
+	my $state = call_new ($delta_method,$fileonly{$fn},$delta_arg);
 	my $since_success = 0;
 	my $stopped = 0;
 
@@ -483,8 +482,8 @@ sub delta_pass ($) {
 	    copy_files_here();
 	    # creating the variant is done in the parent, it's only
 	    # testing variants that happens in parallel
-	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly{$fn});
-	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
+	    my $variant = File::Spec->catfile($tmpdir, $fileonly{$fn});
+	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
 	    die "Unexpected return code from pass: this is a C-Reduce bug"
 		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
 	    # FIXME would be great if clang_delta became robust enough that we could afford to die when it fails
@@ -494,8 +493,8 @@ sub delta_pass ($) {
 		chdir $ORIG_DIR or die;
 		$stopped = 1;
 	    } else {
-		system "diff $fn $toreduce" if ($PRINT_DIFF);
-		if (compare ($fn, $toreduce) == 0 &&
+		system "diff $fn $variant" if ($PRINT_DIFF);
+		if (compare ($fn, $variant) == 0 &&
 		    $delta_method ne "pass_indent") {
 		    if (!$IGNORE_PASS_BUGS) {
 			my $n = int(rand(1000000));
@@ -524,13 +523,13 @@ EOT
 		    $stopped = 1;
 		    die "Pass didn't change test case" if $DIE_ON_PASS_BUG;
 		} else {
-		    my $pid = fork_helper ($toreduce);
-		    my @l = ($pid, $state, $tmpdir, $toreduce, -99);
+		    my $pid = fork_helper ($variant);
+		    my @l = ($pid, $state, $tmpdir, $variant, -99);
 		    push @variants, \@l;
 		    chdir $ORIG_DIR or die;
 		    $num_running++;
 		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
-		    $state = call_advance ($delta_method, $toreduce, $delta_arg, $state);
+		    $state = call_advance ($delta_method, $variant, $delta_arg, $state);
 		}
 	    }
 	}
@@ -548,10 +547,10 @@ EOT
 	    for (my $k=0; $k<scalar(@variants); $k++) {
 		my $kidref = $variants[$k];
 		die unless (scalar(@{$kidref})==5);
-		(my $pid,my $newsh,my $tmpdir,my $toreduce,my $res) = @{$kidref};
+		(my $pid,my $newsh,my $tmpdir,my $var,my $res) = @{$kidref};
 		if ($xpid == $pid) {
 		    $found = 1;
-		    my @l = (-1,$newsh,$tmpdir,$toreduce,$delta_result);
+		    my @l = (-1,$newsh,$tmpdir,$var,$delta_result);
 		    splice (@variants, $k, 1, \@l);
 		    last;
 		}
@@ -563,7 +562,7 @@ EOT
 	# starting at the front of the list, peel off all variants that
 	# aren't backed up by a running subprocess
 	while (scalar (@variants) > 0) {
-	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$variants[0]};
+	    (my $pid,my $newsh,my $tmpdir,my $variant,my $delta_result) = @{$variants[0]};
 	    last unless ($pid == -1);
 	    my $trash = shift @variants;
 	    if ($delta_result) {
@@ -578,7 +577,7 @@ EOT
 		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
 		$state = $newsh;
-		File::Copy::copy ($toreduce, $fn) or die;
+		File::Copy::copy ($variant, $fn) or die;
 
 		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
@@ -905,13 +904,12 @@ sub byrsize {
 foreach my $f (@toreduce_orig) {
     my $s = -s $f;
     (my $fo) = fileparse($f);
-    $toreduce_fileonly{$f} = $fo;
+    $fileonly{$f} = $fo;
     # optionally, make a backup of the file(s) we're reducing-- this
     # is useful when reductions go wrong
     if ($BACKUP && (! -e "${fo}.orig")) {
 	File::Copy::copy($f,"${fo}.orig") or die;
     }
-    push @orig_file_size, -s $f;
     $orig_total_file_size += -s $f;
     $total_file_size += -s $f;
 }
