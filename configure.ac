@@ -91,7 +91,6 @@ missing_optional_runtime_prereq=no
 #
 AX_PROG_PERL_MODULES(
   [
-    Benchmark::Timer
     Exporter::Lite
     File::Which
     Getopt::Tabular
