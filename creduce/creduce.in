@@ -176,9 +176,9 @@ my $orig_total_file_size = 0;
 
 # these are set at startup time and never change
 my $test;
-my $ORIG_DIR;
+my $orig_dir;
 
-my @toreduce_orig;
+my @toreduce;
 my %fileonly;
 my %suffix;
 
@@ -186,7 +186,7 @@ my %suffix;
 
 sub print_pct () {
     my $s = 0;
-    foreach my $f (@toreduce_orig) {
+    foreach my $f (@toreduce) {
 	$s += -s $f;
     }
     my $pct = 100 - ($s * 100.0 / $orig_total_file_size);
@@ -226,7 +226,7 @@ sub delta_test () {
 }
 
 sub copy_files_here() {
-    foreach my $f (@toreduce_orig) {
+    foreach my $f (@toreduce) {
 	File::Copy::copy($f,$fileonly{$f}) or die;
     }
 }
@@ -238,7 +238,7 @@ sub sanity_check () {
     chdir $tmpdir or die;
     copy_files_here();
     if (!delta_test()) {
-	chdir $ORIG_DIR;
+	chdir $orig_dir;
 	my $stuff = "";
 	foreach my $f (sort keys %fileonly) {
 	    $stuff .= " $f";
@@ -265,7 +265,7 @@ EOT
         exit 1;
     }
     print "successful\n" if $DEBUG;
-    chdir $ORIG_DIR or die;
+    chdir $orig_dir or die;
     remove_tmpdirs();
 }
 
@@ -407,7 +407,7 @@ sub wait_helper() {
 
 sub check_for_nonzero_size() {
     my $nonzero = 0;
-    foreach my $fn (@toreduce_orig) {
+    foreach my $fn (@toreduce) {
 	if (-s $fn != 0) {
 	    $nonzero = 1;
 	    last;
@@ -415,7 +415,7 @@ sub check_for_nonzero_size() {
     }
     if (!$nonzero) {
 	print "\n";
-	if (scalar(@toreduce_orig) > 1) {
+	if (scalar(@toreduce) > 1) {
 	    print "All files being reduced have reached zero size; ";
 	} else {
 	    print "The file being reduced has reached zero size; ";
@@ -454,8 +454,8 @@ sub delta_pass ($) {
     print "\n" if $DEBUG;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    @toreduce_orig = sort bysize @toreduce_orig;
-    foreach my $fn (@toreduce_orig) {
+    @toreduce = sort bysize @toreduce;
+    foreach my $fn (@toreduce) {
 	next unless (-s $fn > 0);
 	my $state = call_new ($delta_method,$fileonly{$fn},$delta_arg);
 	my $since_success = 0;
@@ -490,7 +490,7 @@ sub delta_pass ($) {
 	    die "Pass asked main C-Reduce to die, so doing that" if
 		$delta_res == $ERROR && $delta_method ne "pass_clang" && $delta_method ne "pass_clang_binsrch";		
 	    if ($delta_res == $STOP || $delta_res == $ERROR) {
-		chdir $ORIG_DIR or die;
+		chdir $orig_dir or die;
 		$stopped = 1;
 	    } else {
 		system "diff $fn $variant" if ($PRINT_DIFF);
@@ -498,7 +498,7 @@ sub delta_pass ($) {
 		    $delta_method ne "pass_indent") {
 		    if (!$IGNORE_PASS_BUGS) {
 			my $n = int(rand(1000000));
-			my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
+			my $crashfile = File::Spec->join($orig_dir, "creduce_bug_$n");
 			File::Copy::copy($fn, $crashfile) or die;
 			my $BAD_PASS_MSG = <<"EOT";
 
@@ -519,14 +519,14 @@ details that may help us reproduce the problem.
 EOT
                         print $BAD_PASS_MSG;
 		    }
-		    chdir $ORIG_DIR or die;
+		    chdir $orig_dir or die;
 		    $stopped = 1;
 		    die "Pass didn't change test case" if $DIE_ON_PASS_BUG;
 		} else {
 		    my $pid = fork_helper ($variant);
 		    my @l = ($pid, $state, $tmpdir, $variant, -99);
 		    push @variants, \@l;
-		    chdir $ORIG_DIR or die;
+		    chdir $orig_dir or die;
 		    $num_running++;
 		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
 		    $state = call_advance ($delta_method, $variant, $delta_arg, $state);
@@ -808,11 +808,13 @@ foreach my $r (@custom_methods) {
 }
 
 my $which;
+
 sub bypri {
     my %aa = %{$a};
     my %bb = %{$b};
     return $aa{$which} <=> $bb{$which};
 }
+
 sub pass_iterator ($) {
     ($which) = @_;
     my @l = ();
@@ -860,7 +862,7 @@ sub sigHandler {
     my ($sigName) = @_;
     exit() unless ($$ == $root_process_pid);
     killem();
-    chdir $ORIG_DIR;
+    chdir $orig_dir;
     remove_tmpdirs();
     die "$sigName caught, terminating $$\n";
 }
@@ -889,7 +891,7 @@ check_file_attributes("test script", $test, "efrx");
 
 while (@ARGV) {
     my $f = File::Spec->rel2abs(shift @ARGV);
-    push @toreduce_orig, $f;
+    push @toreduce, $f;
     check_file_attributes("file", $f, "efrw");
 }
 
@@ -901,7 +903,7 @@ sub byrsize {
     return (-s $a) <=> (-s $b);
 }
 
-foreach my $f (@toreduce_orig) {
+foreach my $f (@toreduce) {
     my $s = -s $f;
     (my $fo) = fileparse($f);
     $fileonly{$f} = $fo;
@@ -914,7 +916,7 @@ foreach my $f (@toreduce_orig) {
     $total_file_size += -s $f;
 }
 
-$ORIG_DIR = getcwd();
+$orig_dir = getcwd();
 
 # no point proceeding if the test doesn't start out interesting
 sanity_check();
@@ -941,7 +943,7 @@ while (1) {
     }
     $pass_num++;
     my $s = 0;
-    foreach my $f (@toreduce_orig) {
+    foreach my $f (@toreduce) {
 	$s += -s $f;
     }
     print "Termination check: size was $total_file_size; now $s\n";
@@ -982,7 +984,7 @@ foreach my $mref (sort byname @all_methods) {
 
 print "\n";
 
-foreach my $fn (sort byrsize @toreduce_orig) {
+foreach my $fn (sort byrsize @toreduce) {
     print "\n          '$fn' reduced to:\n";
     open INF, "<$fn" or die;
     while (<INF>) {
