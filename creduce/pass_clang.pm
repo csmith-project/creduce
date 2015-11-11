@@ -106,7 +106,7 @@ EOT
 	    }
         }
         unlink $tmpfile;
-        return ($STOP, \$index);
+	return ($ERROR, \$index);
     }
 }
 

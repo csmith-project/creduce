@@ -47,7 +47,7 @@ sub transform ($$$) {
 	# remove all C++-style comments
 	$prog2 =~ s/\/\/(.*?)$//gm;
     } else {
-	# FIXME remove only the nth comment
+	# TODO remove only the nth comment
     }
     if (($prog eq $prog2) && ($index == -2)) {
 	$index = -1;

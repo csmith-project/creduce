@@ -15,25 +15,6 @@
 #
 ####################################################################
 
-## TODO:
-# specify passes using a config file
-# add support for reducing non-preprocessed code
-#   remove comments
-#   remove preprocessor directives after preprocessing
-# debug clex crashes, add crash reporting for it?
-# maybe implement passes to:
-#   delete function bodies using the line delta algorithm
-#   ensure that identifiers first appear in sorted order
-#   identifiers are dense
-#   reduce the non-header-file part first, and use PCHs
-# maybe: fix the caching code and then benchmark on some large reductions
-#   measure hits by pass
-#   consider turning on caching only for passes that benefit
-# merge adjacent strings?
-# support adding/removing passes via the command line
-# maybe add a format string reduction pass that eliminates a format
-#   specifier and also the corresponding argument
-
 use strict;
 use warnings;
 require 5.10.0;
@@ -82,10 +63,14 @@ my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
 my $DEBUG_SMP = 0;
+my $DIE_ON_PASS_BUG = 0;
+my $BACKUP = 0;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--shaddap",    "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--backup",              "const",   1, \$BACKUP,          "Save a copy of each file to reduce as file.orig"],
+    ["--shaddap",             "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
@@ -96,7 +81,7 @@ my @options = (
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
-    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when 's' is pressed"],
+    ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -105,12 +90,12 @@ my $help = <<HELP;
 $PKG ($COMMIT) -- a C and C++ program reducer
 
 C-Reduce requires an "interestingness test" and one or more files to
-reduce. Files are reduced in-place so they must be writable. The
-interestingness test is an executable program (usually a shell script)
-that returns 0 when a partially reduced file is interesting (a
-candidate for further reduction) and returns non-zero when a partially
-reduced file is not interesting (not a candidate for further reduction
--- all uninteresting files are discarded).
+reduce, which must be writable. The interestingness test is an
+executable program (usually a shell script) that returns 0 when a
+partially reduced file is interesting (a candidate for further
+reduction) and returns non-zero when a partially reduced file is not
+interesting (not a candidate for further reduction -- all
+uninteresting files are discarded).
 
 C-Reduce runs the interestingness test in a fresh temporary directory
 containing only the partially reduced file(s). Thus, when the
@@ -123,6 +108,18 @@ The interestingness test should not expect any command line arguments.
 It should be deterministic and might want to enforce resource limits
 on sub-commands that it invokes (e.g. using ulimit).
 
+To see if your interestingness test is suitable, try running these
+commands:
+
+  DIR=\`mktemp -d\`
+  cp file_to_reduce [optionally, more files to reduce] \$DIR
+  cd \$DIR
+  /path/to/interestingness_test
+  echo \$\?
+
+This should result in "0" being echoed to the terminal. If this does
+not happen, C-Reduce is not going to work.
+
 If at all possible, run C-Reduce on preprocessed code, generated for
 example using:
   gcc -E file.c
@@ -131,17 +128,16 @@ If you cannot reduce preprocessed code, you can either reduce just the
 non-preprocessed file or else perform a multi-file reduction on the
 file and its transitive includes (or any subset of them).
 
-If you haven't written an interestingness test before, please refer to
+If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
   https://embed.cs.utah.edu/creduce/using/
 
 Press "s" at any time to skip to the next pass (this feature is
 disabled unless Term::ReadKey is installed).
 HELP
-# ' balance for stupid emacs perl mode...
 
 my $usage_text = <<USAGE;
-usage: creduce [options] interestingness_test file_to_reduce [additional files to reduce...]
+usage: creduce [options] interestingness_test file_to_reduce [optionally, more files to reduce]
        creduce --help for more information
 
 USAGE
@@ -175,27 +171,22 @@ sub add_pass {
 
 ######################################################################
 
-my @orig_file_size;
 my $total_file_size = 0;
 my $orig_total_file_size = 0;
 
 # these are set at startup time and never change
 my $test;
-my $trial_num = 0;
-my $ORIG_DIR;
+my $orig_dir;
 
-my @toreduce_original;
-my @toreduce_fileonly;
-my @suffix;
-# global invariant: this filename always points to the best delta
-# variant we've seen so far
-my @toreduce_best;
+my @toreduce;
+my %fileonly;
+my %suffix;
 
 ######################################################################
 
 sub print_pct () {
     my $s = 0;
-    foreach my $f (@toreduce_best) {
+    foreach my $f (@toreduce) {
 	$s += -s $f;
     }
     my $pct = 100 - ($s * 100.0 / $orig_total_file_size);
@@ -235,8 +226,8 @@ sub delta_test () {
 }
 
 sub copy_files_here() {
-    for (my $i=0; $i<scalar(@toreduce_best); $i++) {
-	File::Copy::copy($toreduce_best[$i],$toreduce_fileonly[$i]) or die;
+    foreach my $f (@toreduce) {
+	File::Copy::copy($f,$fileonly{$f}) or die;
     }
 }
 
@@ -247,9 +238,9 @@ sub sanity_check () {
     chdir $tmpdir or die;
     copy_files_here();
     if (!delta_test()) {
-	chdir $ORIG_DIR;
+	chdir $orig_dir;
 	my $stuff = "";
-	foreach my $f (@toreduce_fileonly) {
+	foreach my $f (sort keys %fileonly) {
 	    $stuff .= " $f";
 	}
 	print <<"EOT";
@@ -274,7 +265,7 @@ EOT
         exit 1;
     }
     print "successful\n" if $DEBUG;
-    chdir $ORIG_DIR or die;
+    chdir $orig_dir or die;
     remove_tmpdirs();
 }
 
@@ -416,15 +407,15 @@ sub wait_helper() {
 
 sub check_for_nonzero_size() {
     my $nonzero = 0;
-    for (my $i=0; $i<scalar(@toreduce_best); $i++) {
-	if (-s $toreduce_best[$i] != 0) {
+    foreach my $fn (@toreduce) {
+	if (-s $fn != 0) {
 	    $nonzero = 1;
 	    last;
 	}
     }
     if (!$nonzero) {
 	print "\n";
-	if (scalar(@toreduce_best) > 1) {
+	if (scalar(@toreduce) > 1) {
 	    print "All files being reduced have reached zero size; ";
 	} else {
 	    print "The file being reduced has reached zero size; ";
@@ -463,9 +454,10 @@ sub delta_pass ($) {
     print "\n" if $DEBUG;
     print "===< $delta_method :: $delta_arg >===\n";
 
-    for (my $current_file_index=0; $current_file_index<scalar(@toreduce_fileonly); $current_file_index++) {
-	next if ((-s $toreduce_best[$current_file_index]) == 0);
-	my $state = call_new ($delta_method,$toreduce_fileonly[$current_file_index],$delta_arg);
+    @toreduce = sort bysize @toreduce;
+    foreach my $fn (@toreduce) {
+	next unless (-s $fn > 0);
+	my $state = call_new ($delta_method,$fileonly{$fn},$delta_arg);
 	my $since_success = 0;
 	my $stopped = 0;
 
@@ -490,20 +482,24 @@ sub delta_pass ($) {
 	    copy_files_here();
 	    # creating the variant is done in the parent, it's only
 	    # testing variants that happens in parallel
-	    my $toreduce = File::Spec->catfile($tmpdir, $toreduce_fileonly[$current_file_index]);
-	    (my $delta_res, $state) = call_transform ($delta_method,$toreduce,$delta_arg,$state);
-	    die unless ($delta_res == $OK || $delta_res == $STOP);
-	    if ($delta_res == $STOP) {
-		chdir $ORIG_DIR or die;
+	    my $variant = File::Spec->catfile($tmpdir, $fileonly{$fn});
+	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
+	    die "Unexpected return code from pass: this is a C-Reduce bug"
+		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
+	    # FIXME would be great if clang_delta became robust enough that we could afford to die when it fails
+	    die "Pass asked main C-Reduce to die, so doing that" if
+		$delta_res == $ERROR && $delta_method ne "pass_clang" && $delta_method ne "pass_clang_binsrch";		
+	    if ($delta_res == $STOP || $delta_res == $ERROR) {
+		chdir $orig_dir or die;
 		$stopped = 1;
 	    } else {
-		system "diff $toreduce_best[$current_file_index] $toreduce" if ($PRINT_DIFF);
-		if (compare ($toreduce_best[$current_file_index], $toreduce) == 0 &&
+		system "diff $fn $variant" if ($PRINT_DIFF);
+		if (compare ($fn, $variant) == 0 &&
 		    $delta_method ne "pass_indent") {
 		    if (!$IGNORE_PASS_BUGS) {
 			my $n = int(rand(1000000));
-			my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
-			File::Copy::copy($toreduce_best[$current_file_index], $crashfile) or die;
+			my $crashfile = File::Spec->join($orig_dir, "creduce_bug_$n");
+			File::Copy::copy($fn, $crashfile) or die;
 			my $BAD_PASS_MSG = <<"EOT";
 
 
@@ -523,16 +519,17 @@ details that may help us reproduce the problem.
 EOT
                         print $BAD_PASS_MSG;
 		    }
-		    chdir $ORIG_DIR or die;
+		    chdir $orig_dir or die;
 		    $stopped = 1;
+		    die "Pass didn't change test case" if $DIE_ON_PASS_BUG;
 		} else {
-		    my $pid = fork_helper ($toreduce);
-		    my @l = ($pid, $state, $tmpdir, $toreduce, -99);
+		    my $pid = fork_helper ($variant);
+		    my @l = ($pid, $state, $tmpdir, $variant, -99);
 		    push @variants, \@l;
-		    chdir $ORIG_DIR or die;
+		    chdir $orig_dir or die;
 		    $num_running++;
 		    print "forked $pid, num_running = ${num_running}\n" if $DEBUG_SMP;
-		    $state = call_advance ($delta_method, $toreduce, $delta_arg, $state);
+		    $state = call_advance ($delta_method, $variant, $delta_arg, $state);
 		}
 	    }
 	}
@@ -550,10 +547,10 @@ EOT
 	    for (my $k=0; $k<scalar(@variants); $k++) {
 		my $kidref = $variants[$k];
 		die unless (scalar(@{$kidref})==5);
-		(my $pid,my $newsh,my $tmpdir,my $toreduce,my $res) = @{$kidref};
+		(my $pid,my $newsh,my $tmpdir,my $var,my $res) = @{$kidref};
 		if ($xpid == $pid) {
 		    $found = 1;
-		    my @l = (-1,$newsh,$tmpdir,$toreduce,$delta_result);
+		    my @l = (-1,$newsh,$tmpdir,$var,$delta_result);
 		    splice (@variants, $k, 1, \@l);
 		    last;
 		}
@@ -565,7 +562,7 @@ EOT
 	# starting at the front of the list, peel off all variants that
 	# aren't backed up by a running subprocess
 	while (scalar (@variants) > 0) {
-	    (my $pid,my $newsh,my $tmpdir,my $toreduce,my $delta_result) = @{$variants[0]};
+	    (my $pid,my $newsh,my $tmpdir,my $variant,my $delta_result) = @{$variants[0]};
 	    last unless ($pid == -1);
 	    my $trash = shift @variants;
 	    if ($delta_result) {
@@ -580,7 +577,7 @@ EOT
 		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
 		$state = $newsh;
-		File::Copy::copy ($toreduce, $toreduce_best[$current_file_index]) or die;
+		File::Copy::copy ($variant, $fn) or die;
 
 		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
@@ -589,7 +586,7 @@ EOT
 		$method_worked{$delta_method}{$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $toreduce_best[$current_file_index])."\n"
+		print "timestamp ".time()." size ".(-s $fn)."\n"
 		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
@@ -607,6 +604,8 @@ EOT
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
 	    remove_tmpdirs();
+	    print "OOPS: pass got stuck!\n" unless $IGNORE_PASS_BUGS;
+	    die if $DIE_ON_PASS_BUG;
 	    next;
 	}
 
@@ -809,11 +808,13 @@ foreach my $r (@custom_methods) {
 }
 
 my $which;
+
 sub bypri {
     my %aa = %{$a};
     my %bb = %{$b};
     return $aa{$which} <=> $bb{$which};
 }
+
 sub pass_iterator ($) {
     ($which) = @_;
     my @l = ();
@@ -861,7 +862,7 @@ sub sigHandler {
     my ($sigName) = @_;
     exit() unless ($$ == $root_process_pid);
     killem();
-    chdir $ORIG_DIR;
+    chdir $orig_dir;
     remove_tmpdirs();
     die "$sigName caught, terminating $$\n";
 }
@@ -890,7 +891,7 @@ check_file_attributes("test script", $test, "efrx");
 
 while (@ARGV) {
     my $f = File::Spec->rel2abs(shift @ARGV);
-    push @toreduce_original, $f;
+    push @toreduce, $f;
     check_file_attributes("file", $f, "efrw");
 }
 
@@ -898,27 +899,24 @@ sub bysize {
     return (-s $b) <=> (-s $a);
 }
 
-# sort by size so pass_lines can hit the biggest files first
-@toreduce_original = sort bysize @toreduce_original;
+sub byrsize {
+    return (-s $a) <=> (-s $b);
+}
 
-foreach my $f (@toreduce_original) {
+foreach my $f (@toreduce) {
     my $s = -s $f;
     (my $fo) = fileparse($f);
-    push @toreduce_fileonly, $fo;
-    my $best = File::Spec->rel2abs("${fo}.best");
-    push @toreduce_best, $best;
-    # make a backup of the file(s) we're reducing-- this is often useful when
-    # reductions go wrong
-    if (! -e "${fo}.orig") {
+    $fileonly{$f} = $fo;
+    # optionally, make a backup of the file(s) we're reducing-- this
+    # is useful when reductions go wrong
+    if ($BACKUP && (! -e "${fo}.orig")) {
 	File::Copy::copy($f,"${fo}.orig") or die;
     }
-    File::Copy::copy($f,$best) or die;
-    push @orig_file_size, -s $f;
     $orig_total_file_size += -s $f;
     $total_file_size += -s $f;
 }
 
-$ORIG_DIR = getcwd();
+$orig_dir = getcwd();
 
 # no point proceeding if the test doesn't start out interesting
 sanity_check();
@@ -945,7 +943,7 @@ while (1) {
     }
     $pass_num++;
     my $s = 0;
-    foreach my $f (@toreduce_best) {
+    foreach my $f (@toreduce) {
 	$s += -s $f;
     }
     print "Termination check: size was $total_file_size; now $s\n";
@@ -986,11 +984,9 @@ foreach my $mref (sort byname @all_methods) {
 
 print "\n";
 
-# this should be the only time we touch the original file
-for (my $i=0; $i<scalar(@toreduce_best); $i++) {
-    File::Copy::move($toreduce_best[$i], $toreduce_original[$i]) or die;
-    print "\n          '$toreduce_original[$i]' reduced to:\n";
-    open INF, "<$toreduce_original[$i]" or die;
+foreach my $fn (sort byrsize @toreduce) {
+    print "\n          '$fn' reduced to:\n";
+    open INF, "<$fn" or die;
     while (<INF>) {
 	print;
     }
