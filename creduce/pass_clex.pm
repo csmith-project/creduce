@@ -76,14 +76,11 @@ sub transform ($$$) {
     if ($res == 51) {
 	File::Copy::move($tmpfile, $cfile);
 	return ($OK, \$index);
+    } elsif ($res == 71) {
+	unlink $tmpfile;
+	return ($STOP, \$index);
     } else {
-	if ($res == 71) {
-	    unlink $tmpfile;
-	    return ($STOP, \$index);
-	}
-	print "OOPS clex command '$cmd' returned unexpected value $res\n"
-	    unless $SILENT_PASS_BUGS;
-	return ($ERROR, \$index);
+	return ($ERROR, "crashed: $cmd");
     }    
 }
 

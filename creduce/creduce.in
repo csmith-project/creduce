@@ -53,6 +53,7 @@ use creduce_utils;
 
 ######################################################################
 
+my $MAX_CRASH_DIRS = 25;
 my $GIVEUP_CONSTANT = 1000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
@@ -63,6 +64,7 @@ my $NODEFAULT;
 my $TIMING = 0;
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
+my $SILENT_PASS_BUGS = 0;
 my $BACKUP = 0;
 my $MAX_WIN;
 
@@ -433,6 +435,53 @@ EOT
     }
 }
 
+sub report_pass_bug($$$) {
+    (my $delta_method, my $delta_arg, my $prob) = @_;
+    my $dir;
+    if (!$SILENT_PASS_BUGS) {
+	for (my $i=0; $i<$MAX_CRASH_DIRS; $i++) {
+	    $dir = File::Spec->catfile($orig_dir, sprintf "creduce_bug_%03d", $i);
+	    last unless -d $dir;
+	}
+	# just bail if we've already created enough of these dirs, no need
+	# to clutter things up even more...
+	return if -d $dir;
+	mkdir $dir or die;
+	chdir $dir or die;
+	copy_files_here();
+	my $cont = $DIE_ON_PASS_BUG ? "" :
+	    "\nThis bug is not fatal, C-Reduce will continue to execute.\n";
+	my $MSG = <<"EOT";
+
+===================================================
+
+${delta_method}::${delta_arg} has encountered a bug:
+${prob}
+
+Please consider tarring up ${dir}
+and mailing it to creduce-bugs\@flux.utah.edu and we will try to fix
+the bug.
+${cont}
+===================================================
+
+EOT
+	open OF, ">info.txt";
+	print OF "$PKG\n";
+	print OF "$COMMIT\n";
+	my @l = POSIX::uname();
+	foreach my $s (@l) {
+	    print OF "$s\n";
+	}
+	print OF "$MSG";
+	close OF;
+	print $MSG;
+    }
+    if ($DIE_ON_PASS_BUG) {
+	print "Exiting upon request due to pass bug.\n";
+	exit(-1);
+    }
+}
+
 my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
@@ -485,9 +534,9 @@ sub delta_pass ($) {
 	    # testing variants that happens in parallel
 	    my $variant = File::Spec->catfile($tmpdir, $fileonly{$fn});
 	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
-	    die "Unexpected return code from pass: this is a C-Reduce bug"
-		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
-	    die "Dying because pass returned an error" if ($DIE_ON_PASS_BUG && $delta_res == $ERROR);
+	    if ($delta_res != $OK && $delta_res != $STOP) {
+		report_pass_bug($delta_method, $delta_arg, $state);
+	    }
 	    if ($delta_res == $STOP || $delta_res == $ERROR) {
 		chdir $orig_dir or die;
 		$stopped = 1;
@@ -495,32 +544,10 @@ sub delta_pass ($) {
 		system "diff $fn $variant" if ($PRINT_DIFF);
 		if (compare ($fn, $variant) == 0 &&
 		    $delta_method ne "pass_indent") {
-		    if (!$SILENT_PASS_BUGS) {
-			my $n = int(rand(1000000));
-			my $crashfile = File::Spec->join($orig_dir, "creduce_bug_$n");
-			File::Copy::copy($fn, $crashfile) or die;
-			my $BAD_PASS_MSG = <<"EOT";
-
-
-=======================================
-
-OOPS: ${delta_method}::${delta_arg} failed to
-modify the test case, which means you have
-encountered a bug in C-Reduce. Please consider
-mailing ${crashfile} to
-creduce-bugs\@flux.utah.edu and we will try to fix
-the bug. Please also let us know what version of
-C-Reduce you are using and include any other
-details that may help us reproduce the problem.
-
-=======================================
-
-EOT
-                        print $BAD_PASS_MSG;
-		    }
+		    report_pass_bug($delta_method, $delta_arg,
+				    "pass failed to modify the variant");
 		    chdir $orig_dir or die;
 		    $stopped = 1;
-		    die "Pass didn't change test case" if $DIE_ON_PASS_BUG;
 		} else {
 		    my $pid = fork_helper ($variant);
 		    my @l = ($pid, $state, $tmpdir, $variant, -99);
@@ -603,9 +630,8 @@ EOT
 	# report a bug here
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
+	    report_pass_bug($delta_method, $delta_arg, "pass_got_stuck");
 	    remove_tmpdirs();
-	    print "OOPS: pass got stuck!\n" unless $SILENT_PASS_BUGS;
-	    die if $DIE_ON_PASS_BUG;
 	    next;
 	}
 
