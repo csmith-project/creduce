@@ -535,7 +535,9 @@ sub delta_pass ($) {
 	    my $variant = File::Spec->catfile($tmpdir, $fileonly{$fn});
 	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
 	    if ($delta_res != $OK && $delta_res != $STOP) {
-		report_pass_bug($delta_method, $delta_arg, $state);
+		report_pass_bug($delta_method, $delta_arg,
+				($delta_res == $ERROR) ? $state :
+				"unknown return code");
 	    }
 	    if ($delta_res == $STOP || $delta_res == $ERROR) {
 		chdir $orig_dir or die;
