@@ -64,11 +64,12 @@ my $TIMING = 0;
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
 my $BACKUP = 0;
+my $MAX_WIN;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
     ["--backup",              "const",   1, \$BACKUP,          "Save a copy of each file to reduce as file.orig"],
-    ["--shaddap",             "const",   1, \$IGNORE_PASS_BUGS, "Suppress output about non-fatal internal errors"],
+    ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
@@ -81,6 +82,7 @@ my @options = (
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
+    ["-max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
 
 my $PKG = creduce_config::PACKAGE_STRING;
@@ -485,9 +487,7 @@ sub delta_pass ($) {
 	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
 	    die "Unexpected return code from pass: this is a C-Reduce bug"
 		unless ($delta_res == $OK || $delta_res == $STOP || $delta_res == $ERROR);
-	    # FIXME would be great if clang_delta became robust enough that we could afford to die when it fails
-	    die "Pass asked main C-Reduce to die, so doing that" if
-		$delta_res == $ERROR && $delta_method ne "pass_clang" && $delta_method ne "pass_clang_binsrch";		
+	    die "Dying because pass returned an error" if ($DIE_ON_PASS_BUG && $delta_res == $ERROR);
 	    if ($delta_res == $STOP || $delta_res == $ERROR) {
 		chdir $orig_dir or die;
 		$stopped = 1;
@@ -495,7 +495,7 @@ sub delta_pass ($) {
 		system "diff $fn $variant" if ($PRINT_DIFF);
 		if (compare ($fn, $variant) == 0 &&
 		    $delta_method ne "pass_indent") {
-		    if (!$IGNORE_PASS_BUGS) {
+		    if (!$SILENT_PASS_BUGS) {
 			my $n = int(rand(1000000));
 			my $crashfile = File::Spec->join($orig_dir, "creduce_bug_$n");
 			File::Copy::copy($fn, $crashfile) or die;
@@ -564,7 +564,8 @@ EOT
 	    (my $pid,my $newsh,my $tmpdir,my $variant,my $delta_result) = @{$variants[0]};
 	    last unless ($pid == -1);
 	    my $trash = shift @variants;
-	    if ($delta_result) {
+	    if ($delta_result &&
+		(!defined $MAX_WIN || ((-s $fn) - (-s $variant) < $MAX_WIN))) {
 		# now that the delta test succeeded, this becomes our
 		# new best version -- we do not call advance() in this
 		# case since we assume that a transformation
@@ -603,7 +604,7 @@ EOT
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
 	    remove_tmpdirs();
-	    print "OOPS: pass got stuck!\n" unless $IGNORE_PASS_BUGS;
+	    print "OOPS: pass got stuck!\n" unless $SILENT_PASS_BUGS;
 	    die if $DIE_ON_PASS_BUG;
 	    next;
 	}

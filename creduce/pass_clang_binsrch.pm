@@ -136,7 +136,7 @@ sub transform ($$$) {
 		print "out of instances!\n" if $DEBUG;
 		goto rechunk;
 	    } else {
-		if (!$IGNORE_PASS_BUGS) {
+		if (!$SILENT_PASS_BUGS) {
 		    my $crashfile = $tmpfile;
 		    $crashfile =~ s/\//_/g;
 		    my ($suffix) = $cfile =~ /(\.[^.]+)$/;

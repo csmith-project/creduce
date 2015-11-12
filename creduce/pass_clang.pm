@@ -78,7 +78,7 @@ sub transform ($$$) {
     } else {
 	if (($res == -1) || ($res == -2)) {
 	} else {
-	    if ($IGNORE_PASS_BUGS) {
+	    if (!$SILENT_PASS_BUGS) {
 		my $n = int(rand(1000000));
 		my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
 		File::Copy::copy($cfile, $crashfile) or die;
@@ -104,9 +104,11 @@ details that may help us reproduce the problem.
 
 EOT
 	    }
+	    unlink $tmpfile;
+	    return ($ERROR, \$index);
         }
         unlink $tmpfile;
-	return ($ERROR, \$index);
+	return ($STOP, \$index);
     }
 }
 
