@@ -44,7 +44,6 @@ apt-get install -y -qq \
 apt-get install -y -qq \
     indent \
     astyle \
-    libbenchmark-timer-perl \
     libexporter-lite-perl \
     libfile-which-perl \
     libgetopt-tabular-perl \

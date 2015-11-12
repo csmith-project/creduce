@@ -76,37 +76,12 @@ sub transform ($$$) {
 	File::Copy::move($tmpfile, $cfile);
 	return ($OK, \$index);
     } else {
-	if (($res == -1) || ($res == -2)) {
-	} else {
-	    if ($IGNORE_PASS_BUGS) {
-		my $n = int(rand(1000000));
-		my $crashfile = File::Spec->join($ORIG_DIR, "creduce_bug_$n");
-		File::Copy::copy($cfile, $crashfile) or die;
-		open  CRASH, ">>$crashfile";
-		print CRASH "\n\n";
-		print CRASH "\/\/ this should reproduce the crash:\n";
-		print CRASH "\/\/ $clang_delta --transformation=$which --counter=$index $crashfile\n";
-		close CRASH;
-		print <<"EOT";
-
-
-=======================================
-
-OOPS: clang_delta::$which has crashed, which means
-you have encountered a bug in C-Reduce. Please
-consider mailing ${crashfile} to
-creduce-bugs\@flux.utah.edu and we will try to fix
-the bug. Please also let us know what version of
-C-Reduce you are using and include any other
-details that may help us reproduce the problem.
-
-=======================================
-
-EOT
-	    }
-        }
         unlink $tmpfile;
-	return ($ERROR, \$index);
+	if (($res != -1) && ($res != -2)) {
+	    return ($ERROR, "crashed: $cmd");
+        } else {
+	    return ($STOP, \$index);
+	}
     }
 }
 

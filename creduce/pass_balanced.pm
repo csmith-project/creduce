@@ -35,8 +35,7 @@ sub advance ($$$) {
     return \$pos;
 }
 
-sub remove_outside ($) 
-{
+sub remove_outside ($) {
     (my $str) = @_;
 
     # sanity check
@@ -82,7 +81,7 @@ sub transform ($$$) {
 	} elsif ($arg eq "angles-only") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))/remove_outside($+{all})/se;
 	} else {
-	    die "pass_balanced: expected arg to be parens, curly, or angles";
+	    return ($ERROR, "unexpected argument");
 	}
 	if ($rest ne $rest2) {
 	    my $prog2 = $first.$rest2;
