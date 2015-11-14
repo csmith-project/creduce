@@ -466,6 +466,7 @@ bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
   case OO_GreaterGreaterEqual:
   case OO_ExclaimEqual:
   case OO_LessEqual:
+  case OO_LessLess:
   case OO_GreaterEqual: // Fall-through
     return true;
   default:
