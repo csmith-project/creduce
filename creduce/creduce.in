@@ -465,7 +465,7 @@ ${cont}
 ===================================================
 
 EOT
-	open OF, ">info.txt";
+	open OF, ">PASS_BUG_INFO.TXT";
 	print OF "$PKG\n";
 	print OF "$COMMIT\n";
 	my @l = POSIX::uname();
