@@ -45,21 +45,19 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub advance_on_success ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    my $index = ${$state};
+    $index++;
+    return \$index;
+}
+
 sub invoke_indent ($) {
     (my $cfile) = @_;
     if ($^O eq "MSWin32") {
 	system qq{"$indent" $indent_opts $cfile > NUL 2>&1};
     } else {
 	system qq{"$indent" $indent_opts $cfile >/dev/null 2>&1};
-    }
-}
-
-sub invoke_clang_format ($) {
-    (my $cfile) = @_;
-    if ($^O eq "MSWin32") {
-	system qq{"$clang_format" -i $cfile > NUL 2>&1};
-    } else {
-	system qq{"$clang_format" -i $cfile >/dev/null 2>&1};
     }
 }
 
@@ -72,17 +70,23 @@ sub invoke_astyle ($) {
     }
 }
 
+sub invoke_clang_format ($) {
+    (my $cfile) = @_;
+    if ($^O eq "MSWin32") {
+	system qq{"$clang_format" -i $cfile > NUL 2>&1};
+    } else {
+	system qq{"$clang_format" -i $cfile >/dev/null 2>&1};
+    }
+}
+
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
     my $index = ${$state};
-    if (0) {
-    } elsif ($arg eq "regular") {
+    my $old = read_file($cfile);
+  AGAIN:
+    if ($arg eq "regular") {
 	return ($STOP, \$index) unless ($index == 0);
-	if (defined ($indent)) {
-	    invoke_indent($cfile);
-	} else {
-	    invoke_clang_format($cfile);
-	}
+	invoke_clang_format($cfile);
     } elsif ($arg eq "final") {
 	if ($index == 0) {
 	    invoke_indent($cfile) if defined ($indent);
@@ -94,7 +98,12 @@ sub transform ($$$) {
 	    return ($STOP, \$index);
 	}
     }
-    $index++;
+    my $new = read_file($cfile);
+    if ($old eq $new) {
+	$index++;
+	goto AGAIN;
+    }
+
     return ($OK, \$index);
 }
 

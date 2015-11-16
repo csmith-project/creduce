@@ -146,6 +146,8 @@ void RenameClass::doAnalysis(void)
       const CXXRecordDecl *CXXRD = (*I);
       if (UsedNameDecls.count(CXXRD->getCanonicalDecl()))
         continue;
+      if (isInIncludedFile(CXXRD))
+        continue;
 
       incValidInstance(CXXRD);
     }

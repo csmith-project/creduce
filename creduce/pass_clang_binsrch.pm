@@ -85,6 +85,11 @@ sub advance ($$$) {
     return \%sh;
 }
 
+sub advance_on_success ($$$) {
+    (my $cfile, my $which, my $state) = @_;
+    return $state;
+}
+
 sub round ($) {
     (my $n) = @_;
     return int ($n+0.5);

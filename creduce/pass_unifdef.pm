@@ -59,6 +59,11 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub advance_on_success ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    return $state;
+}
+
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
@@ -81,7 +86,6 @@ sub transform ($$$) {
     my $cmd = "$unifdef $options $DU$def -o $tmpfile $cfile >/dev/null 2>&1";
     print "$cmd\n" if $DEBUG;
     my $res = runit ($cmd);
-    # die unless ($res == 0);
     if (compare($cfile, $tmpfile) == 0) {
 	$index++;
 	print "AGAIN!\n" if $DEBUG;

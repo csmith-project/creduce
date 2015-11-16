@@ -296,6 +296,13 @@ sub call_advance ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
+sub call_advance_on_success ($$$$) {
+    (my $method,my $fn,my $arg,my $state) = @_;
+    my $str = $method."::advance_on_success";
+    no strict "refs";
+    return &${str}($fn,$arg,$state);
+}
+
 sub call_transform ($$$$) {
     (my $method,my $fn,my $arg,my $state) = @_;
     my $str = $method."::transform";
@@ -465,7 +472,7 @@ ${cont}
 ===================================================
 
 EOT
-	open OF, ">info.txt";
+	open OF, ">PASS_BUG_INFO.TXT";
 	print OF "$PKG\n";
 	print OF "$COMMIT\n";
 	my @l = POSIX::uname();
@@ -535,15 +542,16 @@ sub delta_pass ($) {
 	    my $variant = File::Spec->catfile($tmpdir, $fileonly{$fn});
 	    (my $delta_res, $state) = call_transform ($delta_method,$variant,$delta_arg,$state);
 	    if ($delta_res != $OK && $delta_res != $STOP) {
-		report_pass_bug($delta_method, $delta_arg, $state);
+		report_pass_bug($delta_method, $delta_arg,
+				($delta_res == $ERROR) ? $state :
+				"unknown return code");
 	    }
 	    if ($delta_res == $STOP || $delta_res == $ERROR) {
 		chdir $orig_dir or die;
 		$stopped = 1;
 	    } else {
 		system "diff $fn $variant" if ($PRINT_DIFF);
-		if (compare ($fn, $variant) == 0 &&
-		    $delta_method ne "pass_indent") {
+		if (compare ($fn, $variant) == 0) {
 		    report_pass_bug($delta_method, $delta_arg,
 				    "pass failed to modify the variant");
 		    chdir $orig_dir or die;
@@ -594,16 +602,14 @@ sub delta_pass ($) {
 	    if ($delta_result &&
 		(!defined $MAX_WIN || ((-s $fn) - (-s $variant) < $MAX_WIN))) {
 		# now that the delta test succeeded, this becomes our
-		# new best version -- we do not call advance() in this
-		# case since we assume that a transformation
-		# opportunity has been eliminated
+		# new best version
 
 		# nuke all ongoing speculation
 		killem ();
 
 		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
-		$state = $newsh;
+		$state = call_advance_on_success ($delta_method, $variant, $delta_arg, $newsh);
 		File::Copy::copy ($variant, $fn) or die;
 
 		# we don't want to be stopped by a speculative transformation
@@ -630,7 +636,7 @@ sub delta_pass ($) {
 	# report a bug here
 	if ($GIVEUP_CONSTANT != 0 && ($since_success > $GIVEUP_CONSTANT)) {
 	    killem();
-	    report_pass_bug($delta_method, $delta_arg, "pass_got_stuck");
+	    report_pass_bug($delta_method, $delta_arg, "pass got stuck");
 	    remove_tmpdirs();
 	    next;
 	}
