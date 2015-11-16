@@ -1,7 +1,9 @@
 @echo off
 
+set file=file1.c
+
 :: Run clang
-clang -pedantic -Wall -O0 "%1" >out.txt 2>&1
+clang -pedantic -Wall -O0 "%file%" >out.txt 2>&1
 if %errorlevel% neq 0 exit /B 1
 
 findstr /c:"incompatible redeclaration" out.txt > NUL 2>&1 || ^
@@ -20,7 +22,7 @@ findstr /c:"incompatible integer to" out.txt > NUL 2>&1 || ^
 findstr /c:"type specifier missing" out.txt > NUL 2>&1
 if %errorlevel% equ 0 exit /B 1
 
-gcc -c -Wall -Wextra -O "%1" >outa.txt 2>&1
+gcc -c -Wall -Wextra -O "%file%" >outa.txt 2>&1
 if %errorlevel% neq 0 exit /B 1
 
 findstr /c:"uninitialized" outa.txt > NUL 2>&1 || ^
@@ -39,7 +41,7 @@ findstr /c:"excess elements in struct initializer" outa.txt > NUL 2>&1 || ^
 findstr /c:"comparison between pointer and integer" outa.txt > NUL 2>&1
 if %errorlevel% equ 0 exit /B 1
 
-findstr /c:"goto" "%1" > NUL 2>&1
+findstr /c:"goto" "%file%" > NUL 2>&1
 if %errorlevel% neq 0 exit /B 1
 
 :: Variant is interesting
