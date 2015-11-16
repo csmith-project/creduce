@@ -18,7 +18,7 @@ apt-get update -qq
 
 # Install programs "add-apt-repository" and "wget", needed below.
 apt-get install -y -qq \
-    python-software-properties \
+    software-properties-common \
     wget
 
 # Set up for installing LLVM 3.7.
@@ -27,7 +27,7 @@ apt-get install -y -qq \
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.7 main'
+    'deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main'
 wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
