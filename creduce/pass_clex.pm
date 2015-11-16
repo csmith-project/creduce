@@ -65,6 +65,11 @@ sub advance ($$$) {
     return \$index;
 }
 
+sub advance_on_success ($$$) {
+    (my $cfile, my $arg, my $state) = @_;
+    return $state;
+}
+
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
