@@ -32,14 +32,6 @@ use File::Spec;
 use File::Temp;
 use File::Copy;
 
-# Load and use the Sys::CPU module if available, don't complain otherwise
-my $NPROCS = 1;
-if (eval { require Sys::CPU; }) {
-    $NPROCS = Sys::CPU::cpu_count();
-    # Yang's data suggests that speedup peaks at 8 cores
-    $NPROCS = 8 if ($NPROCS > 8);
-}
-
 # Load and use the Term::ReadKey module if available, don't complain otherwise
 my $SKIP_KEY_OFF = 0;
 $SKIP_KEY_OFF = 1 unless eval { require Term::ReadKey; };
@@ -50,6 +42,8 @@ if ($^O eq "MSWin32") {
 
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
+
+my $NPROCS = nprocs();
 
 ######################################################################
 
@@ -951,7 +945,8 @@ $orig_dir = getcwd();
 sanity_check();
 
 print "===< $$ >===\n";
-print "running $NPROCS interestingness test(s) in parallel\n";
+printf "running $NPROCS interestingness test%s in parallel\n",
+    $NPROCS == 1 ? "" : "s";
 
 # some passes we run first since they often make good headway quickliy
 if (not $SKIP_FIRST) {
