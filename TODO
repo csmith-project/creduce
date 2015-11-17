@@ -4,10 +4,10 @@
 
 C-Reduce TODO list:
 
-add a "maximum win" argument for fuzzing
-
 perf tuning of concurrency, try to automatically pick the right degree of concurrency
   n-1?
+  first step is to detect number of real cores, not hyperthreaded ones
+    easy on Linux...
 
 add optional pass timeout
 
@@ -15,24 +15,14 @@ more shortcut keys?
 
 include Johan's patch for giving an include path to clang-delta
 
-stop saving .orig files?
-
 partial #define processing
-  probably not too hard in clex
 
-remove zero-length files at the end of reduction
+remove zero-length files at the end of reduction?
 
 in localize_headers, correctly deal with the case where the
   original C/C++ file is in the current dir
 
-fix tests in the test directory
-
-correctly preserve the set of files for reporting a multi-file bug
-  easy-- just copy the working directory into the cwd
-
 specify passes using a config file?
-
-debug clex crashes, add crash reporting for it?
 
 maybe implement passes to:
   ensure that identifiers first appear in sorted order
@@ -40,9 +30,7 @@ maybe implement passes to:
   reduce the non-header-file part first, and use PCHs
   merge adjacent strings
 
-maybe: fix the caching code and then benchmark on some large reductions
-  measure hits by pass
-  consider turning on caching only for passes that benefit
+consider re-implementing caching
 
 maybe add a format string reduction pass that eliminates a format
   specifier and also the corresponding argument
