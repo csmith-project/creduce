@@ -12,6 +12,7 @@ package pass_ints;
 
 use strict;
 use warnings;
+no warnings 'portable';
 
 use creduce_regexes;
 use creduce_utils;
