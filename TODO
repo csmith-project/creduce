@@ -4,12 +4,7 @@
 
 C-Reduce TODO list:
 
-perf tuning of concurrency, try to automatically pick the right degree of concurrency
-  n-1?
-  first step is to detect number of real cores, not hyperthreaded ones
-    easy on Linux...
-
-add optional pass timeout
+add optional pass timeout?
 
 more shortcut keys?
 
