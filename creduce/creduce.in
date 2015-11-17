@@ -65,12 +65,12 @@ my $TIMING = 0;
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
 my $SILENT_PASS_BUGS = 0;
-my $BACKUP = 0;
+my $TIDY = 0;
 my $MAX_WIN;
 
 my @options = (
     ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--backup",              "const",   1, \$BACKUP,          "Save a copy of each file to reduce as file.orig"],
+    ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
@@ -938,7 +938,7 @@ foreach my $f (@toreduce) {
     $fileonly{$f} = $fo;
     # optionally, make a backup of the file(s) we're reducing-- this
     # is useful when reductions go wrong
-    if ($BACKUP && (! -e "${fo}.orig")) {
+    if (!$TIDY && (! -e "${fo}.orig")) {
 	File::Copy::copy($f,"${fo}.orig") or die;
     }
     $orig_total_file_size += -s $f;
