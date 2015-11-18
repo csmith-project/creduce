@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2015 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -71,8 +71,8 @@ sub run_test ($) {
 
     chdir $temp_dir or die;
 
-    system "cp ../$unreduced small.c";
-    system "../../creduce/creduce ../${test_script} small.c";
+    system "cp ../$unreduced .";
+    system "../../creduce/creduce --die-on-pass-bug ../${test_script} $unreduced";
     
     chdir $test_dir or die;
 }

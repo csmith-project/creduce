@@ -18,7 +18,7 @@ use File::Which;
 
 @EXPORT      = qw($DEBUG $OK $STOP $ERROR
 		  find_external_program
-		  runit 
+		  runit nprocs
                   run_clang_delta
 		  $replace_cont $matched replace_aux
 		  read_file write_file
@@ -107,6 +107,51 @@ sub write_file ($$) {
     open OUTF, ">$cfile" or die;
     print OUTF $prog;
     close OUTF;
+}
+
+# attempt to find number of real cores, not hyperthreaded ones
+sub ncpus () {
+    my $OS = $^O;
+    if ($OS eq "linux") {
+	my $cores;
+	my $sockets;
+	open INF, "lscpu |";
+	while (my $line = <INF>) {
+	    chomp $line;
+	    $cores = $1 if ($line =~ /Core\(s\) per socket:\s+([0-9]+)\s*$/);
+	    $sockets = $1 if ($line =~ /Socket\(s\):\s+([0-9]+)\s*$/);
+	}
+	close INF;
+	return ($cores * $sockets) if (defined($cores) && defined($sockets));
+    }
+    if ($OS eq "darwin") {
+	my $cpus;
+	open INF, "sysctl hw |";
+	while (my $line = <INF>) {
+	    chomp $line;
+	    $cpus = $1 if ($line =~ /hw.physicalcpu: ([0-9]+)$/);
+	}
+	close INF;
+	return $cpus if defined $cpus;
+    }
+    if ($OS eq "MSWin32") {
+	# TODO
+    }
+    # Load and use the Sys::CPU module if available, don't complain otherwise
+    # we try this last since it will count hyperthreads not cores
+    return Sys::CPU::cpu_count() if (eval { require Sys::CPU; });
+    return 1;
+}
+
+# here we're pretty conservative about the number of parallel
+# processes to use; if the user has some big iron she can specify a
+# higher number using -n
+sub nprocs () {
+    my $cpus = ncpus();
+    die unless ($cpus >= 1);
+    return $cpus if ($cpus <= 2);
+    return $cpus - 1 if ($cpus <= 4);
+    return 4;
 }
 
 1;

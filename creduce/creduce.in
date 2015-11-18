@@ -32,14 +32,6 @@ use File::Spec;
 use File::Temp;
 use File::Copy;
 
-# Load and use the Sys::CPU module if available, don't complain otherwise
-my $NPROCS = 1;
-if (eval { require Sys::CPU; }) {
-    $NPROCS = Sys::CPU::cpu_count();
-    # Yang's data suggests that speedup peaks at 8 cores
-    $NPROCS = 8 if ($NPROCS > 8);
-}
-
 # Load and use the Term::ReadKey module if available, don't complain otherwise
 my $SKIP_KEY_OFF = 0;
 $SKIP_KEY_OFF = 1 unless eval { require Term::ReadKey; };
@@ -51,10 +43,12 @@ if ($^O eq "MSWin32") {
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
+my $NPROCS = nprocs();
+
 ######################################################################
 
 my $MAX_CRASH_DIRS = 25;
-my $GIVEUP_CONSTANT = 1000;
+my $GIVEUP_CONSTANT = 10000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SKIP_FIRST;
@@ -65,12 +59,12 @@ my $TIMING = 0;
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
 my $SILENT_PASS_BUGS = 0;
-my $BACKUP = 0;
+my $TIDY = 0;
 my $MAX_WIN;
 
 my @options = (
-    ["-n",                    "integer", 1, \$NPROCS,          "Set number of creduce processes to run simultaneously", "<N>"],
-    ["--backup",              "const",   1, \$BACKUP,          "Save a copy of each file to reduce as file.orig"],
+    ["-n",                    "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
+    ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
@@ -938,7 +932,7 @@ foreach my $f (@toreduce) {
     $fileonly{$f} = $fo;
     # optionally, make a backup of the file(s) we're reducing-- this
     # is useful when reductions go wrong
-    if ($BACKUP && (! -e "${fo}.orig")) {
+    if (!$TIDY && (! -e "${fo}.orig")) {
 	File::Copy::copy($f,"${fo}.orig") or die;
     }
     $orig_total_file_size += -s $f;
@@ -951,7 +945,8 @@ $orig_dir = getcwd();
 sanity_check();
 
 print "===< $$ >===\n";
-print "running $NPROCS interestingness test(s) in parallel\n";
+printf "running $NPROCS interestingness test%s in parallel\n",
+    $NPROCS == 1 ? "" : "s";
 
 # some passes we run first since they often make good headway quickliy
 if (not $SKIP_FIRST) {

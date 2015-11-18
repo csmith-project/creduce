@@ -42,8 +42,8 @@ string(STRIP "${creduce_GIT_HASH}" creduce_GIT_HASH)
 #endif(freeExists)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "-std=c++11 -fno-rtti -Wall -Wextra -Wno-long-long -Wno-unused-parameter")
-  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-strict-aliasing")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -Wall -Wextra -Wno-long-long -Wno-unused-parameter")
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -fno-strict-aliasing")
 endif()
 
 #FIXME: Should be determined automatically
