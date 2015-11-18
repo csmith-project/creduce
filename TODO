@@ -4,6 +4,10 @@
 
 C-Reduce TODO list:
 
+make llvm-svn-compatible build against a specific LLVM version
+  the CI is the problem here
+  could solve it like we do in Souper with a pre-built LLVM tarball
+
 add modes for Rust and Javascript
 
 add optional pass timeout?
