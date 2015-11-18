@@ -4,9 +4,13 @@
 
 C-Reduce TODO list:
 
+add modes for Rust and Javascript
+
 add optional pass timeout?
 
 more shortcut keys?
+
+constant folding
 
 include Johan's patch for giving an include path to clang-delta
 
@@ -79,8 +83,6 @@ traditional line-based reduction.
  * remove anything that's not a %d or whatever from the format string
 
  * remove a %d directive and also the corresponding argument from a printf
-
-- constant folding
 
 - (low priority) constant-propagation
 
