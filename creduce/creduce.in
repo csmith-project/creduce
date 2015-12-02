@@ -212,6 +212,21 @@ sub remove_tmpdirs () {
     }
 }
 
+sub create_extra_dir() {
+    my $dir;
+    for (my $i=0; $i<$MAX_EXTRA_DIRS; $i++) {
+	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%03d", $i);
+	last unless -d $dir;
+    }
+    # just bail if we've already created enough of these dirs, no need
+    # to clutter things up even more...
+    return if -d $dir;
+    mkdir $dir or die;
+    chdir $dir or die;
+    copy_files_here();
+    print "created extra directory '$dir' for you to look at later on\n";
+}
+
 # returns true if interesting, false otherwise
 sub delta_test () {
     my $res;
@@ -440,21 +455,6 @@ this to be interesting.
 EOT
 	exit();
     }
-}
-
-sub make_extra_dir() {
-    my $dir;
-    for (my $i=0; $i<$MAX_EXTRA_DIRS; $i++) {
-	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%03d", $i);
-	last unless -d $dir;
-    }
-    # just bail if we've already created enough of these dirs, no need
-    # to clutter things up even more...
-    return if -d $dir;
-    mkdir $dir or die;
-    chdir $dir or die;
-    copy_files_here();
-    print "created extra directory '$dir' for you to look at later on\n";
 }
 
 sub report_pass_bug($$$) {
