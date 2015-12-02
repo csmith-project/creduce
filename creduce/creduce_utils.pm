@@ -46,16 +46,9 @@ sub find_external_program($$) {
 
 sub runit ($) {
     (my $cmd) = @_;
-    if ((system "$cmd") != 0) {
-        my $res = $? >> 8;
-        if ($res == 255) {
-            return -1;
-        }
-        else {
-            return -2;
-        }
-    }
-    return ($? >> 8);
+    my $res = system("$cmd");
+    return 0 if $res == 0;
+    return $? >> 8;
 }
 
 sub run_clang_delta ($) {
