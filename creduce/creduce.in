@@ -47,8 +47,8 @@ my $NPROCS = nprocs();
 
 ######################################################################
 
-my $MAX_CRASH_DIRS = 25;
-my $MAX_EXTRA_DIRS = 250;
+my $MAX_CRASH_DIRS = 10;
+my $MAX_EXTRA_DIRS = 500;
 my $GIVEUP_CONSTANT = 50000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
@@ -222,9 +222,11 @@ sub create_extra_dir() {
     # to clutter things up even more...
     return if -d $dir;
     mkdir $dir or die;
-    chdir $dir or die;
-    copy_files_here();
-    print "created extra directory '$dir' for you to look at later on\n";
+    my @files = glob "*";
+    foreach my $f (@files) {
+	move($f, $dir) or die "Could not move file\n";
+    }
+    print "created extra directory '$dir' for you to look at later\n";
 }
 
 # returns true if interesting, false otherwise
@@ -241,12 +243,6 @@ sub delta_test () {
     }
     create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
     return ($res == 0);
-}
-
-sub copy_files_here() {
-    foreach my $f (@toreduce) {
-	File::Copy::copy($f,$fileonly{$f}) or die;
-    }
 }
 
 sub sanity_check () {
@@ -337,6 +333,7 @@ my @procs = ();
 my $num_running = 0;
 
 sub killem() {
+    die "shouldn't have reached killem() without parallel execution" if $NPROCS < 2;
     if($^O eq "MSWin32") {
         while (scalar(@procs) > 0) {
             my $proc = shift @procs;
