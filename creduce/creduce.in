@@ -62,6 +62,7 @@ my $DIE_ON_PASS_BUG = 0;
 my $SILENT_PASS_BUGS = 0;
 my $TIDY = 0;
 my $ALSO_INTERESTING = -1;
+my $NOKILL = 0;
 my $MAX_WIN;
 
 my @options = (
@@ -73,6 +74,7 @@ my @options = (
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["-also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
+    ["--nokill",              "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
@@ -346,7 +348,8 @@ sub killem() {
             # Win32::Process::Info might be an alternative
             # $proc->Kill(1); #does not kill the children
             my $pid = $proc->GetProcessID();
-            system "TASKKILL /F /T /PID $pid > NUL 2>&1";
+            system "TASKKILL /F /T /PID $pid > NUL 2>&1"
+		unless $NOKILL;
             $proc->Wait(Win32::Process::INFINITE());
             $num_running--;
         }
@@ -364,7 +367,8 @@ sub killem() {
 	    (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
 	    if ($pid != -1) {
 		# kill the whole group
-		kill ('TERM', -$pid);
+		kill ('TERM', -$pid)
+		    unless $NOKILL;
 		waitpid ($pid, 0);
 		$num_running--;
 	    }
