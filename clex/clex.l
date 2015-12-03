@@ -141,8 +141,7 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
      
                          if ( c == EOF )
                              {
-                             fprintf(stderr, "EOF in comment" );
-			     assert (0);
+                                 exit(STOP);
                              }
                     }
            }
