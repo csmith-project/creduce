@@ -224,7 +224,7 @@ sub create_extra_dir() {
     mkdir $dir or die;
     my @files = glob "*";
     foreach my $f (@files) {
-	move($f, $dir) or die "Could not move file\n";
+	File::Copy::move($f, $dir) or die "Could not move file\n";
     }
     print "created extra directory '$dir' for you to look at later\n";
 }
@@ -243,6 +243,12 @@ sub delta_test () {
     }
     create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
     return ($res == 0);
+}
+
+sub copy_files_here() {
+    foreach my $f (@toreduce) {
+	File::Copy::copy($f,$fileonly{$f}) or die;
+    }
 }
 
 sub sanity_check () {
@@ -333,7 +339,6 @@ my @procs = ();
 my $num_running = 0;
 
 sub killem() {
-    die "shouldn't have reached killem() without parallel execution" if $NPROCS < 2;
     if($^O eq "MSWin32") {
         while (scalar(@procs) > 0) {
             my $proc = shift @procs;
@@ -617,6 +622,7 @@ sub delta_pass ($) {
 		# new best version
 
 		# nuke all ongoing speculation
+		die unless scalar(@variants) < $NPROCS;
 		killem ();
 
 		# here is where we actually accept the new result: we
