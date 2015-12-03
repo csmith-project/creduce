@@ -626,7 +626,7 @@ sub delta_pass ($) {
 		# new best version
 
 		# nuke all ongoing speculation
-		die unless scalar(@variants) < $NPROCS;
+		die unless scalar(@variants) <= $NPROCS;
 		killem ();
 
 		# here is where we actually accept the new result: we
