@@ -34,3 +34,6 @@ enum tok_kind {
 };
 
 void process_token (enum tok_kind);
+
+#define OK 51
+#define STOP 71

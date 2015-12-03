@@ -17,9 +17,6 @@
 
 #include "defs.h"
 
-const int OK = 51;
-const int STOP = 71;
-
 struct tok_t {
   char *str;
   enum tok_kind kind;
