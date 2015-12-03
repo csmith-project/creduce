@@ -481,7 +481,7 @@ sub report_pass_bug($$$) {
 	    "\nThis bug is not fatal, C-Reduce will continue to execute.\n";
 	my $MSG = <<"EOT";
 
-===================================================
+***************************************************
 
 ${delta_method}::${delta_arg} has encountered a bug:
 ${prob}
@@ -490,7 +490,7 @@ Please consider tarring up ${dir}
 and mailing it to creduce-bugs\@flux.utah.edu and we will try to fix
 the bug.
 ${cont}
-===================================================
+***************************************************
 
 EOT
 	open OF, ">PASS_BUG_INFO.TXT";
@@ -550,7 +550,7 @@ sub delta_pass ($) {
 	    my $key = Term::ReadKey::ReadKey(-1);
 	    Term::ReadKey::ReadMode(0);
 	    if (defined($key) && $key eq "s") {
-		print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
+		print "\n****** skipping the rest of this pass ******\n\n";
 		$skip = 1;
 	    }
 	}
