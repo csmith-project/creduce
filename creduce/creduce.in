@@ -84,7 +84,7 @@ my @options = (
     ["-max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
 
-@options = sort { my $aa = @{$a}[0]; my $bb = @{$b}[0]; return $aa cmp $bb; } @options;
+@options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
 
 my $PKG = creduce_config::PACKAGE_STRING;
 my $COMMIT = creduce_config::GIT_HASH;
