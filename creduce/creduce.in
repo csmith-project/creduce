@@ -48,7 +48,7 @@ my $NPROCS = nprocs();
 ######################################################################
 
 my $MAX_CRASH_DIRS = 10;
-my $MAX_EXTRA_DIRS = 500;
+my $MAX_EXTRA_DIRS = 5000;
 my $GIVEUP_CONSTANT = 50000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
