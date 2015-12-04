@@ -148,13 +148,13 @@ USAGE
 
 sub usage() {
     print $usage_text;
-    exit();
+    exit(1);
 }
 
 Getopt::Tabular::SetHelp ($help, $usage_text);
 Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
-GetOptions(\@options, \@ARGV) or exit 1;
+GetOptions(\@options, \@ARGV) or exit(1);
 usage() unless (@ARGV >= 2);
 
 my @custom_methods;
@@ -284,7 +284,7 @@ should result in "0" being echoed to the terminal.
 See "creduce --help" for more information.
 
 EOT
-        exit 1;
+        exit(1);
     }
     print "successful\n" if $DEBUG;
     chdir $orig_dir or die;
@@ -408,7 +408,7 @@ sub fork_helper($) {
 	    print "delta_test() returned $res\n" if $DEBUG;
             my $exitcode = $res ? 0 : 1;
 	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG_SMP;
-	    exit ($exitcode);
+	    exit($exitcode);
         }
         return $pid;
     }
@@ -459,7 +459,7 @@ making sure that your interestingness test does not find files like
 this to be interesting.
 
 EOT
-	exit();
+	exit(1);
     }
 }
 
@@ -506,7 +506,7 @@ EOT
     }
     if ($DIE_ON_PASS_BUG) {
 	print "Exiting upon request due to pass bug.\n";
-	exit(-1);
+	exit(1);
     }
 }
 
@@ -853,6 +853,15 @@ if ($SLLOOWW) {
 }
 
 if ($NODEFAULT) {
+    if (scalar(@custom_methods) < 1) {
+	print <<EOT;
+
+Since you asked for no default passes and added no extra passes
+explicitly, C-Reduce doesn't have anything to do. Exiting.
+
+EOT
+       exit(1);
+    }
     @all_methods = ();
 }
 
@@ -913,7 +922,7 @@ my $root_process_pid = $$;
 
 sub sigHandler {
     my ($sigName) = @_;
-    exit() unless ($$ == $root_process_pid);
+    exit(1) unless ($$ == $root_process_pid);
     killem();
     chdir $orig_dir;
     remove_tmpdirs();
