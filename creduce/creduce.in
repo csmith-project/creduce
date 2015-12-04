@@ -47,8 +47,9 @@ my $NPROCS = nprocs();
 
 ######################################################################
 
-my $MAX_CRASH_DIRS = 25;
-my $GIVEUP_CONSTANT = 10000;
+my $MAX_CRASH_DIRS = 10;
+my $MAX_EXTRA_DIRS = 500;
+my $GIVEUP_CONSTANT = 50000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
 my $SKIP_FIRST;
@@ -60,6 +61,8 @@ my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
 my $SILENT_PASS_BUGS = 0;
 my $TIDY = 0;
+my $ALSO_INTERESTING = -1;
+my $NOKILL = 0;
 my $MAX_WIN;
 
 my @options = (
@@ -69,17 +72,21 @@ my @options = (
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
+    ["-also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
+    ["--nokill",              "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
-    ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule; requires three sub-arguments: pass sub-pass priority"],
+    ["-add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
     ["-max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
+
+@options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
 
 my $PKG = creduce_config::PACKAGE_STRING;
 my $COMMIT = creduce_config::GIT_HASH;
@@ -207,6 +214,23 @@ sub remove_tmpdirs () {
     }
 }
 
+sub create_extra_dir() {
+    my $dir;
+    for (my $i=0; $i<$MAX_EXTRA_DIRS; $i++) {
+	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%03d", $i);
+	last unless -d $dir;
+    }
+    # just bail if we've already created enough of these dirs, no need
+    # to clutter things up even more...
+    return if -d $dir;
+    mkdir $dir or die;
+    my @files = glob "*";
+    foreach my $f (@files) {
+	File::Copy::move($f, $dir) or die "Could not move file\n";
+    }
+    print "created extra directory '$dir' for you to look at later\n";
+}
+
 # returns true if interesting, false otherwise
 sub delta_test () {
     my $res;
@@ -219,6 +243,7 @@ sub delta_test () {
             $res = runit ("$test > /dev/null 2>&1");
         }
     }
+    create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
     return ($res == 0);
 }
 
@@ -323,7 +348,8 @@ sub killem() {
             # Win32::Process::Info might be an alternative
             # $proc->Kill(1); #does not kill the children
             my $pid = $proc->GetProcessID();
-            system "TASKKILL /F /T /PID $pid > NUL 2>&1";
+            system "TASKKILL /F /T /PID $pid > NUL 2>&1"
+		unless $NOKILL;
             $proc->Wait(Win32::Process::INFINITE());
             $num_running--;
         }
@@ -341,7 +367,8 @@ sub killem() {
 	    (my $pid, my $newsh, my $tmpdir, my $tmpfn, my $result) = @{$kidref};
 	    if ($pid != -1) {
 		# kill the whole group
-		kill ('TERM', -$pid);
+		kill ('TERM', -$pid)
+		    unless $NOKILL;
 		waitpid ($pid, 0);
 		$num_running--;
 	    }
@@ -438,8 +465,8 @@ EOT
 
 sub report_pass_bug($$$) {
     (my $delta_method, my $delta_arg, my $prob) = @_;
-    my $dir;
     if (!$SILENT_PASS_BUGS) {
+	my $dir;
 	for (my $i=0; $i<$MAX_CRASH_DIRS; $i++) {
 	    $dir = File::Spec->catfile($orig_dir, sprintf "creduce_bug_%03d", $i);
 	    last unless -d $dir;
@@ -454,7 +481,7 @@ sub report_pass_bug($$$) {
 	    "\nThis bug is not fatal, C-Reduce will continue to execute.\n";
 	my $MSG = <<"EOT";
 
-===================================================
+***************************************************
 
 ${delta_method}::${delta_arg} has encountered a bug:
 ${prob}
@@ -463,7 +490,7 @@ Please consider tarring up ${dir}
 and mailing it to creduce-bugs\@flux.utah.edu and we will try to fix
 the bug.
 ${cont}
-===================================================
+***************************************************
 
 EOT
 	open OF, ">PASS_BUG_INFO.TXT";
@@ -523,7 +550,7 @@ sub delta_pass ($) {
 	    my $key = Term::ReadKey::ReadKey(-1);
 	    Term::ReadKey::ReadMode(0);
 	    if (defined($key) && $key eq "s") {
-		print "\n<<<<<< skipping the rest of this pass >>>>>>\n\n";
+		print "\n****** skipping the rest of this pass ******\n\n";
 		$skip = 1;
 	    }
 	}
