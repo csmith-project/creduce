@@ -217,7 +217,7 @@ sub remove_tmpdirs () {
 sub create_extra_dir() {
     my $dir;
     for (my $i=0; $i<$MAX_EXTRA_DIRS; $i++) {
-	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%03d", $i);
+	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%05d", $i);
 	last unless -d $dir;
     }
     # just bail if we've already created enough of these dirs, no need
