@@ -44,7 +44,6 @@ private:
 
   clang::EnumDecl *TheEnumDecl;
   clang::EnumDecl::enumerator_iterator TheEnumIterator;
-  clang::EnumDecl::enumerator_iterator TheEnumIteratorPrevious;
 
   // Unimplemented
   RemoveUnusedEnumMember();
