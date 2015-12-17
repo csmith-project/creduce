@@ -112,7 +112,14 @@ The interestingness test should not expect any command line arguments.
 It should be deterministic and might want to enforce resource limits
 on sub-commands that it invokes (e.g. using ulimit).
 
-To see if your interestingness test is suitable, try running these
+As a quick example, if you consider a file to be interesting if GCC's
+vectorizer fires while compiling it, you might use this
+interestingness test:
+
+  gcc -w -O3 foo.c -S &&
+  grep xmm foo.s
+
+To see if your interestingness test is working, try running these
 commands:
 
   DIR=\`mktemp -d\`
@@ -124,20 +131,23 @@ commands:
 This should result in "0" being echoed to the terminal. If this does
 not happen, C-Reduce is not going to work.
 
+If you haven\'t written an interestingness test before, please refer to
+this tutorial for additional guidance:
+
+  https://embed.cs.utah.edu/creduce/using/
+
 If at all possible, run C-Reduce on preprocessed code, generated for
 example using:
-  gcc -E file.c
+
+  gcc -E -P file.c
 
 If you cannot reduce preprocessed code, you can either reduce just the
 non-preprocessed file or else perform a multi-file reduction on the
 file and its transitive includes (or any subset of them).
 
-If you haven\'t written an interestingness test before, please refer to
-this tutorial for additional guidance:
-  https://embed.cs.utah.edu/creduce/using/
-
 Press "s" at any time to skip to the next pass (this feature is
-disabled unless Term::ReadKey is installed).
+disabled unless the Perl module Term::ReadKey is available on your
+system).
 HELP
 
 my $usage_text = <<USAGE;
