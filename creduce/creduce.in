@@ -48,7 +48,7 @@ my $NPROCS = nprocs();
 ######################################################################
 
 my $MAX_CRASH_DIRS = 10;
-my $MAX_EXTRA_DIRS = 500;
+my $MAX_EXTRA_DIRS = 25000;
 my $GIVEUP_CONSTANT = 50000;
 my $PRINT_DIFF = 0;
 my $SANITIZE = 0;
@@ -66,13 +66,13 @@ my $NOKILL = 0;
 my $MAX_WIN;
 
 my @options = (
-    ["-n",                    "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
+    ["--n",                    "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
     ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
     ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
-    ["-also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
+    ["--also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
     ["--nokill",              "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
@@ -81,9 +81,9 @@ my @options = (
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
-    ["-add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
+    ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
-    ["-max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
+    ["--max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
 
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
@@ -148,13 +148,13 @@ USAGE
 
 sub usage() {
     print $usage_text;
-    exit();
+    exit(1);
 }
 
 Getopt::Tabular::SetHelp ($help, $usage_text);
 Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
-GetOptions(\@options, \@ARGV) or exit 1;
+GetOptions(\@options, \@ARGV) or exit(1);
 usage() unless (@ARGV >= 2);
 
 my @custom_methods;
@@ -217,7 +217,7 @@ sub remove_tmpdirs () {
 sub create_extra_dir() {
     my $dir;
     for (my $i=0; $i<$MAX_EXTRA_DIRS; $i++) {
-	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%03d", $i);
+	$dir = File::Spec->catfile($orig_dir, sprintf "creduce_extra_%05d", $i);
 	last unless -d $dir;
     }
     # just bail if we've already created enough of these dirs, no need
@@ -284,7 +284,7 @@ should result in "0" being echoed to the terminal.
 See "creduce --help" for more information.
 
 EOT
-        exit 1;
+        exit(1);
     }
     print "successful\n" if $DEBUG;
     chdir $orig_dir or die;
@@ -408,7 +408,7 @@ sub fork_helper($) {
 	    print "delta_test() returned $res\n" if $DEBUG;
             my $exitcode = $res ? 0 : 1;
 	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG_SMP;
-	    exit ($exitcode);
+	    exit($exitcode);
         }
         return $pid;
     }
@@ -459,7 +459,7 @@ making sure that your interestingness test does not find files like
 this to be interesting.
 
 EOT
-	exit();
+	exit(1);
     }
 }
 
@@ -506,7 +506,7 @@ EOT
     }
     if ($DIE_ON_PASS_BUG) {
 	print "Exiting upon request due to pass bug.\n";
-	exit(-1);
+	exit(1);
     }
 }
 
@@ -853,6 +853,15 @@ if ($SLLOOWW) {
 }
 
 if ($NODEFAULT) {
+    if (scalar(@custom_methods) < 1) {
+	print <<EOT;
+
+Since you asked for no default passes and added no extra passes
+explicitly, C-Reduce doesn't have anything to do. Exiting.
+
+EOT
+       exit(1);
+    }
     @all_methods = ();
 }
 
@@ -913,7 +922,7 @@ my $root_process_pid = $$;
 
 sub sigHandler {
     my ($sigName) = @_;
-    exit() unless ($$ == $root_process_pid);
+    exit(1) unless ($$ == $root_process_pid);
     killem();
     chdir $orig_dir;
     remove_tmpdirs();
