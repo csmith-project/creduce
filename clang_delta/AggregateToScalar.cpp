@@ -213,7 +213,16 @@ bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
     return addTmpVar(RefE, VarName, NULL);
 
   std::string InitStr;
-  RewriteHelper->getExprString(InitE, InitStr);
+  if (InitE->getLocStart().isInvalid()) {
+    const Type *ET = InitE->getType().getTypePtr();
+    if (ET->isIntegerType() || ET->isPointerType())
+      InitStr = "0"; 
+    else
+      return addTmpVar(RefE, VarName, NULL);
+  }
+  else {
+    RewriteHelper->getExprString(InitE, InitStr);
+  }
   return addTmpVar(RefE, VarName, &InitStr);
 }
 
