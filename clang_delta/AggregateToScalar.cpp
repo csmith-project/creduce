@@ -204,7 +204,6 @@ bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
 
   const InitListExpr *ILE = dyn_cast<InitListExpr>(IE);
   if (!ILE) {
-    TransAssert(dyn_cast<CXXConstructExpr>(IE));
     return addTmpVar(RefE, VarName, NULL);
   }
 
