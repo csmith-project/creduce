@@ -196,8 +196,13 @@ const Expr *Transformation::getInitExprByIndex(IndexVector &Idxs,
   }
 
   TransAssert(Exp && "Exp cannot be NULL");
-  TransAssert(Count == Idxs.size());
-  return Exp;
+  // If array-to-pointer-decay happens, the Count can
+  // be different from the size of Idxs. In this case,
+  // we just return NULL.
+  if (Count == Idxs.size())
+    return Exp;
+  else
+    return NULL;
 }
 
 const Expr *Transformation::getArrayBaseExprAndIdxs(

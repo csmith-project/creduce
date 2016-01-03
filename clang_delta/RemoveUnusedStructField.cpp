@@ -208,6 +208,8 @@ void RemoveUnusedStructField::handleOneVarDecl(const VarDecl *VD)
 
   for (ExprVector::iterator I = InitExprs.begin(),
        E = InitExprs.end(); I != E; ++I) {
+    if (dyn_cast<ImplicitValueInitExpr>(*I))
+      continue;
     removeOneInitExpr(*I);
   }
 }

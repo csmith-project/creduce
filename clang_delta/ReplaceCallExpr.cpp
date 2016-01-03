@@ -124,9 +124,14 @@ bool ReplaceCallExprVisitor::isValidReturnStmt(ReturnStmt *RS)
 
 bool ReplaceCallExprVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  ConsumerInstance->CurrentFD = NULL;
-  if (FD->isThisDeclarationADefinition())
+  if (FD->isThisDeclarationADefinition()) {
     ConsumerInstance->CurrentFD = FD;
+  }
+  else {
+    // We skip locally declared function decls.
+    if (FD->getLexicalParent()->getDeclKind() != Decl::Function)
+      ConsumerInstance->CurrentFD = NULL;
+  }
 
   return true;
 }
