@@ -41,6 +41,34 @@ Therefore, in the above example, foo() will not be propagated. \n";
 static RegisterTransformation<CopyPropagation>
          Trans("copy-propagation", DescriptionMsg);
 
+namespace {
+class ArraySubscriptVisitor : public
+        RecursiveASTVisitor<ArraySubscriptVisitor> {
+public:
+  explicit ArraySubscriptVisitor(const VarDecl *VD)
+    : ReferencedVD(VD), HasReference(false)
+  { }
+
+  bool VisitVarDecl(VarDecl *VD);
+
+  bool hasReferencedVD() {
+    return HasReference;
+  }
+
+private:
+  const VarDecl *ReferencedVD;
+
+  bool HasReference;
+};
+
+bool ArraySubscriptVisitor::VisitVarDecl(VarDecl *VD) {
+  if (VD->getCanonicalDecl() == ReferencedVD)
+    HasReference = true;
+  return true;
+}
+
+} // End anonymous namespace
+
 class CopyPropCollectionVisitor : public
         RecursiveASTVisitor<CopyPropCollectionVisitor> {
 public:
@@ -388,14 +416,18 @@ const VarDecl *CopyPropagation::getCanonicalRefVarDecl(const Expr *E)
 bool CopyPropagation::isRefToTheSameVar(const Expr *CopyE,
                                         const Expr *DominatedE)
 {
-  const VarDecl *CopyVD  = getCanonicalRefVarDecl(CopyE);
-  if (!CopyVD)
-    return false;
   const VarDecl *DominatedVD  = getCanonicalRefVarDecl(DominatedE);
   if (!DominatedVD)
     return false;
-
-  return (CopyVD == DominatedVD);
+  const VarDecl *CopyVD  = getCanonicalRefVarDecl(CopyE);
+  if (CopyVD)
+    return CopyVD == DominatedVD;
+  if (const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(CopyE)) {
+    ArraySubscriptVisitor V(DominatedVD);
+    V.TraverseStmt(const_cast<Expr*>(ASE->getIdx()));
+    return !V.hasReferencedVD();
+  }
+  return false;
 }
 
 bool CopyPropagation::hasSameStringRep(const Expr *CopyE,
