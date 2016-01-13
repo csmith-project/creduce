@@ -855,7 +855,6 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     if (!isValidNamedDeclKind(NamedD))
       continue;
 
-    const IdentifierInfo *IdInfo = NamedD->getIdentifier();
     std::string NewName = "";
     if ( NestedNameSpecifierLoc QualifierLoc = UD->getQualifierLoc() ) {
       RewriteHelper->getQualifierAsString(QualifierLoc, NewName);
@@ -869,7 +868,16 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     else if (const EnumDecl *ED = dyn_cast<EnumDecl>(NamedD)) {
       handleOneEnumDecl(ED, NewName, UsingNamedDeclToNewName, NULL);
     }
-    NewName += IdInfo->getName();
+    const FunctionDecl *FD = dyn_cast<FunctionDecl>(NamedD);
+    if (FD &&  FD->isOverloadedOperator()) {
+      const char *Op = clang::getOperatorSpelling(FD->getOverloadedOperator());
+      std::string OpStr(Op);
+      NewName += ("operator::" + OpStr);
+    }
+    else {
+      const IdentifierInfo *IdInfo = NamedD->getIdentifier();
+      NewName += IdInfo->getName();
+    }
     UsingNamedDeclToNewName[NamedD] = NewName;
   }
 
