@@ -98,6 +98,11 @@ void RemoveUnusedEnumMember::HandleTranslationUnit(ASTContext &Ctx)
 void RemoveUnusedEnumMember::removeEnumConstantDecl()
 {
   SourceLocation StartLoc = (*TheEnumIterator)->getLocStart();
+  if (StartLoc.isMacroID()) {
+    std::pair<SourceLocation, SourceLocation> Locs =
+      SrcManager->getExpansionRange(StartLoc);
+    StartLoc = Locs.first;
+  }
   SourceLocation EndLoc = (*TheEnumIterator)->getLocEnd();
   if (EndLoc.isMacroID()) {
     std::pair<SourceLocation, SourceLocation> Locs =
