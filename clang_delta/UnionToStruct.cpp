@@ -88,7 +88,7 @@ bool UnionToStructCollectionVisitor::VisitFieldDecl(FieldDecl *FD)
 
 bool UnionToStructCollectionVisitor::VisitRecordDecl(RecordDecl *RD)
 {
-  if (RD->isUnion())
+  if (RD->isUnion() && !ConsumerInstance->isInIncludedFile(RD))
     ConsumerInstance->addOneRecord(RD);
 
   return true;
