@@ -129,11 +129,33 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   }
 
   TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
-  TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
+
+  if (const char *env = getenv("CREDUCE_TARGET_TRIPLE")) {
+    TargetOpts.Triple = std::string(env);
+  } else {
+    TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
+  }
+
   TargetInfo *Target = 
     TargetInfo::CreateTargetInfo(ClangInstance->getDiagnostics(),
                                  ClangInstance->getInvocation().TargetOpts);
   ClangInstance->setTarget(Target);
+
+  if (const char *env = getenv("CREDUCE_INCLUDE_PATH")) {
+    HeaderSearchOptions &HeaderSearchOpts = ClangInstance->getHeaderSearchOpts();
+
+    const std::size_t npos = std::string::npos;
+    std::string text = env;
+
+    std::size_t now = 0, next = 0;
+    do {
+      next = text.find(':', now);
+      std::size_t len = (next == npos) ? npos : (next - now);
+      HeaderSearchOpts.AddPath(text.substr(now, len), clang::frontend::Angled, false, false);
+      now = next + 1;
+    } while(next != npos);
+  }
+
   ClangInstance->createFileManager();
   ClangInstance->createSourceManager(ClangInstance->getFileManager());
   ClangInstance->createPreprocessor(TU_Complete);
