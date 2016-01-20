@@ -143,7 +143,14 @@ example using:
 
 If you cannot reduce preprocessed code, you can either reduce just the
 non-preprocessed file or else perform a multi-file reduction on the
-file and its transitive includes (or any subset of them).
+file and its transitive includes (or any subset of them). In the first case
+you need to set the CREDUCE_INCLUDE_PATH environment variable to a colon-
+separated list of include directories in order for clang_delta to find them.
+
+If your interestingness test involves a cross compiler and the characteristics
+of the cross target differs from the host you will need to set
+CREDUCE_TARGET_TRIPLE to match the cross target. This is particularly important
+if you are working with non-preprocessed code and use CREDUCE_INCLUDE_PATH.
 
 Press "s" at any time to skip to the next pass (this feature is
 disabled unless the Perl module Term::ReadKey is available on your
