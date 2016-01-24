@@ -105,8 +105,8 @@ bool LocalToGlobalCollectionVisitor::VisitVarDecl(VarDecl *VD)
 {
   TransAssert(CurrentFuncDecl && "NULL CurrentFuncDecl!");
 
-  if (!VD->isLocalVarDecl() || VD->isStaticLocal() || 
-      VD->hasExternalStorage() || 
+  if (ConsumerInstance->isInIncludedFile(VD) || !VD->isLocalVarDecl() ||
+      VD->isStaticLocal() || VD->hasExternalStorage() ||
       ConsumerInstance->SkippedVars.count(VD->getCanonicalDecl()))
     return true;
 
