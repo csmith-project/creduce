@@ -96,6 +96,9 @@ bool CommonTemplateArgumentVisitor<T, Trans>::VisitDeclRefExpr(
   }
   else {
     const clang::Type *Ty = VD->getType().getTypePtr();
+    if (const clang::ArrayType *AT = clang::dyn_cast<clang::ArrayType>(Ty)) {
+      Ty = AT->getElementType().getTypePtr();
+    }
     if (Ty->isPointerType() || Ty->isReferenceType())
       Ty = ConsumerInstance->getBasePointerElemType(Ty);
     const clang::CXXRecordDecl *CXXRD = ConsumerInstance->getBaseDeclFromType(Ty);
