@@ -669,9 +669,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
 
   if (TypedefNameDecl *TdefD = dyn_cast<TypedefNameDecl>(ND)) {
     const Type *UnderlyingTy = TdefD->getUnderlyingType().getTypePtr();
-    const CXXRecordDecl *CXXRD = getBaseDeclFromType(UnderlyingTy);
-    TransAssert(CXXRD && "Invalid CXXRD from TypedefNameDecl!");
-    return CXXRD;
+    return getBaseDeclFromType(UnderlyingTy);
   }
 
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
@@ -692,9 +690,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::TemplateSpecialization: {
     const TemplateSpecializationType *TSTy =
       dyn_cast<TemplateSpecializationType>(Ty);
-    Base = getBaseDeclFromTemplateSpecializationType(TSTy);
-    TransAssert(Base && "Bad base class type!");
-    return Base;
+    return getBaseDeclFromTemplateSpecializationType(TSTy);
   }
 
   case Type::DependentTemplateSpecialization: {
