@@ -107,6 +107,12 @@ bool RenameVarVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   if (I == ConsumerInstance->VarToNameMap.end())
     return true;
 
+  // We can visit the same DRE twice from an InitListExpr, i.e.,
+  // through InitListExpr's semantic form and syntactic form.
+  if (ConsumerInstance->VisitedDREs.count(DRE))
+    return true;
+  ConsumerInstance->VisitedDREs.insert(DRE);
+
   return ConsumerInstance->RewriteHelper->replaceExpr(DRE, (*I).second);
 }
 

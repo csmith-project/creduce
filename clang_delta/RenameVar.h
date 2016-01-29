@@ -71,6 +71,8 @@ private:
 
   llvm::DenseMap<clang::VarDecl *, std::string> VarToNameMap;
 
+  llvm::SmallPtrSet<clang::DeclRefExpr *, 10> VisitedDREs;
+
   // Unimplemented
   RenameVar(void);
 
