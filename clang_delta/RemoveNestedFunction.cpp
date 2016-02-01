@@ -220,6 +220,19 @@ void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 
   getNewTmpVariableStr(ASTCtx, VarStr);
   if (TransformationManager::isCXXLangOpt()) {
+    // TheStmt and TheCallExpr may share the same start location, e.g..
+    // TheCallExpr is a CXXOperatorCallExpr. In this case, we just replace
+    // TheCallExpr with tmp variable's definition and the tmp variable.
+    // Otherwise, we would end up with assertion failure, because we
+    // modify the same location twice (through addnewAssignStmtBefore
+    // and replaceExpr.
+    if (TheStmt->getLocStart() == TheCallExpr->getLocStart()) {
+      std::string ExprStr;
+      RewriteHelper->getExprString(TheCallExpr, ExprStr);
+      VarStr += " = " + ExprStr + ";\n" + TmpVarName;
+      RewriteHelper->replaceExpr(TheCallExpr, VarStr);
+      return;
+    }
     RewriteHelper->addNewAssignStmtBefore(TheStmt, VarStr,
                                           TheCallExpr, NeedParen);
   }
