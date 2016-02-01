@@ -171,8 +171,6 @@ void RemoveNestedFunction::HandleTranslationUnit(ASTContext &Ctx)
   NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
 
   addNewTmpVariable(Ctx);
-  addNewAssignStmt();
-  replaceCallExpr();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -185,7 +183,6 @@ void RemoveNestedFunction::getVarStrForTemplateSpecialization(
 {
   unsigned NumArgs = TST->getNumArgs();
   if (NumArgs == 0) {
-    VarStr += ";";
     return;
   }
 
@@ -204,27 +201,39 @@ void RemoveNestedFunction::getVarStrForTemplateSpecialization(
   TransAssert((EndPos != std::string::npos) && "Cannot find > !");
   TransAssert((EndPos > BeginPos) && "Invalid <> pair!");
   VarStr.replace(BeginPos + 1, (EndPos - BeginPos - 1), Stream.str());
-  VarStr += ";";
 }
 
-bool RemoveNestedFunction::writeNewTmpVariable(const QualType &QT,
-                                               std::string &VarStr)
+void RemoveNestedFunction::getNewTmpVariable(const QualType &QT,
+                                             std::string &VarStr)
 {
-  QT.getAsStringInternal(VarStr,
-                         Context->getPrintingPolicy());
-
-  VarStr += ";";
-  return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+  QT.getAsStringInternal(VarStr, Context->getPrintingPolicy());
 }
 
-bool RemoveNestedFunction::writeNewIntTmpVariable(std::string &VarStr)
+void RemoveNestedFunction::getNewIntTmpVariable(std::string &VarStr)
 {
-  return RewriteHelper->addLocalVarToFunc("int " + VarStr + ";", TheFuncDecl);
+  VarStr = "int " + VarStr;
 }
 
-bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
+void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 {
   std::string VarStr;
+
+  getNewTmpVariableStr(ASTCtx, VarStr);
+  if (TransformationManager::isCXXLangOpt()) {
+    RewriteHelper->addNewAssignStmtBefore(TheStmt, VarStr,
+                                          TheCallExpr, NeedParen);
+  }
+  else {
+    RewriteHelper->addLocalVarToFunc(VarStr + ";", TheFuncDecl);
+    RewriteHelper->addNewAssignStmtBefore(TheStmt, getTmpVarName(),
+                                          TheCallExpr, NeedParen);
+  }
+  RewriteHelper->replaceExpr(TheCallExpr, TmpVarName);
+}
+
+void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
+                                                std::string &VarStr)
+{
   std::stringstream SS;
   unsigned int NamePostfix = NameQueryWrap->getMaxNamePostfix();
 
@@ -267,12 +276,12 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     //   template <class A> void foo(A &a0) { x(y(a0)); }
     // };
     if (!FD)
-      return writeNewIntTmpVariable(VarStr);
+      return getNewIntTmpVariable(VarStr);
 
     QT = FD->getReturnType();
     //FIXME: This is actually not quite correct, we should get the instantiated
     // type here.
-    return writeNewTmpVariable(QT, VarStr);
+    return getNewTmpVariable(QT, VarStr);
   }
 
   if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
@@ -283,28 +292,28 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     // FIXME: try to resolve FD here
     if (FD)
       QT = FD->getReturnType();
-    return writeNewTmpVariable(QT, VarStr);
+    return getNewTmpVariable(QT, VarStr);
   }
 
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
     QT = CXXCtor->getThisType(ASTCtx);
-    return writeNewTmpVariable(QT, VarStr);
+    return getNewTmpVariable(QT, VarStr);
   }
 
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
     QT = CXXCtor->getThisType(ASTCtx);
-    return writeNewTmpVariable(QT, VarStr);
+    return getNewTmpVariable(QT, VarStr);
   }
 
   if (const CXXDependentScopeMemberExpr *ME =
       dyn_cast<CXXDependentScopeMemberExpr>(E)) {
 
     if (ME->isImplicitAccess())
-      return false;
+      return;
     DeclarationName DName = ME->getMember();
     TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
                 "Not an indentifier!");
@@ -332,7 +341,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
       TransAssert(FD && "Cannot resolve DName!");
       QT = FD->getReturnType();
-      return writeNewTmpVariable(QT, VarStr);
+      return getNewTmpVariable(QT, VarStr);
     }
 
     // handle other cases where lookupDeclContext is different from
@@ -342,7 +351,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       DeclContextSet VisitedCtxs;
       const FunctionDecl *FD = lookupFunctionDecl(DName, Ctx, VisitedCtxs);
       if (!FD) {
-        return writeNewTmpVariable(QT, VarStr);
+        return getNewTmpVariable(QT, VarStr);
       }
       QT = FD->getReturnType();
       const Type *RVTy = QT.getTypePtr();
@@ -366,8 +375,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 
         QT.getAsStringInternal(VarStr,
                                Context->getPrintingPolicy());
-        getVarStrForTemplateSpecialization(VarStr, TST);
-        return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+        return getVarStrForTemplateSpecialization(VarStr, TST);
       }
       else {
         // other cases:
@@ -379,7 +387,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
         //   D<T> G;
         //   foo(G.f());
         // }
-        return writeNewTmpVariable(QT, VarStr);
+        return getNewTmpVariable(QT, VarStr);
       }
     }
     else {
@@ -411,7 +419,7 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       // DependentTy and users should never see it; however, it is here to
       // help diagnose failures to properly check for type-dependent
       // expressions.
-      return writeNewIntTmpVariable(VarStr);
+      return getNewIntTmpVariable(VarStr);
     }
   }
 
@@ -424,26 +432,13 @@ bool RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
       dyn_cast<TemplateTypeParmType>(CalleeType)) {
     const TemplateTypeParmDecl *PD = PT->getDecl();
     std::string DStr = PD->getNameAsString();
-    VarStr = DStr + " " + VarStr + ";";
-    return RewriteHelper->addLocalVarToFunc(VarStr, TheFuncDecl);
+    VarStr = DStr + " " + VarStr;
+    return;
   }
-  //  return writeNewIntTmpVariable(VarStr);
   QT = TheCallExpr->getCallReturnType(ASTCtx);
-  return writeNewTmpVariable(QT, VarStr);
-}
-
-bool RemoveNestedFunction::addNewAssignStmt(void)
-{
-  return RewriteHelper->addNewAssignStmtBefore(TheStmt,
-                                              getTmpVarName(),
-                                              TheCallExpr,
-                                              NeedParen);
-
-}
-
-bool RemoveNestedFunction::replaceCallExpr(void)
-{
-  return RewriteHelper->replaceExpr(TheCallExpr, TmpVarName);
+  getNewTmpVariable(
+    QT.getTypePtr()->getUnqualifiedDesugaredType()->getCanonicalTypeInternal(),
+    VarStr);
 }
 
 bool RemoveNestedFunction::isInvalidOperator(const CXXOperatorCallExpr *OpE)
