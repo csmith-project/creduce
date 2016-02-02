@@ -469,12 +469,14 @@ const RecordDecl *EmptyStructToInt::getBaseRecordDef(const Type *Ty)
 }
 
 void EmptyStructToInt::getInitExprs(const Type *Ty, 
-                                           const Expr *E,
-                                           const IndexVector *IdxVec,
-                                           ExprVector &InitExprs)
+                                    const Expr *E,
+                                    const IndexVector *IdxVec,
+                                    ExprVector &InitExprs)
 {
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (ArrayTy) {
+    if (isa<ImplicitValueInitExpr>(E) || isa<CXXConstructExpr>(E))
+      return;
     const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
     TransAssert(ILE && "Invalid array initializer!");
     unsigned int NumInits = ILE->getNumInits();
@@ -508,7 +510,8 @@ void EmptyStructToInt::getInitExprs(const Type *Ty,
     InitExprs.push_back(E);
   }
   else {
-    for (IndexVector::const_iterator FI = IdxVec->begin(), FE = IdxVec->end(); FI != FE; ++FI) {
+    for (IndexVector::const_iterator FI = IdxVec->begin(), FE = IdxVec->end();
+         FI != FE; ++FI) {
       const FieldDecl *FD = getFieldDeclByIdx(RD, (*FI));
       TransAssert(FD && "NULL FieldDecl!");
 
@@ -528,7 +531,8 @@ void EmptyStructToInt::getInitExprs(const Type *Ty,
         return;
       }
 
-      getInitExprs(Ty, ILE->getInit(InitListIdx), RecordDeclToField[BaseRD], InitExprs);
+      getInitExprs(Ty, ILE->getInit(InitListIdx),
+                   RecordDeclToField[BaseRD], InitExprs);
     }
   }
 }
