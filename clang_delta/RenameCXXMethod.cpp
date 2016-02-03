@@ -190,7 +190,8 @@ bool RenameCXXMethodVisitor::TraverseClassTemplateDecl(ClassTemplateDecl *D)
 
 bool RenameCXXMethodVisitor::VisitCXXMethodDecl(CXXMethodDecl *MD)
 {
-  if (ConsumerInstance->isSpecialCXXMethod(MD))
+  if (ConsumerInstance->isSpecialCXXMethod(MD) ||
+      ConsumerInstance->isInIncludedFile(MD))
     return true;
 
   const CXXMethodDecl *CanonicalMD = MD->getCanonicalDecl();
