@@ -90,7 +90,7 @@ bool ExistingVarCollectionVisitor::VisitVarDecl(VarDecl *VD)
 
 bool RenameParamVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (FD->param_size() == 0)
+  if (ConsumerInstance->isInIncludedFile(FD) || (FD->param_size() == 0))
     return true;
 
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
@@ -120,10 +120,12 @@ bool RenameParamVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
 bool RenameParamVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 {
+  if (ConsumerInstance->isInIncludedFile(DRE))
+    return true;
   ValueDecl *OrigDecl = DRE->getDecl();
   ParmVarDecl *PD = dyn_cast<ParmVarDecl>(OrigDecl);
   
-  if (!PD)
+  if (!PD || ConsumerInstance->isInIncludedFile(PD))
     return true;
 
   llvm::DenseMap<ParmVarDecl *, std::string>::iterator I =

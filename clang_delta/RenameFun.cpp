@@ -94,6 +94,8 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
   // It could happen, e.g., CE could refer to a DependentScopeDeclRefExpr
   if (!FD || dyn_cast<CXXMethodDecl>(FD))
     return true;
+  if (ConsumerInstance->isInIncludedFile(FD))
+    return true;
 
   const FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
