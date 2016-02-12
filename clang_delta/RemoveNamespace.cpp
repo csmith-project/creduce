@@ -876,6 +876,8 @@ void RemoveNamespace::handleOneUsingDirectiveDecl(const UsingDirectiveDecl *UD,
     }
     else {
       const IdentifierInfo *IdInfo = NamedD->getIdentifier();
+      if (!IdInfo)
+        continue;
       NewName += IdInfo->getName();
     }
     UsingNamedDeclToNewName[NamedD] = NewName;

@@ -80,7 +80,7 @@ private:
                          const clang::FunctionDecl *>
             UsingFunctionDeclsMap;
 
-  typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 50>
+  typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 32>
             FunctionDeclsSet;
 
   typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 5>
@@ -90,7 +90,7 @@ private:
                          MemberSpecializationSet *>
             MemberToSpecializationMap;
 
-  typedef llvm::SmallPtrSet<const clang::UsingDecl *, 50>
+  typedef llvm::SmallPtrSet<const clang::UsingDecl *, 32>
             UsingDeclsSet;
   
   typedef std::map<std::string, std::string>
