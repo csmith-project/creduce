@@ -49,7 +49,7 @@ typedef llvm::DenseMap<const clang::UsingDecl *,
                        const clang::FunctionDecl *>
           UsingFunctionDeclsMap;
 
-typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 50>
+typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 32>
           FunctionDeclsSet;
 
 typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 5>
