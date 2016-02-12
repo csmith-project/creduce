@@ -319,7 +319,8 @@ bool SimpleInliner::hasValidArgExprs(const CallExpr *CE)
 {
   for(CallExpr::const_arg_iterator I = CE->arg_begin(), E = CE->arg_end();
       I != E; ++I) {
-    if (!isValidArgExpr(*I))
+    const Expr *Exp = *I;
+    if (!isValidArgExpr(Exp))
       return false;
   }
   return true;
