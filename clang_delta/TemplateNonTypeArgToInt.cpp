@@ -105,8 +105,8 @@ void TemplateNonTypeArgToInt::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
-  TransAssert(TheExpr && "NULL TheExpr");
-  RewriteHelper->replaceExpr(TheExpr, IntString);
+  if (TheExpr)
+    RewriteHelper->replaceExpr(TheExpr, IntString);
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
@@ -219,8 +219,14 @@ void TemplateNonTypeArgToInt::handleOneTemplateDecl(const TemplateDecl *D)
   for (TemplateParameterList::const_iterator I = TPList->begin(),
        E = TPList->end(); I != E; ++I) {
     const NamedDecl *ParamND = (*I);
-    if (isValidParameter(ParamND))
+    if (isValidParameter(ParamND)) {
       ValidParamIdx->insert(Idx);
+      if (const ValueDecl* ValD = dyn_cast<ValueDecl>(ParamND)) {
+	++ValidInstanceNum;
+	RewriteHelper->replaceValueDecl(ValD,
+					"int " + ParamND->getNameAsString());
+      }
+    }
     Idx++;
   }
 
