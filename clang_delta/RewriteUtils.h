@@ -49,6 +49,7 @@ namespace clang {
   class ClassTemplateDecl;
   class CXXMethodDecl;
   class NestedNameSpecifierLoc;
+  class ValueDecl;
 }
 
 class RewriteUtils {
@@ -202,6 +203,19 @@ public:
 
   bool replaceNamedDeclName(const clang::NamedDecl *ND,
                             const std::string &NameStr);
+
+  ///\brief Replaces a value decl with a given string.
+  ///
+  ///For example: \code
+  /// enum E {...};
+  /// template <E argName> struct S { } => template <int> struct S { }
+  ///\endcode
+  ///
+  ///\param[in] VD - The decl to be replaced.
+  ///\param[in] Str - The replacement
+  ///\returns true on success.
+  ///
+  bool replaceValueDecl(const clang::ValueDecl *ValD, const std::string &Str);
 
   bool replaceCXXDtorCallExpr(const clang::CXXMemberCallExpr *CE,
                               std::string &Name);
