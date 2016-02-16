@@ -882,6 +882,13 @@ bool RewriteUtils::replaceNamedDeclName(const NamedDecl *ND,
              ND->getNameAsString().size(), NameStr));
 }
 
+bool RewriteUtils::replaceValueDecl(const ValueDecl *VD, const std::string &Str)
+{
+  SourceRange Range = VD->getSourceRange();
+  unsigned RangeSize = TheRewriter->getRangeSize(Range);
+  return !(TheRewriter->ReplaceText(Range.getBegin(), RangeSize, Str));
+}
+
 bool RewriteUtils::replaceVarDeclName(VarDecl *VD,
                                       const std::string &NameStr)
 {
