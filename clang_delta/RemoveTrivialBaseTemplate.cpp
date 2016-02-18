@@ -104,7 +104,7 @@ void RemoveTrivialBaseTemplate::handleOneCXXRecordDecl(
     const CXXBaseSpecifier *BS = I;
     const Type *Ty = BS->getType().getTypePtr();
     const CXXRecordDecl *Base = getBaseDeclFromType(Ty);
-    if (!Base || Base->hasDefinition()) {
+    if (!Base || getNumExplicitDecls(Base)) {
       continue;
     }
     const ClassTemplateDecl *TmplD = Base->getDescribedClassTemplate();
