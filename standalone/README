@@ -1,3 +1,0 @@
-This is a standalone version of C-Reduce that has minimal external
-dependencies. It should work on almost any reasonably modern x86-64 Linux
-machine. It requires that Perl 5 is installed and in the path.
