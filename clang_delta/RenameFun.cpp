@@ -133,7 +133,8 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   ValueDecl *OrigDecl = DRE->getDecl();
   FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl);
-  if (!FD || dyn_cast<CXXMethodDecl>(FD))
+  if (!FD || dyn_cast<CXXMethodDecl>(FD) ||
+      ConsumerInstance->isInIncludedFile(FD))
     return true;
 
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
