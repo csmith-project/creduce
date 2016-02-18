@@ -6,8 +6,8 @@
  * License.  See the file COPYING for details.
  */
 
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 /*
@@ -33,7 +33,7 @@ enum tok_kind {
   TOK_UNKNOWN,
 };
 
-void process_token (enum tok_kind);
+void process_token(enum tok_kind);
 
 #define OK 51
 #define STOP 71
