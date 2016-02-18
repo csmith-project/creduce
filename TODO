@@ -11,6 +11,10 @@ C-Reduce pre-release list:
 
 C-Reduce TODO list:
 
+it would be nice to have a way to glue multiple C/C++ files into a
+single compilation unit, as an alternative to multi-file reduction
+- CIL can do this but it's pretty invasive
+
 testing via lit
 
 make llvm-svn-compatible build against a specific LLVM version
