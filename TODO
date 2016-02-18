@@ -2,7 +2,20 @@
 
 --------------------------------------------------------------------
 
+C-Reduce pre-release list:
+
+- make sure copyright years are up to date
+- test on Windows, Linux, OS X
+
+--------------------------------------------------------------------
+
 C-Reduce TODO list:
+
+it would be nice to have a way to glue multiple C/C++ files into a
+single compilation unit, as an alternative to multi-file reduction
+- CIL can do this but it's pretty invasive
+
+testing via lit
 
 make llvm-svn-compatible build against a specific LLVM version
   the CI is the problem here
@@ -15,8 +28,6 @@ add optional pass timeout?
 more shortcut keys?
 
 constant folding
-
-include Johan's patch for giving an include path to clang-delta
 
 partial #define processing
 
@@ -38,8 +49,6 @@ consider re-implementing caching
 maybe add a format string reduction pass that eliminates a format
   specifier and also the corresponding argument
 
-avoid spurious "system" calls in passes
-
 write some documentation about creating a c-reduce pass: side effects,
 directory restrictions, etc.
 
@@ -54,6 +63,8 @@ implement suggestion from Joerg Sonnenberger:
 --------------------------------------------------------------------
 
 clang_delta TODO list:
+
+keep working to eliminate template stuff
 
 replace for-loops with expressions guessed from initializers
   guess that it executes 0 and 1 times

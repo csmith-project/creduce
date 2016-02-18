@@ -1039,17 +1039,27 @@ print "CLEANUP PASS\n" if $DEBUG;
 
 print "===================== done ====================\n";
 
-sub byname {
-    if (${$a}{"name"} eq ${$b}{"name"}) {
-	return ${$a}{"arg"} cmp ${$b}{"arg"};
+sub byworked {
+    my $na = ${$a}{"name"};
+    my $aa = ${$a}{"arg"};
+    my $wa = $method_worked{$na}{$aa};
+    my $nb = ${$b}{"name"};
+    my $ab = ${$b}{"arg"};
+    my $wb = $method_worked{$nb}{$ab};
+    if ($wa == $wb) {
+	if ($na eq $nb) {
+	    return $aa cmp $ab;
+	} else {
+	    return $na cmp $nb;
+	}
     } else {
-	return ${$a}{"name"} cmp ${$b}{"name"};
+	return $wa <=> $wb;
     }
 }
 
 print "\n";
 print "pass statistics:\n";
-foreach my $mref (sort byname @all_methods) {
+foreach my $mref (sort byworked @all_methods) {
     my $method = ${$mref}{"name"};
     my $arg = ${$mref}{"arg"};
     my $w = $method_worked{$method}{$arg};
@@ -1059,10 +1069,8 @@ foreach my $mref (sort byname @all_methods) {
     print "  method $method :: $arg worked $w times and failed $f times\n";
 }
 
-print "\n";
-
 foreach my $fn (sort byrsize @toreduce) {
-    print "\n          '$fn' reduced to:\n";
+    print "\n          ******** $fn ********\n\n";
     open INF, "<$fn" or die;
     while (<INF>) {
 	print;
