@@ -110,7 +110,10 @@ being reduced, this should be done using an absolute path.
 
 The interestingness test should not expect any command line arguments.
 It should be deterministic and might want to enforce resource limits
-on sub-commands that it invokes (e.g. using ulimit).
+on sub-commands that it invokes (e.g. using ulimit). In particular,
+C-Reduce is known to sometimes introduce an infinite loop into the
+program being reduced. Therefore, if the interestingness test runs the
+compiled program, it probably should do so under a timeout.
 
 As a quick example, if you consider a file to be interesting if GCC's
 vectorizer fires while compiling it, you might use this
@@ -129,7 +132,8 @@ commands:
   echo \$\?
 
 This should result in "0" being echoed to the terminal. If this does
-not happen, C-Reduce is not going to work.
+not happen, the interestingness test is flawed and C-Reduce won't be
+able to make use of it.
 
 If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
