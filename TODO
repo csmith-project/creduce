@@ -2,7 +2,16 @@
 
 --------------------------------------------------------------------
 
+C-Reduce pre-release list:
+
+- make sure copyright years are up to date
+- test on Windows, Linux, OS X
+
+--------------------------------------------------------------------
+
 C-Reduce TODO list:
+
+testing via lit
 
 make llvm-svn-compatible build against a specific LLVM version
   the CI is the problem here
