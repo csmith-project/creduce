@@ -400,6 +400,9 @@ SourceLocation RemoveUnusedFunction::getFunctionOuterLocStart(
       LocStart = FTD->getLocStart();
   }
 
+  if (LocStart.isMacroID())
+    LocStart = SrcManager->getExpansionLoc(LocStart);
+
   // this is ugly, but how do we get the location of __extension__? e.g.:
   // __extension__ void foo();
   LocStart = getExtensionLocStart(LocStart);
@@ -437,6 +440,8 @@ SourceLocation RemoveUnusedFunction::getFunctionLocEnd(
   }
 
   SourceLocation FDLoc = FD->getLocation();
+  if (FDLoc.isMacroID())
+    FDLoc = SrcManager->getExpansionLoc(FDLoc);
   const char * const FDBuf = SrcManager->getCharacterData(FDLoc);
   const char * LocEndBuf = SrcManager->getCharacterData(LocEnd);
   if ((FDBuf < LocEndBuf) && !isTokenOperator(FDLoc))
@@ -459,6 +464,8 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
 {
   SourceRange FuncRange = FD->getSourceRange();
   SourceLocation LocEnd = FuncRange.getEnd();
+  if (LocEnd.isMacroID())
+    LocEnd = SrcManager->getExpansionLoc(LocEnd);
   if (!FD->isInExternCContext() && !FD->isInExternCXXContext()) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
     LocEnd = getFunctionLocEnd(FuncLocStart, LocEnd, FD);
@@ -488,6 +495,8 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
   // extern "C++" void foo();
   // it also handles cases such as extern "C++" template<typename T> ...
   SourceLocation LocStart = Linkage->getExternLoc();
+  if (LocStart.isMacroID())
+    LocStart = SrcManager->getExpansionLoc(LocStart);
   LocStart = getExtensionLocStart(LocStart);
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 }
@@ -630,7 +639,11 @@ bool RemoveUnusedFunction::hasAtLeastOneValidLocation(const FunctionDecl *FD)
        RE = FD->redecls_end(); RI != RE; ++RI) {
     SourceRange FuncRange = FD->getSourceRange();
     SourceLocation StartLoc = FuncRange.getBegin();
+    if (StartLoc.isMacroID())
+      StartLoc = SrcManager->getExpansionLoc(StartLoc);
     SourceLocation EndLoc = FuncRange.getEnd();
+    if (EndLoc.isMacroID())
+      EndLoc = SrcManager->getExpansionLoc(EndLoc);
     if (SrcManager->isWrittenInMainFile(StartLoc) &&
         SrcManager->isWrittenInMainFile(EndLoc))
       return true;
