@@ -21,7 +21,7 @@ page:
 ##Installation:
 
 
-see the file INSTALL
+see the file INSTALL.md
 
 
 ##Notes:
