@@ -1,12 +1,13 @@
-C-Reduce
-===
+##C-Reduce
+
 
 Before compiling C-Reduce yourself, you might want to see if your OS
 comes with a precompiled package for C-Reduce. Ubuntu, Debian, Gentoo,
 and Mac OS X (Homebrew) all do.
 
-Prereqs:
-===
+
+##Prereqs:
+
 
 C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
 you will need a development environment that supports these languages.
@@ -58,8 +59,9 @@ For example, (perhaps as root):
 zlib:
   http://www.zlib.net/
 
-Optional prereqs:
-===
+
+##Optional prereqs:
+
 
 GNU Indent, astyle, Term::ReadKey, and Sys::CPU are optional; C-Reduce
 will use whichever of them are installed.
@@ -87,8 +89,9 @@ astyle:
 GNU Indent:
   http://www.gnu.org/software/indent/
 
-Building and installing C-Reduce:
-===
+
+##Building and installing C-Reduce:
+
 
 From either the source directory or a build directory:
 
@@ -115,8 +118,10 @@ The generated Makefiles require GNU Make.  BSD Make will not work.
 If you see weird make-time errors, please check that you are using
 GNU Make.
 
-Building and installing C-Reduce with cmake:
-===
+
+##Building and installing C-Reduce with cmake:
+
+
 ```
 cmake /path/to/src -DTOPFORMFLAT=/path/to/delta-2006.08.03/ -DCMAKE_INSTALL_PREFIX=/path/to/inst/folder/ -DLLVM_DIR=/path/to/debug/installation/of/llvm/share/llvm/cmake/
 make -j4
@@ -124,8 +129,8 @@ make install
 ```
 
 
-Regarding LLVM versions:
-===
+##Regarding LLVM versions:
+
 
 Released versions of C-Reduce, and also our master branch at Github,
 need to be compiled against specific released versions of LLVM, as
@@ -134,10 +139,11 @@ noted in this file.
 Our GitHub repo usually also has a branch called llvm-svn-compatible
 that supports building C-Reduce against the current LLVM SVN head.
 
-Developers' Corner:
-===
 
-Building with current LLVM trunk and cmake:
+##Developers' Corner:
+
+
+###Building with current LLVM trunk and cmake:
 ```
 cmake /path/to/src -DCMAKE_BUILD_TYPE=Debug -DTOPFORMFLAT=/path/to/delta-2006.08.03/ -DCMAKE_INSTALL_PREFIX=/path/to/inst/folder/ -DLLVM_DIR=/path/to/debug/installation/of/llvm/share/llvm/cmake/
 make -j4
