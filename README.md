@@ -1,8 +1,6 @@
--*- mode: Text -*-
+Linux Build Status: [![Linux Build Status](https://travis-ci.org/csmith-project/creduce.svg?branch=master)](https://travis-ci.org/csmith-project/creduce)
+##About C-Reduce:
 
---------------------------------------------------------------------
-
-About C-Reduce:
 
 C-Reduce is a tool that takes a large C or C++ program that has a
 property of interest (such as triggering a compiler bug) and
@@ -20,15 +18,15 @@ page:
 
   http://embed.cs.utah.edu/creduce/
 
---------------------------------------------------------------------
 
-Installation:
+##Installation:
 
-see the file INSTALL
 
---------------------------------------------------------------------
+See the [installation manual](INSTALL.md)
 
-Notes:
+
+##Notes:
+
 
 1. When set to use more than one core, C-Reduce can cause space in
 /tmp to be leaked. This happens because sometimes C-Reduce will kill a
@@ -51,5 +49,3 @@ temporary directory containing a copy of the file that is being
 reduced. If your interestingness test requires access to other files,
 you should either copy them into the current working directory or else
 refer to them using an absolute path.
-
---------------------------------------------------------------------
