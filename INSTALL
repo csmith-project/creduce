@@ -115,7 +115,15 @@ The generated Makefiles require GNU Make.  BSD Make will not work.
 If you see weird make-time errors, please check that you are using
 GNU Make.
 
---------------------------------------------------------------------
+Building and installing C-Reduce with cmake:
+===
+```
+cmake /path/to/src -DTOPFORMFLAT=/path/to/delta-2006.08.03/ -DCMAKE_INSTALL_PREFIX=/path/to/inst/folder/ -DLLVM_DIR=/path/to/debug/installation/of/llvm/share/llvm/cmake/
+make -j4
+make install
+```
+
+
 Regarding LLVM versions:
 ===
 
@@ -126,4 +134,12 @@ noted in this file.
 Our GitHub repo usually also has a branch called llvm-svn-compatible
 that supports building C-Reduce against the current LLVM SVN head.
 
---------------------------------------------------------------------
+Developers' Corner:
+===
+
+Building with current LLVM trunk and cmake:
+```
+cmake /path/to/src -DCMAKE_BUILD_TYPE=Debug -DTOPFORMFLAT=/path/to/delta-2006.08.03/ -DCMAKE_INSTALL_PREFIX=/path/to/inst/folder/ -DLLVM_DIR=/path/to/debug/installation/of/llvm/share/llvm/cmake/
+make -j4
+make install
+```
