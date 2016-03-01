@@ -1,3 +1,4 @@
+Linux Build Status: [![Linux Build Status](https://travis-ci.org/csmith-project/creduce.svg?branch=master)](https://travis-ci.org/csmith-project/creduce)
 ##About C-Reduce:
 
 
