@@ -35,10 +35,6 @@ if(NOT TOPFORMFLAT)
 message(WARNING "topformflat${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set TOPFORMFLAT manually.")
 endif(NOT TOPFORMFLAT)
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${comp}.cpp
-  COMMAND ${ECPPC} -o ${CMAKE_CURRENT_BINARY_DIR}/${comp}.cpp -v -n ${comp} ${CMAKE_CURRENT_SOURCE_DIR}/${comp}.ecpp
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/creduce.in)
-
 # Prepare creduce.pl
 set(perl "${PERL_EXECUTABLE}")
 set(perllibdir "${CMAKE_INSTALL_PREFIX}/modules")
