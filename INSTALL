@@ -1,15 +1,12 @@
--*- mode: Text -*-
-
---------------------------------------------------------------------
-
-C-Reduce 
+C-Reduce
+===
 
 Before compiling C-Reduce yourself, you might want to see if your OS
 comes with a precompiled package for C-Reduce. Ubuntu, Debian, Gentoo,
 and Mac OS X (Homebrew) all do.
 
---------------------------------------------------------------------
 Prereqs:
+===
 
 C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
 you will need a development environment that supports these languages.
@@ -61,8 +58,8 @@ For example, (perhaps as root):
 zlib:
   http://www.zlib.net/
 
---------------------------------------------------------------------
 Optional prereqs:
+===
 
 GNU Indent, astyle, Term::ReadKey, and Sys::CPU are optional; C-Reduce
 will use whichever of them are installed.
@@ -90,8 +87,8 @@ astyle:
 GNU Indent:
   http://www.gnu.org/software/indent/
 
---------------------------------------------------------------------
 Building and installing C-Reduce:
+===
 
 From either the source directory or a build directory:
 
@@ -120,6 +117,7 @@ GNU Make.
 
 --------------------------------------------------------------------
 Regarding LLVM versions:
+===
 
 Released versions of C-Reduce, and also our master branch at Github,
 need to be compiled against specific released versions of LLVM, as
