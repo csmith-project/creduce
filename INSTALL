@@ -126,6 +126,10 @@ need to be compiled against specific released versions of LLVM, as
 noted in this file.
 
 Our GitHub repo usually also has a branch called llvm-svn-compatible
-that supports building C-Reduce against the current LLVM SVN head.
+that supports building C-Reduce against LLVMs that are newer than the
+last released version. The most recent version of LLVM that the
+llvm-svn-compatible branch is known to compile against is recorded in
+LAST_KNOWN_WORKING_LLVM. C-Reduce may happen to also build against
+revisions before or after this, but we make no guarantees.
 
 --------------------------------------------------------------------

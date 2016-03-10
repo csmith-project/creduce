@@ -127,7 +127,8 @@ bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
 
   for (CallExpr::arg_iterator I = CallE->arg_begin(),
        E = CallE->arg_end(); I != E; ++I) {
-    TraverseStmt(*I);
+    Expr *Exp = *I;
+    TraverseStmt(Exp);
   }
 
   ConsumerInstance->CallExprQueue.pop_back();

@@ -169,7 +169,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   ClangInstance->setASTConsumer(
     std::unique_ptr<ASTConsumer>(CurrentTransformationImpl));
   Preprocessor &PP = ClangInstance->getPreprocessor();
-  PP.getBuiltinInfo().InitializeBuiltins(PP.getIdentifierTable(),
+  PP.getBuiltinInfo().initializeBuiltins(PP.getIdentifierTable(),
                                          PP.getLangOpts());
 
   if (!ClangInstance->InitializeSourceManager(FrontendInputFile(SrcFileName, IK))) {

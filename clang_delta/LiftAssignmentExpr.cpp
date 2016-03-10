@@ -169,7 +169,8 @@ bool AssignExprStatementVisitor::VisitCallExpr(CallExpr *CallE)
 {
   for (CallExpr::arg_iterator I = CallE->arg_begin(),
        E = CallE->arg_end(); I != E; ++I) {
-    handleSubExpr(*I);
+    Expr *Exp = *I;
+    handleSubExpr(Exp);
   }
   return false;
 }

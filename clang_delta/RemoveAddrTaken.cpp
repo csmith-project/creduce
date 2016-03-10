@@ -132,7 +132,7 @@ bool RemoveAddrTakenCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
   for (CallExpr::arg_iterator I = CE->arg_begin(),
        E = CE->arg_end(); I != E; ++I) {
-    const Expr *Arg = (*I);
+    const Expr *Arg = *I;
     const UnaryOperator *UO = dyn_cast<UnaryOperator>(Arg);
     if (!UO || (UO->getOpcode() != UO_AddrOf))
       continue;
