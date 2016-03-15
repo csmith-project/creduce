@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2015 The University of Utah
 // Copyright (c) 2012 Konstantin Tokarev <annulen@yandex.ru>
 // All rights reserved.
 //
