@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2016 The University of Utah
  * Copyright (c) 2012 - 2013 Tony Finch <dot@dotat.at>
  *
  * Redistribution and use in source and binary forms, with or without
