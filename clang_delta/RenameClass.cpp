@@ -160,7 +160,7 @@ bool RenameClass::isValidName(const std::string &Name)
     return false;
 
   char C = Name[0];
-  return (((C >= 'A') || (C <= 'Z')) && !isReservedName(C));
+  return (((C >= 'A') && (C <= 'Z')) && !isReservedName(C));
 }
 
 void RenameClass::addOneRecordDecl(const CXXRecordDecl *CanonicalRD,
