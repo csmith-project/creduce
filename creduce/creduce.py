@@ -2,6 +2,7 @@
 
 import argparse
 import multiprocessing
+import multiprocessing.connection
 import os
 import re
 import shutil
@@ -98,14 +99,12 @@ class Test0InterestingnessTest(InterestingnessTest):
                     "comparison between pointer and integer" in output):
                 return False
 
-            f = open(self.test_cases[0], "r")
-            for l in f.readlines():
-                if "goto" in l:
-                    f.close()
-                    return True
+            with open(self.test_cases[0], "r") as f:
+                for l in f.readlines():
+                    if "goto" in l:
+                        return True
 
-            f.close()
-            return False
+                return False
         except subprocess.CalledProcessError as err:
             print(err)
             return False
@@ -151,35 +150,32 @@ class IncludeIncludesDeltaPass(DeltaPass):
 
     @staticmethod
     def __transform(test_case, state):
-        tmp_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
-        in_file = open(test_case, "r")
-        includes = 0
-        matched = False
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            with open(test_case, "r") as in_file:
+                includes = 0
+                matched = False
 
-        for line in in_file.readlines():
-            include_match = re.match('\s*#\s*include\s*"(.*?)"', line)
+                for line in in_file.readlines():
+                    include_match = re.match('\s*#\s*include\s*"(.*?)"', line)
 
-            if include_match is not None:
-                includes += 1
+                    if include_match is not None:
+                        includes += 1
 
-                if includes == state:
-                    try:
-                        with open(include_match.group(1), "r") as inc_file:
-                            matched = True
-                            tmp_file.writelines(inc_file.readlines())
-                            continue
-                    except Exception:
-                        pass
+                        if includes == state:
+                            try:
+                                with open(include_match.group(1), "r") as inc_file:
+                                    matched = True
+                                    tmp_file.writelines(inc_file.readlines())
+                                    continue
+                            except Exception:
+                                pass
 
-            tmp_file.writelines(line)
+                    tmp_file.writelines(line)
 
-        in_file.close()
-        tmp_file.close()
-
-        if matched:
-            shutil.move(tmp_file.name, test_case)
-        else:
-            os.unlink(tmp_file.name)
+            if matched:
+                shutil.move(tmp_file.name, test_case)
+            else:
+                os.unlink(tmp_file.name)
 
         return matched
 
@@ -272,24 +268,21 @@ class LinesDeltaPass(DeltaPass):
             print("Start")
             del new_state["start"]
 
-            tmp_file = tempfile.NamedTemporaryFile(delete=False)
-            in_file = open(test_case, "r")
-            subprocess.call(["topformflat", arg], stdin=in_file, stdout=tmp_file, universal_newlines=True)
-            in_file.close()
-            tmp_file.close()
-            shutil.move(tmp_file.name, test_case)
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                with open(test_case, "r") as in_file:
+                    subprocess.call(["topformflat", arg], stdin=in_file, stdout=tmp_file, universal_newlines=True)
 
-            in_file = open(test_case, "r")
-            data = in_file.readlines()
-            in_file.close()
+                shutil.move(tmp_file.name, test_case)
+
+            with open(test_case, "r") as in_file:
+                data = in_file.readlines()
 
             new_state["index"] = len(data)
             new_state["chunk"] = len(data)
             return (CReduce.RES_OK, new_state)
         else:
-            in_file = open(test_case, "r")
-            data = in_file.readlines()
-            in_file.close()
+            with open(test_case, "r") as in_file:
+                data = in_file.readlines()
 
             while True:
                 new_state["index"] = min(new_state["index"], len(data))
@@ -304,12 +297,11 @@ class LinesDeltaPass(DeltaPass):
                     data = data[0:start] + data[start + chunk:]
                     print("went from {} lines to {} with chunk {}\n".format(old_len, len(data), chunk))
 
-                    tmp_file = tempfile.NamedTemporaryFile(mode="w+", delete=False)
-                    tmp_file.writelines(data)
-                    shutil.move(tmp_file.name, test_case)
-                    tmp_file.close()
-                    print("Break")
-                    break
+                    with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+                        tmp_file.writelines(data)
+                        shutil.move(tmp_file.name, test_case)
+                        print("Break")
+                        break
                 else:
                     if new_state["chunk"] <= 1:
                         print("Stop")
@@ -589,17 +581,19 @@ class CReduce:
         process = multiprocessing.Process(target=self.itest.run)
         process.start()
         os.setpgid(process.pid, process.pid)
-        return process.pid
+        return process
 
-    @staticmethod
-    def _wait_for_result():
-        #FIXME: Does not work for Windows
-        return os.wait()
+    def _wait_for_results(self):
+        descriptors = list(map(lambda x: x["proc"].sentinel, self.variants))
+        return multiprocessing.connection.wait(descriptors)
 
     def _kill_variants(self):
         for v in self.variants:
             #FIXME: Does not not work on Windows
-            os.killpg(v["pid"], 15)
+            proc = v["proc"]
+
+            if proc.is_alive():
+                os.killpg(v["proc"].pid, 15)
 
         self.variants = []
         self.num_running = 0
@@ -633,8 +627,8 @@ class CReduce:
                             stopped = True
                         else:
                             #TODO: Report failure
-                            pid = self._fork_variant(variant_path)
-                            variant = {"pid" : pid, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path, "result": False}
+                            proc = self._fork_variant(variant_path)
+                            variant = {"proc" : proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
                             self.variants.append(variant)
                             self.num_running += 1
                             state = pass_.advance(variant_path, arg, state)
@@ -642,25 +636,18 @@ class CReduce:
                         os.chdir(self.orig_dir)
 
                         if self.num_running > 0:
-                            pid, result = self._wait_for_result()
-                            result = True if result >> 8 == 0 else False
-                            self.num_running -= 1
-
-                            for v in self.variants:
-                                if v["pid"] == pid:
-                                    v["pid"] = -1
-                                    v["result"] = result
-                                    break
+                            finished = self._wait_for_results()
+                            self.num_running -= len(finished)
 
                         while len(self.variants) > 0:
                             variant = self.variants[0]
 
-                            if variant["pid"] != -1:
+                            if variant["proc"].is_alive():
                                 break
 
                             self.variants.pop(0)
 
-                            if variant["result"]:
+                            if variant["proc"].exitcode == 0:
                                 self._kill_variants()
                                 state = pass_.advance_on_success(variant["variant_path"], arg, variant["state"])
                                 shutil.copy(variant["variant_path"], test_case)
