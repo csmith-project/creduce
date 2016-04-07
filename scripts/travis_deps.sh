@@ -54,7 +54,7 @@ apt-get install -y -qq \
     libterm-readkey-perl \
     flex \
     build-essential \
-    libz-dev
+    zlib1g-dev
 
 ###############################################################################
 
