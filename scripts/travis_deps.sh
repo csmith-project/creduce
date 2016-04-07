@@ -34,7 +34,7 @@ apt-get update -qq
 # Install LLVM 3.8.  See file "INSTALL".
 # ENE, Apr 7 2016: Use --force-yes for now because current 3.8 stuff can't be
 #  authenticated, even though we installed the prescribed key, above.
-apt-get install -y -qq \
+apt-get install -y --force-yes -qq \
     llvm-3.8 \
     llvm-3.8-dev \
     clang-3.8 \
