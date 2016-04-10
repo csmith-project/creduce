@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import filecmp
 import multiprocessing
 import multiprocessing.connection
 import os
@@ -9,6 +10,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+
+debug = False
 
 class CReduceError(Exception):
     pass
@@ -45,10 +48,8 @@ class InterestingnessTest:
     def run(self):
         result = self.check()
         if result:
-            print("Check Success")
             sys.exit(0)
         else:
-            print("Check Failure")
             sys.exit(1)
 
 class SimpleInterestingnessTest(InterestingnessTest):
@@ -66,7 +67,7 @@ class Test0InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            output = subprocess.check_output(["clang", "-c", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
 
             if ("incompatible redeclaration" in output or
                     "ordered comparison between pointer" in output or
@@ -84,7 +85,7 @@ class Test0InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in output):
                 return False
 
-            output = subprocess.check_output(["gcc", "-c", "-Wextra", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
+            output = subprocess.check_output(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
 
             if ("uninitialized" in output or
                     "control reaches end" in output or
@@ -109,7 +110,6 @@ class Test0InterestingnessTest(InterestingnessTest):
 
                 return False
         except subprocess.CalledProcessError as err:
-            print(err)
             return False
 
 class DeltaPass:
@@ -133,6 +133,14 @@ class DeltaPass:
         return (1, 1)
         raise NotImplementedError
 
+    @classmethod
+    def _replace_nth_match(cls, pattern, string, n, replace_fn):
+        for i, match in enumerate(re.finditer(pattern, string, re.DOTALL)):
+            if i == n and match is not None:
+                return string[:match.start()] + replace_fn(match) + string[match.end():]
+
+        return string
+
 class IncludeIncludesDeltaPass(DeltaPass):
     @classmethod
     def new(cls, test_case, arg):
@@ -151,8 +159,8 @@ class IncludeIncludesDeltaPass(DeltaPass):
         success = cls.__transform(test_case, state)
         return (CReduce.RES_OK if success else CReduce.RES_STOP, state)
 
-    @staticmethod
-    def __transform(test_case, state):
+    @classmethod
+    def __transform(cls, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             with open(test_case, "r") as in_file:
                 includes = 0
@@ -200,8 +208,8 @@ class IncludesDeltaPass(DeltaPass):
         success = cls.__transform(test_case, state)
         return (CReduce.RES_OK if success else CReduce.RES_STOP, state)
 
-    @staticmethod
-    def __transform(test_case, state):
+    @classmethod
+    def __transform(cls, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             with open(test_case, "r") as in_file:
                 includes = 0
@@ -227,7 +235,49 @@ class IncludesDeltaPass(DeltaPass):
         return matched
 
 class UnIfDefDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        proc = subprocess.run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
+
+        defs = {}
+
+        for l in proc.stdout.splitlines():
+            defs[l] = 1
+
+        deflist = list(sorted(defs.keys()))
+
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            while True:
+                du = "-D" if state % 2 == 0 else "-U"
+                n_index = state / 2
+
+                if n_index >= len(deflist):
+                    #FIXME: No unlink in Perl script
+                    os.unlink(tmp_file.name)
+                    return (CReduce.RES_STOP, state)
+
+                def_ = deflist[n_index]
+
+                proc = subprocess.run(["unifdef", "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case], universal_newlines=True)
+
+                if filecmp.cmp(test_case, tmp_file.name, shallow=False):
+                    state += 1
+                    continue
+
+                shutil.move(tmp_file.name, test_case)
+                return (CReduce.RES_OK, state)
 
 class CommentsDeltaPass(DeltaPass):
     @classmethod
@@ -242,11 +292,182 @@ class CommentsDeltaPass(DeltaPass):
     def advance_on_success(cls, test_case, arg, state):
         return state
 
-class BlankDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with open(test_case, "r") as in_file:
+            prog = in_file.read()
+            prog2 = prog
 
-class ClangBinSearchDeltaPass(DeltaPass):
-    pass
+        while True:
+            if state == -2:
+                replace_fn = lambda m: m.group(2) if m is not None and m.group(2) is not None else ""
+                prog2 = re.sub(r"/\*[^*]*\*+([^/*][^*]*\*+)*/|(\"(\.|[^\"\\])*\"|'(\.|[^'\\])*'|.[^/\"'\\]*)", replace_fn, prog2, flags=re.DOTALL)
+            elif state == -1:
+                prog2 = re.sub(r"//.*$", "", prog2, flags=re.MULTILINE)
+            else:
+                pass
+
+            if prog == prog2 and state == -2:
+                state = -1
+                continue
+
+            if prog != prog2:
+                with open(test_case, "w") as out_file:
+                    out_file.write(prog2)
+
+                return (CReduce.RES_OK, state)
+            else:
+                return (CReduce.RES_STOP, state)
+
+class BlankDeltaPass(DeltaPass):
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @staticmethod
+    def __transform(test_case, pattern):
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            with open(test_case, "r") as in_file:
+                matched = False
+
+                for l in in_file.readlines():
+                    if re.match(pattern, l) is not None:
+                        matched = True
+                    else:
+                        tmp_file.writelines(l)
+
+            if matched:
+                shutil.move(tmp_file.name, test_case)
+            else:
+                os.unlink(tmp_file.name)
+
+        return matched
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        patterns = [r"^\s*$", r"^#"]
+
+        if state >= len(patterns):
+            return (CReduce.RES_STOP, state)
+        else:
+            success = False
+
+            while not success and state < len(patterns):
+                success = cls.__transform(test_case, patterns[state])
+                state += 1
+
+            return (CReduce.RES_OK if success else CReduce.RES_STOP, state)
+
+class ClangBinarySearchDeltaPass(DeltaPass):
+    @classmethod
+    def new(cls, test_case, arg):
+        return {"start": 1}
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        if "start" in state:
+            return state
+        else:
+            new_state = state.copy()
+            new_state["index"] = state["index"] + state["chunk"]
+
+            if debug:
+                print("ADVANCE: index = {}, chunk = {}".format(new_state["index"], new_state["chunk"]))
+
+            return new_state
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @staticmethod
+    def __count_instances(test_case, arg):
+        proc = subprocess.run(["clang_delta", "--query-instances={}".format(arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
+
+        m = re.match("Available transformation instances: ([0-9]+)$", proc.stdout)
+
+        if m is None:
+            return 0
+        else:
+            return int(m.group(1))
+
+    @staticmethod
+    def __rechunk(state):
+        if state["chunk"] < 10:
+            return False
+
+        state["chunk"] = round(float(state["chunk"]) / 2.0)
+        state["index"] = 1
+
+        if debug:
+            print("granularity = {}".format(state["chunk"]))
+
+        return True
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        new_state = state.copy()
+
+        if "start" in new_state:
+            del new_state["start"]
+
+            instances = cls.__count_instances(test_case, arg)
+
+            new_state["chunk"] = instances
+            new_state["instances"] = instances
+            new_state["index"] = 1
+
+            if debug:
+                print("intial granularity = {}".format(instances))
+
+        while True:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                if debug:
+                    print("TRANSFORM: index = {}, chunk = {}, instances = {}".format(new_state["index"], new_state["chunk"], new_state["instances"]))
+
+                if new_state["index"] <= new_state["instances"]:
+                    end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
+                    dec = end - new_state["index"] + 1
+
+                    try:
+                        if debug:
+                            print(" ".join(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
+                        proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
+
+                        if proc.returncode == 0:
+                            shutil.move(tmp_file.name, test_case)
+                            return (CReduce.RES_OK, new_state)
+                        else:
+                            if proc.returncode == 255:
+                                pass
+                            elif proc.returncode == 1:
+                                os.unlink(tmp_file.name)
+                                if debug:
+                                    print("out of instances!")
+                                if not cls.__rechunk(new_state):
+                                    return (CReduce.RES_STOP, new_state)
+                                continue
+                            else:
+                                os.unlink(tmp_file.name)
+                                return (CReduce.RES_ERROR, new_state)
+
+                        shutil.move(tmp_file.name, test_case)
+
+                    except subprocess.CalledProcessError as err:
+                        return (CReduce.RES_ERROR, new_state)
+                else:
+                    if not cls.__rechunk(new_state):
+                        return (CReduce.RES_STOP, new_state)
+
+        return (CReduce.RES_OK, new_state)
 
 class LinesDeltaPass(DeltaPass):
     @classmethod
@@ -268,7 +489,6 @@ class LinesDeltaPass(DeltaPass):
         new_state = state.copy()
 
         if "start" in state:
-            print("Start")
             del new_state["start"]
 
             with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
@@ -290,29 +510,22 @@ class LinesDeltaPass(DeltaPass):
             while True:
                 new_state["index"] = min(new_state["index"], len(data))
 
-                print("Index: {}, data: {}, chunk: {}".format(new_state["index"], len(data), new_state["chunk"]))
-
                 if new_state["index"] >= 0 and len(data) > 0 and new_state["chunk"] > 0:
                     start = max(0, new_state["index"] - new_state["chunk"])
-                    print("Start: {}, Index: {}, Chunk: {}".format(start, new_state["index"], new_state["chunk"]))
                     chunk = new_state["chunk"]
                     old_len = len(data)
                     data = data[0:start] + data[start + chunk:]
-                    print("went from {} lines to {} with chunk {}\n".format(old_len, len(data), chunk))
 
                     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                         tmp_file.writelines(data)
                         shutil.move(tmp_file.name, test_case)
-                        print("Break")
                         break
                 else:
                     if new_state["chunk"] <= 1:
-                        print("Stop")
                         return (CReduce.RES_STOP, new_state)
 
                     new_state["chunk"] = int(new_state["chunk"] / 2)
                     new_state["index"] = len(data)
-                    print("New index: {}, new chunk: {}".format(new_state["index"], new_state["chunk"]))
 
             return (CReduce.RES_OK, new_state)
 
@@ -329,14 +542,6 @@ class SpecialDeltaPass(DeltaPass):
     def advance_on_success(cls, test_case, arg, state):
         return state
 
-    @staticmethod
-    def __replace_nth_match(pattern, string, n, replace_fn):
-        for i, match in enumerate(re.finditer(pattern, string, re.DOTALL)):
-            if i == n and match is not None:
-                return string[:match.start()] + replace_fn(match) + string[match.end():]
-
-        return string
-
     @classmethod
     def transform(cls, test_case, arg, state):
         with open(test_case, "r") as in_file:
@@ -344,12 +549,12 @@ class SpecialDeltaPass(DeltaPass):
             prog2 = prog
 
         if arg == "a":
-            replace_fn = lambda m: 'printf("%d\\n", (int){})'.format(m.group('list').split(',')[0])
-            prog2 = cls.__replace_nth_match("transparent_crc\s*\((?P<list>.*?)\)", prog2, state, replace_fn)
+            replace_fn = lambda m: 'printf("%d\\n", (int){})'.format(m.group("list").split(",")[0])
+            prog2 = cls._replace_nth_match(r"transparent_crc\s*\((?P<list>.*?)\)", prog2, state, replace_fn)
         elif arg == "b":
-            prog2 = cls.__replace_nth_match('extern "C"', prog2, state, lambda m: "")
+            prog2 = cls._replace_nth_match('extern "C"', prog2, state, lambda m: "")
         elif arg == "c":
-            prog2 = cls.__replace_nth_match('extern "C++"', prog2, state, lambda m: "")
+            prog2 = cls._replace_nth_match('extern "C\+\+"', prog2, state, lambda m: "")
         else:
             raise UnknownArgumentCReduceError()
 
@@ -362,76 +567,260 @@ class SpecialDeltaPass(DeltaPass):
             return (CReduce.RES_STOP, state)
 
 class TernaryDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        raise NotImplementedError("Balanced parenthesis cannot be matched in Python regex")
+        #with open(test_case, "r") as in_file:
+        #    prog = in_file.read()
+        #    prog2 = prog
+
+        #prog2 = cls._replace_nth_match(r"(?P<del1>$borderorspc)(?P<a>$varnumexp)\s*\?\s*(?P<b>$varnumexp)\s*:\s*(?P<c>$varnumexp)(?<del2>$borderorspc)", prog2, state, replace_fn)
+
+        #if arg == "b":
+        #    replace_fn = lambda m: m.group("del1") + m.group("b") + m.group("del2")
+        #elif arg == "c":
+        #    replace_fn = lambda m: m.group("del1") + m.group("c") + m.group("del2")
+        #else:
+        #    raise UnknownArgumentCReduceError()
+
+        #if prog != prog2:
+        #    with open(test_case, "w") as out_file:
+        #        out_file.write(prog2)
+
+        #    return (CReduce.RES_OK, state)
+        #else:
+        #    return (CReduce.RES_STOP, state)
 
 class BalancedDeltaPass(DeltaPass):
     pass
 
 class ClangDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 1
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            try:
+                proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
+
+                if proc.returncode == 0:
+                    shutil.move(tmp_file.name, test_case)
+                    return (CReduce.RES_OK, state)
+                else:
+                    os.unlink(tmp_file.name)
+
+                    if proc.returncode == 255 or proc.returncode == 1:
+                        return (CReduce.RES_STOP, state)
+                    else:
+                        return (CREDUCE.RES_ERROR, state)
+            except subprocess.CalledProcessError as err:
+                return (CREDUCE.RES_ERROR, state)
 
 class PeepDeltaPass(DeltaPass):
     pass
 
 class IntsDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with open(test_case, "r") as in_file:
+            prog = in_file.read()
+            prog2 = prog
+
+        re_border_or_space = r"(?:(?:[*,:;{}[\]()])|\s)"
+
+        if arg == "a":
+            # Delete first digit
+            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("suf")
+            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)[0-9a-fA-F](?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+        elif arg == "b":
+            # Delete prefix
+            # FIXME: Made 0x mandatory
+            replace_fn = lambda m: m.group("del") + m.group("numpart") + m.group("suf")
+            prog2 = cls._replace_nth_match(r"(?P<del>{0})(?P<pref>[+-]?(?:0|(0[xX])))(?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+        elif arg == "c":
+            # Delete suffix
+            #FIXME: Changed start to plus for suffix
+            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
+        elif arg == "d":
+            # Hex to dec
+            replace_fn = lambda m: m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
+            prog2 = cls._replace_nth_match(r"(?P<pref>{0})(?P<numpart>0[Xx][0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+        elif arg == "e":
+            #FIXME: Same as c?!
+            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
+        else:
+            raise UnknownArgumentCReduceError()
+
+        if prog != prog2:
+            with open(test_case, "w") as out_file:
+                out_file.write(prog2)
+
+            return (CReduce.RES_OK, state)
+        else:
+            return (CReduce.RES_STOP, state)
 
 class IndentDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with open(test_case, "r") as in_file:
+            old = in_file.read()
+
+        while True:
+            if arg == "regular":
+                if state != 0:
+                    return (CReduce.RES_STOP, state)
+                else:
+                    cmd = ["clang-format", "-i", test_case]
+            elif arg == "final":
+                if state == 0:
+                    cmd = ["indent", "-nbad", "-nbap", "-nbbb", "-cs", "-pcs", "-prs", "-saf", "-sai", "-saw", "-sob", "-ss", test_case]
+                elif state == 1:
+                    cmd = ["astyle", test_case]
+                elif state == 2:
+                    cmd = ["clang_format", "-i", test_case]
+                else:
+                    return (CReduce.RES_STOP, state)
+
+            with open(test_case, "r") as in_file:
+                new = in_file.read()
+
+            if old == new:
+                state += 1
+            else:
+                break
+
+            return (CReduce.RES_OK, state)
 
 class ClexDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            try:
+                proc = subprocess.run(["clex", str(arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
+
+                if proc.returncode == 51:
+                    shutil.copy(tmp_file.name, test_case)
+                    return (CReduce.RES_OK, state)
+                else:
+                    os.unlink(tmp_file.name)
+
+                    if proc.returncode == 71:
+                        return (CReduce.RES_STOP, state)
+                    else:
+                        return (CREDUCE.RES_ERROR, state)
+            except subprocess.CalledProcessError as err:
+                return (CREDUCE.RES_ERROR, state)
 
 class CReduce:
     RES_OK = 0
     RES_STOP = 1
     RES_ERROR = 2
     default_passes = [
-            #{"pass": IncludeIncludesDeltaPass, "arg": "0", "pri": 100},
-            #{"pass": IncludesDeltaPass, "arg": "0", "first_pass_pri": 0},
-            #{"pass": UnIfDefDeltaPass, "arg": "0", "pri": 450, "first_pass_pri": 0},
-            #{"pass": CommentsDeltaPass, "arg": "0", "pri": 451, "first_pass_pri":  0},
-            #{"pass": BlankDeltaPass, "arg": "0", "first_pass_pri":  1},
-            #{"pass": ClangBinSearchDeltaPass, "arg": "replace-passtion-def-with-decl", "first_pass_pri":  2},
-            #{"pass": ClangBinSearchDeltaPass, "arg": "remove-unused-passtion", "first_pass_pri":  3},
-            #{"pass": LinesDeltaPass, "arg": "0", "pri": 410, "first_pass_pri":  20, "last_pass_pri": 999},
-            #{"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  21},
-            ##{"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  22},
-            #{"pass": LinesDeltaPass, "arg": "1", "pri": 411, "first_pass_pri":  23},
-            #{"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  24},
-            ##{"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  25},
-            #{"pass": LinesDeltaPass, "arg": "2", "pri": 412, "first_pass_pri":  27},
-            #{"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  28},
-            ##{"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  29},
-            #{"pass": LinesDeltaPass, "arg": "10", "pri": 413, "first_pass_pri":  30},
-            #{"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  31},
-            ##{"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  32},
-            #{"pass": ClangBinSearchDeltaPass, "arg": "replace-passtion-def-with-decl", "first_pass_pri": 33},
-            #{"pass": ClangBinSearchDeltaPass, "arg": "remove-unused-passtion", "first_pass_pri": 34},
-            #{"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  35},
-            #{"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  36},
-            #{"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  37},
-            #{"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  38},
-            {"pass": SpecialDeltaPass, "arg": "a", "first_pass_pri": 110},
-            {"pass": SpecialDeltaPass, "arg": "b", "pri": 555, "first_pass_pri": 110},
-            {"pass": SpecialDeltaPass, "arg": "c", "pri": 555, "first_pass_pri": 110},
-            #{"pass": TernaryDeltaPass, "arg": "b", "pri": 104},
-            #{"pass": TernaryDeltaPass, "arg": "c", "pri": 105},
-            #{"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
-            #{"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
-            #{"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
-            #{"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
-            #{"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
-            #{"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
-            #{"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
-            #{"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
+            {"pass": IncludeIncludesDeltaPass, "arg": "0", "pri": 100},
+            {"pass": IncludesDeltaPass, "arg": "0", "first_pass_pri": 0},
+            {"pass": UnIfDefDeltaPass, "arg": "0", "pri": 450, "first_pass_pri": 0},
+            {"pass": CommentsDeltaPass, "arg": "0", "pri": 451, "first_pass_pri":  0},
+            {"pass": BlankDeltaPass, "arg": "0", "first_pass_pri":  1},
+            {"pass": ClangBinarySearchDeltaPass, "arg": "replace-function-def-with-decl", "first_pass_pri":  2},
+            {"pass": ClangBinarySearchDeltaPass, "arg": "remove-unused-function", "first_pass_pri":  3},
+            {"pass": LinesDeltaPass, "arg": "0", "pri": 410, "first_pass_pri":  20, "last_pass_pri": 999},
+            {"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  21},
+            #{"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  22},
+            {"pass": LinesDeltaPass, "arg": "1", "pri": 411, "first_pass_pri":  23},
+            {"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  24},
+            #{"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  25},
+            {"pass": LinesDeltaPass, "arg": "2", "pri": 412, "first_pass_pri":  27},
+            {"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  28},
+            #{"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  29},
+            {"pass": LinesDeltaPass, "arg": "10", "pri": 413, "first_pass_pri":  30},
+            {"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  31},
+            #{"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  32},
+            {"pass": ClangBinarySearchDeltaPass, "arg": "replace-function-def-with-decl", "first_pass_pri": 33},
+            {"pass": ClangBinarySearchDeltaPass, "arg": "remove-unused-function", "first_pass_pri": 34},
+            {"pass": LinesDeltaPass, "arg": "0", "first_pass_pri":  35},
+            {"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  36},
+            {"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  37},
+            {"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  38},
+            #{"pass": SpecialDeltaPass, "arg": "a", "first_pass_pri": 110},
+            #{"pass": SpecialDeltaPass, "arg": "b", "pri": 555, "first_pass_pri": 110},
+            #{"pass": SpecialDeltaPass, "arg": "c", "pri": 555, "first_pass_pri": 110},
+            ##{"pass": TernaryDeltaPass, "arg": "b", "pri": 104},
+            ##{"pass": TernaryDeltaPass, "arg": "c", "pri": 105},
+            ##{"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
+            ##{"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
+            ##{"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
+            ##{"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
+            ##{"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
+            ##{"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
+            ##{"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
+            ##{"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
             #{"pass": ClangDeltaPass, "arg": "remove-namespace", "pri": 200},
             #{"pass": ClangDeltaPass, "arg": "aggregate-to-scalar", "pri": 201},
             ##{"pass": ClangDeltaPass, "arg": "binop-simplification", "pri": 201},
             #{"pass": ClangDeltaPass, "arg": "local-to-global", "pri": 202},
             #{"pass": ClangDeltaPass, "arg": "param-to-global", "pri": 203},
             #{"pass": ClangDeltaPass, "arg": "param-to-local", "pri": 204},
-            #{"pass": ClangDeltaPass, "arg": "remove-nested-passtion", "pri": 205},
+            #{"pass": ClangDeltaPass, "arg": "remove-nested-function", "pri": 205},
             #{"pass": ClangDeltaPass, "arg": "rename-fun", "last_pass_pri": 207},
             #{"pass": ClangDeltaPass, "arg": "union-to-struct", "pri": 208},
             #{"pass": ClangDeltaPass, "arg": "rename-param", "last_pass_pri": 209},
@@ -446,14 +835,14 @@ class CReduce:
             #{"pass": ClangDeltaPass, "arg": "callexpr-to-value", "pri": 217, "first_pass_pri": 49},
             #{"pass": ClangDeltaPass, "arg": "replace-callexpr", "pri": 218, "first_pass_pri": 50},
             #{"pass": ClangDeltaPass, "arg": "simplify-callexpr", "pri": 219, "first_pass_pri": 51},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-passtion", "pri": 220, "first_pass_pri": 40},
+            #{"pass": ClangDeltaPass, "arg": "remove-unused-function", "pri": 220, "first_pass_pri": 40},
             #{"pass": ClangDeltaPass, "arg": "remove-unused-enum-member", "pri": 221, "first_pass_pri": 51},
             #{"pass": ClangDeltaPass, "arg": "remove-enum-member-value", "pri": 222, "first_pass_pri": 52},
             #{"pass": ClangDeltaPass, "arg": "remove-unused-var", "pri": 223, "first_pass_pri": 53},
             #{"pass": ClangDeltaPass, "arg": "simplify-if", "pri": 224},
             #{"pass": ClangDeltaPass, "arg": "reduce-array-dim", "pri": 225},
             #{"pass": ClangDeltaPass, "arg": "reduce-array-size", "pri": 226},
-            #{"pass": ClangDeltaPass, "arg": "move-passtion-body", "pri": 227},
+            #{"pass": ClangDeltaPass, "arg": "move-function-body", "pri": 227},
             #{"pass": ClangDeltaPass, "arg": "simplify-comma-expr", "pri": 228},
             #{"pass": ClangDeltaPass, "arg": "simplify-dependent-typedef", "pri": 229},
             #{"pass": ClangDeltaPass, "arg": "replace-simple-typedef", "pri": 230},
@@ -480,7 +869,7 @@ class CReduce:
             #{"pass": ClangDeltaPass, "arg": "remove-array", "pri": 251},
             #{"pass": ClangDeltaPass, "arg": "remove-addr-taken", "pri": 252},
             #{"pass": ClangDeltaPass, "arg": "simplify-struct", "pri": 253},
-            #{"pass": ClangDeltaPass, "arg": "replace-undefined-passtion", "pri": 254},
+            #{"pass": ClangDeltaPass, "arg": "replace-undefined-function", "pri": 254},
             #{"pass": ClangDeltaPass, "arg": "replace-array-index-var", "pri": 255},
             #{"pass": ClangDeltaPass, "arg": "replace-dependent-name", "pri": 256},
             #{"pass": ClangDeltaPass, "arg": "simplify-recursive-template-instantiation", "pri": 257},
@@ -488,8 +877,8 @@ class CReduce:
             #{"pass": ClangDeltaPass, "arg": "combine-local-var", "last_pass_pri": 991},
             #{"pass": ClangDeltaPass, "arg": "simplify-struct-union-decl", "last_pass_pri": 992},
             #{"pass": ClangDeltaPass, "arg": "move-global-var", "last_pass_pri": 993},
-            #{"pass": ClangDeltaPass, "arg": "unify-passtion-decl", "last_pass_pri": 994},
-            #{"pass": PeepDeltaPass, "arg": "a", "pri": 500},
+            #{"pass": ClangDeltaPass, "arg": "unify-function-decl", "last_pass_pri": 994},
+            ##{"pass": PeepDeltaPass, "arg": "a", "pri": 500},
             #{"pass": IntsDeltaPass, "arg": "a", "pri": 600},
             #{"pass": IntsDeltaPass, "arg": "b", "pri": 601},
             #{"pass": IntsDeltaPass, "arg": "c", "pri": 602},
@@ -697,6 +1086,13 @@ class CReduce:
                                 state = pass_.advance_on_success(variant["variant_path"], arg, variant["state"])
                                 shutil.copy(variant["variant_path"], test_case)
                                 stopped = False
+                                if debug:
+                                    print("delta test success")
+                                pct = 100 - (os.path.getsize(test_case) * 100.0 / self.total_file_size)
+                                print("({} %, {} bytes)".format(pct, os.path.getsize(test_case)))
+                            else:
+                                if debug:
+                                    print("delta test failure")
 
                 if stopped or len(self.variants) == 0:
                     break
@@ -712,7 +1108,7 @@ class CReduce:
     @staticmethod
     def get_passes(passes, priority):
         passes = filter(lambda p: priority in p, passes)
-        return sorted(passes, key=lambda p: p[priority], reverse=True)
+        return sorted(passes, key=lambda p: p[priority])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="C-Reduce")
