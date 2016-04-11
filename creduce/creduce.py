@@ -58,7 +58,11 @@ class SimpleInterestingnessTest(InterestingnessTest):
         self.test_cases = list(test_cases)
 
     def check(self):
-        return (subprocess.call(["clang", "-fsyntax-only", self.test_cases[0]]) == 0)
+        try:
+            proc = subprocess.run(["clang", "-fsyntax-only", self.test_cases[0]])
+            return (proc.returncode == 0)
+        except subprocess.CalledProcessError:
+            return False
 
 class Test0InterestingnessTest(InterestingnessTest):
     def __init__(self, test_cases):
@@ -67,40 +71,40 @@ class Test0InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            output = subprocess.check_output(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-            if ("incompatible redeclaration" in output or
-                    "ordered comparison between pointer" in output or
-                    "eliding middle term" in output or
-                    "end of non-void function" in output or
-                    "invalid in C99" in output or
-                    "specifies type" in output or
-                    "should return a value" in output or
-                    "too few argument" in output or
-                    "too many argument" in output or
-                    "return type of 'main" in output or
-                    "uninitialized" in output or
-                    "incompatible pointer to" in output or
-                    "incompatible integer to" in output or
-                    "type specifier missing" in output):
+            if ("incompatible redeclaration" in proc.stdout or
+                    "ordered comparison between pointer" in proc.stdout or
+                    "eliding middle term" in proc.stdout or
+                    "end of non-void function" in proc.stdout or
+                    "invalid in C99" in proc.stdout or
+                    "specifies type" in proc.stdout or
+                    "should return a value" in proc.stdout or
+                    "too few argument" in proc.stdout or
+                    "too many argument" in proc.stdout or
+                    "return type of 'main" in proc.stdout or
+                    "uninitialized" in proc.stdout or
+                    "incompatible pointer to" in proc.stdout or
+                    "incompatible integer to" in proc.stdout or
+                    "type specifier missing" in proc.stdout):
                 return False
 
-            output = subprocess.check_output(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-            if ("uninitialized" in output or
-                    "control reaches end" in output or
-                    "no semicolon at end" in output or
-                    "incompatible pointer" in output or
-                    "cast from pointer to integer" in output or
-                    "ordered comparison of pointer with integer" in output or
-                    "declaration does not declare anything" in output or
-                    "expects type" in output or
-                    "assumed to have one element" in output or
-                    "division by zero" in output or
-                    "pointer from integer" in output or
-                    "incompatible implicit" in output or
-                    "excess elements in struct initializer" in output or
-                    "comparison between pointer and integer" in output):
+            if ("uninitialized" in proc.stdout or
+                    "control reaches end" in proc.stdout or
+                    "no semicolon at end" in proc.stdout or
+                    "incompatible pointer" in proc.stdout or
+                    "cast from pointer to integer" in proc.stdout or
+                    "ordered comparison of pointer with integer" in proc.stdout or
+                    "declaration does not declare anything" in proc.stdout or
+                    "expects type" in proc.stdout or
+                    "assumed to have one element" in proc.stdout or
+                    "division by zero" in proc.stdout or
+                    "pointer from integer" in proc.stdout or
+                    "incompatible implicit" in proc.stdout or
+                    "excess elements in struct initializer" in proc.stdout or
+                    "comparison between pointer and integer" in proc.stdout):
                 return False
 
             with open(self.test_cases[0], "r") as f:
