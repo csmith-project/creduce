@@ -1390,7 +1390,14 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    itest = Test0InterestingnessTest(map(os.path.basename, args.test_cases))
+    tests = {"test0": Test0InterestingnessTest,
+             "test1": Test1InterestingnessTest,
+             "test2": Test2InterestingnessTest,
+             "test3": Test3InterestingnessTest,
+             "test6": Test6InterestingnessTest,
+             "test7": Test7InterestingnessTest}
+
+    itest = tests[args.itest](map(os.path.basename, args.test_cases))
 
     reducer = CReduce(itest, args.test_cases)
     reducer.reduce(args.n, args.skip_initial_passes, args.tidy)
