@@ -104,7 +104,7 @@ class Test0InterestingnessTest(InterestingnessTest):
                 return False
 
             with open(self.test_cases[0], "r") as f:
-                for l in f.readlines():
+                for l in f:
                     if "goto" in l:
                         return True
 
@@ -166,7 +166,7 @@ class IncludeIncludesDeltaPass(DeltaPass):
                 includes = 0
                 matched = False
 
-                for line in in_file.readlines():
+                for line in in_file:
                     include_match = re.match('\s*#\s*include\s*"(.*?)"', line)
 
                     if include_match is not None:
@@ -176,12 +176,12 @@ class IncludeIncludesDeltaPass(DeltaPass):
                             try:
                                 with open(include_match.group(1), "r") as inc_file:
                                     matched = True
-                                    tmp_file.writelines(inc_file.readlines())
+                                    tmp_file.write(inc_file.read())
                                     continue
                             except Exception:
                                 pass
 
-                    tmp_file.writelines(line)
+                    tmp_file.write(line)
 
             if matched:
                 shutil.move(tmp_file.name, test_case)
@@ -215,7 +215,7 @@ class IncludesDeltaPass(DeltaPass):
                 includes = 0
                 matched = False
 
-                for line in in_file.readlines():
+                for line in in_file:
                     include_match = re.match("\s*#\s*include", line)
 
                     if include_match is not None:
@@ -225,7 +225,7 @@ class IncludesDeltaPass(DeltaPass):
                             matched = True
                             continue
 
-                    tmp_file.writelines(line)
+                    tmp_file.write(line)
 
             if matched:
                 shutil.move(tmp_file.name, test_case)
@@ -338,11 +338,11 @@ class BlankDeltaPass(DeltaPass):
             with open(test_case, "r") as in_file:
                 matched = False
 
-                for l in in_file.readlines():
+                for l in in_file:
                     if re.match(pattern, l) is not None:
                         matched = True
                     else:
-                        tmp_file.writelines(l)
+                        tmp_file.write(l)
 
             if matched:
                 shutil.move(tmp_file.name, test_case)
@@ -477,7 +477,7 @@ class LinesDeltaPass(DeltaPass):
     @classmethod
     def advance(cls, test_case, arg, state):
         new_state = state.copy()
-        new_state["index"] = state["index"] - state["chunk"]
+        new_state["index"] -= new_state["chunk"]
         return new_state
 
     @classmethod
@@ -488,12 +488,16 @@ class LinesDeltaPass(DeltaPass):
     def transform(cls, test_case, arg, state):
         new_state = state.copy()
 
-        if "start" in state:
+        if "start" in new_state:
             del new_state["start"]
 
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+            with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 with open(test_case, "r") as in_file:
-                    subprocess.call(["topformflat", arg], stdin=in_file, stdout=tmp_file, universal_newlines=True)
+                    proc = subprocess.run(["topformflat", arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
+
+                for l in proc.stdout.splitlines(keepends=True):
+                    if not l.isspace():
+                        tmp_file.write(l)
 
                 shutil.move(tmp_file.name, test_case)
 
@@ -1089,7 +1093,7 @@ class CReduce:
                                 if debug:
                                     print("delta test success")
                                 pct = 100 - (os.path.getsize(test_case) * 100.0 / self.total_file_size)
-                                print("({} %, {} bytes)".format(pct, os.path.getsize(test_case)))
+                                print("({} %, {} bytes)".format(round(pct, 1), os.path.getsize(test_case)))
                             else:
                                 if debug:
                                     print("delta test failure")
