@@ -11,7 +11,7 @@ import subprocess
 import sys
 import tempfile
 
-debug = False
+debug = True
 
 class CReduceError(Exception):
     pass
@@ -59,10 +59,11 @@ class SimpleInterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-fsyntax-only", self.test_cases[0]])
-            return (proc.returncode == 0)
+            proc = subprocess.run(["clang", "-fsyntax-only", self.test_cases[0]], check=True)
         except subprocess.CalledProcessError:
             return False
+
+        return True
 
 class Test0InterestingnessTest(InterestingnessTest):
     def __init__(self, test_cases):
@@ -71,7 +72,7 @@ class Test0InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -89,7 +90,7 @@ class Test0InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -123,7 +124,7 @@ class Test1InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -141,7 +142,7 @@ class Test1InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -175,7 +176,7 @@ class Test2InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -193,7 +194,7 @@ class Test2InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -227,7 +228,7 @@ class Test3InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -245,7 +246,7 @@ class Test3InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -279,7 +280,7 @@ class Test6InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -297,7 +298,7 @@ class Test6InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-S", "-Wextra", "-Wall", "-Ofast", "-o", "small.s", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-S", "-Wextra", "-Wall", "-Ofast", "-o", "small.s", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -331,7 +332,7 @@ class Test7InterestingnessTest(InterestingnessTest):
 
     def check(self):
         try:
-            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("incompatible redeclaration" in proc.stdout or
                     "ordered comparison between pointer" in proc.stdout or
@@ -349,7 +350,7 @@ class Test7InterestingnessTest(InterestingnessTest):
                     "type specifier missing" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             if ("uninitialized" in proc.stdout or
                     "control reaches end" in proc.stdout or
@@ -367,7 +368,7 @@ class Test7InterestingnessTest(InterestingnessTest):
                     "comparison between pointer and integer" in proc.stdout):
                 return False
 
-            proc = subprocess.run(["gcc", "-S", "-w", "-O3", "-o", "small.s", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            proc = subprocess.run(["gcc", "-S", "-w", "-O3", "-o", "small.s", self.test_cases[0]], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
             with open("small.s", "r") as f:
                 for l in f:
@@ -743,7 +744,12 @@ class LinesDeltaPass(DeltaPass):
     @classmethod
     def advance(cls, test_case, arg, state):
         new_state = state.copy()
+        pos = new_state["index"]
         new_state["index"] -= new_state["chunk"]
+
+        if debug:
+            print("***ADVANCE*** from {} to {} with chunk {}".format(pos, new_state["index"], new_state["chunk"]))
+
         return new_state
 
     @classmethod
@@ -756,6 +762,9 @@ class LinesDeltaPass(DeltaPass):
 
         if "start" in new_state:
             del new_state["start"]
+
+            if debug:
+                print("***TRANSFORM START***")
 
             with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 with open(test_case, "r") as in_file:
@@ -774,6 +783,9 @@ class LinesDeltaPass(DeltaPass):
             new_state["chunk"] = len(data)
             return (CReduce.RES_OK, new_state)
         else:
+            if debug:
+                print("***TRANSFORM REGULAR chunk {} at {}***".format(new_state["chunk"], new_state["index"]));
+
             with open(test_case, "r") as in_file:
                 data = in_file.readlines()
 
@@ -786,6 +798,9 @@ class LinesDeltaPass(DeltaPass):
                     old_len = len(data)
                     data = data[0:start] + data[start + chunk:]
 
+                    if debug:
+                        print("went from {} lines to {} with chunk {}".format(old_len, len(data), new_state["chunk"]))
+
                     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                         tmp_file.writelines(data)
                         shutil.move(tmp_file.name, test_case)
@@ -794,8 +809,11 @@ class LinesDeltaPass(DeltaPass):
                     if new_state["chunk"] <= 1:
                         return (CReduce.RES_STOP, new_state)
 
-                    new_state["chunk"] = int(new_state["chunk"] / 2)
+                    new_state["chunk"] = int(float(new_state["chunk"]) / 2.0)
                     new_state["index"] = len(data)
+
+                    if debug:
+                        print("granularity reduced to {}".format(new_state["chunk"]))
 
             return (CReduce.RES_OK, new_state)
 
@@ -1071,108 +1089,108 @@ class CReduce:
             {"pass": LinesDeltaPass, "arg": "1", "first_pass_pri":  36},
             {"pass": LinesDeltaPass, "arg": "2", "first_pass_pri":  37},
             {"pass": LinesDeltaPass, "arg": "10", "first_pass_pri":  38},
-            #{"pass": SpecialDeltaPass, "arg": "a", "first_pass_pri": 110},
-            #{"pass": SpecialDeltaPass, "arg": "b", "pri": 555, "first_pass_pri": 110},
-            #{"pass": SpecialDeltaPass, "arg": "c", "pri": 555, "first_pass_pri": 110},
-            ##{"pass": TernaryDeltaPass, "arg": "b", "pri": 104},
-            ##{"pass": TernaryDeltaPass, "arg": "c", "pri": 105},
-            ##{"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
-            ##{"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
-            ##{"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
-            ##{"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
-            ##{"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
-            ##{"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
-            ##{"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
-            ##{"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
-            #{"pass": ClangDeltaPass, "arg": "remove-namespace", "pri": 200},
-            #{"pass": ClangDeltaPass, "arg": "aggregate-to-scalar", "pri": 201},
-            ##{"pass": ClangDeltaPass, "arg": "binop-simplification", "pri": 201},
-            #{"pass": ClangDeltaPass, "arg": "local-to-global", "pri": 202},
-            #{"pass": ClangDeltaPass, "arg": "param-to-global", "pri": 203},
-            #{"pass": ClangDeltaPass, "arg": "param-to-local", "pri": 204},
-            #{"pass": ClangDeltaPass, "arg": "remove-nested-function", "pri": 205},
-            #{"pass": ClangDeltaPass, "arg": "rename-fun", "last_pass_pri": 207},
-            #{"pass": ClangDeltaPass, "arg": "union-to-struct", "pri": 208},
-            #{"pass": ClangDeltaPass, "arg": "rename-param", "last_pass_pri": 209},
-            #{"pass": ClangDeltaPass, "arg": "rename-var", "last_pass_pri": 210},
-            #{"pass": ClangDeltaPass, "arg": "rename-class", "last_pass_pri": 211},
-            #{"pass": ClangDeltaPass, "arg": "rename-cxx-method", "last_pass_pri": 212},
-            #{"pass": ClangDeltaPass, "arg": "return-void", "pri": 212},
-            #{"pass": ClangDeltaPass, "arg": "simple-inliner", "pri": 213},
-            #{"pass": ClangDeltaPass, "arg": "reduce-pointer-level", "pri": 214},
-            #{"pass": ClangDeltaPass, "arg": "lift-assignment-expr", "pri": 215},
-            #{"pass": ClangDeltaPass, "arg": "copy-propagation", "pri": 216},
-            #{"pass": ClangDeltaPass, "arg": "callexpr-to-value", "pri": 217, "first_pass_pri": 49},
-            #{"pass": ClangDeltaPass, "arg": "replace-callexpr", "pri": 218, "first_pass_pri": 50},
-            #{"pass": ClangDeltaPass, "arg": "simplify-callexpr", "pri": 219, "first_pass_pri": 51},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-function", "pri": 220, "first_pass_pri": 40},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-enum-member", "pri": 221, "first_pass_pri": 51},
-            #{"pass": ClangDeltaPass, "arg": "remove-enum-member-value", "pri": 222, "first_pass_pri": 52},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-var", "pri": 223, "first_pass_pri": 53},
-            #{"pass": ClangDeltaPass, "arg": "simplify-if", "pri": 224},
-            #{"pass": ClangDeltaPass, "arg": "reduce-array-dim", "pri": 225},
-            #{"pass": ClangDeltaPass, "arg": "reduce-array-size", "pri": 226},
-            #{"pass": ClangDeltaPass, "arg": "move-function-body", "pri": 227},
-            #{"pass": ClangDeltaPass, "arg": "simplify-comma-expr", "pri": 228},
-            #{"pass": ClangDeltaPass, "arg": "simplify-dependent-typedef", "pri": 229},
-            #{"pass": ClangDeltaPass, "arg": "replace-simple-typedef", "pri": 230},
-            #{"pass": ClangDeltaPass, "arg": "replace-dependent-typedef", "pri": 231},
-            #{"pass": ClangDeltaPass, "arg": "replace-one-level-typedef-type", "pri": 232},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-field", "pri": 233},
-            #{"pass": ClangDeltaPass, "arg": "instantiate-template-type-param-to-int", "pri": 234},
-            #{"pass": ClangDeltaPass, "arg": "instantiate-template-param", "pri": 235},
-            #{"pass": ClangDeltaPass, "arg": "template-arg-to-int", "pri": 236},
-            #{"pass": ClangDeltaPass, "arg": "template-non-type-arg-to-int", "pri": 237},
-            #{"pass": ClangDeltaPass, "arg": "reduce-class-template-param", "pri": 238},
-            #{"pass": ClangDeltaPass, "arg": "remove-trivial-base-template", "pri": 239},
-            #{"pass": ClangDeltaPass, "arg": "class-template-to-class", "pri": 240},
-            #{"pass": ClangDeltaPass, "arg": "remove-base-class", "pri": 241},
-            #{"pass": ClangDeltaPass, "arg": "replace-derived-class", "pri": 242},
-            #{"pass": ClangDeltaPass, "arg": "remove-unresolved-base", "pri": 243},
-            #{"pass": ClangDeltaPass, "arg": "remove-ctor-initializer", "pri": 244},
-            #{"pass": ClangDeltaPass, "arg": "replace-class-with-base-template-spec", "pri": 245},
-            #{"pass": ClangDeltaPass, "arg": "simplify-nested-class", "pri": 246},
-            #{"pass": ClangDeltaPass, "arg": "remove-unused-outer-class", "pri": 247},
-            #{"pass": ClangDeltaPass, "arg": "empty-struct-to-int", "pri": 248},
-            #{"pass": ClangDeltaPass, "arg": "remove-pointer", "pri": 249},
-            #{"pass": ClangDeltaPass, "arg": "remove-pointer-pairs", "pri": 250},
-            #{"pass": ClangDeltaPass, "arg": "remove-array", "pri": 251},
-            #{"pass": ClangDeltaPass, "arg": "remove-addr-taken", "pri": 252},
-            #{"pass": ClangDeltaPass, "arg": "simplify-struct", "pri": 253},
-            #{"pass": ClangDeltaPass, "arg": "replace-undefined-function", "pri": 254},
-            #{"pass": ClangDeltaPass, "arg": "replace-array-index-var", "pri": 255},
-            #{"pass": ClangDeltaPass, "arg": "replace-dependent-name", "pri": 256},
-            #{"pass": ClangDeltaPass, "arg": "simplify-recursive-template-instantiation", "pri": 257},
-            #{"pass": ClangDeltaPass, "arg": "combine-global-var", "last_pass_pri": 990},
-            #{"pass": ClangDeltaPass, "arg": "combine-local-var", "last_pass_pri": 991},
-            #{"pass": ClangDeltaPass, "arg": "simplify-struct-union-decl", "last_pass_pri": 992},
-            #{"pass": ClangDeltaPass, "arg": "move-global-var", "last_pass_pri": 993},
-            #{"pass": ClangDeltaPass, "arg": "unify-function-decl", "last_pass_pri": 994},
-            ##{"pass": PeepDeltaPass, "arg": "a", "pri": 500},
-            #{"pass": IntsDeltaPass, "arg": "a", "pri": 600},
-            #{"pass": IntsDeltaPass, "arg": "b", "pri": 601},
-            #{"pass": IntsDeltaPass, "arg": "c", "pri": 602},
-            #{"pass": IntsDeltaPass, "arg": "d", "pri": 603},
-            #{"pass": IntsDeltaPass, "arg": "e", "pri": 603},
-            #{"pass": IndentDeltaPass, "arg": "regular", "pri": 1000},
-            #{"pass": ClexDeltaPass, "arg": "delete-string", "last_pass_pri": 1001},
-            #{"pass": IndentDeltaPass, "arg": "final", "last_pass_pri": 9999},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-1", "pri": 9031},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-2", "pri": 9030},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-3", "pri": 9029},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-4", "pri": 9028},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-5", "pri": 9027},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-6", "pri": 9026},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-7", "pri": 9025},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-8", "pri": 9024},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-9", "pri": 9023},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-10", "pri": 9022},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-11", "pri": 9021},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-12", "pri": 9020},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-13", "pri": 9019},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-14", "pri": 9018},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-15", "pri": 9017},
-            #{"pass": ClexDeltaPass, "arg": "rm-toks-16", "pri": 9016},
+            {"pass": SpecialDeltaPass, "arg": "a", "first_pass_pri": 110},
+            {"pass": SpecialDeltaPass, "arg": "b", "pri": 555, "first_pass_pri": 110},
+            {"pass": SpecialDeltaPass, "arg": "c", "pri": 555, "first_pass_pri": 110},
+            #{"pass": TernaryDeltaPass, "arg": "b", "pri": 104},
+            #{"pass": TernaryDeltaPass, "arg": "c", "pri": 105},
+            #{"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
+            #{"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
+            #{"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
+            #{"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
+            #{"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
+            #{"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
+            #{"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
+            #{"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
+            {"pass": ClangDeltaPass, "arg": "remove-namespace", "pri": 200},
+            {"pass": ClangDeltaPass, "arg": "aggregate-to-scalar", "pri": 201},
+            #{"pass": ClangDeltaPass, "arg": "binop-simplification", "pri": 201},
+            {"pass": ClangDeltaPass, "arg": "local-to-global", "pri": 202},
+            {"pass": ClangDeltaPass, "arg": "param-to-global", "pri": 203},
+            {"pass": ClangDeltaPass, "arg": "param-to-local", "pri": 204},
+            {"pass": ClangDeltaPass, "arg": "remove-nested-function", "pri": 205},
+            {"pass": ClangDeltaPass, "arg": "rename-fun", "last_pass_pri": 207},
+            {"pass": ClangDeltaPass, "arg": "union-to-struct", "pri": 208},
+            {"pass": ClangDeltaPass, "arg": "rename-param", "last_pass_pri": 209},
+            {"pass": ClangDeltaPass, "arg": "rename-var", "last_pass_pri": 210},
+            {"pass": ClangDeltaPass, "arg": "rename-class", "last_pass_pri": 211},
+            {"pass": ClangDeltaPass, "arg": "rename-cxx-method", "last_pass_pri": 212},
+            {"pass": ClangDeltaPass, "arg": "return-void", "pri": 212},
+            {"pass": ClangDeltaPass, "arg": "simple-inliner", "pri": 213},
+            {"pass": ClangDeltaPass, "arg": "reduce-pointer-level", "pri": 214},
+            {"pass": ClangDeltaPass, "arg": "lift-assignment-expr", "pri": 215},
+            {"pass": ClangDeltaPass, "arg": "copy-propagation", "pri": 216},
+            {"pass": ClangDeltaPass, "arg": "callexpr-to-value", "pri": 217, "first_pass_pri": 49},
+            {"pass": ClangDeltaPass, "arg": "replace-callexpr", "pri": 218, "first_pass_pri": 50},
+            {"pass": ClangDeltaPass, "arg": "simplify-callexpr", "pri": 219, "first_pass_pri": 51},
+            {"pass": ClangDeltaPass, "arg": "remove-unused-function", "pri": 220, "first_pass_pri": 40},
+            {"pass": ClangDeltaPass, "arg": "remove-unused-enum-member", "pri": 221, "first_pass_pri": 51},
+            {"pass": ClangDeltaPass, "arg": "remove-enum-member-value", "pri": 222, "first_pass_pri": 52},
+            {"pass": ClangDeltaPass, "arg": "remove-unused-var", "pri": 223, "first_pass_pri": 53},
+            {"pass": ClangDeltaPass, "arg": "simplify-if", "pri": 224},
+            {"pass": ClangDeltaPass, "arg": "reduce-array-dim", "pri": 225},
+            {"pass": ClangDeltaPass, "arg": "reduce-array-size", "pri": 226},
+            {"pass": ClangDeltaPass, "arg": "move-function-body", "pri": 227},
+            {"pass": ClangDeltaPass, "arg": "simplify-comma-expr", "pri": 228},
+            {"pass": ClangDeltaPass, "arg": "simplify-dependent-typedef", "pri": 229},
+            {"pass": ClangDeltaPass, "arg": "replace-simple-typedef", "pri": 230},
+            {"pass": ClangDeltaPass, "arg": "replace-dependent-typedef", "pri": 231},
+            {"pass": ClangDeltaPass, "arg": "replace-one-level-typedef-type", "pri": 232},
+            {"pass": ClangDeltaPass, "arg": "remove-unused-field", "pri": 233},
+            {"pass": ClangDeltaPass, "arg": "instantiate-template-type-param-to-int", "pri": 234},
+            {"pass": ClangDeltaPass, "arg": "instantiate-template-param", "pri": 235},
+            {"pass": ClangDeltaPass, "arg": "template-arg-to-int", "pri": 236},
+            {"pass": ClangDeltaPass, "arg": "template-non-type-arg-to-int", "pri": 237},
+            {"pass": ClangDeltaPass, "arg": "reduce-class-template-param", "pri": 238},
+            {"pass": ClangDeltaPass, "arg": "remove-trivial-base-template", "pri": 239},
+            {"pass": ClangDeltaPass, "arg": "class-template-to-class", "pri": 240},
+            {"pass": ClangDeltaPass, "arg": "remove-base-class", "pri": 241},
+            {"pass": ClangDeltaPass, "arg": "replace-derived-class", "pri": 242},
+            {"pass": ClangDeltaPass, "arg": "remove-unresolved-base", "pri": 243},
+            {"pass": ClangDeltaPass, "arg": "remove-ctor-initializer", "pri": 244},
+            {"pass": ClangDeltaPass, "arg": "replace-class-with-base-template-spec", "pri": 245},
+            {"pass": ClangDeltaPass, "arg": "simplify-nested-class", "pri": 246},
+            {"pass": ClangDeltaPass, "arg": "remove-unused-outer-class", "pri": 247},
+            {"pass": ClangDeltaPass, "arg": "empty-struct-to-int", "pri": 248},
+            {"pass": ClangDeltaPass, "arg": "remove-pointer", "pri": 249},
+            {"pass": ClangDeltaPass, "arg": "remove-pointer-pairs", "pri": 250},
+            {"pass": ClangDeltaPass, "arg": "remove-array", "pri": 251},
+            {"pass": ClangDeltaPass, "arg": "remove-addr-taken", "pri": 252},
+            {"pass": ClangDeltaPass, "arg": "simplify-struct", "pri": 253},
+            {"pass": ClangDeltaPass, "arg": "replace-undefined-function", "pri": 254},
+            {"pass": ClangDeltaPass, "arg": "replace-array-index-var", "pri": 255},
+            {"pass": ClangDeltaPass, "arg": "replace-dependent-name", "pri": 256},
+            {"pass": ClangDeltaPass, "arg": "simplify-recursive-template-instantiation", "pri": 257},
+            {"pass": ClangDeltaPass, "arg": "combine-global-var", "last_pass_pri": 990},
+            {"pass": ClangDeltaPass, "arg": "combine-local-var", "last_pass_pri": 991},
+            {"pass": ClangDeltaPass, "arg": "simplify-struct-union-decl", "last_pass_pri": 992},
+            {"pass": ClangDeltaPass, "arg": "move-global-var", "last_pass_pri": 993},
+            {"pass": ClangDeltaPass, "arg": "unify-function-decl", "last_pass_pri": 994},
+            #{"pass": PeepDeltaPass, "arg": "a", "pri": 500},
+            {"pass": IntsDeltaPass, "arg": "a", "pri": 600},
+            {"pass": IntsDeltaPass, "arg": "b", "pri": 601},
+            {"pass": IntsDeltaPass, "arg": "c", "pri": 602},
+            {"pass": IntsDeltaPass, "arg": "d", "pri": 603},
+            {"pass": IntsDeltaPass, "arg": "e", "pri": 603},
+            {"pass": IndentDeltaPass, "arg": "regular", "pri": 1000},
+            {"pass": ClexDeltaPass, "arg": "delete-string", "last_pass_pri": 1001},
+            {"pass": IndentDeltaPass, "arg": "final", "last_pass_pri": 9999},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-1", "pri": 9031},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-2", "pri": 9030},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-3", "pri": 9029},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-4", "pri": 9028},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-5", "pri": 9027},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-6", "pri": 9026},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-7", "pri": 9025},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-8", "pri": 9024},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-9", "pri": 9023},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-10", "pri": 9022},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-11", "pri": 9021},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-12", "pri": 9020},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-13", "pri": 9019},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-14", "pri": 9018},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-15", "pri": 9017},
+            {"pass": ClexDeltaPass, "arg": "rm-toks-16", "pri": 9016},
     ]
 
     def __init__(self, interestingness_test, test_cases):
@@ -1397,6 +1415,7 @@ if __name__ == "__main__":
              "test6": Test6InterestingnessTest,
              "test7": Test7InterestingnessTest}
 
+    print(tests[args.itest].__name__)
     itest = tests[args.itest](map(os.path.basename, args.test_cases))
 
     reducer = CReduce(itest, args.test_cases)
