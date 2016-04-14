@@ -11,7 +11,7 @@ import subprocess
 import sys
 import tempfile
 
-debug = True
+debug = False
 
 class CReduceError(Exception):
     pass
@@ -406,7 +406,7 @@ class DeltaPass:
             if i == n and match is not None:
                 return string[:match.start()] + replace_fn(match) + string[match.end():]
 
-        return string
+        return None
 
 class IncludeIncludesDeltaPass(DeltaPass):
     @classmethod
@@ -950,38 +950,46 @@ class IntsDeltaPass(DeltaPass):
 
         re_border_or_space = r"(?:(?:[*,:;{}[\]()])|\s)"
 
-        if arg == "a":
-            # Delete first digit
-            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("suf")
-            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)[0-9a-fA-F](?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
-        elif arg == "b":
-            # Delete prefix
-            # FIXME: Made 0x mandatory
-            replace_fn = lambda m: m.group("del") + m.group("numpart") + m.group("suf")
-            prog2 = cls._replace_nth_match(r"(?P<del>{0})(?P<pref>[+-]?(?:0|(0[xX])))(?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
-        elif arg == "c":
-            # Delete suffix
-            #FIXME: Changed start to plus for suffix
-            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
-            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
-        elif arg == "d":
-            # Hex to dec
-            replace_fn = lambda m: m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
-            prog2 = cls._replace_nth_match(r"(?P<pref>{0})(?P<numpart>0[Xx][0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
-        elif arg == "e":
-            #FIXME: Same as c?!
-            replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
-            prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
-        else:
-            raise UnknownArgumentCReduceError()
+        #FIXME: Only stop if no match is found. Not if no change is made
+        #FIXME: Could potentially match variable names
 
-        if prog != prog2:
-            with open(test_case, "w") as out_file:
-                out_file.write(prog2)
+        while True:
+            if arg == "a":
+                # Delete first digit
+                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("suf")
+                prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)[0-9a-fA-F](?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+            elif arg == "b":
+                # Delete prefix
+                # FIXME: Made 0x mandatory
 
-            return (CReduce.RES_OK, state)
-        else:
-            return (CReduce.RES_STOP, state)
+                replace_fn = lambda m: m.group("del") + m.group("numpart") + m.group("suf")
+                prog2 = cls._replace_nth_match(r"(?P<del>{0})(?P<pref>[+-]?(?:0|(0[xX])))(?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+            elif arg == "c":
+                # Delete suffix
+                #FIXME: Changed star to plus for suffix
+                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+                prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
+            elif arg == "d":
+                # Hex to dec
+                replace_fn = lambda m: m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
+                prog2 = cls._replace_nth_match(r"(?P<pref>{0})(?P<numpart>0[Xx][0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
+            elif arg == "e":
+                #FIXME: Same as c?!
+                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+                prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
+            else:
+                raise UnknownArgumentCReduceError()
+
+            if prog2 is None:
+                return (CReduce.RES_STOP, state)
+            else:
+                if prog != prog2:
+                    with open(test_case, "w") as out_file:
+                        out_file.write(prog2)
+
+                    return (CReduce.RES_OK, state)
+                else:
+                    state += 1
 
 class IndentDeltaPass(DeltaPass):
     @classmethod
@@ -1013,9 +1021,11 @@ class IndentDeltaPass(DeltaPass):
                 elif state == 1:
                     cmd = ["astyle", test_case]
                 elif state == 2:
-                    cmd = ["clang_format", "-i", test_case]
+                    cmd = ["clang-format", "-i", test_case]
                 else:
                     return (CReduce.RES_STOP, state)
+
+            subprocess.run(cmd, universal_newlines=True)
 
             with open(test_case, "r") as in_file:
                 new = in_file.read()
@@ -1025,7 +1035,7 @@ class IndentDeltaPass(DeltaPass):
             else:
                 break
 
-            return (CReduce.RES_OK, state)
+        return (CReduce.RES_OK, state)
 
 class ClexDeltaPass(DeltaPass):
     @classmethod
