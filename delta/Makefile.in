@@ -339,6 +339,24 @@ topformflat_SOURCES = \
 # Automake hack.
 #
 am__skiplex := 
+#
+# LONG STORY: See the long story in "clex/Makefile.am".
+
+# C-Reduce doesn't use any of this stuff, but it's part of the third-party
+# source, so we distribute it.
+#
+EXTRA_DIST = \
+	Build.mk \
+	License.txt \
+	Readme \
+	Test.mk \
+	delta \
+	multidelta \
+	test0_delta \
+	test1_multidelta \
+	test2_multidelta \
+	www
+
 all: all-am
 
 .SUFFIXES:
@@ -688,8 +706,6 @@ uninstall-am: uninstall-libexecPROGRAMS
 
 .PRECIOUS: Makefile
 
-#
-# LONG STORY: See the long story in "clex/Makefile.am".
 
 ###############################################################################
 
