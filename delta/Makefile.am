@@ -19,7 +19,7 @@ topformflat_CPPFLAGS = \
 topformflat_SOURCES = \
 	topformflat.l
 
-# SHORT STORY: Always rebuild `topformflat.c' from `topformflat.lex' if Make
+# SHORT STORY: Always rebuild `topformflat.c' from `topformflat.l' if Make
 # thinks that `topformflat.c' is out of date.  This is achieved by a sinful
 # Automake hack.
 #
