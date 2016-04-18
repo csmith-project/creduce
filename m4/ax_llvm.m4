@@ -88,6 +88,9 @@ AC_DEFUN([AX_LLVM],
   #   -f...show...         --- diagnostics reporting options (Clang)
   #   -g...                --- debugging options
   #   -O...                --- optimization options
+  # [And for the llvm.org-provided build of Clang 3.8.0 for OS X, weed out:]
+  #   -isysroot
+  #   /Applications/Xcode.app/...
   #
   # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
   # `grep' for matching because writing fancy, portable `sed' expressions is
@@ -107,7 +110,9 @@ changequote(<<, >>)dnl
             -e '^-f[-a-z]show' dnl
             -e '^-g' dnl
             -e '^-O$' dnl
-            -e '^-O[0-9s]' | dnl
+            -e '^-O[0-9s]' dnl
+            -e '^-isysroot$' dnl
+            -e '^/Applications/Xcode\\.app/.*\\.sdk$' | dnl
     xargs`
 changequote([, ])dnl
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"

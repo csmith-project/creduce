@@ -15919,6 +15919,9 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   #   -f...show...         --- diagnostics reporting options (Clang)
   #   -g...                --- debugging options
   #   -O...                --- optimization options
+  # [And for the llvm.org-provided build of Clang 3.8.0 for OS X, weed out:]
+  #   -isysroot
+  #   /Applications/Xcode.app/...
   #
   # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
   # `grep' for matching because writing fancy, portable `sed' expressions is
@@ -15928,7 +15931,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   # up; use `grep' instead.  Bonus: better readability!
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-f[-a-z]diagnostics'             -e '^-f[-a-z]show'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]' |     xargs`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-f[-a-z]diagnostics'             -e '^-f[-a-z]show'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]'             -e '^-isysroot$'             -e '^/Applications/Xcode\\.app/.*\\.sdk$' |     xargs`
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 

@@ -421,6 +421,9 @@ GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 #   -f...show...         --- diagnostics reporting options (Clang)
 #   -g...                --- debugging options
 #   -O...                --- optimization options
+# [And for the llvm.org-provided binary of Clang 3.8.0 for OS X, weed out:]
+#   -isysroot
+#   /Applications/Xcode.app/...
 #
 # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
 # `grep' for matching because writing fancy, portable `sed' expressions is
@@ -445,7 +448,9 @@ LLVMCXXFLAGS := $(shell \
 			     -e '^-f[-a-z]show' \
 			     -e '^-g' \
 			     -e '^-O$$' \
-			     -e '^-O[0-9s]' | \
+			     -e '^-O[0-9s]' \
+			     -e '^-isysroot$$' \
+			     -e '^/Applications/Xcode\.app/.*\.sdk$$' | \
 		     xargs) \
                    -fno-rtti -fno-exceptions
 
