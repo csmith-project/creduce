@@ -1047,9 +1047,11 @@ sub byworked {
     my $na = ${$a}{"name"};
     my $aa = ${$a}{"arg"};
     my $wa = $method_worked{$na}{$aa};
+    $wa = 0 unless defined($wa);
     my $nb = ${$b}{"name"};
     my $ab = ${$b}{"arg"};
     my $wb = $method_worked{$nb}{$ab};
+    $wb = 0 unless defined($wb);
     if ($wa == $wb) {
 	if ($na eq $nb) {
 	    return $aa cmp $ab;
@@ -1067,9 +1069,9 @@ foreach my $mref (sort byworked @all_methods) {
     my $method = ${$mref}{"name"};
     my $arg = ${$mref}{"arg"};
     my $w = $method_worked{$method}{$arg};
-    $w=0 unless defined($w);
+    $w = 0 unless defined($w);
     my $f = $method_failed{$method}{$arg};
-    $f=0 unless defined($f);
+    $f = 0 unless defined($f);
     print "  method $method :: $arg worked $w times and failed $f times\n";
 }
 
