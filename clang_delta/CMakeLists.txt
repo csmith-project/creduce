@@ -1,4 +1,4 @@
-# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+# Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 # All rights reserved.
 #
 # This file is distributed under the University of Illinois Open Source
@@ -13,8 +13,8 @@ message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
 # Check LLVM version
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.7")
-  message(FATAL_ERROR "LLVM version must be >= 3.7")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.8")
+  message(FATAL_ERROR "LLVM version must be >= 3.8")
 endif()
 set(LLVM_VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
