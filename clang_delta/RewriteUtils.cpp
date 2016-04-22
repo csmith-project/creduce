@@ -91,9 +91,15 @@ SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range)
   if (EndLoc.isInvalid())
     return EndLoc;
 
-  int LocRangeSize = TheRewriter->getRangeSize(Range);
+  if (StartLoc.isMacroID())
+    StartLoc = SrcManager->getFileLoc(StartLoc);
+  if (EndLoc.isMacroID())
+    EndLoc = SrcManager->getFileLoc(EndLoc);
+
+  SourceRange NewRange(StartLoc, EndLoc);
+  int LocRangeSize = TheRewriter->getRangeSize(NewRange);
   if (LocRangeSize == -1)
-    return Range.getEnd();
+    return NewRange.getEnd();
 
   return StartLoc.getLocWithOffset(LocRangeSize);
 }
@@ -1057,6 +1063,8 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     // transformation like:
     //   int *x, y;
     SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD);
+    if (TypeLocEnd.isMacroID())
+      TypeLocEnd = SrcManager->getFileLoc(TypeLocEnd);
     SourceRange VarRange = VD->getSourceRange();
 
     SourceLocation LocEnd = getEndLocationUntil(VarRange, ';');
@@ -1064,6 +1072,8 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     getStringBetweenLocs(Str, TypeLocEnd, LocEnd);
 
     SourceLocation StartLoc = VarRange.getBegin();
+    if (StartLoc.isMacroID())
+      StartLoc = SrcManager->getFileLoc(StartLoc);
     SourceLocation NewEndLoc = getLocationAfterSkiping(LocEnd, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }
