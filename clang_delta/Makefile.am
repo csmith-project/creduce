@@ -93,6 +93,8 @@ clang_delta_CXXFLAGS = \
 # libraries.  So probably, we could move `LLVMLDFLAGS' back to the definition
 # of `clang_delta_LDFLAGS'.  I'll do that later.
 clang_delta_LDADD = \
+	-lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers \
+	-lclangStaticAnalyzerCore \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
 	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
