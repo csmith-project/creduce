@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##
-## Copyright (c) 2012 The University of Utah
+## Copyright (c) 2012, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
