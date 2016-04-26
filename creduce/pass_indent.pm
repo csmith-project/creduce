@@ -20,6 +20,7 @@ my $astyle;
 my $clang_format;
 my $indent;
 
+my $astyle_opts = "--options=none";
 my $indent_opts = "-npro -nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 
 sub check_prereqs () {
@@ -64,9 +65,9 @@ sub invoke_indent ($) {
 sub invoke_astyle ($) {
     (my $cfile) = @_;
     if ($^O eq "MSWin32") {
-	system qq{"$astyle" $cfile > NUL 2>&1};
+	system qq{"$astyle" $astyle_opts $cfile > NUL 2>&1};
     } else {
-	system qq{"$astyle" $cfile >/dev/null 2>&1};
+	system qq{"$astyle" $astyle_opts $cfile >/dev/null 2>&1};
     }
 }
 
