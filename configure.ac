@@ -1,6 +1,6 @@
 ## -*- mode: Autoconf -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -128,7 +128,7 @@ AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no], [$LLVM_BINDIR:$PATH])
 AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 #
 AC_ARG_VAR([INDENT], [`indent' program])
-AC_PATH_PROG([INDENT], [indent], [no])
+AC_PATH_PROGS([INDENT], [gindent indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
 
 ###############################################################################
