@@ -106,8 +106,8 @@ changequote(<<, >>)dnl
     grep -v -e '^-W' dnl
             -e '^-w$' dnl
             -e '^-pedantic' dnl
-            -e '^-f[-a-z]diagnostics' dnl
-            -e '^-f[-a-z]show' dnl
+            -e '^-f[a-z-]*diagnostics' dnl
+            -e '^-f[a-z-]*show' dnl
             -e '^-g' dnl
             -e '^-O$' dnl
             -e '^-O[0-9s]' dnl

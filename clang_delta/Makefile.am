@@ -51,8 +51,8 @@ LLVMCXXFLAGS	:= $(shell \
 		     grep -v -e '^-W' \
 			     -e '^-w$$' \
 			     -e '^-pedantic' \
-			     -e '^-f[-a-z]diagnostics' \
-			     -e '^-f[-a-z]show' \
+			     -e '^-f[a-z-]*diagnostics' \
+			     -e '^-f[a-z-]*show' \
 			     -e '^-g' \
 			     -e '^-O$$' \
 			     -e '^-O[0-9s]' \

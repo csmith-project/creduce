@@ -15931,7 +15931,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   # up; use `grep' instead.  Bonus: better readability!
 
   LLVM_BINDIR=`$LLVM_CONFIG --bindir`
-  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-f[-a-z]diagnostics'             -e '^-f[-a-z]show'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]'             -e '^-isysroot$'             -e '^/Applications/Xcode\\.app/.*\\.sdk$' |     xargs`
+  LLVM_CPPFLAGS=`$LLVM_CONFIG --cxxflags |     tr '\t' ' ' | sed -e 's/  */ /g' | tr ' ' '\n' |     grep -v -e '^-W'             -e '^-w$'             -e '^-pedantic'             -e '^-f[a-z-]*diagnostics'             -e '^-f[a-z-]*show'             -e '^-g'             -e '^-O$'             -e '^-O[0-9s]'             -e '^-isysroot$'             -e '^/Applications/Xcode\\.app/.*\\.sdk$' |     xargs`
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"
   LLVM_LIBS=`$LLVM_CONFIG --libs engine`
 
