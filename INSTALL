@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------
 
-C-Reduce 
+C-Reduce
 
 Before compiling C-Reduce yourself, you might want to see if your OS
 comes with a precompiled package for C-Reduce.  Ubuntu, Debian, Gentoo,
@@ -30,6 +30,13 @@ On OS X, Perlbrew provides an easy and flexible way to get Perl and
 Perl modules installed:
 
   http://perlbrew.pl/
+
+On FreeBSD 10.2, the prerequisites can be installed like this:
+
+  sudo pkg install \
+    clang38 \
+    p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common \
+    flex
 
 Otherwise, install these packages either manually or using the package
 manager:
@@ -77,9 +84,13 @@ On Ubuntu:
 
 On OS X (with Homebrew + Perlbrew installed):
 
-  brew install astyle gnu-indent
+  brew install gnu-indent astyle
   cpan -i 'Term::ReadKey'
   cpan -i 'Sys::CPU'
+
+On FreeBSD 10.2:
+
+  sudo pkg install gindent astyle gindent p5-Term-ReadKey p5-Sys-CPU
 
 Otherwise, install the packages either manually or using the package
 manager:
