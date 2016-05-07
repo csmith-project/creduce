@@ -560,11 +560,6 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
   if (!UO)
     return NULL;
 
-  UnaryOperator::Opcode Op = UO->getOpcode();
-  (void)Op;
-  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf) ||
-              UO->isPrefix() || UO->isPostfix()) &&
-              "Invalid Unary Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
 }
