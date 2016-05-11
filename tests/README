@@ -15,4 +15,7 @@ Run the tests like this:
 
   ./run_tests
 
+You can run specific versions of gcc and clang by setting the `GCC'
+and `CLANG' environment variables, respectively.
+
 -----------------------------------------------------------------
