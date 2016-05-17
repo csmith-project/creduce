@@ -153,6 +153,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-RenameFun.$(OBJEXT) \
 	clang_delta-RenameParam.$(OBJEXT) \
 	clang_delta-RenameVar.$(OBJEXT) \
+	clang_delta-ReplaceArrayAccessWithIndex.$(OBJEXT) \
 	clang_delta-ReplaceArrayIndexVar.$(OBJEXT) \
 	clang_delta-ReplaceCallExpr.$(OBJEXT) \
 	clang_delta-ReplaceClassWithBaseTemplateSpec.$(OBJEXT) \
@@ -391,6 +392,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -590,6 +592,8 @@ clang_delta_SOURCES = \
 	RenameParam.h \
 	RenameVar.cpp \
 	RenameVar.h \
+	ReplaceArrayAccessWithIndex.cpp \
+	ReplaceArrayAccessWithIndex.h \
 	ReplaceArrayIndexVar.cpp \
 	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \
@@ -785,6 +789,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameFun.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameParam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-RenameVar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceCallExpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ReplaceClassWithBaseTemplateSpec.Po@am__quote@
@@ -1421,6 +1426,20 @@ clang_delta-RenameVar.obj: RenameVar.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RenameVar.cpp' object='clang_delta-RenameVar.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-RenameVar.obj `if test -f 'RenameVar.cpp'; then $(CYGPATH_W) 'RenameVar.cpp'; else $(CYGPATH_W) '$(srcdir)/RenameVar.cpp'; fi`
+
+clang_delta-ReplaceArrayAccessWithIndex.o: ReplaceArrayAccessWithIndex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceArrayAccessWithIndex.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Tpo -c -o clang_delta-ReplaceArrayAccessWithIndex.o `test -f 'ReplaceArrayAccessWithIndex.cpp' || echo '$(srcdir)/'`ReplaceArrayAccessWithIndex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Tpo $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceArrayAccessWithIndex.cpp' object='clang_delta-ReplaceArrayAccessWithIndex.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceArrayAccessWithIndex.o `test -f 'ReplaceArrayAccessWithIndex.cpp' || echo '$(srcdir)/'`ReplaceArrayAccessWithIndex.cpp
+
+clang_delta-ReplaceArrayAccessWithIndex.obj: ReplaceArrayAccessWithIndex.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceArrayAccessWithIndex.obj -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Tpo -c -o clang_delta-ReplaceArrayAccessWithIndex.obj `if test -f 'ReplaceArrayAccessWithIndex.cpp'; then $(CYGPATH_W) 'ReplaceArrayAccessWithIndex.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceArrayAccessWithIndex.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Tpo $(DEPDIR)/clang_delta-ReplaceArrayAccessWithIndex.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ReplaceArrayAccessWithIndex.cpp' object='clang_delta-ReplaceArrayAccessWithIndex.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ReplaceArrayAccessWithIndex.obj `if test -f 'ReplaceArrayAccessWithIndex.cpp'; then $(CYGPATH_W) 'ReplaceArrayAccessWithIndex.cpp'; else $(CYGPATH_W) '$(srcdir)/ReplaceArrayAccessWithIndex.cpp'; fi`
 
 clang_delta-ReplaceArrayIndexVar.o: ReplaceArrayIndexVar.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ReplaceArrayIndexVar.o -MD -MP -MF $(DEPDIR)/clang_delta-ReplaceArrayIndexVar.Tpo -c -o clang_delta-ReplaceArrayIndexVar.o `test -f 'ReplaceArrayIndexVar.cpp' || echo '$(srcdir)/'`ReplaceArrayIndexVar.cpp
