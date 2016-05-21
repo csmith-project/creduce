@@ -213,8 +213,8 @@ bool TemplateNonTypeArgToInt::isValidParameter(const NamedDecl *ND)
           dyn_cast<NonTypeTemplateParmDecl>(ND);
   if (!NonTypeD)
     return false;
-  // To avoid something such as replace int with int.
-  if (!ND->getIdentifier() && (NonTypeD->getType().getAsString() == "int"))
+  // To avoid something like replacing int with int.
+  if (NonTypeD->getType().getAsString() == "int")
     return false;
   const Type *Ty = NonTypeD->getType().getTypePtr();
   return Ty->isIntegerType();
