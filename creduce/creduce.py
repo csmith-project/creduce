@@ -266,7 +266,7 @@ class Test3InterestingnessTest(InterestingnessTest):
 
             with open(self.test_cases[0], "r") as f:
                 for l in f:
-                    if r"\+\+" in l:
+                    if r"++" in l:
                         return True
 
                 return False
@@ -846,7 +846,7 @@ class SpecialDeltaPass(DeltaPass):
         else:
             raise UnknownArgumentCReduceError()
 
-        if prog != prog2:
+        if prog2 is not None and prog != prog2:
             with open(test_case, "w") as out_file:
                 out_file.write(prog2)
 
@@ -1076,7 +1076,7 @@ class CReduce:
     default_passes = [
             {"pass": IncludeIncludesDeltaPass, "arg": "0", "pri": 100},
             {"pass": IncludesDeltaPass, "arg": "0", "first_pass_pri": 0},
-            {"pass": UnIfDefDeltaPass, "arg": "0", "pri": 450, "first_pass_pri": 0},
+            #{"pass": UnIfDefDeltaPass, "arg": "0", "pri": 450, "first_pass_pri": 0},
             {"pass": CommentsDeltaPass, "arg": "0", "pri": 451, "first_pass_pri":  0},
             {"pass": BlankDeltaPass, "arg": "0", "first_pass_pri":  1},
             {"pass": ClangBinarySearchDeltaPass, "arg": "replace-function-def-with-decl", "first_pass_pri":  2},
