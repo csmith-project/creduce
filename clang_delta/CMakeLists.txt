@@ -1,8 +1,12 @@
-# Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
-# All rights reserved.
-#
-# This file is distributed under the University of Illinois Open Source
-# License.  See the file COPYING for details.
+## -*- mode: CMake -*-
+##
+## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
 
 cmake_minimum_required(VERSION 2.8.12)
 project(clang_delta)
@@ -33,17 +37,23 @@ llvm_map_components_to_libnames(LLVM_LIBS
 )
 
 set(CLANG_LIBS
-  clangRewrite
+  clangStaticAnalyzerFrontend
+  clangStaticAnalyzerCheckers
+  clangStaticAnalyzerCore
+  clangFrontendTool
   clangFrontend
+  clangDriver
+  clangSerialization
+  clangCodeGen
   clangParse
   clangSema
-  clangSerialization
   clangAnalysis
+  clangRewriteFrontend
+  clangRewrite
+  clangAST
+  clangBasic
   clangEdit
   clangLex
-  clangAST
-  clangDriver
-  clangBasic
 )
 
 set(TRANSFORMATION_HEADERS
@@ -202,5 +212,23 @@ add_executable(clang_delta
 target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
 
 install(TARGETS clang_delta
-  RUNTIME DESTINATION "bin"
+  RUNTIME DESTINATION "libexec"
 )
+# If binary is read-only, then installing may fail with an error:
+# CMake Error at cmake_install.cmake:45 (FILE):
+#  file RPATH_REMOVE could not remove RPATH from file:
+#    /disk2/randtest/install/libexec/clang_delta
+#  Error opening file for update.
+#
+# Do I want RPATH at all?  We can turn it off, by setting CMAKE_SKIP_RPATH
+# https://cmake.org/cmake/help/v2.8.8/cmake.html#variable%3aCMAKE_SKIP_RPATH
+# See also the stuff about RPATH for `set_target_properties', which I don't
+# really grok:
+# https://cmake.org/cmake/help/v2.8.8/cmake.html#command:set_target_properties
+#
+#  PERMISSIONS
+#    OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+
+###############################################################################
+
+## End of file.
