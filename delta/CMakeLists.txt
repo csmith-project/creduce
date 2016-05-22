@@ -1,0 +1,42 @@
+## -*- mode: CMake -*-
+##
+## Copyright (c) 2016 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
+
+cmake_minimum_required(VERSION 2.8.12)
+find_package(FLEX)
+
+###############################################################################
+
+project(topformflat)
+
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${CMAKE_BINARY_DIR})
+add_definitions(-DGIT_HASH="${creduce_GIT_HASH}")
+add_definitions(-DHAVE_CONFIG_H)
+
+FLEX_TARGET(topformflat_scanner
+  topformflat.l
+  ${PROJECT_BINARY_DIR}/topformflat.c
+  )
+
+add_executable(topformflat
+  ${FLEX_topformflat_scanner_OUTPUTS}
+  )
+
+###############################################################################
+
+install(TARGETS topformflat
+  RUNTIME DESTINATION "libexec"
+  PERMISSIONS
+    OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+  )
+
+###############################################################################
+
+## End of file.

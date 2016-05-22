@@ -59,6 +59,8 @@ endif()
 add_subdirectory(clang_delta)
 add_subdirectory(clex)
 add_subdirectory(creduce)
+add_subdirectory(delta)
+add_subdirectory(unifdef)
 
 ###############################################################################
 
