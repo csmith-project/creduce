@@ -1,2 +1,8 @@
+# Additions to the patterns specified in the root `.gitignore' file.
+
+# Files made by compilation.
 topformflat
 topformflat.c
+
+# Do not ignore the provided Makefiles in the test directories.
+!test*/Makefile
