@@ -793,7 +793,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "remove-unused-outer-class",    "pri" => 247,  },
     { "name" => "pass_clang",    "arg" => "empty-struct-to-int",    "pri" => 248,  },
     { "name" => "pass_clang",    "arg" => "remove-pointer",         "pri" => 249,  },
-    { "name" => "pass_clang",    "arg" => "remove-pointer-pairs",   "pri" => 250,  },
+    { "name" => "pass_clang",    "arg" => "reduce-pointer-pairs",   "pri" => 250,  },
     { "name" => "pass_clang",    "arg" => "remove-array",           "pri" => 251,  },
     { "name" => "pass_clang",    "arg" => "remove-addr-taken",      "pri" => 252,  },
     { "name" => "pass_clang",    "arg" => "simplify-struct",        "pri" => 253,  },
