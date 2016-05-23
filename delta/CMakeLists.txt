@@ -15,6 +15,7 @@ find_package(FLEX)
 
 project(topformflat)
 
+include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
 add_definitions(-DGIT_HASH="${creduce_GIT_HASH}")
@@ -33,8 +34,6 @@ add_executable(topformflat
 
 install(TARGETS topformflat
   RUNTIME DESTINATION "libexec"
-  PERMISSIONS
-    OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   )
 
 ###############################################################################

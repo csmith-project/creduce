@@ -16,42 +16,48 @@ find_package(FLEX)
 
 project(clex)
 
+include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
 add_definitions(-DGIT_HASH="${creduce_GIT_HASH}")
 add_definitions(-DHAVE_CONFIG_H)
 
-FLEX_TARGET(clex_scanner clex.l ${PROJECT_BINARY_DIR}/clex.c)
+FLEX_TARGET(clex_scanner
+  clex.l
+  ${PROJECT_BINARY_DIR}/clex.c
+  )
 
 add_executable(clex
+  ${FLEX_clex_scanner_OUTPUTS}
   defs.h
   driver.c
-  ${FLEX_clex_scanner_OUTPUTS}
-)
+  )
 
 ###############################################################################
 
 project(strlex)
+include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
 add_definitions(-DGIT_HASH="${creduce_GIT_HASH}")
 add_definitions(-DHAVE_CONFIG_H)
 
-FLEX_TARGET(strlex_scanner strlex.l ${PROJECT_BINARY_DIR}/strlex.c)
+FLEX_TARGET(strlex_scanner
+  strlex.l
+  ${PROJECT_BINARY_DIR}/strlex.c
+  )
 
 add_executable(strlex
+  ${FLEX_strlex_scanner_OUTPUTS}
   defs.h
   driver.c
-  ${FLEX_strlex_scanner_OUTPUTS}
-)
+  )
 
 ###############################################################################
 
 install(TARGETS clex strlex
   RUNTIME DESTINATION "libexec"
-  PERMISSIONS
-    OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-)
+  )
 
 ###############################################################################
 

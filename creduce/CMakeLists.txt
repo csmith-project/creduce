@@ -14,8 +14,8 @@ project(creduce_perl)
 
 set(BIN_DIR "${CMAKE_INSTALL_PREFIX}/bin")
 set(LIB_EXEC_DIR "${CMAKE_INSTALL_PREFIX}/libexec")
-set(PKG_LIB_DIR "${CMAKE_INSTALL_PREFIX}/lib/${creduce_PACKAGE}")
-set(PERL_LIB_DIR "${PKG_LIB_DIR}/perl")
+set(PKG_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/${creduce_PACKAGE}")
+set(PERL_LIB_DIR "${PKG_DATA_DIR}/perl")
 
 ###
 
@@ -64,8 +64,11 @@ file(WRITE
 file(COPY
   "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/creduce"
   DESTINATION "${PROJECT_BINARY_DIR}"
-  FILE_PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE
-    WORLD_READ WORLD_EXECUTE)
+  FILE_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE
+  )
 
 # Generate file "creduce_config.pm".
 #
@@ -88,33 +91,34 @@ string(REPLACE "@VERSION@" "${creduce_VERSION}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "@GIT_HASH@" "${creduce_GIT_HASH}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@ASTYLE@" "${ASTYLE}"
+# ENE: I do not understand why the \'s seem to be required in the following
+# match strings.
+string(REPLACE "\@ASTYLE@" "${ASTYLE}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@CLANG_FORMAT@" "${CLANG_FORMAT}"
+string(REPLACE "\@CLANG_FORMAT@" "${CLANG_FORMAT}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@INDENT@" "${INDENT}"
+string(REPLACE "\@INDENT@" "${INDENT}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 file(WRITE
   "${PROJECT_BINARY_DIR}/creduce_config.pm"
-  "${CREDUCE_CONTENT}")
+  "${CREDUCE_CONTENT}"
+  )
 
 ###############################################################################
 
 install(PROGRAMS
   "${PROJECT_BINARY_DIR}/creduce"
   DESTINATION "${BIN_DIR}"
-  PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE
-    WORLD_READ WORLD_EXECUTE
-)
+  )
 
 install(DIRECTORY
+  "${PROJECT_BINARY_DIR}/"
   "${PROJECT_SOURCE_DIR}/"
   DESTINATION "${PERL_LIB_DIR}"
-  FILE_PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
   FILES_MATCHING
     PATTERN "CMakeFiles" EXCLUDE
     PATTERN "*.pm"
-)
+  )
 
 ###############################################################################
 
