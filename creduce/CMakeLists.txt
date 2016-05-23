@@ -20,6 +20,9 @@ set(PERL_LIB_DIR "${PKG_DATA_DIR}/perl")
 ###
 
 include(FindPerl)
+if (${PERL_VERSION_STRING} VERSION_LESS "5.10.0")
+  message(FATAL_ERROR "C-Reduce requires Perl 5.10.0 or later")
+endif()
 
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -28,21 +31,30 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 ###
 
 find_program(ASTYLE
-	     "astyle${CMAKE_EXECUTABLE_SUFFIX}")
+  "astyle${CMAKE_EXECUTABLE_SUFFIX}"
+  )
 if(NOT ASTYLE)
   message(WARNING "astyle${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set ASTYLE manually.")
+  set(ASTYLE "no") # Emulate `configure.ac' behavior.
 endif(NOT ASTYLE)
 
 find_program(CLANG_FORMAT
   "clang-format${CMAKE_EXECUTABLE_SUFFIX}"
-  PATHS "${LLVM_TOOLS_BINARY_DIR}")
+  PATHS "${LLVM_TOOLS_BINARY_DIR}"
+  )
 if(NOT CLANG_FORMAT)
   message(WARNING "clang-format${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set CLANG_FORMAT manually.")
+  set(CLANG_FORMAT "no") # Emulate `configure.ac' behavior.
 endif(NOT CLANG_FORMAT)
 
-find_program(INDENT "indent${CMAKE_EXECUTABLE_SUFFIX}")
+find_program(INDENT
+  NAMES
+    "gindent${CMAKE_EXECUTABLE_SUFFIX}"
+    "indent${CMAKE_EXECUTABLE_SUFFIX}"
+  )
 if(NOT INDENT)
   message(WARNING "indent${CMAKE_EXECUTABLE_SUFFIX} could not be found! Set INDENT manually.")
+  set(INDENT "no") # Emulate `configure.ac' behavior.
 endif(NOT INDENT)
 
 ###############################################################################
