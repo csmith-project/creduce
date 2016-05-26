@@ -5,13 +5,14 @@ import filecmp
 import multiprocessing
 import multiprocessing.connection
 import os
+import platform
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
 
-debug = False
+debug = True
 
 class CReduceError(Exception):
     pass
@@ -428,8 +429,8 @@ class IncludeIncludesDeltaPass(DeltaPass):
 
     @classmethod
     def __transform(cls, test_case, state):
-        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
-            with open(test_case, "r") as in_file:
+        with open(test_case, "r") as in_file:
+            with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 includes = 0
                 matched = False
 
@@ -450,10 +451,10 @@ class IncludeIncludesDeltaPass(DeltaPass):
 
                     tmp_file.write(line)
 
-            if matched:
-                shutil.move(tmp_file.name, test_case)
-            else:
-                os.unlink(tmp_file.name)
+        if matched:
+            shutil.move(tmp_file.name, test_case)
+        else:
+            os.unlink(tmp_file.name)
 
         return matched
 
@@ -494,10 +495,10 @@ class IncludesDeltaPass(DeltaPass):
 
                     tmp_file.write(line)
 
-            if matched:
-                shutil.move(tmp_file.name, test_case)
-            else:
-                os.unlink(tmp_file.name)
+        if matched:
+            shutil.move(tmp_file.name, test_case)
+        else:
+            os.unlink(tmp_file.name)
 
         return matched
 
@@ -611,10 +612,10 @@ class BlankDeltaPass(DeltaPass):
                     else:
                         tmp_file.write(l)
 
-            if matched:
-                shutil.move(tmp_file.name, test_case)
-            else:
-                os.unlink(tmp_file.name)
+        if matched:
+            shutil.move(tmp_file.name, test_case)
+        else:
+            os.unlink(tmp_file.name)
 
         return matched
 
@@ -696,43 +697,47 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                 print("intial granularity = {}".format(instances))
 
         while True:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                if debug:
-                    print("TRANSFORM: index = {}, chunk = {}, instances = {}".format(new_state["index"], new_state["chunk"], new_state["instances"]))
+            if debug:
+                print("TRANSFORM: index = {}, chunk = {}, instances = {}".format(new_state["index"], new_state["chunk"], new_state["instances"]))
 
-                if new_state["index"] <= new_state["instances"]:
-                    end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
-                    dec = end - new_state["index"] + 1
+            if new_state["index"] <= new_state["instances"]:
+                end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
+                dec = end - new_state["index"] + 1
 
-                    try:
+                try:
+                    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                         if debug:
                             print(" ".join(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
+
                         proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
 
-                        if proc.returncode == 0:
-                            shutil.move(tmp_file.name, test_case)
-                            return (CReduce.RES_OK, new_state)
-                        else:
-                            if proc.returncode == 255:
-                                pass
-                            elif proc.returncode == 1:
-                                os.unlink(tmp_file.name)
-                                if debug:
-                                    print("out of instances!")
-                                if not cls.__rechunk(new_state):
-                                    return (CReduce.RES_STOP, new_state)
-                                continue
-                            else:
-                                os.unlink(tmp_file.name)
-                                return (CReduce.RES_ERROR, new_state)
-
+                    if proc.returncode == 0:
                         shutil.move(tmp_file.name, test_case)
+                        return (CReduce.RES_OK, new_state)
+                    else:
+                        if proc.returncode == 255:
+                            pass
+                        elif proc.returncode == 1:
+                            os.unlink(tmp_file.name)
 
-                    except subprocess.CalledProcessError as err:
-                        return (CReduce.RES_ERROR, new_state)
-                else:
-                    if not cls.__rechunk(new_state):
-                        return (CReduce.RES_STOP, new_state)
+                            if debug:
+                                print("out of instances!")
+
+                            if not cls.__rechunk(new_state):
+                                return (CReduce.RES_STOP, new_state)
+
+                            continue
+                        else:
+                            os.unlink(tmp_file.name)
+                            return (CReduce.RES_ERROR, new_state)
+
+                    shutil.move(tmp_file.name, test_case)
+
+                except subprocess.CalledProcessError as err:
+                    return (CReduce.RES_ERROR, new_state)
+            else:
+                if not cls.__rechunk(new_state):
+                    return (CReduce.RES_STOP, new_state)
 
         return (CReduce.RES_OK, new_state)
 
@@ -774,7 +779,7 @@ class LinesDeltaPass(DeltaPass):
                     if not l.isspace():
                         tmp_file.write(l)
 
-                shutil.move(tmp_file.name, test_case)
+            shutil.move(tmp_file.name, test_case)
 
             with open(test_case, "r") as in_file:
                 data = in_file.readlines()
@@ -803,8 +808,9 @@ class LinesDeltaPass(DeltaPass):
 
                     with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                         tmp_file.writelines(data)
-                        shutil.move(tmp_file.name, test_case)
-                        break
+
+                    shutil.move(tmp_file.name, test_case)
+                    break
                 else:
                     if new_state["chunk"] <= 1:
                         return (CReduce.RES_STOP, new_state)
@@ -909,22 +915,22 @@ class ClangDeltaPass(DeltaPass):
 
     @classmethod
     def transform(cls, test_case, arg, state):
-        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
-            try:
+        try:
+            with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
 
-                if proc.returncode == 0:
-                    shutil.move(tmp_file.name, test_case)
-                    return (CReduce.RES_OK, state)
-                else:
-                    os.unlink(tmp_file.name)
+            if proc.returncode == 0:
+                shutil.move(tmp_file.name, test_case)
+                return (CReduce.RES_OK, state)
+            else:
+                os.unlink(tmp_file.name)
 
-                    if proc.returncode == 255 or proc.returncode == 1:
-                        return (CReduce.RES_STOP, state)
-                    else:
-                        return (CREDUCE.RES_ERROR, state)
-            except subprocess.CalledProcessError as err:
-                return (CREDUCE.RES_ERROR, state)
+                if proc.returncode == 255 or proc.returncode == 1:
+                    return (CReduce.RES_STOP, state)
+                else:
+                    return (CReduce.RES_ERROR, state)
+        except subprocess.CalledProcessError as err:
+            return (CReduce.RES_ERROR, state)
 
 class PeepDeltaPass(DeltaPass):
     pass
@@ -1052,22 +1058,22 @@ class ClexDeltaPass(DeltaPass):
 
     @classmethod
     def transform(cls, test_case, arg, state):
-        with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
-            try:
+        try:
+            with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 proc = subprocess.run(["clex", str(arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
 
-                if proc.returncode == 51:
-                    shutil.copy(tmp_file.name, test_case)
-                    return (CReduce.RES_OK, state)
-                else:
-                    os.unlink(tmp_file.name)
+            if proc.returncode == 51:
+                shutil.copy(tmp_file.name, test_case)
+                return (CReduce.RES_OK, state)
+            else:
+                os.unlink(tmp_file.name)
 
-                    if proc.returncode == 71:
-                        return (CReduce.RES_STOP, state)
-                    else:
-                        return (CREDUCE.RES_ERROR, state)
-            except subprocess.CalledProcessError as err:
-                return (CREDUCE.RES_ERROR, state)
+                if proc.returncode == 71:
+                    return (CReduce.RES_STOP, state)
+                else:
+                    return (CReduce.RES_ERROR, state)
+        except subprocess.CalledProcessError as err:
+            return (CReduce.RES_ERROR, state)
 
 class CReduce:
     RES_OK = 0
@@ -1312,7 +1318,10 @@ class CReduce:
     def _fork_variant(self, variant_path):
         process = multiprocessing.Process(target=self.itest.run)
         process.start()
-        os.setpgid(process.pid, process.pid)
+
+        if platform.system() != "Windows":
+            os.setpgid(process.pid, process.pid)
+
         return process
 
     def _wait_for_results(self):
@@ -1325,7 +1334,10 @@ class CReduce:
             proc = v["proc"]
 
             if proc.is_alive():
-                os.killpg(v["proc"].pid, 15)
+                if platform.system() == "Windows":
+                    subprocess.run(["TASKKILL", "/F", "/T", "/PID", str(proc.pid)])
+                else:
+                    os.killpg(proc.pid, 15)
 
         self.variants = []
         self.num_running = 0
@@ -1355,7 +1367,8 @@ class CReduce:
                         if result != self.RES_OK and result != self.RES_STOP:
                             #TODO: Report bug
                             pass
-                        elif result == self.RES_STOP or result == self.RES_ERROR:
+
+                        if result == self.RES_STOP or result == self.RES_ERROR:
                             stopped = True
                         else:
                             #TODO: Report failure
