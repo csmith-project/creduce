@@ -14,6 +14,34 @@ import tempfile
 
 debug = True
 
+class NestedMatcher:
+    @staticmethod
+    def find(string, search, start=0, prefix=""):
+        if start >= len(string):
+            return None
+
+        substring = string[start:]
+        m = re.search(prefix + re.escape(search[0]), substring, re.DOTALL)
+
+        if m is None:
+            return None
+
+        depth = 1
+        pos = m.end() + 1
+
+        while pos < len(substring) and depth > 0:
+            if substring[pos] == search[0]:
+                depth += 1
+            elif substring[pos] == search[1]:
+                depth -= 1
+
+            pos += 1
+
+        if pos == len(substring) and depth != 0:
+            return None
+
+        return (start + m.start(), start + pos - 1)
+
 class CReduceError(Exception):
     pass
 
@@ -898,7 +926,69 @@ class TernaryDeltaPass(DeltaPass):
         #    return (CReduce.RES_STOP, state)
 
 class BalancedDeltaPass(DeltaPass):
-    pass
+    @classmethod
+    def new(cls, test_case, arg):
+        return 0
+
+    @classmethod
+    def advance(cls, test_case, arg, state):
+        return state + 1
+
+    @classmethod
+    def advance_on_success(cls, test_case, arg, state):
+        return state
+
+    @classmethod
+    def transform(cls, test_case, arg, state):
+        with open(test_case, "r") as in_file:
+            prog = in_file.read()
+            prog2 = prog
+
+        pre = ""
+
+        while True:
+            if arg == "parens":
+                search = ("(", ")")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[1] + 1:]
+            elif arg == "curly":
+                search = ("{", "}")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[1] + 1:]
+            elif arg == "curly2":
+                search = ("{", "}")
+                replace_fn = lambda content, match: content[0:match[0]] + ";" + content[match[1] + 1:]
+            elif arg == "curly3":
+                search = ("{", "}")
+                pre = "=\s*"
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[1] + 1:]
+            elif arg == "angles":
+                search = ("<", ">")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[1] + 1:]
+            elif arg == "parens-only":
+                search = ("(", ")")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[0] + 1:match[1]] + content[match[1] + 1:]
+            elif arg == "curly-only":
+                search = ("{", "}")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[0] + 1:match[1]] + content[match[1] + 1:]
+            elif arg == "angles-only":
+                search = ("<", ">")
+                replace_fn = lambda content, match: content[0:match[0]] + content[match[0] + 1:match[1]] + content[match[1] + 1:]
+            else:
+                raise UnknownArgumentCReduceError()
+
+            m = NestedMatcher.find(prog2, search, start=state, prefix=pre)
+
+            if m is None:
+                return (CReduce.RES_STOP, state)
+            else:
+                prog2 = replace_fn(prog2, m)
+
+                if prog != prog2:
+                    with open(test_case, "w") as out_file:
+                        out_file.write(prog2)
+
+                    return (CReduce.RES_OK, state)
+                else:
+                    state += 1
 
 class ClangDeltaPass(DeltaPass):
     @classmethod
@@ -1110,14 +1200,14 @@ class CReduce:
             {"pass": SpecialDeltaPass, "arg": "c", "pri": 555, "first_pass_pri": 110},
             #{"pass": TernaryDeltaPass, "arg": "b", "pri": 104},
             #{"pass": TernaryDeltaPass, "arg": "c", "pri": 105},
-            #{"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
-            #{"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
-            #{"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
-            #{"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
-            #{"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
-            #{"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
-            #{"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
-            #{"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
+            {"pass": BalancedDeltaPass, "arg": "curly", "pri": 110, "first_pass_pri":  41},
+            {"pass": BalancedDeltaPass, "arg": "curly2", "pri": 111, "first_pass_pri":  42},
+            {"pass": BalancedDeltaPass, "arg": "curly3", "pri": 112, "first_pass_pri":  43},
+            {"pass": BalancedDeltaPass, "arg": "parens", "pri": 113},
+            {"pass": BalancedDeltaPass, "arg": "angles", "pri": 114},
+            {"pass": BalancedDeltaPass, "arg": "curly-only", "pri": 150},
+            {"pass": BalancedDeltaPass, "arg": "parens-only", "pri": 151},
+            {"pass": BalancedDeltaPass, "arg": "angles-only", "pri": 152},
             {"pass": ClangDeltaPass, "arg": "remove-namespace", "pri": 200},
             {"pass": ClangDeltaPass, "arg": "aggregate-to-scalar", "pri": 201},
             #{"pass": ClangDeltaPass, "arg": "binop-simplification", "pri": 201},
