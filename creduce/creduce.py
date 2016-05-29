@@ -1166,6 +1166,7 @@ class ClexDeltaPass(DeltaPass):
             return (CReduce.RES_ERROR, state)
 
 class CReduce:
+    GIVEUP_CONSTANT = 1000
     RES_OK = 0
     RES_STOP = 1
     RES_ERROR = 2
@@ -1513,9 +1514,25 @@ class CReduce:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="C-Reduce")
-    parser.add_argument("--n", type=int, default=1, help="Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation")
+    #Default: Number of cores
+    parser.add_argument("--n", "-n", type=int, default=1, help="Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation")
     parser.add_argument("--tidy", action="store_true", default=False, help="Do not make a backup copy of each file to reduce as file.orig")
+    parser.add_argument("--shaddap", action="store_true", default=False, help="Suppress output about non-fatal internal errors")
+    parser.add_argument("--die-on-pass-bug", action="store_true", default=False, help="Terminate C-Reduce if a pass encounters an otherwise non-fatal problem")
+    parser.add_argument("--sanitize", action="store_true", default=False, help="Attempt to obscure details from the original source file")
+    parser.add_argument("--sllooww", action="store_true", default=False, help="Try harder to reduce, but perhaps take a long time to do so")
+    parser.add_argument("--also-interesting", metavar="EXIT_CODE", type=int, nargs=1, help="A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant")
+    parser.add_argument("--debug", action="store_true", default=False, help="Print debug information")
+    parser.add_argument("--no-kill", action="store_true", default=False, help="Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)")
+    parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(CReduce.GIVEUP_CONSTANT))
+    parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
+    parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
+    parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
+    parser.add_argument("--no-default-passes", action="store_true", default=False, help="Start with an empty pass schedule")
+    parser.add_argument("--add-pass", metavar=("PASS", "SUBPASS", "PRIORITY"), nargs=3, help="Add the specified pass to the schedule")
+    parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
+    parser.add_argument("--max-improvement", metavar="BYTES", type=int, nargs=1, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
     parser.add_argument("itest", metavar="INTERESTINGNESS_TEST", help="Executable to check interestingness of test cases")
     parser.add_argument("test_cases", metavar="TEST_CASE", nargs="+", help="Test cases")
 
