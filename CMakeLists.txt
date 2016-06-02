@@ -12,6 +12,7 @@ cmake_minimum_required(VERSION 2.8.12)
 project(creduce)
 
 include(CheckIncludeFile)
+include(CheckCXXCompilerFlag)
 
 ###############################################################################
 
@@ -49,12 +50,26 @@ configure_file("cmake_config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 execute_process(COMMAND "git" "show" "-s" "--format=%h" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE creduce_GIT_HASH)
 string(STRIP "${creduce_GIT_HASH}" creduce_GIT_HASH)
 
+###
+
+# Include this flag if the C++ compiler supports it.
+# See LLVM file `share/llvm/cmake/HandleLLVMOptions.cmake`.
+check_cxx_compiler_flag(
+  "-fvisibility-inlines-hidden"
+  SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG
+  )
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   # XXX figure out how to get "-std=c++11 -fno-rtti" from LLVM.  That's how we
   # get those options in the Automake path...
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers")
+  if(SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+  endif()
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 endif()
+
+###
 
 add_subdirectory(clang_delta)
 add_subdirectory(clex)
