@@ -56,157 +56,149 @@ set(CLANG_LIBS
   clangLex
 )
 
-set(TRANSFORMATION_HEADERS
+add_executable(clang_delta
+  ${CMAKE_BINARY_DIR}/config.h
+  AggregateToScalar.cpp
   AggregateToScalar.h
+  BinOpSimplification.cpp
   BinOpSimplification.h
+  CallExprToValue.cpp
   CallExprToValue.h
+  ClangDelta.cpp
+  ClassTemplateToClass.cpp
   ClassTemplateToClass.h
+  CombineGlobalVarDecl.cpp
   CombineGlobalVarDecl.h
+  CombineLocalVarDecl.cpp
   CombineLocalVarDecl.h
   CommonParameterRewriteVisitor.h
   CommonRenameClassRewriteVisitor.h
   CommonStatementVisitor.h
   CommonTemplateArgumentVisitor.h
-  CopyPropagation.h
-  EmptyStructToInt.h
-  InstantiateTemplateParam.h
-  InstantiateTemplateTypeParamToInt.h
-  LiftAssignmentExpr.h
-  LocalToGlobal.h
-  MoveFunctionBody.h
-  MoveGlobalVar.h
-  ParamToGlobal.h
-  ParamToLocal.h
-  ReduceArrayDim.h
-  ReduceArraySize.h
-  ReduceClassTemplateParameter.h
-  ReducePointerLevel.h
-  ReducePointerPairs.h
-  RemoveAddrTaken.h
-  RemoveArray.h
-  RemoveBaseClass.h
-  RemoveCtorInitializer.h
-  RemoveEnumMemberValue.h
-  RemoveNamespace.h
-  RemoveNestedFunction.h
-  RemovePointer.h
-  RemoveTrivialBaseTemplate.h
-  RemoveUnresolvedBase.h
-  RemoveUnusedEnumMember.h
-  RemoveUnusedFunction.h
-  RemoveUnusedOuterClass.h
-  RemoveUnusedStructField.h
-  RemoveUnusedVar.h
-  RenameCXXMethod.h
-  RenameClass.h
-  RenameFun.h
-  RenameParam.h
-  RenameVar.h
-  ReplaceArrayIndexVar.h
-  ReplaceCallExpr.h
-  ReplaceClassWithBaseTemplateSpec.h
-  ReplaceDependentName.h
-  ReplaceDependentTypedef.h
-  ReplaceDerivedClass.h
-  ReplaceFunctionDefWithDecl.h
-  ReplaceOneLevelTypedefType.h
-  ReplaceSimpleTypedef.h
-  ReplaceUndefinedFunction.h
-  ReturnVoid.h
-  SimpleInliner.h
-  SimplifyCallExpr.h
-  SimplifyCommaExpr.h
-  SimplifyDependentTypedef.h
-  SimplifyIf.h
-  SimplifyNestedClass.h
-  SimplifyRecursiveTemplateInstantiation.h
-  SimplifyStruct.h
-  SimplifyStructUnionDecl.h
-  TemplateArgToInt.h
-  TemplateNonTypeArgToInt.h
-  UnifyFunctionDecl.h
-  UnionToStruct.h
-)
-
-set(TRANSFORMATION_SOURCES
-  AggregateToScalar.cpp
-  BinOpSimplification.cpp
-  CallExprToValue.cpp
-  ClassTemplateToClass.cpp
-  CombineGlobalVarDecl.cpp
-  CombineLocalVarDecl.cpp
   CopyPropagation.cpp
+  CopyPropagation.h
   EmptyStructToInt.cpp
+  EmptyStructToInt.h
   InstantiateTemplateParam.cpp
+  InstantiateTemplateParam.h
   InstantiateTemplateTypeParamToInt.cpp
+  InstantiateTemplateTypeParamToInt.h
   LiftAssignmentExpr.cpp
+  LiftAssignmentExpr.h
   LocalToGlobal.cpp
+  LocalToGlobal.h
   MoveFunctionBody.cpp
+  MoveFunctionBody.h
   MoveGlobalVar.cpp
+  MoveGlobalVar.h
   ParamToGlobal.cpp
+  ParamToGlobal.h
   ParamToLocal.cpp
+  ParamToLocal.h
   ReduceArrayDim.cpp
+  ReduceArrayDim.h
   ReduceArraySize.cpp
+  ReduceArraySize.h
   ReduceClassTemplateParameter.cpp
+  ReduceClassTemplateParameter.h
   ReducePointerLevel.cpp
+  ReducePointerLevel.h
   ReducePointerPairs.cpp
+  ReducePointerPairs.h
   RemoveAddrTaken.cpp
+  RemoveAddrTaken.h
   RemoveArray.cpp
+  RemoveArray.h
   RemoveBaseClass.cpp
+  RemoveBaseClass.h
   RemoveCtorInitializer.cpp
+  RemoveCtorInitializer.h
   RemoveEnumMemberValue.cpp
+  RemoveEnumMemberValue.h
   RemoveNamespace.cpp
+  RemoveNamespace.h
   RemoveNestedFunction.cpp
+  RemoveNestedFunction.h
   RemovePointer.cpp
+  RemovePointer.h
   RemoveTrivialBaseTemplate.cpp
+  RemoveTrivialBaseTemplate.h
   RemoveUnresolvedBase.cpp
+  RemoveUnresolvedBase.h
   RemoveUnusedEnumMember.cpp
+  RemoveUnusedEnumMember.h
   RemoveUnusedFunction.cpp
+  RemoveUnusedFunction.h
   RemoveUnusedOuterClass.cpp
+  RemoveUnusedOuterClass.h
   RemoveUnusedStructField.cpp
+  RemoveUnusedStructField.h
   RemoveUnusedVar.cpp
+  RemoveUnusedVar.h
   RenameCXXMethod.cpp
+  RenameCXXMethod.h
   RenameClass.cpp
+  RenameClass.h
   RenameFun.cpp
+  RenameFun.h
   RenameParam.cpp
+  RenameParam.h
   RenameVar.cpp
+  RenameVar.h
   ReplaceArrayIndexVar.cpp
+  ReplaceArrayIndexVar.h
   ReplaceCallExpr.cpp
+  ReplaceCallExpr.h
   ReplaceClassWithBaseTemplateSpec.cpp
+  ReplaceClassWithBaseTemplateSpec.h
   ReplaceDependentName.cpp
+  ReplaceDependentName.h
   ReplaceDependentTypedef.cpp
+  ReplaceDependentTypedef.h
   ReplaceDerivedClass.cpp
+  ReplaceDerivedClass.h
   ReplaceFunctionDefWithDecl.cpp
+  ReplaceFunctionDefWithDecl.h
   ReplaceOneLevelTypedefType.cpp
+  ReplaceOneLevelTypedefType.h
   ReplaceSimpleTypedef.cpp
+  ReplaceSimpleTypedef.h
   ReplaceUndefinedFunction.cpp
+  ReplaceUndefinedFunction.h
   ReturnVoid.cpp
-  SimpleInliner.cpp
-  SimplifyCallExpr.cpp
-  SimplifyCommaExpr.cpp
-  SimplifyDependentTypedef.cpp
-  SimplifyIf.cpp
-  SimplifyNestedClass.cpp
-  SimplifyRecursiveTemplateInstantiation.cpp
-  SimplifyStruct.cpp
-  SimplifyStructUnionDecl.cpp
-  TemplateArgToInt.cpp
-  TemplateNonTypeArgToInt.cpp
-  UnifyFunctionDecl.cpp
-  UnionToStruct.cpp
-)
-
-add_executable(clang_delta
-  ${CMAKE_BINARY_DIR}/config.h
-  ${TRANSFORMATION_HEADERS}
-  ${TRANSFORMATION_SOURCES}
-  RewriteUtils.h
-  Transformation.h
-  TransformationManager.h
-  ClangDelta.cpp
+  ReturnVoid.h
   RewriteUtils.cpp
+  RewriteUtils.h
+  SimpleInliner.cpp
+  SimpleInliner.h
+  SimplifyCallExpr.cpp
+  SimplifyCallExpr.h
+  SimplifyCommaExpr.cpp
+  SimplifyCommaExpr.h
+  SimplifyDependentTypedef.cpp
+  SimplifyDependentTypedef.h
+  SimplifyIf.cpp
+  SimplifyIf.h
+  SimplifyNestedClass.cpp
+  SimplifyNestedClass.h
+  SimplifyRecursiveTemplateInstantiation.cpp
+  SimplifyRecursiveTemplateInstantiation.h
+  SimplifyStruct.cpp
+  SimplifyStruct.h
+  SimplifyStructUnionDecl.cpp
+  SimplifyStructUnionDecl.h
+  TemplateArgToInt.cpp
+  TemplateArgToInt.h
+  TemplateNonTypeArgToInt.cpp
+  TemplateNonTypeArgToInt.h
   Transformation.cpp
+  Transformation.h
   TransformationManager.cpp
+  TransformationManager.h
+  UnifyFunctionDecl.cpp
+  UnifyFunctionDecl.h
+  UnionToStruct.cpp
+  UnionToStruct.h
 )
 
 target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
