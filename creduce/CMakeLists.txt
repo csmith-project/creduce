@@ -236,6 +236,68 @@ file(WRITE
 
 ###############################################################################
 
+# Copy the Perl modules into the build tree so that we can run C-Reduce there.
+#
+# Blech!  But listing all the source files is what we do in the Autoconf-based
+# build system, too.
+#
+add_custom_target(Modules ALL
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/creduce_regexes.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/creduce_utils.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_balanced.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_blank.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_clang.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_clang_binsrch.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_clex.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_comments.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_include_includes.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_includes.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_indent.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_ints.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_lines.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_peep.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_special.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_ternary.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_unifdef.pm
+    ${PROJECT_BINARY_DIR}
+  COMMENT "Copying C-Reduce Perl modules to build tree"
+  )
+
+###############################################################################
+
 install(PROGRAMS
   "${PROJECT_BINARY_DIR}/creduce"
   DESTINATION "${BIN_DIR}"
