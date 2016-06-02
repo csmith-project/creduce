@@ -182,8 +182,10 @@ endif()
 file(READ "creduce.in" CREDUCE_CONTENT)
 string(REPLACE "@perl@" "${PERL_EXECUTABLE}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PERL@" "${PERL_EXECUTABLE}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+# The following is not needed, but triggers a warning in CMake 3.1+.
+# See `cmake --help-policy CMP0053'.  Avoid the warning by not doing it.
+# string(REPLACE "@PERL@" "${PERL_EXECUTABLE}"
+#   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "@perllibdir@" "${PERL_LIB_DIR}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "@prefix@" "${CMAKE_INSTALL_PREFIX}"
