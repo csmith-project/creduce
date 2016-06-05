@@ -543,11 +543,19 @@ class CReduce:
         if platform.system() == "Windows":
             descriptors = descriptors[0:64]
 
+        #logging.warning("Waiting for {}".format(descriptors))
+
+        # If all processes have already ended do not wait
+        if not descriptors:
+            return descriptors
+
         return multiprocessing.connection.wait(descriptors)
 
     def _kill_variants(self):
         for v in self.__variants:
             proc = v["proc"]
+
+            #logging.warning("Kill {}".format(v["proc"].sentinel))
 
             if proc.is_alive():
                 if platform.system() == "Windows":
@@ -555,7 +563,7 @@ class CReduce:
                 else:
                     os.killpg(proc.pid, 15)
 
-                proc.join()
+            proc.join()
 
             #v["tmp_dir"].cleanup()
 
@@ -595,6 +603,7 @@ class CReduce:
                         #TODO: Report failure
                         proc = self._fork_variant(variant_path)
                         variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
+                        #logging.warning("Fork {}".format(proc.sentinel))
                         self.__variants.append(variant)
                         self.__num_running += 1
                         #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, self.__num_running, len(self.__variants)))
@@ -616,7 +625,7 @@ class CReduce:
 
                     self.__variants.pop(0)
                     self.__num_running -= 1
-                    #logging.warning("Remove first variant")
+                    #logging.warning("Handle {}".format(variant["proc"].sentinel))
 
                     if variant["proc"].exitcode == 0:
                         self._kill_variants()
