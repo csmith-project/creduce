@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from passes.delta import DeltaPass
 from passes.balanced import BalancedDeltaPass
@@ -702,6 +703,8 @@ if __name__ == "__main__":
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     if args.sanitize:
         pass_options.add(CReduce.PassOption.sanitize)
@@ -719,7 +722,18 @@ if __name__ == "__main__":
     interestingness_test = tests[args.interestingness_test](map(os.path.basename, args.test_cases))
 
     reducer = CReduce(interestingness_test, args.test_cases)
+
+    # Track runtime
+    if args.timing:
+        time_start = time.monotonic()
+
     reducer.reduce(args.n,
                    skip_initial=args.skip_initial_passes,
                    pass_group=CReduce.PassGroup(args.pass_group),
                    pass_options=pass_options)
+
+    if args.timing:
+        time_stop = time.monotonic()
+        logging.info("Runtime: {} seconds".format(round((time_stop - time_start))))
+
+    logging.shutdown()
