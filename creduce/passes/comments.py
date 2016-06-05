@@ -29,7 +29,12 @@ class CommentsDeltaPass(DeltaPass):
 
         while True:
             if state == -2:
-                replace_fn = lambda m: m.group(2) if m is not None and m.group(2) is not None else ""
+                def replace_fn(m):
+                    if m is not None and m.group(2) is not None:
+                        return m.group(2)
+                    else:
+                        return ""
+
                 prog2 = re.sub(r"/\*[^*]*\*+([^/*][^*]*\*+)*/|(\"(\.|[^\"\\])*\"|'(\.|[^'\\])*'|.[^/\"'\\]*)", replace_fn, prog2, flags=re.DOTALL)
             elif state == -1:
                 prog2 = re.sub(r"//.*$", "", prog2, flags=re.MULTILINE)

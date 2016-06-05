@@ -617,7 +617,7 @@ class CReduce:
                     self._wait_for_results()
                     #logging.warning("Processes finished")
 
-                while len(self.__variants) > 0:
+                while self.__variants:
                     variant = self.__variants[0]
 
                     if variant["proc"].is_alive():
@@ -636,7 +636,7 @@ class CReduce:
 
                         logging.debug("delta test success")
 
-                        #TODO: Do I need to take all test cases in to account?
+                        #TODO: Do I need to take all test cases into account?
                         pct = 100 - (os.path.getsize(test_case) * 100.0 / self.total_file_size)
                         print("({} %, {} bytes)".format(round(pct, 1), os.path.getsize(test_case)))
                     else:
@@ -645,7 +645,7 @@ class CReduce:
                     #variant["tmp_dir"].cleanup()
                     variant = None
 
-                if stopped and len(self.__variants) == 0:
+                if stopped and not self.__variants:
                     # Abort pass for this test case and
                     # start same pass with next test case
                     break
@@ -661,8 +661,9 @@ class CReduce:
     def _prepare_pass_group(self, pass_group, pass_options):
         group = self.groups[pass_group]
 
-        pass_filter = lambda p: ((("include" not in p) or bool(p["include"] & pass_options)) and
-                                 (("exclude" not in p) or not bool(p["exclude"] & pass_options)))
+        def pass_filter(p):
+            return ((("include" not in p) or bool(p["include"] & pass_options)) and
+                    (("exclude" not in p) or not bool(p["exclude"] & pass_options)))
 
         for category in group:
             group[category] = [p for p in group[category] if pass_filter(p)]

@@ -27,7 +27,9 @@ class SpecialDeltaPass(DeltaPass):
             prog2 = prog
 
         if arg == "a":
-            replace_fn = lambda m: 'printf("%d\\n", (int){})'.format(m.group("list").split(",")[0])
+            def replace_fn(m):
+                return 'printf("%d\\n", (int){})'.format(m.group("list").split(",")[0])
+
             prog2 = cls._replace_nth_match(r"transparent_crc\s*\((?P<list>.*?)\)", prog2, state, replace_fn)
         elif arg == "b":
             prog2 = cls._replace_nth_match('extern "C"', prog2, state, lambda m: "")

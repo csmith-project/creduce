@@ -34,26 +34,36 @@ class IntsDeltaPass(DeltaPass):
         while True:
             if arg == "a":
                 # Delete first digit
-                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("suf")
+                def replace_fn(m):
+                    return m.group("pref") + m.group("numpart") + m.group("suf")
+
                 prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)[0-9a-fA-F](?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
             elif arg == "b":
                 # Delete prefix
                 # FIXME: Made 0x mandatory
 
-                replace_fn = lambda m: m.group("del") + m.group("numpart") + m.group("suf")
+                def replace_fn(m):
+                    return m.group("del") + m.group("numpart") + m.group("suf")
+
                 prog2 = cls._replace_nth_match(r"(?P<del>{0})(?P<pref>[+-]?(?:0|(0[xX])))(?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
             elif arg == "c":
                 # Delete suffix
                 #FIXME: Changed star to plus for suffix
-                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+                def replace_fn(m):
+                    return m.group("pref") + m.group("numpart") + m.group("del")
+
                 prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
             elif arg == "d":
                 # Hex to dec
-                replace_fn = lambda m: m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
+                def replace_fn(m):
+                    return m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
+
                 prog2 = cls._replace_nth_match(r"(?P<pref>{0})(?P<numpart>0[Xx][0-9a-fA-F]+)(?P<suf>[ULul]*{0})".format(re_border_or_space), prog2, state, replace_fn)
             elif arg == "e":
                 #FIXME: Same as c?!
-                replace_fn = lambda m: m.group("pref") + m.group("numpart") + m.group("del")
+                def replace_fn(m):
+                    return m.group("pref") + m.group("numpart") + m.group("del")
+
                 prog2 = cls._replace_nth_match(r"(?P<pref>{0}[+-]?(?:0|(0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>{0})".format(re_border_or_space), prog2, state, replace_fn)
             else:
                 raise UnknownArgumentError()
