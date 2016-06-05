@@ -33,7 +33,7 @@ class ClexDeltaPass(DeltaPass):
                 return (DeltaPass.Result.error, state)
 
         if proc.returncode == 51:
-            shutil.copy(tmp_file.name, test_case)
+            shutil.move(tmp_file.name, test_case)
             return (DeltaPass.Result.ok, state)
         else:
             os.unlink(tmp_file.name)
