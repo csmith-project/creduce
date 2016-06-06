@@ -53,7 +53,7 @@ class IndentDeltaPass(DeltaPass):
                     return (DeltaPass.Result.stop, state)
 
             try:
-                subprocess.run(cmd, universal_newlines=True)
+                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except subprocess.SubprocessError:
                 return (DeltaPass.Result.error, state)
 
