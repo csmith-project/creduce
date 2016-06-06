@@ -388,15 +388,23 @@ class CReduce:
                                       ]
                             },
               PassGroup.debug: {"first" : [],
-                             "main" : [{"pass" : BalancedDeltaPass, "arg" : "curly"}, #110
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly2"}, #111
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #112
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens"}, #113
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles"}, #114
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #150
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #151
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #152
-                                      ],
+                             "main" : [{"pass" : ClexDeltaPass, "arg" : "rm-toks-16"}, #9016
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-15"}, #9017
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-14"}, #9018
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-13"}, #9019
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-12"}, #9020
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-11"}, #9021
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-10"}, #9022
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-9"}, #9023
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-8"}, #9024
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-7"}, #9025
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-6"}, #9026
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-5"}, #9027
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-4"}, #9028
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-3"}, #9029
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-2"}, #9030
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-1"}, #9031
+                                       {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-4", "exclude" : {PassOption.slow}},],
                              "last" : []
                             },
     }
@@ -429,30 +437,30 @@ class CReduce:
         missing = self._check_prerequisites(pass_group)
 
         if missing is not None:
-            print("Prereqs not found for pass {}".format(missing))
+            logging.error("Prereqs not found for pass {}".format(missing))
             return False
 
         if not self._check_sanity():
             return False
 
-        print("===< {} >===".format(os.getpid()))
+        logging.info("===< {} >===".format(os.getpid()))
 
         if not self.tidy:
             self._backup_files(self.test_cases)
 
         if not skip_initial:
-            print("INITIAL PASSES")
+            logging.info("INITIAL PASSES")
             self._run_additional_passes(pass_group["first"])
 
-        print("MAIN PASSES")
+        logging.info("MAIN PASSES")
         self._run_main_passes(pass_group["main"])
 
-        print("CLEANUP PASS")
+        logging.info("CLEANUP PASS")
         self._run_additional_passes(pass_group["last"])
 
         self.total_file_size = self._get_total_file_size()
 
-        print("===================== done ====================")
+        logging.info("===================== done ====================")
 
         #TODO: Output statistics and reduced test cases
         return True
@@ -482,10 +490,10 @@ class CReduce:
         return None
 
     def _check_sanity(self):
-        print("sanity check... ", end='')
+        logging.info("sanity check... ")
 
         with tempfile.TemporaryDirectory(prefix="creduce-") as tmp_dir:
-            print("tmpdir = {}".format(tmp_dir))
+            logging.debug("tmpdir = {}".format(tmp_dir))
 
             os.chdir(tmp_dir)
             self._copy_test_cases(tmp_dir)
@@ -494,7 +502,7 @@ class CReduce:
             result = self.interestingness_test.check()
 
             if result:
-                print("successful")
+                logging.info("successful")
 
             os.chdir(self.__orig_dir)
 
@@ -524,7 +532,7 @@ class CReduce:
 
             total_file_size = self._get_total_file_size()
 
-            print("Termination check: size was {}; now {}".format(self.total_file_size, total_file_size))
+            logging.info("Termination check: size was {}; now {}".format(self.total_file_size, total_file_size))
 
             if total_file_size >= self.total_file_size:
                 break
@@ -569,15 +577,14 @@ class CReduce:
 
             proc.join()
 
-            #v["tmp_dir"].cleanup()
-
+        # Performs implicit cleanup of the temporary directories
         self.__variants = []
         self.__num_running = 0
 
     def _run_delta_pass(self, pass_, arg):
         #TODO: Check for zero size
 
-        print("===< {} :: {} >===".format(pass_.__name__, arg))
+        logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
 
         for test_case in self.test_cases:
             test_case_name = os.path.basename(test_case)
@@ -688,6 +695,7 @@ if __name__ == "__main__":
     parser.add_argument("--sllooww", action="store_true", default=False, help="Try harder to reduce, but perhaps take a long time to do so")
     parser.add_argument("--also-interesting", metavar="EXIT_CODE", type=int, nargs=1, help="A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant")
     parser.add_argument("--debug", action="store_true", default=False, help="Print debug information")
+    parser.add_argument("--log", type=str, choices=["INFO", "DEBUG", "WARNING", "ERROR"], default="INFO", help="Define what kind of events should be displayed")
     parser.add_argument("--no-kill", action="store_true", default=False, help="Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)")
     parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(CReduce.GIVEUP_CONSTANT))
     parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
@@ -703,12 +711,20 @@ if __name__ == "__main__":
     parser.add_argument("test_cases", metavar="TEST_CASE", nargs="+", help="Test cases")
 
     args = parser.parse_args()
-    pass_options = set()
+
+    if args.timing:
+        log_format = "%(asctime)s@%(levelname)s@%(name)s@%(message)s"
+    else:
+        log_format = "@%(levelname)s@%(name)s@%(message)s"
+
+    log_level = getattr(logging, args.log.upper(), None)
 
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
+        log_level = logging.DEBUG
+
+    logging.basicConfig(level=log_level, format=log_format)
+
+    pass_options = set()
 
     if args.sanitize:
         pass_options.add(CReduce.PassOption.sanitize)
