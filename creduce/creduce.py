@@ -58,7 +58,8 @@ class CReduce:
         def __str__(self):
             return self.value
 
-    GIVEUP_CONSTANT = 1000
+    GIVEUP_CONSTANT = 50000
+    MAX_CRASH_DIRS = 10
 
     groups = {PassGroup.all : {"first" : [{"pass" : IncludesDeltaPass, "arg" : "0"}, #0
                                           {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #0
@@ -415,6 +416,8 @@ class CReduce:
         self.total_file_size = 0
         self.orig_total_file_size = 0
         self.tidy = True
+        self.silent_pass_bug = False
+        self.die_on_pass_bug = False
 
         for test_case in test_cases:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
@@ -590,6 +593,7 @@ class CReduce:
             test_case_name = os.path.basename(test_case)
             state = pass_.new(test_case_name, arg)
             stopped = False
+            since_success = 0
             self.__num_running = 0
 
             while True:
@@ -604,21 +608,24 @@ class CReduce:
                     (result, state) = pass_.transform(variant_path, arg, state)
 
                     if result != DeltaPass.Result.ok and result != DeltaPass.Result.stop:
-                        #TODO: Report bug
-                        #TODO: Can we check for ERROR instead?
-                        pass
+                        self._report_pass_bug(pass_, arg, state if result == DeltaPass.Result.error else "unknown return code")
 
                     if result == DeltaPass.Result.stop or result == DeltaPass.Result.error:
                         stopped = True
                     else:
-                        #TODO: Report failure
-                        proc = self._fork_variant(variant_path)
-                        variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
-                        #logging.warning("Fork {}".format(proc.sentinel))
-                        self.__variants.append(variant)
-                        self.__num_running += 1
-                        #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, self.__num_running, len(self.__variants)))
-                        state = pass_.advance(test_case, arg, state)
+                        #TODO: if self.print_diff: ...
+                        # Report bug if transform did not change the file
+                        if filecmp.cmp(test_case, variant_path):
+                            self._report_pass_bug(pass_, arg, "pass failed to modify the variant")
+                            stopped = True
+                        else:
+                            proc = self._fork_variant(variant_path)
+                            variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
+                            #logging.warning("Fork {}".format(proc.sentinel))
+                            self.__variants.append(variant)
+                            self.__num_running += 1
+                            #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, self.__num_running, len(self.__variants)))
+                            state = pass_.advance(test_case, arg, state)
 
                     os.chdir(self.__orig_dir)
 
@@ -643,6 +650,7 @@ class CReduce:
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
+                        since_success = 0
 
                         logging.debug("delta test success")
 
@@ -650,10 +658,20 @@ class CReduce:
                         pct = 100 - (total_file_size * 100.0 / self.orig_total_file_size)
                         logging.info("({}%, {} bytes)".format(round(pct, 1), total_file_size))
                     else:
+                        since_success += 1
                         logging.debug("delta test failure")
 
-                    #variant["tmp_dir"].cleanup()
+                    # Implicitly performs cleanup of temporary directories
                     variant = None
+
+                # nasty heuristic for avoiding getting stuck by buggy passes
+                # that keep reporting success w/o making progress
+                if self.GIVEUP_CONSTANT != 0 and since_success > self.GIVEUP_CONSTANT:
+                    self._kill_variants()
+                    self._report_pass_bug(pass_, arg, "pass got stuck")
+                    # Abort pass for this test case and
+                    # start same pass with next test case
+                    break
 
                 if stopped and not self.__variants:
                     # Abort pass for this test case and
@@ -679,6 +697,55 @@ class CReduce:
             group[category] = [p for p in group[category] if pass_filter(p)]
 
         return group
+
+    def _report_pass_bug(self, delta_method, delta_arg, problem):
+        if self.silent_pass_bug:
+            return
+
+        for i in range(0, self.MAX_CRASH_DIRS):
+            #TODO: Does this return an absolute path?
+            crash_dir = os.path.join(self.__orig_dir, "creduce_bug_{3:d}".format(i))
+
+            if not os.path.exists(crash_dir):
+                break
+
+        # just bail if we've already created enough of these dirs, no need to
+        # clutter things up even more...
+        if os.path.exists(crash_dir):
+            return
+
+        os.mkdir(crash_dir)
+        os.chdir(crash_dir)
+        self._copy_test_cases(crash_dir)
+
+        if not self.die_on_pass_bug:
+            cont = "\nThis bug is not fatal, C-Reduce will continue to execute.\n"
+        else:
+            cont = ""
+
+        message = """
+***************************************************
+
+{}::{} has encountered a bug:
+{}
+
+Please consider tarring up {}
+and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.
+{}
+***************************************************
+""".format(delta_method, delta_arg, problem, crash_dir, cont)
+
+        with open("PASS_BUG_INFO.TXT", mode="w") as info_file:
+            info_file.write("{}\n".format(self.PACKAGE))
+            info_file.write("{}\n".format(self.COMMIT))
+            info_file.write("{}\n".format(platform.uname()))
+            info_file.write(message)
+
+        logging.error(message)
+
+        if self.die_on_pass_bug:
+            logging.info("Exiting upon request due to pass bug")
+            sys.exit(1)
 
 if __name__ == "__main__":
     try:
@@ -742,6 +809,9 @@ if __name__ == "__main__":
     interestingness_test = tests[args.interestingness_test](map(os.path.basename, args.test_cases))
 
     reducer = CReduce(interestingness_test, args.test_cases)
+
+    reducer.silent_pass_bug = args.shaddap
+    reducer.die_on_pass_bug = args.die_on_pass_bug
 
     # Track runtime
     if args.timing:
