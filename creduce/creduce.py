@@ -405,12 +405,15 @@ class CReduce:
         self.interestingness_test = interestingness_test
         self.test_cases = []
         self.total_file_size = 0
+        self.orig_total_file_size = 0
         self.tidy = True
 
         for test_case in test_cases:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
             self.test_cases.append(os.path.abspath(test_case))
             self.total_file_size += os.path.getsize(test_case)
+
+        self.orig_total_file_size = self.total_file_size
 
     def reduce(self, parallel_tests, skip_initial=False, pass_group=PassGroup.all, pass_options=set()):
         self.__parallel_tests = parallel_tests
@@ -636,9 +639,9 @@ class CReduce:
 
                         logging.debug("delta test success")
 
-                        #TODO: Do I need to take all test cases into account?
-                        pct = 100 - (os.path.getsize(test_case) * 100.0 / self.total_file_size)
-                        print("({} %, {} bytes)".format(round(pct, 1), os.path.getsize(test_case)))
+                        total_file_size = self._get_total_file_size()
+                        pct = 100 - (total_file_size * 100.0 / self.orig_total_file_size)
+                        logging.info("({}%, {} bytes)".format(round(pct, 1), total_file_size))
                     else:
                         logging.debug("delta test failure")
 
