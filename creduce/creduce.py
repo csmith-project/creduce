@@ -4,6 +4,7 @@ import argparse
 import enum
 import filecmp
 import logging
+import math
 import multiprocessing
 import multiprocessing.connection
 import os
@@ -60,6 +61,7 @@ class CReduce:
 
     GIVEUP_CONSTANT = 50000
     MAX_CRASH_DIRS = 10
+    MAX_EXTRA_DIRS = 25000
 
     groups = {PassGroup.all : {"first" : [{"pass" : IncludesDeltaPass, "arg" : "0"}, #0
                                           {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #0
@@ -418,6 +420,7 @@ class CReduce:
         self.tidy = True
         self.silent_pass_bug = False
         self.die_on_pass_bug = False
+        self.also_interesting = -1
 
         for test_case in test_cases:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
@@ -661,6 +664,14 @@ class CReduce:
                         since_success += 1
                         logging.debug("delta test failure")
 
+                    if (self.also_interesting != -1 and
+                        self.also_interesting == variant["proc"].exitcode):
+                        extra_dir = self._get_extra_dir("creduce_extra_", self.MAX_EXTRA_DIRS)
+
+                        if extra_dir is not None:
+                            shutil.move(variant["tmp_dir"], extra_dir)
+                            logging.info("Created extra directory {} for you to look at later".format(extra_dir))
+
                     # Implicitly performs cleanup of temporary directories
                     variant = None
 
@@ -698,20 +709,31 @@ class CReduce:
 
         return group
 
-    def _report_pass_bug(self, delta_method, delta_arg, problem):
-        if self.silent_pass_bug:
-            return
-
-        for i in range(0, self.MAX_CRASH_DIRS):
+    @staticmethod
+    def _get_extra_dir(prefix, max_number):
+        for i in range(0, max_number + 1):
             #TODO: Does this return an absolute path?
-            crash_dir = os.path.join(self.__orig_dir, "creduce_bug_{3:d}".format(i))
+            digits = round(math.log10(max_number), 0)
+            extra_dir = os.path.join(self.__orig_dir,
+                                     ("{}{" + digits + ":d}").format(prefix, i))
 
-            if not os.path.exists(crash_dir):
+            if not os.path.exists(extra_dir):
                 break
 
         # just bail if we've already created enough of these dirs, no need to
         # clutter things up even more...
-        if os.path.exists(crash_dir):
+        if os.path.exists(extra_dir):
+            return None
+
+        return extra_dir
+
+    def _report_pass_bug(self, delta_method, delta_arg, problem):
+        if self.silent_pass_bug:
+            return
+
+        crash_dir = self._get_extra_dir("creduce_bug_", self.MAX_CRASH_DIRS)
+
+        if crash_dir == None:
             return
 
         os.mkdir(crash_dir)
@@ -812,6 +834,7 @@ if __name__ == "__main__":
 
     reducer.silent_pass_bug = args.shaddap
     reducer.die_on_pass_bug = args.die_on_pass_bug
+    reducer.also_interesting = args.also_interesting
 
     # Track runtime
     if args.timing:
