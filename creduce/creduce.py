@@ -59,6 +59,9 @@ class CReduce:
         def __str__(self):
             return self.value
 
+    #TODO: How can we get this information?
+    PACKAGE = "TODO"
+    COMMIT = "TODO"
     GIVEUP_CONSTANT = 50000
     MAX_CRASH_DIRS = 10
     MAX_EXTRA_DIRS = 25000
@@ -450,6 +453,8 @@ class CReduce:
             return False
 
         logging.info("===< {} >===".format(os.getpid()))
+        logging.info("running {} interestingness test{} in parallel".format(self.__parallel_tests,
+                                                                            "" if self.__parallel_tests == 1 else "s")
 
         if not self.tidy:
             self._backup_files(self.test_cases)
@@ -496,7 +501,7 @@ class CReduce:
         return None
 
     def _check_sanity(self):
-        logging.info("sanity check... ")
+        logging.debug("sanity check... ")
 
         with tempfile.TemporaryDirectory(prefix="creduce-") as tmp_dir:
             logging.debug("tmpdir = {}".format(tmp_dir))
@@ -504,15 +509,34 @@ class CReduce:
             os.chdir(tmp_dir)
             self._copy_test_cases(tmp_dir)
 
-            #TODO: Output error create extra dir
             result = self.interestingness_test.check()
 
             if result:
-                logging.info("successful")
+                logging.debug("successful")
+                os.chdir(self.__orig_dir)
+                return True
+            else:
+                os.chdir(self.__orig_dir)
 
-            os.chdir(self.__orig_dir)
+                message = """C-Reduce cannot run because the interestingness test does not return
+zero. Please ensure that it does so not only in the directory where
+you are invoking C-Reduce, but also in an arbitrary temporary
+directory containing only the files that are being reduced. In other
+words, running these commands:
 
-        return result
+  DIR=`mktemp -d`
+  cp {test_cases} $DIR
+  cd $DIR
+  ./{test} {test_cases}
+  echo $?
+
+should result in "0" being echoed to the terminal.
+
+See "creduce --help" for more information.""".format(test_cases=" ".join(self.test_cases), test="TODO")
+
+                #FIXME: Multiline log message is not really optimal
+                logging.error(message)
+                return False
 
     @staticmethod
     def _backup_files(files):
@@ -588,9 +612,11 @@ class CReduce:
         self.__num_running = 0
 
     def _run_delta_pass(self, pass_, arg):
-        #TODO: Check for zero size
-
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
+
+       if self._get_total_file_size() ==  0:
+           self._report_zero_size()
+           sys.exit(1)
 
         for test_case in self.test_cases:
             test_case_name = os.path.basename(test_case)
@@ -763,11 +789,27 @@ and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.
             info_file.write("{}\n".format(platform.uname()))
             info_file.write(message)
 
+        #FIXME: Multiline log message is not really optimal
         logging.error(message)
 
         if self.die_on_pass_bug:
             logging.info("Exiting upon request due to pass bug")
             sys.exit(1)
+
+    def _report_zero_size(self):
+        if len(self.test_cases) == 1:
+            message = "The file being reduced has reached zero size; "
+        else:
+            message = "All files being reduced have reached zero size; "
+
+        message += """our work here is done.
+
+If you did not want a zero size file, you must help C-Reduce out by
+making sure that your interestingness test does not find files like
+this to be interesting."""
+
+        #FIXME: Multiline log message is not really optimal
+        logging.warning(message)
 
 if __name__ == "__main__":
     try:
