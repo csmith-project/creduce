@@ -603,8 +603,7 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
 
         if self._get_total_file_size() == 0:
-            self._report_zero_size()
-            sys.exit(1)
+            raise ZeroSizeException(self.test_cases)
 
         for test_case in self.test_cases:
             test_case_name = os.path.basename(test_case)
@@ -625,7 +624,8 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
                     (result, state) = pass_.transform(variant_path, arg, state)
 
                     if result != DeltaPass.Result.ok and result != DeltaPass.Result.stop:
-                        self._report_pass_bug(pass_, arg, state if result == DeltaPass.Result.error else "unknown return code")
+                        if not self.silent_pass_bug:
+                            self._report_pass_bug(pass_, arg, state if result == DeltaPass.Result.error else "unknown return code")
 
                     if result == DeltaPass.Result.stop or result == DeltaPass.Result.error:
                         stopped = True
@@ -633,7 +633,9 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
                         #TODO: if self.print_diff: ...
                         # Report bug if transform did not change the file
                         if filecmp.cmp(test_case, variant_path):
-                            self._report_pass_bug(pass_, arg, "pass failed to modify the variant")
+                            if not self.silent_pass_bug:
+                                self._report_pass_bug(pass_, arg, "pass failed to modify the variant")
+
                             stopped = True
                         else:
                             proc = self._fork_variant(variant_path)
@@ -693,7 +695,10 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
                 # that keep reporting success w/o making progress
                 if self.GIVEUP_CONSTANT != 0 and since_success > self.GIVEUP_CONSTANT:
                     self._kill_variants()
-                    self._report_pass_bug(pass_, arg, "pass got stuck")
+
+                    if not self.silent_pass_bug:
+                        self._report_pass_bug(pass_, arg, "pass got stuck")
+
                     # Abort pass for this test case and
                     # start same pass with next test case
                     break
@@ -742,8 +747,8 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
         return extra_dir
 
     def _report_pass_bug(self, delta_method, delta_arg, problem):
-        if self.silent_pass_bug:
-            return
+        if not self.die_on_pass_bug:
+            logging.warning("{}::{} has encountered a non fatal bug: {}".format(delta_method, delta_arg, problem))
 
         crash_dir = self._get_extra_dir("creduce_bug_", self.MAX_CRASH_DIRS)
 
@@ -755,46 +760,13 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
         self._copy_test_cases(crash_dir)
 
         if not self.die_on_pass_bug:
-            cont = "\nThis bug is not fatal, C-Reduce will continue to execute.\n"
-        else:
-            cont = ""
-
-        message = """
-***************************************************
-
-{}::{} has encountered a bug:
-{}
-
-Please consider tarring up {}
-and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.
-{}
-***************************************************
-""".format(delta_method, delta_arg, problem, crash_dir, cont)
+            logging.debug("Please consider tarring up {} and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.".format(crash_dir))
 
         with open("PASS_BUG_INFO.TXT", mode="w") as info_file:
             info_file.write("{}\n".format(self.PACKAGE))
             info_file.write("{}\n".format(self.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
-            info_file.write(message)
-
-        #FIXME: Multiline log message is not really optimal
-        logging.error(message)
+            info_file.write(PassBugException.MSG.format(delta_method, delta_arg, problem, crash_dir))
 
         if self.die_on_pass_bug:
-            logging.info("Exiting upon request due to pass bug")
-            sys.exit(1)
-
-    def _report_zero_size(self):
-        if len(self.test_cases) == 1:
-            message = "The file being reduced has reached zero size; "
-        else:
-            message = "All files being reduced have reached zero size; "
-
-        message += """our work here is done.
-
-If you did not want a zero size file, you must help C-Reduce out by
-making sure that your interestingness test does not find files like
-this to be interesting."""
-
-        #FIXME: Multiline log message is not really optimal
-        logging.warning(message)
+            raise PassBugException(delta_method, delta_arg, problem, crash_dir)
