@@ -7,6 +7,7 @@ import os
 import time
 
 from creduce.creduce import CReduce
+from creduce.utils.error import CReduceError
 
 from creduce.tests.test0 import *
 from creduce.tests.test1 import *
@@ -85,13 +86,16 @@ reducer.also_interesting = args.also_interesting
 if args.timing:
     time_start = time.monotonic()
 
-reducer.reduce(args.n,
-               skip_initial=args.skip_initial_passes,
-               pass_group=CReduce.PassGroup(args.pass_group),
-               pass_options=pass_options)
+try:
+    reducer.reduce(args.n,
+                   skip_initial=args.skip_initial_passes,
+                   pass_group=CReduce.PassGroup(args.pass_group),
+                   pass_options=pass_options)
+except CReduceError as err:
+    print(err)
 
 if args.timing:
     time_stop = time.monotonic()
-    logging.info("Runtime: {} seconds".format(round((time_stop - time_start))))
+    print("Runtime: {} seconds".format(round((time_stop - time_start))))
 
 logging.shutdown()

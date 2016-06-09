@@ -28,7 +28,10 @@ from .passes.special import SpecialDeltaPass
 from .passes.ternary import TernaryDeltaPass
 from .passes.unifdef import UnIfDefDeltaPass
 
+from .utils.error import InsaneTestCaseError
 from .utils.error import InvalidTestCaseError
+from .utils.error import PassBugError
+from .utils.error import ZeroSizeError
 
 class CReduce:
     @enum.unique
@@ -504,27 +507,8 @@ class CReduce:
                 os.chdir(self.__orig_dir)
                 return True
             else:
-                os.chdir(self.__orig_dir)
-
-                message = """C-Reduce cannot run because the interestingness test does not return
-zero. Please ensure that it does so not only in the directory where
-you are invoking C-Reduce, but also in an arbitrary temporary
-directory containing only the files that are being reduced. In other
-words, running these commands:
-
-  DIR=`mktemp -d`
-  cp {test_cases} $DIR
-  cd $DIR
-  ./{test} {test_cases}
-  echo $?
-
-should result in "0" being echoed to the terminal.
-
-See "creduce --help" for more information.""".format(test_cases=" ".join(self.test_cases), test="TODO")
-
-                #FIXME: Multiline log message is not really optimal
-                logging.error(message)
-                return False
+                #FIXME: Pass test invocation to exception
+                raise InsaneTestCaseError(self.test_cases, "TODO")
 
     @staticmethod
     def _backup_files(files):
@@ -603,7 +587,7 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
 
         if self._get_total_file_size() == 0:
-            raise ZeroSizeException(self.test_cases)
+            raise ZeroSizeError(self.test_cases)
 
         for test_case in self.test_cases:
             test_case_name = os.path.basename(test_case)
@@ -766,7 +750,7 @@ See "creduce --help" for more information.""".format(test_cases=" ".join(self.te
             info_file.write("{}\n".format(self.PACKAGE))
             info_file.write("{}\n".format(self.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
-            info_file.write(PassBugException.MSG.format(delta_method, delta_arg, problem, crash_dir))
+            info_file.write(PassBugError.MSG.format(delta_method, delta_arg, problem, crash_dir))
 
         if self.die_on_pass_bug:
-            raise PassBugException(delta_method, delta_arg, problem, crash_dir)
+            raise PassBugError(delta_method, delta_arg, problem, crash_dir)
