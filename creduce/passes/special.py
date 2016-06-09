@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from .delta import DeltaPass
-from utils.error import UnknownArgumentError
+from ..utils.error import UnknownArgumentError
 
 class SpecialDeltaPass(DeltaPass):
     @classmethod
