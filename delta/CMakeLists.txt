@@ -18,8 +18,6 @@ project(topformflat)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
-add_definitions(-DGIT_HASH="${creduce_GIT_HASH}")
-add_definitions(-DHAVE_CONFIG_H)
 
 FLEX_TARGET(topformflat_scanner
   topformflat.l

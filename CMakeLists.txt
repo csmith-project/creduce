@@ -71,6 +71,7 @@ set(creduce_VERSION			"2.6.0")
 set(YYTEXT_POINTER 1)
 
 configure_file("cmake_config.h.in" "${PROJECT_BINARY_DIR}/config.h")
+add_definitions("-DHAVE_CONFIG_H")
 
 ###
 
