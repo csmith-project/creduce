@@ -221,10 +221,10 @@ string(REPLACE "@PACKAGE_VERSION@" "${creduce_PACKAGE_VERSION}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "@VERSION@" "${creduce_VERSION}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@GIT_HASH@" "${creduce_GIT_HASH}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 # ENE: I do not understand why the \'s seem to be required in the following
 # match strings.
+string(REPLACE "\@GIT_HASH@" "${GIT_HASH}"
+  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "\@ASTYLE@" "${ASTYLE}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "\@CLANG_FORMAT@" "${CLANG_FORMAT}"

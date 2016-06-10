@@ -11,10 +11,37 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(creduce)
 
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
 include(CheckIncludeFile)
 include(CheckCXXCompilerFlag)
+include(GetGitRevisionDescription)
 
 ###############################################################################
+
+# Determine the short git hash for the source tree.  The logic here follows the
+# logic in the `git-hash.sh` script.
+#
+## METHOD 1: The source tree is the result of `git archive'.
+# `git archive' inserts the abbreviated hash of the archive's commit into this
+# file.  (See the `.gitattributes' file.)
+#
+set(GIT_HASH "$Format:%h$")
+if(GIT_HASH MATCHES "^\\$")
+  ## METHOD 2: The source tree is a git repository.
+  get_git_head_revision(GIT_REFSPEC GIT_HASH)
+  if(NOT GIT_HASH STREQUAL "GITDIR-NOTFOUND")
+    # Trim to the short hash.
+    string(SUBSTRING "${GIT_HASH}" 0 7 GIT_HASH)
+  else()
+    ## METHOD 3: Give up.
+    set(GIT_HASH "unknown")
+  endif()
+endif()
+
+add_definitions("-DGIT_VERSION=\"${GIT_HASH}\"")
+
+###
 
 # Generate config.h
 #
@@ -44,11 +71,6 @@ set(creduce_VERSION			"2.6.0")
 set(YYTEXT_POINTER 1)
 
 configure_file("cmake_config.h.in" "${PROJECT_BINARY_DIR}/config.h")
-
-###
-
-execute_process(COMMAND "git" "show" "-s" "--format=%h" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE creduce_GIT_HASH)
-string(STRIP "${creduce_GIT_HASH}" creduce_GIT_HASH)
 
 ###
 
