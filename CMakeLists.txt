@@ -45,7 +45,7 @@ add_definitions("-DGIT_VERSION=\"${GIT_HASH}\"")
 
 # Generate config.h
 #
-set(ENABLE_TRANS_ASSERT ON CACHE BOOL "Use assert() in clang_delta transformations.")
+set(ENABLE_TRANS_ASSERT OFF CACHE BOOL "Use assert() in clang_delta transformations.")
 
 check_include_file("dlfcn.h"		HAVE_DLFCN_H)
 check_include_file("inttypes.h"		HAVE_INTTYPES_H)

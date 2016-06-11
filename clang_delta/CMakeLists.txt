@@ -25,7 +25,7 @@ set(LLVM_VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 # Add flags for LLVM
 add_definitions(${LLVM_DEFINITIONS})
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-  $<$<CONFIG:Release>:NDEBUG> $<$<CONFIG:Debug>:ENABLE_TRANS_ASSERT>)
+  $<$<CONFIG:Release>:NDEBUG>)
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${CMAKE_BINARY_DIR})
 link_directories(${LLVM_LIBRARY_DIRS})
