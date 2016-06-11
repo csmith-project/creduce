@@ -1,3 +1,4 @@
+import difflib
 import enum
 import filecmp
 import logging
@@ -10,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import weakref
 
 from .passes.delta import DeltaPass
 from .passes.balanced import BalancedDeltaPass
@@ -32,6 +34,38 @@ from .utils.error import InsaneTestCaseError
 from .utils.error import InvalidTestCaseError
 from .utils.error import PassBugError
 from .utils.error import ZeroSizeError
+
+class TemporaryDirectory:
+    def __init__(self, **kwargs):
+        if "delete" in kwargs:
+            self.delete = kwargs["delete"]
+            del kwargs["delete"]
+        else:
+            self.delete = False
+
+        self.name = tempfile.mkdtemp(**kwargs)
+
+        if self.delete:
+            self._finalizer = weakref.finalize(
+                self, self._cleanup, self.name)
+
+    @classmethod
+    def _cleanup(cls, name):
+        shutil.rmtree(name)
+
+    def __repr__(self):
+        return "<{} {!r}>".format(self.__class__.__name__, self.name)
+
+    def __enter__(self):
+        return self.name
+
+    def __exit__(self, exc, value, tb):
+        if self.delete:
+            self.cleanup()
+
+    def cleanup(self):
+        if self._finalizer.detach():
+            self._cleanup(self.name)
 
 class CReduce:
     @enum.unique
@@ -415,6 +449,11 @@ class CReduce:
         self.silent_pass_bug = False
         self.die_on_pass_bug = False
         self.also_interesting = -1
+        self.no_kill = False
+        self.no_give_up = False
+        self.print_diff = False
+        self.save_temps = False
+        self.max_improvement = None
 
         for test_case in test_cases:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
@@ -492,18 +531,18 @@ class CReduce:
         return None
 
     def _check_sanity(self):
-        logging.debug("sanity check... ")
+        logging.debug("perform sanity check... ")
 
-        with tempfile.TemporaryDirectory(prefix="creduce-") as tmp_dir:
-            logging.debug("tmpdir = {}".format(tmp_dir))
+        with TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps)) as tmp_dir_name:
+            logging.debug("sanity check tmpdir = {}".format(tmp_dir_name))
 
-            os.chdir(tmp_dir)
-            self._copy_test_cases(tmp_dir)
+            os.chdir(tmp_dir_name)
+            self._copy_test_cases(tmp_dir_name)
 
             result = self.interestingness_test.check()
 
             if result:
-                logging.debug("successful")
+                logging.debug("sanity check successful")
                 os.chdir(self.__orig_dir)
                 return True
             else:
@@ -571,7 +610,7 @@ class CReduce:
 
             #logging.warning("Kill {}".format(v["proc"].sentinel))
 
-            if proc.is_alive():
+            if proc.is_alive() and not self.no_kill:
                 if platform.system() == "Windows":
                     subprocess.run(["TASKKILL", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 else:
@@ -598,7 +637,7 @@ class CReduce:
 
             while True:
                 while not stopped and self.__num_running < self.__parallel_tests:
-                    tmp_dir = tempfile.TemporaryDirectory(prefix="creduce-")
+                    tmp_dir = TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps))
 
                     os.chdir(tmp_dir.name)
                     self._copy_test_cases(tmp_dir.name)
@@ -614,7 +653,11 @@ class CReduce:
                     if result == DeltaPass.Result.stop or result == DeltaPass.Result.error:
                         stopped = True
                     else:
-                        #TODO: if self.print_diff: ...
+                        if self.print_diff:
+                            diff_str = self._diff_files(test_case, variant_path)
+                            #TODO: Can we print somehow different?
+                            print(diff_str)
+
                         # Report bug if transform did not change the file
                         if filecmp.cmp(test_case, variant_path):
                             if not self.silent_pass_bug:
@@ -648,7 +691,9 @@ class CReduce:
                     self.__num_running -= 1
                     #logging.warning("Handle {}".format(variant["proc"].sentinel))
 
-                    if variant["proc"].exitcode == 0:
+                    if (variant["proc"].exitcode == 0 and
+                        (self.max_improvement is None or
+                         self._file_size_difference(test_case, variant["variant_path"]) < self.max_improvement)):
                         self._kill_variants()
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
@@ -677,7 +722,7 @@ class CReduce:
 
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
-                if self.GIVEUP_CONSTANT != 0 and since_success > self.GIVEUP_CONSTANT:
+                if not self.no_give_up and since_success > self.GIVEUP_CONSTANT:
                     self._kill_variants()
 
                     if not self.silent_pass_bug:
@@ -754,3 +799,19 @@ class CReduce:
 
         if self.die_on_pass_bug:
             raise PassBugError(delta_method, delta_arg, problem, crash_dir)
+
+    @staticmethod
+    def _diff_files(orig_file, changed_file):
+        with open(orig_file, mode="r") as f:
+            orig_file_lines = f.readlines()
+
+        with open(changed_file, mode="r") as f:
+            changed_file_lines = f.readlines()
+
+        diffed_lines = difflib.unified_diff(orig_file_lines, changed_file_lines, orig_file, changed_file)
+
+        return "".join(diffed_lines)
+
+    @staticmethod
+    def _file_size_difference(orig_file, changed_file):
+        return (os.path.getsize(orig_file) - os.path.getsize(changed_file))
