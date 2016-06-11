@@ -466,6 +466,7 @@ class CReduce:
         self.__parallel_tests = parallel_tests
         self.__orig_dir = os.getcwd()
         self.__variants = []
+        self.__statistics = {}
 
         pass_options.add(self.PassOption.not_implemented)
 
@@ -489,6 +490,8 @@ class CReduce:
         if not self.tidy:
             self._backup_files(self.test_cases)
 
+        self.__statistics = self._init_pass_statistics(pass_group)
+
         if not skip_initial:
             logging.info("INITIAL PASSES")
             self._run_additional_passes(pass_group["first"])
@@ -503,8 +506,53 @@ class CReduce:
 
         logging.info("===================== done ====================")
 
-        #TODO: Output statistics and reduced test cases
+        #FIXME: This should go to the commandline script!
+        print("pass statistics:")
+
+        def sort_statistics(item):
+            return (-item["worked"], str(item["pass"]), item["arg"])
+
+        sorted_statistics = sorted(self.__statistics.values(), key=sort_statistics)
+
+        for item in sorted_statistics:
+            print("method {pass} :: {arg} worked {worked} times and failed {failed} times".format(**item))
+
+        def sort_test_cases(test_case):
+            return os.path.getsize(test_case)
+
+        sorted_test_cases = sorted(self.test_cases, key=sort_test_cases)
+
+        for test_case in sorted_test_cases:
+            with open(test_case, mode="r") as test_case_file:
+                print(test_case_file.read())
+
         return True
+
+    @staticmethod
+    def _generate_statistics_key(pass_, arg):
+        return str(pass_) + str(arg)
+
+    @staticmethod
+    def _init_pass_statistics(pass_group):
+        stats = {}
+
+        for category in pass_group:
+            for p in pass_group[category]:
+                key = CReduce._generate_statistics_key(p["pass"], p["arg"])
+                stats[key] = {"pass" : p["pass"],
+                              "arg" : p["arg"],
+                              "worked" : 0,
+                              "failed" : 0}
+
+        return stats
+
+    def _update_pass_statistics(self, pass_, arg, success):
+        key = self._generate_statistics_key(pass_, arg)
+
+        if success:
+            self.__statistics[key]["worked"] += 1
+        else:
+            self.__statistics[key]["failed"] += 1
 
     @staticmethod
     def _check_file_permissions(path, modes, error):
@@ -699,7 +747,7 @@ class CReduce:
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
                         since_success = 0
-
+                        self._update_pass_statistics(pass_, arg, success=True)
                         logging.debug("delta test success")
 
                         total_file_size = self._get_total_file_size()
@@ -707,6 +755,7 @@ class CReduce:
                         logging.info("({}%, {} bytes)".format(round(pct, 1), total_file_size))
                     else:
                         since_success += 1
+                        self._update_pass_statistics(pass_, arg, success=False)
                         logging.debug("delta test failure")
 
                     if (self.also_interesting != -1 and
