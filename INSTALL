@@ -106,6 +106,11 @@ GNU Indent:
 --------------------------------------------------------------------
 Building and installing C-Reduce:
 
+You can configure, build, and install C-Reduce with the provided
+`configure' script or with CMake.
+
+* The `configure' Way
+
 From either the source directory or a build directory:
 
   [source-path/]configure [options]
@@ -131,10 +136,23 @@ The generated Makefiles require GNU Make. BSD Make will not work.
 If you see weird make-time errors, please check that you are using
 GNU Make.
 
-The C-Reduce source tree contains files for a CMake-based build system.
-BUILDING WITH CMAKE IS *UNSUPPORTED* in this release of C-Reduce, and
-likely it does not work.  We intend to fix the CMake-based build system
-and support it in the future.
+* The CMake Way
+
+From either the source directory or a build directory:
+
+  cmake [source-dir] [options]
+  make
+  make install
+
+If LLVM/Clang is not in your search path, you can tell CMake where to
+find LLVM/Clang:
+
+  # Use the LLVM/Clang tree rooted at /opt/llvm
+  cmake [source-dir] -DCMAKE_PREFIX_PATH=/opt/llvm
+
+Note that assertions are disabled by default. To enable assertions:
+
+  cmake ... -DENABLE_TRANS_ASSERT=ON
 
 --------------------------------------------------------------------
 Regarding LLVM versions:
