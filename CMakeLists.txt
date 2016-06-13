@@ -1,4 +1,4 @@
-# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+# Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 # All rights reserved.
 #
 # This file is distributed under the University of Illinois Open Source
@@ -27,11 +27,11 @@ check_include_file("unistd.h" HAVE_UNISTD_H)
 set(creduce_PACKAGE "creduce")
 set(creduce_PACKAGE_BUGREPORT "creduce-bugs@flux.utah.edu")
 set(creduce_PACKAGE_NAME "creduce")
-set(creduce_PACKAGE_STRING "creduce 2.5.0")
+set(creduce_PACKAGE_STRING "creduce 2.6.0")
 set(creduce_PACKAGE_TARNAME "creduce")
 set(creduce_PACKAGE_URL "http://embed.cs.utah.edu/creduce/")
-set(creduce_PACKAGE_VERSION "2.5.0")
-set(creduce_VERSION "2.5.0")
+set(creduce_PACKAGE_VERSION "2.6.0")
+set(creduce_VERSION "2.6.0")
 
 execute_process(COMMAND "git" "show" "-s" "--format=%h" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE creduce_GIT_HASH)
 string(STRIP "${creduce_GIT_HASH}" creduce_GIT_HASH)

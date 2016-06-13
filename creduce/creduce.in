@@ -1,7 +1,7 @@
 #!@perl@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -658,7 +658,7 @@ sub delta_pass ($) {
 		$stopped = 0;
 		
 		$since_success = 0;
-		$method_worked{$delta_method}{$delta_arg}++;
+		$method_worked{$delta_method." :: ".$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
 		print "timestamp ".time()." size ".(-s $fn)."\n"
@@ -666,7 +666,7 @@ sub delta_pass ($) {
 	    } else {
 		print "delta test failure\n" if $DEBUG;
 		$since_success++;
-		$method_failed{$delta_method}{$delta_arg}++;
+		$method_failed{$delta_method." :: ".$delta_arg}++;
 	    }
 	    print "[${pass_num} ${delta_method} :: ${delta_arg}] " if $DEBUG;
 	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
@@ -700,6 +700,7 @@ sub line_delta_pass ($) {
 }
 
 my @all_methods = (
+
     { "name" => "pass_include_includes", "arg" => "0",               "pri" => 100, },
     { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  0, },
     { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,  "first_pass_pri" =>  0, },
@@ -734,14 +735,22 @@ my @all_methods = (
     { "name" => "pass_special",      "arg" => "c",                  "pri" => 555,  "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 104,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
+
     { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  41, },
     { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  42, },
     { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  43, },
     { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 113,  },
     { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 114,  },
-    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
-    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
+    { "name" => "pass_balanced", "arg" => "square",                 "pri" => 115,  },
+    { "name" => "pass_balanced", "arg" => "curly-inside",           "pri" => 150,  },
+    { "name" => "pass_balanced", "arg" => "parens-inside",          "pri" => 151,  },
+    { "name" => "pass_balanced", "arg" => "angles-inside",          "pri" => 152,  },
+    { "name" => "pass_balanced", "arg" => "square-inside",          "pri" => 153,  },
+    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 160,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 161,  },
+    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 162,  },
+    { "name" => "pass_balanced", "arg" => "square-only",            "pri" => 163,  },
+
     { "name" => "pass_clang",    "arg" => "remove-namespace",       "pri" => 200,  },
     { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 201,  },
    #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
@@ -793,14 +802,15 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "remove-unused-outer-class",    "pri" => 247,  },
     { "name" => "pass_clang",    "arg" => "empty-struct-to-int",    "pri" => 248,  },
     { "name" => "pass_clang",    "arg" => "remove-pointer",         "pri" => 249,  },
-    { "name" => "pass_clang",    "arg" => "remove-pointer-pairs",   "pri" => 250,  },
+    { "name" => "pass_clang",    "arg" => "reduce-pointer-pairs",   "pri" => 250,  },
     { "name" => "pass_clang",    "arg" => "remove-array",           "pri" => 251,  },
     { "name" => "pass_clang",    "arg" => "remove-addr-taken",      "pri" => 252,  },
     { "name" => "pass_clang",    "arg" => "simplify-struct",        "pri" => 253,  },
     { "name" => "pass_clang",    "arg" => "replace-undefined-function",   "pri" => 254,  },
     { "name" => "pass_clang",    "arg" => "replace-array-index-var",      "pri" => 255,  },
-    { "name" => "pass_clang",    "arg" => "replace-dependent-name", "pri" => 256,  },
-    { "name" => "pass_clang",    "arg" => "simplify-recursive-template-instantiation",       "pri" => 257, },
+    { "name" => "pass_clang",    "arg" => "replace-array-access-with-index",     "pri" => 256,  },
+    { "name" => "pass_clang",    "arg" => "replace-dependent-name", "pri" => 257,  },
+    { "name" => "pass_clang",    "arg" => "simplify-recursive-template-instantiation",       "pri" => 258, },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
@@ -831,6 +841,7 @@ my @all_methods = (
     { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9018, },
     { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9017, },
     { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9016, },
+
     );
 
 if ($SANITIZE) {
@@ -1043,34 +1054,14 @@ print "CLEANUP PASS\n" if $DEBUG;
 
 print "===================== done ====================\n";
 
-sub byworked {
-    my $na = ${$a}{"name"};
-    my $aa = ${$a}{"arg"};
-    my $wa = $method_worked{$na}{$aa};
-    my $nb = ${$b}{"name"};
-    my $ab = ${$b}{"arg"};
-    my $wb = $method_worked{$nb}{$ab};
-    if ($wa == $wb) {
-	if ($na eq $nb) {
-	    return $aa cmp $ab;
-	} else {
-	    return $na cmp $nb;
-	}
-    } else {
-	return $wa <=> $wb;
-    }
-}
-
 print "\n";
 print "pass statistics:\n";
-foreach my $mref (sort byworked @all_methods) {
-    my $method = ${$mref}{"name"};
-    my $arg = ${$mref}{"arg"};
-    my $w = $method_worked{$method}{$arg};
-    $w=0 unless defined($w);
-    my $f = $method_failed{$method}{$arg};
-    $f=0 unless defined($f);
-    print "  method $method :: $arg worked $w times and failed $f times\n";
+foreach my $m (sort { $method_worked{$a} <=> $method_worked{$b} }
+	       keys %method_worked) {
+    my $w = $method_worked{$m};
+    my $f = $method_failed{$m};
+    $f = 0 unless defined($f);
+    print "  method $m worked $w times and failed $f times\n";
 }
 
 foreach my $fn (sort byrsize @toreduce) {

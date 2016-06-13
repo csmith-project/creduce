@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -14,17 +14,23 @@ GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
 
 # When setting `LLVMCXXFLAGS', we weed out command-line options that might be
-# troublesome (e.g., -W options that are supported by `CXX', or -W options that
-# turn warnings into errors).  We also weed out options that might override
-# choices that *we* want to control (e.g., debug and optimization options).
+# troublesome (e.g., -W/-f options that are not supported by `CXX', or -W
+# options that turn warnings into errors).  We also weed out options that might
+# override choices that *we* want to control (e.g., debug and optimization
+# options).
 #
 # The subparts of the `grep' invocation below remove compiler command-line
 # options of the following forms:
-#   -W...         --- warning options
-#   -w            --- inhibits all warnings
-#   -pedantic...  --- pedantic warning options
-#   -g...         --- debugging options
-#   -O...         --- optimization options
+#   -W...                --- warning options
+#   -w                   --- inhibits all warnings
+#   -pedantic...         --- pedantic warning options
+#   -f...diagnostics...  --- diagnostics reporting options (GCC, Clang)
+#   -f...show...         --- diagnostics reporting options (Clang)
+#   -g...                --- debugging options
+#   -O...                --- optimization options
+# [And for the llvm.org-provided binary of Clang 3.8.0 for OS X, weed out:]
+#   -isysroot
+#   /Applications/Xcode.app/...
 #
 # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
 # `grep' for matching because writing fancy, portable `sed' expressions is
@@ -45,9 +51,13 @@ LLVMCXXFLAGS	:= $(shell \
 		     grep -v -e '^-W' \
 			     -e '^-w$$' \
 			     -e '^-pedantic' \
+			     -e '^-f[a-z-]*diagnostics' \
+			     -e '^-f[a-z-]*show' \
 			     -e '^-g' \
 			     -e '^-O$$' \
-			     -e '^-O[0-9s]' | \
+			     -e '^-O[0-9s]' \
+			     -e '^-isysroot$$' \
+			     -e '^/Applications/Xcode\.app/.*\.sdk$$' | \
 		     xargs) \
                    -fno-rtti -fno-exceptions
 LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
@@ -83,6 +93,8 @@ clang_delta_CXXFLAGS = \
 # libraries.  So probably, we could move `LLVMLDFLAGS' back to the definition
 # of `clang_delta_LDFLAGS'.  I'll do that later.
 clang_delta_LDADD = \
+	-lclangStaticAnalyzerFrontend -lclangStaticAnalyzerCheckers \
+	-lclangStaticAnalyzerCore \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
 	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
@@ -183,6 +195,8 @@ clang_delta_SOURCES = \
 	RenameParam.h \
 	RenameVar.cpp \
 	RenameVar.h \
+	ReplaceArrayAccessWithIndex.cpp \
+	ReplaceArrayAccessWithIndex.h \
 	ReplaceArrayIndexVar.cpp \
 	ReplaceArrayIndexVar.h \
 	ReplaceCallExpr.cpp \

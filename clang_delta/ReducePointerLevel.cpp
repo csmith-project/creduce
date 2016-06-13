@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -560,11 +560,6 @@ const DeclaratorDecl *ReducePointerLevel::getRefDecl(const Expr *Exp)
   if (!UO)
     return NULL;
 
-  UnaryOperator::Opcode Op = UO->getOpcode();
-  (void)Op;
-  TransAssert(((Op == UO_Deref) || (Op == UO_AddrOf) ||
-              UO->isPrefix() || UO->isPostfix()) &&
-              "Invalid Unary Opcode!");
   const Expr *SubE = UO->getSubExpr();
   return getRefDecl(SubE);
 }

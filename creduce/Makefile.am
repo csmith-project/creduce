@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -24,13 +24,13 @@ dist_perllib_DATA = \
 	pass_clang_binsrch.pm \
 	pass_clex.pm \
 	pass_comments.pm \
-	pass_special.pm \
 	pass_include_includes.pm \
 	pass_includes.pm \
 	pass_indent.pm \
 	pass_ints.pm \
 	pass_lines.pm \
 	pass_peep.pm \
+	pass_special.pm \
 	pass_ternary.pm \
 	pass_unifdef.pm
 nodist_perllib_DATA = \

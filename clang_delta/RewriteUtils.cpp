@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -91,9 +91,15 @@ SourceLocation RewriteUtils::getEndLocationFromBegin(SourceRange Range)
   if (EndLoc.isInvalid())
     return EndLoc;
 
-  int LocRangeSize = TheRewriter->getRangeSize(Range);
+  if (StartLoc.isMacroID())
+    StartLoc = SrcManager->getFileLoc(StartLoc);
+  if (EndLoc.isMacroID())
+    EndLoc = SrcManager->getFileLoc(EndLoc);
+
+  SourceRange NewRange(StartLoc, EndLoc);
+  int LocRangeSize = TheRewriter->getRangeSize(NewRange);
   if (LocRangeSize == -1)
-    return Range.getEnd();
+    return NewRange.getEnd();
 
   return StartLoc.getLocWithOffset(LocRangeSize);
 }
@@ -196,9 +202,22 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   int RangeSize;
  
   SourceLocation StartLoc = ParamLocRange.getBegin();
-  if (StartLoc.isInvalid()) {
-    StartLoc = ParamLocRange.getEnd();
+  SourceLocation EndLoc = ParamLocRange.getEnd();
+  if (StartLoc.isInvalid() && EndLoc.isInvalid()) {
+    return false;
+  }
+  else if (StartLoc.isInvalid()) {
+    StartLoc = EndLoc;
     RangeSize = PV->getNameAsString().size();
+  }
+  else if (EndLoc.isInvalid()) {
+    const char *Buf = SrcManager->getCharacterData(StartLoc);
+    if ((ParamPos == 0) && (NumParams == 1)) {
+      RangeSize = getOffsetUntil(Buf, ')');
+    }
+    else {
+      RangeSize = getOffsetUntil(Buf, ',');
+    }
   }
   else {
     RangeSize = TheRewriter->getRangeSize(ParamLocRange);
@@ -209,13 +228,8 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   // The param is the only parameter of the function declaration.
   // Replace it with void
   if ((ParamPos == 0) && (NumParams == 1)) {
-    // Note that ')' is included in ParamLocRange for unnamed parameter
-    if (PV->getDeclName())
-      return !(TheRewriter->ReplaceText(StartLoc,
-                                        RangeSize, "void"));
-    else
-      return !(TheRewriter->ReplaceText(StartLoc,
-                                        RangeSize - 1, "void"));
+    return !(TheRewriter->ReplaceText(StartLoc,
+                                      RangeSize, "void"));
   }
 
   // The param is the last parameter
@@ -232,52 +246,32 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
 
     SourceLocation NewStartLoc = StartLoc.getLocWithOffset(Offset);
 
-    // Note that ')' is included in ParamLocRange for unnamed parameter
-    // Also note that C++ supports unnamed parameters with default values,
-    // i.e., foo(int x, int = 0);
-    // PV->hasDefaultArg() is to handle this special case
-    if (PV->getDeclName() || PV->hasDefaultArg())
-      return !(TheRewriter->RemoveText(NewStartLoc, 
-                                       RangeSize - Offset));
-    else
-      return !(TheRewriter->RemoveText(NewStartLoc, 
-                                       RangeSize - Offset - 1));
+    return !(TheRewriter->RemoveText(NewStartLoc, RangeSize - Offset));
   }
  
-  // Clang gives inconsistent RangeSize for named and unnamed parameter decls.
-  // For example, for the first parameter, 
-  //   foo(int, int);  -- RangeSize is 4, i.e., "," is counted
-  //   foo(int x, int);  -- RangeSize is 5, i.e., ","is not included
-  if (PV->getDeclName()) {
-    // We cannot use the code below:
-    //   SourceLocation EndLoc = ParamLocRange.getEnd();
-    //   const char *EndBuf = 
-    //     ConsumerInstance->SrcManager->getCharacterData(EndLoc);
-    // Because getEnd() returns the start of the last token if this
-    // is a token range. For example, in the above example, 
-    // getEnd() points to the start of "x"
-    // See the comments on getRangeSize in clang/lib/Rewriter/Rewriter.cpp
-    int NewRangeSize = 0;
-    const char *StartBuf = 
-      SrcManager->getCharacterData(StartLoc);
+  // We cannot use the code below:
+  //   SourceLocation EndLoc = ParamLocRange.getEnd();
+  //   const char *EndBuf =
+  //     ConsumerInstance->SrcManager->getCharacterData(EndLoc);
+  // Because getEnd() returns the start of the last token if this
+  // is a token range. For example, in the above example,
+  // getEnd() points to the start of "x"
+  // See the comments on getRangeSize in clang/lib/Rewriter/Rewriter.cpp
+  int NewRangeSize = 0;
+  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
-    while (NewRangeSize < RangeSize) {
-      StartBuf++;
-      NewRangeSize++;
-    }
-
-    TransAssert(StartBuf && "Invalid start buffer!");
-    while (*StartBuf != ',') {
-      StartBuf++;
-      NewRangeSize++;
-    }
-
-    return !(TheRewriter->RemoveText(StartLoc, 
-                                     NewRangeSize + 1));
+  while (NewRangeSize < RangeSize) {
+    StartBuf++;
+    NewRangeSize++;
   }
-  else {
-    return !(TheRewriter->RemoveText(StartLoc, RangeSize));
+
+  TransAssert(StartBuf && "Invalid start buffer!");
+  while (*StartBuf != ',') {
+    StartBuf++;
+    NewRangeSize++;
   }
+
+  return !(TheRewriter->RemoveText(StartLoc, NewRangeSize + 1));
 }
 
 // Handle CXXConstructExpr and CallExpr.
@@ -1069,6 +1063,8 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     // transformation like:
     //   int *x, y;
     SourceLocation TypeLocEnd = getVarDeclTypeLocEnd(VD);
+    if (TypeLocEnd.isMacroID())
+      TypeLocEnd = SrcManager->getFileLoc(TypeLocEnd);
     SourceRange VarRange = VD->getSourceRange();
 
     SourceLocation LocEnd = getEndLocationUntil(VarRange, ';');
@@ -1076,6 +1072,8 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
     getStringBetweenLocs(Str, TypeLocEnd, LocEnd);
 
     SourceLocation StartLoc = VarRange.getBegin();
+    if (StartLoc.isMacroID())
+      StartLoc = SrcManager->getFileLoc(StartLoc);
     SourceLocation NewEndLoc = getLocationAfterSkiping(LocEnd, ';');
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewEndLoc)));
   }

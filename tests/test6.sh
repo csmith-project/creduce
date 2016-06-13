@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##
-## Copyright (c) 2012, 2015 The University of Utah
+## Copyright (c) 2012, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -9,6 +9,9 @@
 ###############################################################################
 
 file="file3.c"
+
+CLANG="${CLANG:-clang}"
+GCC="${GCC:-gcc}"
 
 if [ $# -ne 0 ]; then
   echo "usage: $0" 1>&2
@@ -21,7 +24,7 @@ rm -f out*.txt
 # `-Ofast' was introduced in GCC 4.6.
 
 if 
-  clang -pedantic -Wall -O0 "$file" >out.txt 2>&1 &&\
+  "$CLANG" -pedantic -Wall -O0 "$file" >out.txt 2>&1 &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
   ! grep 'eliding middle term' out.txt &&\
@@ -36,7 +39,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -S -Wall -Wextra -Ofast -o small.s "$file" >outa.txt 2>&1 &&\
+  "$GCC" -S -Wall -Wextra -Ofast -o small.s "$file" >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
   ! grep 'no semicolon at end' outa.txt &&\
@@ -58,6 +61,6 @@ else
   exit 1
 fi
 
-#  clang --analyze "$file" > out_analyze.txt 2>&1 &&\
+#  "$CLANG" --analyze "$file" > out_analyze.txt 2>&1 &&\
 #  ! grep garbage out_analyze.txt &&\
 #  ! grep undefined out_analyze.txt &&\

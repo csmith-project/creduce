@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -20,7 +20,8 @@ my $astyle;
 my $clang_format;
 my $indent;
 
-my $indent_opts = "-nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
+my $astyle_opts = "--options=none";
+my $indent_opts = "-npro -nbad -nbap -nbbb -cs -pcs -prs -saf -sai -saw -sob -ss ";
 
 sub check_prereqs () {
     $astyle =
@@ -64,9 +65,9 @@ sub invoke_indent ($) {
 sub invoke_astyle ($) {
     (my $cfile) = @_;
     if ($^O eq "MSWin32") {
-	system qq{"$astyle" $cfile > NUL 2>&1};
+	system qq{"$astyle" $astyle_opts $cfile > NUL 2>&1};
     } else {
-	system qq{"$astyle" $cfile >/dev/null 2>&1};
+	system qq{"$astyle" $astyle_opts $cfile >/dev/null 2>&1};
     }
 }
 

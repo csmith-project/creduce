@@ -1,6 +1,6 @@
 # -*- mode: m4 -*-
 #
-# Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+# Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 # Copyright (c) 2008 Andy Kitchen <agimbleinthewabe@gmail.com>
 #
 # Copying and distribution of this file, with or without modification, are
@@ -74,18 +74,23 @@ AC_DEFUN([AX_LLVM],
   fi
 
   # When setting `LLVM_CPPFLAGS', we weed out command-line options that might
-  # be troublesome (e.g., -W options that are supported by `CXX', or -W options
-  # that turn warnings into errors).  We also weed out options that might
-  # override choices that *we* want to control (e.g., debug and optimization
-  # options).
+  # be troublesome (e.g., -W/-f options that are not supported by `CXX', or -W
+  # options that turn warnings into errors).  We also weed out options that
+  # might override choices that *we* want to control (e.g., debug and
+  # optimization options).
   #
   # The subparts of the `grep' invocation below remove compiler command-line
   # options of the following forms:
-  #   -W...         --- warning options
-  #   -w            --- inhibits all warnings
-  #   -pedantic...  --- pedantic warning options
-  #   -g...         --- debugging options
-  #   -O...         --- optimization options
+  #   -W...                --- warning options
+  #   -w                   --- inhibits all warnings
+  #   -pedantic...         --- pedantic warning options
+  #   -f...diagnostics...  --- diagnostics reporting options (GCC, Clang)
+  #   -f...show...         --- diagnostics reporting options (Clang)
+  #   -g...                --- debugging options
+  #   -O...                --- optimization options
+  # [And for the llvm.org-provided build of Clang 3.8.0 for OS X, weed out:]
+  #   -isysroot
+  #   /Applications/Xcode.app/...
   #
   # The `tr/sed | grep | xargs' pipeline is intended to be portable.  We use
   # `grep' for matching because writing fancy, portable `sed' expressions is
@@ -101,9 +106,13 @@ changequote(<<, >>)dnl
     grep -v -e '^-W' dnl
             -e '^-w$' dnl
             -e '^-pedantic' dnl
+            -e '^-f[a-z-]*diagnostics' dnl
+            -e '^-f[a-z-]*show' dnl
             -e '^-g' dnl
             -e '^-O$' dnl
-            -e '^-O[0-9s]' | dnl
+            -e '^-O[0-9s]' dnl
+            -e '^-isysroot$' dnl
+            -e '^/Applications/Xcode\\.app/.*\\.sdk$' | dnl
     xargs`
 changequote([, ])dnl
   LLVM_LDFLAGS="`$LLVM_CONFIG --ldflags` $LLVM_SYSLIBS"

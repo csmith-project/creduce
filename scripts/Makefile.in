@@ -270,6 +270,7 @@ top_srcdir = @top_srcdir@
 dist_noinst_SCRIPTS = \
 	del_lines \
 	godelta8 \
+	localize_headers \
 	make_cde_package.sh \
 	prep \
 	shorten \

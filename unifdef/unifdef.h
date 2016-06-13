@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2016 The University of Utah
  * Copyright (c) 2012 - 2013 Tony Finch <dot@dotat.at>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +27,15 @@
 #include <sys/stat.h>
 
 #include <ctype.h>
+#ifdef _WIN32
+#define errx(code, ...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); exit(code); } while(0)
+#define err errx
+#define warnx(...) do { fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } while(0)
+#define warn warnx
+#define vwarnx(fmt, args) do { vfprintf(stderr, fmt, args); fprintf(stderr, "\n"); } while(0)
+#else
 #include <err.h>
+#endif
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -45,6 +54,8 @@ mktempmode(char *tmp, int mode)
 {
 	int fd = mkstemp(tmp);
 	if (fd < 0) return (NULL);
+#ifndef _WIN32
 	fchmod(fd, mode & (S_IRWXU|S_IRWXG|S_IRWXO));
+#endif
 	return (fdopen(fd, "wb"));
 }

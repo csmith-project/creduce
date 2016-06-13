@@ -11,6 +11,11 @@ C-Reduce pre-release list:
 
 C-Reduce TODO list:
 
+turn
+  if (foo) goto bar; baz; bar:
+into
+  if (!foo) baz
+
 it would be nice to have a way to glue multiple C/C++ files into a
 single compilation unit, as an alternative to multi-file reduction
 - CIL can do this but it's pretty invasive

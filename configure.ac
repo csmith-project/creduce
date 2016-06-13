@@ -1,6 +1,6 @@
 ## -*- mode: Autoconf -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -56,12 +56,13 @@ AS_IF([test "x$enable_trans_assert" = "xyes"],
 # `-fno-strict-aliasing' quiets many warnings about LLVM headers and possibly
 #   improves our chances at working code.
 # `-Wno-unused-parameter' quiets many warnings about LLVM headers.
+# `-Wno-missing-field-initializers' quiets many warnings about LLVM headers.
 #
 if test "$ac_test_CXXFLAGS" = set; then
   # The user specified `CXXFLAGS', so do nothing.
   CXXFLAGS="$CXXFLAGS"
-elif test "$GXX" = yes; then 
-  CXXFLAGS="-g -O3 -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter"
+elif test "$GXX" = yes; then
+  CXXFLAGS="-g -O3 -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers"
 fi
 
 ###############################################################################
@@ -127,7 +128,7 @@ AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no], [$LLVM_BINDIR:$PATH])
 AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 #
 AC_ARG_VAR([INDENT], [`indent' program])
-AC_PATH_PROG([INDENT], [indent], [no])
+AC_PATH_PROGS([INDENT], [gindent indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
 
 ###############################################################################

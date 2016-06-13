@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ##
-## Copyright (c) 2012, 2015 The University of Utah
+## Copyright (c) 2012, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -9,6 +9,9 @@
 ###############################################################################
 
 file="file2.c"
+
+CLANG="${CLANG:-clang}"
+GCC="${GCC:-gcc}"
 
 if [ $# -ne 0 ]; then
   echo "usage: $0" 1>&2
@@ -21,7 +24,7 @@ ulimit -t 25
 ulimit -v 6000000
 
 if 
-  clang -pedantic -Wall -O0 "$file" >out.txt 2>&1 &&\
+  "$CLANG" -pedantic -Wall -O0 "$file" >out.txt 2>&1 &&\
   ! grep 'conversions than data arguments' out.txt &&\
   ! grep 'incompatible redeclaration' out.txt &&\
   ! grep 'ordered comparison between pointer' out.txt &&\
@@ -34,7 +37,7 @@ if
   ! grep 'incompatible pointer to' out.txt &&\
   ! grep 'incompatible integer to' out.txt &&\
   ! grep 'type specifier missing' out.txt &&\
-  gcc -Wall -Wextra -O "$file" -o smallz >outa.txt 2>&1 &&\
+  "$GCC" -Wall -Wextra -O "$file" -o smallz >outa.txt 2>&1 &&\
   ! grep uninitialized outa.txt &&\
   ! grep 'without a cast' outa.txt &&\
   ! grep 'control reaches end' outa.txt &&\
