@@ -42,11 +42,6 @@ sub advance_on_success ($$$) {
 
 sub remove_outside ($) {
     (my $str) = @_;
-
-    # sanity check
-    die unless (substr($str,0,1) =~ /[\{\<\(]/);
-    die unless (substr($str,-1,1) =~ /[\}\>\)]/);
-
     substr($str,0,1) = "";
     substr($str,-1,1) = "";
     return $str;
@@ -67,8 +62,20 @@ sub transform ($$$) {
 	my $first = substr ($prog, 0, $pos);
 	my $rest = substr ($prog, $pos);
 	my $rest2 = $rest;
-	
+
 	if (0) {
+	} elsif ($arg eq "square-inside") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'[]'}))/\[\]/s;
+	} elsif ($arg eq "angles-inside") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))/\<\>/s;
+	} elsif ($arg eq "parens-inside") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))/\(\)/s;
+	} elsif ($arg eq "curly-inside") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'{}'}))/\{\}/s;
+	} elsif ($arg eq "square") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'[]'}))//s;
+	} elsif ($arg eq "angles") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))//s;
 	} elsif ($arg eq "parens") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))//s;
 	} elsif ($arg eq "curly") {
@@ -77,20 +84,19 @@ sub transform ($$$) {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'{}'}))/;/s;
 	} elsif ($arg eq "curly3") {
 	    $rest2 =~ s/^(?<all>(=\s*$RE{balanced}{-parens=>'{}'}))//s;
-	} elsif ($arg eq "angles") {
-	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))//s;
 	} elsif ($arg eq "parens-only") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))/remove_outside($+{all})/se;
 	} elsif ($arg eq "curly-only") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'{}'}))/remove_outside($+{all})/se;
 	} elsif ($arg eq "angles-only") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))/remove_outside($+{all})/se;
+	} elsif ($arg eq "square-only") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'[]'}))/remove_outside($+{all})/se;
 	} else {
 	    return ($ERROR, "unexpected argument");
 	}
 	if ($rest ne $rest2) {
-	    my $prog2 = $first.$rest2;
-	    write_file ($cfile, $prog2);
+	    write_file ($cfile, $first . $rest2);
 	    return ($OK, \$pos);
 	}
 	$pos++;

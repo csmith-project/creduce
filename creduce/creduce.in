@@ -700,6 +700,7 @@ sub line_delta_pass ($) {
 }
 
 my @all_methods = (
+
     { "name" => "pass_include_includes", "arg" => "0",               "pri" => 100, },
     { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  0, },
     { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,  "first_pass_pri" =>  0, },
@@ -734,14 +735,22 @@ my @all_methods = (
     { "name" => "pass_special",      "arg" => "c",                  "pri" => 555,  "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 104,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
+
     { "name" => "pass_balanced", "arg" => "curly",                  "pri" => 110,  "first_pass_pri" =>  41, },
     { "name" => "pass_balanced", "arg" => "curly2",                 "pri" => 111,  "first_pass_pri" =>  42, },
     { "name" => "pass_balanced", "arg" => "curly3",                 "pri" => 112,  "first_pass_pri" =>  43, },
     { "name" => "pass_balanced", "arg" => "parens",                 "pri" => 113,  },
     { "name" => "pass_balanced", "arg" => "angles",                 "pri" => 114,  },
-    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 150,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 151,  },
-    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 152,  },
+    { "name" => "pass_balanced", "arg" => "square",                 "pri" => 115,  },
+    { "name" => "pass_balanced", "arg" => "curly-inside",           "pri" => 150,  },
+    { "name" => "pass_balanced", "arg" => "parens-inside",          "pri" => 151,  },
+    { "name" => "pass_balanced", "arg" => "angles-inside",          "pri" => 152,  },
+    { "name" => "pass_balanced", "arg" => "square-inside",          "pri" => 153,  },
+    { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 160,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 161,  },
+    { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 162,  },
+    { "name" => "pass_balanced", "arg" => "square-only",            "pri" => 163,  },
+
     { "name" => "pass_clang",    "arg" => "remove-namespace",       "pri" => 200,  },
     { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 201,  },
    #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
@@ -832,6 +841,7 @@ my @all_methods = (
     { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9018, },
     { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9017, },
     { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9016, },
+
     );
 
 if ($SANITIZE) {
