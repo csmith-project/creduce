@@ -658,7 +658,7 @@ sub delta_pass ($) {
 		$stopped = 0;
 		
 		$since_success = 0;
-		$method_worked{$delta_method}{$delta_arg}++;
+		$method_worked{$delta_method." :: ".$delta_arg}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
 		print "timestamp ".time()." size ".(-s $fn)."\n"
@@ -666,7 +666,7 @@ sub delta_pass ($) {
 	    } else {
 		print "delta test failure\n" if $DEBUG;
 		$since_success++;
-		$method_failed{$delta_method}{$delta_arg}++;
+		$method_failed{$delta_method." :: ".$delta_arg}++;
 	    }
 	    print "[${pass_num} ${delta_method} :: ${delta_arg}] " if $DEBUG;
 	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
@@ -1054,36 +1054,14 @@ print "CLEANUP PASS\n" if $DEBUG;
 
 print "===================== done ====================\n";
 
-sub byworked {
-    my $na = ${$a}{"name"};
-    my $aa = ${$a}{"arg"};
-    my $wa = $method_worked{$na}{$aa};
-    $wa = 0 unless defined($wa);
-    my $nb = ${$b}{"name"};
-    my $ab = ${$b}{"arg"};
-    my $wb = $method_worked{$nb}{$ab};
-    $wb = 0 unless defined($wb);
-    if ($wa == $wb) {
-	if ($na eq $nb) {
-	    return $aa cmp $ab;
-	} else {
-	    return $na cmp $nb;
-	}
-    } else {
-	return $wa <=> $wb;
-    }
-}
-
 print "\n";
 print "pass statistics:\n";
-foreach my $mref (sort byworked @all_methods) {
-    my $method = ${$mref}{"name"};
-    my $arg = ${$mref}{"arg"};
-    my $w = $method_worked{$method}{$arg};
-    $w = 0 unless defined($w);
-    my $f = $method_failed{$method}{$arg};
+foreach my $m (sort { $method_worked{$a} <=> $method_worked{$b} }
+	       keys %method_worked) {
+    my $w = $method_worked{$m};
+    my $f = $method_failed{$m};
     $f = 0 unless defined($f);
-    print "  method $method :: $arg worked $w times and failed $f times\n";
+    print "  method $m worked $w times and failed $f times\n";
 }
 
 foreach my $fn (sort byrsize @toreduce) {
