@@ -1,0 +1,180 @@
+import os
+import tempfile
+import unittest
+
+from ..passes.delta import DeltaPass
+from ..passes.balanced import BalancedDeltaPass
+
+class BalancedParensTest(unittest.TestCase):
+    def test_parens_no_match(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This is a simple test!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a simple test!\n")
+
+    def test_parens_simple(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This is a (simple) test!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a  test!\n")
+
+    def test_parens_nested_outer(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This (is a (simple) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This !\n")
+
+    def test_parens_nested_inner(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This (is a (simple) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens")
+        # Transform failed
+        state = BalancedDeltaPass.advance(tmp_file.name, "parens", state)
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This (is a  test)!\n")
+
+class BalancedParensOnlyTest(unittest.TestCase):
+    def test_parens_no_match(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This is a simple test!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a simple test!\n")
+
+    def test_parens_simple(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This is a (simple) test!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a simple test!\n")
+
+    def test_parens_nested_outer(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This (is a (simple) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a (simple) test!\n")
+
+    def test_parens_nested_inner(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This (is a (simple) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        # Transform failed
+        state = BalancedDeltaPass.advance(tmp_file.name, "parens-only", state)
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This (is a simple test)!\n")
+
+    def test_parens_nested_both(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("This (is a (simple) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-only", state)
+        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a simple test!\n")
+
+    def test_parens_nested_all(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("(This) (is a (((more)) complex) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        while result == DeltaPass.Result.ok:
+            state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-only", state)
+            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "This is a more complex test!\n")
+
+    def test_parens_nested_no_success(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("(This) (is a (((more)) complex) test)!\n")
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file_transform:
+            tmp_file_transform.write("(This) (is a (((more)) complex) test)!\n")
+
+        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        (result, state) = BalancedDeltaPass.transform(tmp_file_transform.name, "parens-only", state)
+
+        iteration = 0
+
+        while result == DeltaPass.Result.ok and iteration < 6:
+            state = BalancedDeltaPass.advance(tmp_file.name, "parens-only", state)
+            (result, state) = BalancedDeltaPass.transform(tmp_file_transform.name, "parens-only", state)
+            iteration += 1
+
+        os.unlink(tmp_file.name)
+        os.unlink(tmp_file_transform.name)
+
+        self.assertEqual(iteration, 5)
