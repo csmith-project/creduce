@@ -14,6 +14,7 @@ class Pattern:
     pass
 
 class RegExPattern(Pattern):
+    #TODO: Compile pattern here? If not already compiled
     def __init__(self, expr):
         self.expr = expr
 
@@ -151,17 +152,12 @@ def search(parts, string, pos=0):
         for part in parts:
             (pattern, name) = __unify_part(part)
 
-            print("Pattern: " + str(pattern))
-
             match = __match_pattern(pattern, string, pos=pos, search=False)
 
             if match is None:
                 start_pos += 1
                 found_complete_match = False
-                print("No complete match")
                 break
-
-            print("Match: " + str(match) + " -> |" + string[match[0]:match[1]] + "|")
 
             if name is not None:
                 matches[name] = match

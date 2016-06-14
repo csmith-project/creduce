@@ -88,20 +88,19 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file_transform:
-            tmp_file_transform.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
-
         state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (result, state) = TernaryDeltaPass.transform(tmp_file_transform.name, "b", state)
+        (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 111:
+        while result == DeltaPass.Result.ok and iteration < 6:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+                tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
+
             state = TernaryDeltaPass.advance(tmp_file.name, "b", state)
-            (result, state) = TernaryDeltaPass.transform(tmp_file_transform.name, "b", state)
+            (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
             iteration += 1
 
         os.unlink(tmp_file.name)
-        os.unlink(tmp_file_transform.name)
 
-        self.assertEqual(iteration, 5)
+        self.assertEqual(iteration, 4)

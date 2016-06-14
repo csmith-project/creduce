@@ -54,12 +54,10 @@ class TernaryDeltaPass(DeltaPass):
             if state is None:
                 return (DeltaPass.Result.stop, state)
             else:
-                if arg == "b":
-                    prog2 = prog2[0:state["del1"][1]] + prog2[state["b"][0]:state["b"][1]] + prog2[state["del2"][0]:]
-                elif arg == "c":
-                    prog2 = prog2[0:state["del1"][1]] + prog2[state["c"][0]:state["c"][1]] + prog2[state["del2"][0]:]
-                else:
+                if arg not in set("b", "c"):
                     raise UnknownArgumentError()
+
+                prog2 = prog2[0:state["del1"][1]] + prog2[state[arg][0]:state[arg][1]] + prog2[state["del2"][0]:]
 
                 if prog != prog2:
                     with open(test_case, "w") as out_file:
@@ -67,6 +65,4 @@ class TernaryDeltaPass(DeltaPass):
 
                     return (DeltaPass.Result.ok, state)
                 else:
-                    print("Advance")
-                    print(prog)
                     state = cls.advance(test_case, arg, state)

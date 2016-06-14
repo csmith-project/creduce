@@ -36,31 +36,37 @@ class BalancedDeltaPass(DeltaPass):
                   "prefix": "",
                  }
 
+        def replace_all(string, match):
+            return string[0:match[0]] + string[match[1]:]
+
+        def replace_only(string, match):
+            return string[0:match[0]] + string[(match[0] + 1):(match[1] - 1)] + string[match[1]:]
+
         if arg == "parens":
             config["search"] = nestedmatcher.BalancedExpr.parens
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[match[1]:]
+            config["replace_fn"] = replace_all
         elif arg == "curly":
             config["search"] = nestedmatcher.BalancedExpr.curly
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[match[1]:]
+            config["replace_fn"] = replace_all
         elif arg == "curly2":
             config["search"] = nestedmatcher.BalancedExpr.curly
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + ";" + content[match[1]:]
+            config["replace_fn"] = lambda string, match: string[0:match[0]] + ";" + string[match[1]:]
         elif arg == "curly3":
             config["search"] = nestedmatcher.BalancedExpr.curly
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[match[1]:]
+            config["replace_fn"] = replace_all
             config["prefix"] = "=\s*"
         elif arg == "angles":
             config["search"] = nestedmatcher.BalancedExpr.angles
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[match[1]:]
+            config["replace_fn"] = replace_all
         elif arg == "parens-only":
             config["search"] = nestedmatcher.BalancedExpr.parens
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[(match[0] + 1):(match[1] - 1)] + content[match[1]:]
+            config["replace_fn"] = replace_only
         elif arg == "curly-only":
             config["search"] = nestedmatcher.BalancedExpr.curly
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[(match[0] + 1):(match[1] - 1)] + content[match[1]:]
+            config["replace_fn"] = replace_only
         elif arg == "angles-only":
             config["search"] = nestedmatcher.BalancedExpr.angles
-            config["replace_fn"] = lambda content, match: content[0:match[0]] + content[(match[0] + 1):(match[1] - 1)] + content[match[1]:]
+            config["replace_fn"] = replace_only
         else:
             raise UnknownArgumentError()
 

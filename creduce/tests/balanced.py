@@ -161,20 +161,19 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file_transform:
-            tmp_file_transform.write("(This) (is a (((more)) complex) test)!\n")
-
         state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (result, state) = BalancedDeltaPass.transform(tmp_file_transform.name, "parens-only", state)
+        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 6:
+        while result == DeltaPass.Result.ok and iteration < 7:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+                tmp_file.write("(This) (is a (((more)) complex) test)!\n")
+
             state = BalancedDeltaPass.advance(tmp_file.name, "parens-only", state)
-            (result, state) = BalancedDeltaPass.transform(tmp_file_transform.name, "parens-only", state)
+            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
             iteration += 1
 
         os.unlink(tmp_file.name)
-        os.unlink(tmp_file_transform.name)
 
         self.assertEqual(iteration, 5)
