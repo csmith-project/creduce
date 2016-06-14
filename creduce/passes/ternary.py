@@ -54,7 +54,7 @@ class TernaryDeltaPass(DeltaPass):
             if state is None:
                 return (DeltaPass.Result.stop, state)
             else:
-                if arg not in set("b", "c"):
+                if arg not in ["b", "c"]:
                     raise UnknownArgumentError()
 
                 prog2 = prog2[0:state["del1"][1]] + prog2[state[arg][0]:state[arg][1]] + prog2[state["del2"][0]:]

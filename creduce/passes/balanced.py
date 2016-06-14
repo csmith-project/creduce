@@ -46,13 +46,13 @@ class BalancedDeltaPass(DeltaPass):
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_all
         elif arg == "curly":
-            config["search"] = nestedmatcher.BalancedExpr.curly
+            config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_all
         elif arg == "curly2":
-            config["search"] = nestedmatcher.BalancedExpr.curly
+            config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = lambda string, match: string[0:match[0]] + ";" + string[match[1]:]
         elif arg == "curly3":
-            config["search"] = nestedmatcher.BalancedExpr.curly
+            config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_all
             config["prefix"] = "=\s*"
         elif arg == "angles":
@@ -62,7 +62,7 @@ class BalancedDeltaPass(DeltaPass):
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_only
         elif arg == "curly-only":
-            config["search"] = nestedmatcher.BalancedExpr.curly
+            config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_only
         elif arg == "angles-only":
             config["search"] = nestedmatcher.BalancedExpr.angles

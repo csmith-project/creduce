@@ -7,7 +7,7 @@ import re
 class BalancedExpr(enum.Enum):
     parens = ("(", ")")
     brackets = ("[", "]")
-    curlys = ("{", "}")
+    curlies = ("{", "}")
     angles = ("<", ">")
 
 class Pattern:
@@ -128,7 +128,7 @@ def find(expr, string, pos=0, prefix=""):
     else:
         return None
 
-def search(parts, string, pos=0):
+def search(parts, string, pos=0, search=True):
     if not parts or pos < 0 or pos >= len(string):
         return None
 
@@ -138,7 +138,7 @@ def search(parts, string, pos=0):
     while not found_complete_match and start_pos < len(string):
         (pattern, _) = __unify_part(parts[0])
 
-        match = __match_pattern(pattern, string, pos=start_pos, search=True)
+        match = __match_pattern(pattern, string, pos=start_pos, search=search)
 
         if match is None:
             return None
