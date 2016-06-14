@@ -45,6 +45,10 @@ public:
 
   ~ReduceClassTemplateParameter();
 
+  void removeParameterByRange(clang::SourceRange Range,
+                              const clang::TemplateParameterList *TPList,
+                              unsigned Index);
+
 private:
   typedef llvm::SmallPtrSet<const clang::ClassTemplateDecl *, 20> 
             ClassTemplateDeclSet;
@@ -58,6 +62,8 @@ private:
   bool isValidClassTemplateDecl(const clang::ClassTemplateDecl *D);
 
   void removeParameterFromDecl();
+
+  void removeParameterFromMethods();
 
   void removeParameterFromPartialSpecs();
 
@@ -80,10 +86,6 @@ private:
   void removeArgumentFromSpecializations();
 
   bool referToTheTemplateDecl(clang::TemplateName TmplName);
-
-  void removeParameterByRange(clang::SourceRange Range,
-                              const clang::TemplateParameterList *TPList, 
-                              unsigned Index);
 
   bool reducePartialSpec(
          const clang::ClassTemplatePartialSpecializationDecl *PartialD);

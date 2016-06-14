@@ -108,6 +108,44 @@ bool ArgumentDependencyVisitor::VisitTemplateTypeParmType(
   return true;
 }
 
+class ClassTemplateMethodVisitor : public
+  RecursiveASTVisitor<ClassTemplateMethodVisitor> {
+
+public:
+  ClassTemplateMethodVisitor(ReduceClassTemplateParameter *Instance,
+                             unsigned Idx)
+    : ConsumerInstance(Instance), TheParameterIndex(Idx)
+  { }
+
+  bool VisitFunctionDecl(FunctionDecl *FD);
+
+private:
+  ReduceClassTemplateParameter *ConsumerInstance;
+
+  unsigned TheParameterIndex;
+};
+
+bool ClassTemplateMethodVisitor::VisitFunctionDecl(FunctionDecl *FD)
+{
+  FunctionTemplateDecl *TD = FD->getDescribedFunctionTemplate();
+  for (FunctionDecl::redecl_iterator I = FD->redecls_begin(),
+       E = FD->redecls_end(); I != E; ++I) {
+    unsigned Num = (*I)->getNumTemplateParameterLists();
+    for (unsigned Idx = 0; Idx < Num; ++Idx) {
+      const TemplateParameterList *TPList = (*I)->getTemplateParameterList(Idx);
+      // We don't want to mistakenly rewrite template parameters associated
+      // with the FD if FD is a function template.
+      if (TD && TPList == TD->getTemplateParameters())
+        continue;
+      const NamedDecl *Param = TPList->getParam(TheParameterIndex);
+      SourceRange Range = Param->getSourceRange();
+      ConsumerInstance->removeParameterByRange(Range, TPList,
+                                               TheParameterIndex);
+    }
+  }
+  return true;
+}
+
 }
 
 class ReduceClassTemplateParameterRewriteVisitor : public 
@@ -274,6 +312,7 @@ void ReduceClassTemplateParameter::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   removeParameterFromDecl();
+  removeParameterFromMethods();
   removeParameterFromPartialSpecs();
   ArgRewriteVisitor->TraverseDecl(Ctx.getTranslationUnitDecl());
 
@@ -319,6 +358,16 @@ void ReduceClassTemplateParameter::removeParameterFromDecl()
     const NamedDecl *Param = TPList->getParam(TheParameterIndex);
     SourceRange Range = Param->getSourceRange();
     removeParameterByRange(Range, TPList, TheParameterIndex);
+  }
+}
+
+void ReduceClassTemplateParameter::removeParameterFromMethods()
+{
+  CXXRecordDecl *CXXRD = TheClassTemplateDecl->getTemplatedDecl();
+  for (auto I = CXXRD->method_begin(), E = CXXRD->method_end();
+       I != E; ++I) {
+    ClassTemplateMethodVisitor V(this, TheParameterIndex);
+    V.TraverseDecl(*I);
   }
 }
 
