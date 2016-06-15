@@ -146,15 +146,19 @@ class BalancedParensOnlyTest(unittest.TestCase):
         state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
         (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
 
-        while result == DeltaPass.Result.ok:
+        iteration = 0
+
+        while result == DeltaPass.Result.ok and iteration < 7:
             state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-only", state)
             (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+            iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
 
         os.unlink(tmp_file.name)
 
+        self.assertEqual(iteration, 5)
         self.assertEqual(variant, "This is a more complex test!\n")
 
     def test_parens_nested_no_success(self):

@@ -58,8 +58,8 @@ class PeepDeltaPass(DeltaPass):
         ([nestedmatcher.RegExPattern(r"!")], ""),
         ([nestedmatcher.RegExPattern(r"~")], ""),
         ([nestedmatcher.RegExPattern(r"while")], "if"),
-        ([nestedmatcher.RegExPattern(r'"[^"]"')], ""),
-        ([nestedmatcher.RegExPattern(r'"[^"]",')], ""),
+        ([nestedmatcher.RegExPattern(r'"[^"]*"')], ""),
+        ([nestedmatcher.RegExPattern(r'"[^"]*",')], ""),
         ([nestedmatcher.RegExPattern(r"struct\s*[^{]*\s*"), nestedmatcher.BalancedPattern(nestedmatcher.BalancedExpr.curlies)], ""),
         ([nestedmatcher.RegExPattern(r"union\s*[^{]*\s*"), nestedmatcher.BalancedPattern(nestedmatcher.BalancedExpr.curlies)], ""),
         ([nestedmatcher.RegExPattern(r"enum\s*[^{]*\s*"), nestedmatcher.BalancedPattern(nestedmatcher.BalancedExpr.curlies)], ""),
@@ -89,8 +89,8 @@ class PeepDeltaPass(DeltaPass):
         ([nestedmatcher.RegExPattern(r"for")], ""),
         ([nestedmatcher.RegExPattern(r'".*"')], ""),
         ([nestedmatcher.RegExPattern(r"'.*'")], ""),
-        ([nestedmatcher.RegExPattern(r'"[^"]"')], ""),
-        ([nestedmatcher.RegExPattern(r"'[^']'")], ""),
+        ([nestedmatcher.RegExPattern(r'"[^"]*"')], ""),
+        ([nestedmatcher.RegExPattern(r"'[^']*'")], ""),
         ([nestedmatcher.RegExPattern(r'""')], "0"),
         (call_parts + [nestedmatcher.RegExPattern(r",")], "0"),
         (call_parts + [nestedmatcher.RegExPattern(r",")], ""),
@@ -127,7 +127,7 @@ class PeepDeltaPass(DeltaPass):
 
     @classmethod
     def new(cls, test_case, arg):
-        return {"index" : 0, "index2" : 0}
+        return {"pos" : 0, "regex" : 0}
 
     @classmethod
     def advance(cls, test_case, arg, state):
@@ -140,11 +140,11 @@ class PeepDeltaPass(DeltaPass):
         else:
             raise UnknownArgumentError()
 
-        new_state["index2"] += 1
+        new_state["regex"] += 1
 
-        if new_state["index2"] >= lim:
-            new_state["index2"] = 0
-            new_state["index"] += 1
+        if new_state["regex"] >= lim:
+            new_state["regex"] = 0
+            new_state["pos"] += 1
 
         return new_state
 
@@ -161,15 +161,15 @@ class PeepDeltaPass(DeltaPass):
             prog2 = prog
 
         while True:
-            if new_state["index"] > len(prog):
+            if new_state["pos"] > len(prog):
                 return (DeltaPass.Result.stop, new_state)
 
             if arg == "a":
-                l = cls.regexes_to_replace[new_state["index2"]]
+                l = cls.regexes_to_replace[new_state["regex"]]
                 search = l[0];
                 replace = l[1];
 
-                m = nestedmatcher.search(search, prog2, pos=new_state["index"], search=False)
+                m = nestedmatcher.search(search, prog2, pos=new_state["pos"], search=False)
 
                 if m is not None:
                     prog2 = prog2[0:m["all"][0]] + replace + prog2[m["all"][1]:]
@@ -180,7 +180,7 @@ class PeepDeltaPass(DeltaPass):
 
                         return (DeltaPass.Result.ok, new_state)
             elif arg == "b":
-                l = cls.delimited_regexes_to_replace[new_state["index2"]]
+                l = cls.delimited_regexes_to_replace[new_state["regex"]]
                 search = l[0]
                 replace = l[1]
 
@@ -195,21 +195,21 @@ class PeepDeltaPass(DeltaPass):
                     back = (cls.border_or_space_pattern, "delim2")
 
                 # special cases to avoid infinite replacement loops
-                if ((replace == "0" and nestedmatcher.search([front, r"0", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (replace == "1" and nestedmatcher.search([front, r"0", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (replace == "1" and nestedmatcher.search([front, r"1", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r"0\s*,", replace) is not None and nestedmatcher.search([front, r"0\s*,", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r"1\s*,", replace) is not None and nestedmatcher.search([front, r"0\s*,", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r"1\s*,", replace) is not None and nestedmatcher.search([front, r"1\s*,", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r",\s*0", replace) is not None and nestedmatcher.search([front, r",\s*0", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r",\s*1", replace) is not None and nestedmatcher.search([front, r",\s*0", back], prog2, pos=new_state["index"], search=False) is not None) or
-                    (re.search(r",\s*1", replace) is not None and nestedmatcher.search([front, r",\s*1", back], prog2, pos=new_state["index"], search=False) is not None)):
+                if ((replace == "0" and nestedmatcher.search([front, r"0", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (replace == "1" and nestedmatcher.search([front, r"0", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (replace == "1" and nestedmatcher.search([front, r"1", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r"0\s*,", replace) is not None and nestedmatcher.search([front, r"0\s*,", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r"1\s*,", replace) is not None and nestedmatcher.search([front, r"0\s*,", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r"1\s*,", replace) is not None and nestedmatcher.search([front, r"1\s*,", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r",\s*0", replace) is not None and nestedmatcher.search([front, r",\s*0", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r",\s*1", replace) is not None and nestedmatcher.search([front, r",\s*0", back], prog2, pos=new_state["pos"], search=False) is not None) or
+                    (re.search(r",\s*1", replace) is not None and nestedmatcher.search([front, r",\s*1", back], prog2, pos=new_state["pos"], search=False) is not None)):
                     new_state = cls.advance(test_case, arg, new_state)
                     continue
 
                 search = [front] + search + [back]
 
-                m = nestedmatcher.search(search, prog2, pos=new_state["index"], search=False)
+                m = nestedmatcher.search(search, prog2, pos=new_state["pos"], search=False)
 
                 if m is not None:
                     prog2 = prog2[0:m["delim1"][1]] + replace + prog2[m["delim2"][0]:]

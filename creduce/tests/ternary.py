@@ -73,15 +73,19 @@ class TernaryTest(unittest.TestCase):
         state = TernaryDeltaPass.new(tmp_file.name, "b")
         (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
 
-        while result == DeltaPass.Result.ok:
+        iteration = 0
+
+        while result == DeltaPass.Result.ok and iteration < 5:
             state = TernaryDeltaPass.advance_on_success(tmp_file.name, "b", state)
             (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+            iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
 
         os.unlink(tmp_file.name)
 
+        self.assertEqual(iteration, 3)
         self.assertEqual(variant, "// no ? match :!\nint res = (bb)\nint sec = u\n")
 
     def test_no_success(self):
