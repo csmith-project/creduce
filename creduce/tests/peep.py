@@ -142,7 +142,7 @@ class PeepTest(unittest.TestCase):
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 11:
+        while result == DeltaPass.Result.ok and iteration < 9:
             state = PeepDeltaPass.advance_on_success(tmp_file.name, "b", state)
             (result, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
             iteration += 1
@@ -152,7 +152,7 @@ class PeepTest(unittest.TestCase):
 
         os.unlink(tmp_file.name)
 
-        self.assertEqual(iteration, 9)
+        self.assertEqual(iteration, 7)
         self.assertEqual(variant, "struct  { ;}  = {};\n")
 
     def test_no_success_b(self):
@@ -175,3 +175,17 @@ class PeepTest(unittest.TestCase):
         os.unlink(tmp_file.name)
 
         self.assertEqual(iteration, 36)
+
+    def test_infinite_loop(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write(",0,")
+
+        state = PeepDeltaPass.new(tmp_file.name, "b")
+        (_, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, ",,")
