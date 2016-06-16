@@ -521,6 +521,24 @@ void SimpleInliner::copyFunctionBody(void)
 
 void SimpleInliner::removeFunctionBody(void)
 {
+  if (FunctionDecl *FD = CurrentFD->getInstantiatedFromMemberFunction()) {
+    CXXMethodDecl *MD = dyn_cast<CXXMethodDecl>(FD);
+    // CurrentFD is instantiated from a member function. Extend the source
+    // begin to the outer template keyword.
+    if (MD && MD->getParent()->getDescribedClassTemplate()) {
+      CXXMethodDecl *MostRecent = MD->getMostRecentDecl();
+      if (MostRecent != MD) {
+        TheRewriter.RemoveText(MostRecent->getSourceRange());
+        return;
+      }
+    }
+  }
+
+  if (FunctionTemplateDecl *FTD = CurrentFD->getPrimaryTemplate()) {
+    TheRewriter.RemoveText(FTD->getSourceRange());
+    return;
+  }
+
   SourceRange FDRange = CurrentFD->getSourceRange();
   TheRewriter.RemoveText(FDRange);
 }
