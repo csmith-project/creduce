@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import re
 import shutil
@@ -37,7 +35,7 @@ class IncludeIncludesDeltaPass(DeltaPass):
                 matched = False
 
                 for line in in_file:
-                    include_match = re.match('\s*#\s*include\s*"(.*?)"', line)
+                    include_match = re.match(r'\s*#\s*include\s*"(.*?)"', line)
 
                     if include_match is not None:
                         includes += 1
@@ -60,7 +58,3 @@ class IncludeIncludesDeltaPass(DeltaPass):
             os.unlink(tmp_file.name)
 
         return matched
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run includeincludes pass!")

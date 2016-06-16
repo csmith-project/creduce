@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import filecmp
 import os
 import shutil
@@ -62,7 +60,3 @@ class UnIfDefDeltaPass(DeltaPass):
 
                 shutil.move(tmp_file.name, test_case)
                 return (DeltaPass.Result.ok, state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run unifdef pass!")

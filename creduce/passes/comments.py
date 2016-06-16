@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import re
 
 from .delta import DeltaPass
@@ -53,7 +51,3 @@ class CommentsDeltaPass(DeltaPass):
                 return (DeltaPass.Result.ok, state)
             else:
                 return (DeltaPass.Result.stop, state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run comments pass!")

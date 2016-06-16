@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import subprocess
 import shutil
@@ -42,7 +40,3 @@ class ClangDeltaPass(DeltaPass):
                 return (DeltaPass.Result.stop, state)
             else:
                 return (DeltaPass.Result.error, state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run clang pass!")

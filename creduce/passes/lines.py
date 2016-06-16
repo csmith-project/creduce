@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import logging
 import shutil
 import subprocess
@@ -90,7 +88,3 @@ class LinesDeltaPass(DeltaPass):
                     logging.debug("granularity reduced to {}".format(new_state["chunk"]))
 
             return (DeltaPass.Result.ok, new_state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run lines pass!")

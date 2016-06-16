@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import logging
 import os
 import re
@@ -116,7 +114,3 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                     return (DeltaPass.Result.stop, new_state)
 
         return (DeltaPass.Result.ok, new_state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run clangbinarysearch pass!")

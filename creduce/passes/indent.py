@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import shutil
 import subprocess
 
@@ -66,7 +64,3 @@ class IndentDeltaPass(DeltaPass):
                 break
 
         return (DeltaPass.Result.ok, state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run indent pass!")

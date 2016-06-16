@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import re
 import shutil
@@ -57,7 +55,3 @@ class BlankDeltaPass(DeltaPass):
                 state += 1
 
             return (DeltaPass.Result.ok if success else DeltaPass.Result.stop, state)
-
-if __name__ == "__main__":
-    #TODO: Add testing functionality!
-    print("Run blank pass!")

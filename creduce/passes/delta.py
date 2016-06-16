@@ -10,28 +10,20 @@ class DeltaPass:
 
     @classmethod
     def check_prerequisites(cls):
-        raise NotImplementedError
+        raise NotImplementedError("Class {} has not implemented 'check_prerequisites'!".format(cls.__name__))
 
     @classmethod
     def new(cls, test_case, arg):
-        raise NotImplementedError
+        raise NotImplementedError("Class {} has not implemented 'new'!".format(cls.__name__))
 
     @classmethod
     def advance(cls, test_case, arg, state):
-        raise NotImplementedError
+        raise NotImplementedError("Class {} has not implemented 'advance'!".format(cls.__name__))
 
     @classmethod
     def advance_on_success(cls, test_case, arg, state):
-        raise NotImplementedError
+        raise NotImplementedError("Class {} has not implemented 'advance_on_success'!".format(cls.__name__))
 
     @classmethod
     def transform(cls, test_case, arg, state):
-        raise NotImplementedError
-
-    @classmethod
-    def _replace_nth_match(cls, pattern, string, n, replace_fn):
-        for i, match in enumerate(re.finditer(pattern, string, re.DOTALL)):
-            if i == n:
-                return string[:match.start()] + replace_fn(match) + string[match.end():]
-
-        return None
+        raise NotImplementedError("Class {} has not implemented 'transform'!".format(cls.__name__))

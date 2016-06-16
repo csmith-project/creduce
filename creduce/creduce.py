@@ -786,7 +786,6 @@ class CReduce:
     @staticmethod
     def _get_extra_dir(prefix, max_number):
         for i in range(0, max_number + 1):
-            #TODO: Does this return an absolute path?
             digits = round(math.log10(max_number), 0)
             extra_dir = os.path.join(self.__orig_dir,
                                      ("{}{" + digits + ":d}").format(prefix, i))
