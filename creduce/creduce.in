@@ -63,10 +63,11 @@ my $SILENT_PASS_BUGS = 0;
 my $TIDY = 0;
 my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
+my $NOSETPGRP = 0;
 my $MAX_WIN;
 
 my @options = (
-    ["--n",                    "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
+    ["--n",                   "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
     ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
@@ -74,7 +75,8 @@ my @options = (
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
-    ["--nokill",              "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
+    ["--no-kill",             "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
+    ["--no-setpgrp",          "const",   1, \$NOSETPGRP,       "Don't create a new process group for each invocation of the interestingness test"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
@@ -83,7 +85,7 @@ my @options = (
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
-    ["--max-improvement",      "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
+    ["--max-improvement",     "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
 
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
@@ -134,6 +136,13 @@ commands:
 This should result in "0" being echoed to the terminal. If this does
 not happen, the interestingness test is flawed and C-Reduce won't be
 able to make use of it.
+
+By default, C-Reduce invokes the interestingness test in a new process
+group. In rare cases, such as when the interestingness test invokes
+GDB, this can be a problem. If so, you may use the --no-setpgrp
+command line option to suppress the use of process groups. Be aware
+that this will interfere with C-Reduce's ability to kill off
+subprocesses of an interestingness test.
 
 If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
@@ -423,7 +432,7 @@ sub fork_helper($) {
             # put this process (the child) into a process group named by
             # its pid so that we'll be able to kill its entire subtree
             # later
-            setpgrp();
+            setpgrp() unless $NOSETPGRP;
 	    # flip the T/F flag back into a 0/1
             my $res = delta_test();
 	    print "delta_test() returned $res\n" if $DEBUG;
