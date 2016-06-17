@@ -424,7 +424,7 @@ class CReduce:
         self.test_cases = []
         self.total_file_size = 0
         self.orig_total_file_size = 0
-        self.tidy = True
+        self.tidy = False
         self.silent_pass_bug = False
         self.die_on_pass_bug = False
         self.also_interesting = -1

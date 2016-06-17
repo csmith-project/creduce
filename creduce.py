@@ -100,6 +100,7 @@ test_obj = test_class([os.path.basename(test_case) for test_case in args.test_ca
 
 reducer = CReduce(test_obj, args.test_cases)
 
+reducer.tidy = args.tidy
 reducer.silent_pass_bug = args.shaddap
 reducer.die_on_pass_bug = args.die_on_pass_bug
 reducer.also_interesting = args.also_interesting
