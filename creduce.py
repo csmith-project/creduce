@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import importlib.util
 import logging
 import multiprocessing
 import os
@@ -43,6 +44,7 @@ parser.add_argument("--timing", action="store_true", default=False, help="Print 
 parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
 parser.add_argument("--max-improvement", metavar="BYTES", type=int, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
 parser.add_argument("--pass-group", type=str, choices=list(map(str, CReduce.PassGroup)), default="all", help="Set of passes used during the reduction")
+parser.add_argument("--test-path", type=str, help="Path to the file implementing the test module")
 parser.add_argument("interestingness_test", metavar="INTERESTINGNESS_TEST", help="Executable to check interestingness of test cases")
 parser.add_argument("test_cases", metavar="TEST_CASE", nargs="+", help="Test cases")
 
@@ -73,16 +75,30 @@ if args.sanitize:
 if args.sllooww:
     pass_options.add(CReduce.PassOption.slow)
 
-tests = {"test0": Test0InterestingnessTest,
-         "test1": Test1InterestingnessTest,
-         "test2": Test2InterestingnessTest,
-         "test3": Test3InterestingnessTest,
-         "test6": Test6InterestingnessTest,
-         "test7": Test7InterestingnessTest}
+class_pos = args.interestingness_test.rfind(".")
 
-interestingness_test = tests[args.interestingness_test](map(os.path.basename, args.test_cases))
+if class_pos == -1:
+    class_pos = 0
 
-reducer = CReduce(interestingness_test, args.test_cases)
+test_module_name = args.interestingness_test[:class_pos]
+
+if args.test_path:
+    if not os.path.isfile(args.test_path):
+        print("Could not find test path!")
+        sys.exit(1)
+
+    test_module_spec = importlib.util.spec_from_file_location(test_module_name, args.test_path)
+else:
+    test_module_spec = importlib.util.find_spec(test_module_name)
+
+test_module = importlib.util.module_from_spec(test_module_spec)
+test_module_spec.loader.exec_module(test_module)
+
+test_class = getattr(test_module, args.interestingness_test[(class_pos + 1):])
+test_options = test_class.get_test_options(os.environ)
+test_obj = test_class([os.path.basename(test_case) for test_case in args.test_cases], test_options)
+
+reducer = CReduce(test_obj, args.test_cases)
 
 reducer.silent_pass_bug = args.shaddap
 reducer.die_on_pass_bug = args.die_on_pass_bug
