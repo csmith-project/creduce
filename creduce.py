@@ -76,12 +76,9 @@ if args.sanitize:
 if args.sllooww:
     pass_options.add(CReduce.PassOption.slow)
 
-class_pos = args.interestingness_test.rfind(".")
+modules = args.interestingness_test.split(".")
 
-if class_pos == -1:
-    class_pos = 0
-
-test_module_name = args.interestingness_test[:class_pos]
+test_module_name = ".".join(modules[:-1])
 
 if args.test_path:
     if not os.path.isfile(args.test_path):
@@ -95,9 +92,13 @@ else:
 test_module = importlib.util.module_from_spec(test_module_spec)
 test_module_spec.loader.exec_module(test_module)
 
-test_class = getattr(test_module, args.interestingness_test[(class_pos + 1):])
-test_options = test_class.get_test_options(os.environ)
-test_obj = test_class([os.path.basename(test_case) for test_case in args.test_cases], test_options)
+test_class = getattr(test_module, modules[-1:][0])
+
+if getattr(test_class, "get_test_options", None):
+    test_options = test_class.get_test_options(os.environ)
+    test_obj = test_class([os.path.basename(test_case) for test_case in args.test_cases], test_options)
+else:
+    test_obj = test_class([os.path.basename(test_case) for test_case in args.test_cases])
 
 reducer = CReduce(test_obj, args.test_cases)
 
