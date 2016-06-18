@@ -5,10 +5,10 @@ import re
 
 @enum.unique
 class BalancedExpr(enum.Enum):
-    parens = ("(", ")")
-    brackets = ("[", "]")
-    curlies = ("{", "}")
     angles = ("<", ">")
+    curlies = ("{", "}")
+    parens = ("(", ")")
+    squares = ("[", "]")
 
 class Pattern:
     pass

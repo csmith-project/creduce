@@ -42,7 +42,25 @@ class BalancedDeltaPass(DeltaPass):
         def replace_only(string, match):
             return string[0:match[0]] + string[(match[0] + 1):(match[1] - 1)] + string[match[1]:]
 
-        if arg == "parens":
+        def replace_inside(string, match):
+            return string[0:(match[0] + 1)] + string[(match[1] - 1):]
+
+        if arg == "square-inside":
+            config["search"] = nestedmatcher.BalancedExpr.squares
+            config["replace_fn"] = replace_inside
+        elif arg == "angles-inside":
+            config["search"] = nestedmatcher.BalancedExpr.angles
+            config["replace_fn"] = replace_inside
+        elif arg == "parens-inside":
+            config["search"] = nestedmatcher.BalancedExpr.parens
+            config["replace_fn"] = replace_inside
+        elif arg == "curly-inside":
+            config["search"] = nestedmatcher.BalancedExpr.curlies
+            config["replace_fn"] = replace_inside
+        elif arg == "angles":
+            config["search"] = nestedmatcher.BalancedExpr.angles
+            config["replace_fn"] = replace_all
+        elif arg == "parens":
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_all
         elif arg == "curly":
@@ -55,9 +73,6 @@ class BalancedDeltaPass(DeltaPass):
             config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_all
             config["prefix"] = "=\s*"
-        elif arg == "angles":
-            config["search"] = nestedmatcher.BalancedExpr.angles
-            config["replace_fn"] = replace_all
         elif arg == "parens-only":
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_only
@@ -66,6 +81,9 @@ class BalancedDeltaPass(DeltaPass):
             config["replace_fn"] = replace_only
         elif arg == "angles-only":
             config["search"] = nestedmatcher.BalancedExpr.angles
+            config["replace_fn"] = replace_only
+        elif arg == "square-only":
+            config["search"] = nestedmatcher.BalancedExpr.squares
             config["replace_fn"] = replace_only
         else:
             raise UnknownArgumentError()

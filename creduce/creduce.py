@@ -137,9 +137,15 @@ class CReduce:
                                  {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #112
                                  {"pass" : BalancedDeltaPass, "arg" : "parens"}, #113
                                  {"pass" : BalancedDeltaPass, "arg" : "angles"}, #114
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #150
-                                 {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #151
-                                 {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #152
+                                 {"pass" : BalancedDeltaPass, "arg" : "square"}, #115
+                                 {"pass" : BalancedDeltaPass, "arg" : "curly-inside"}, #150
+                                 {"pass" : BalancedDeltaPass, "arg" : "parens-inside"}, #151
+                                 {"pass" : BalancedDeltaPass, "arg" : "angles-inside"}, #152
+                                 {"pass" : BalancedDeltaPass, "arg" : "square-inside"}, #153
+                                 {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #160
+                                 {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #161
+                                 {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #162
+                                 {"pass" : BalancedDeltaPass, "arg" : "square-only"}, #163
                                  {"pass" : ClangDeltaPass, "arg" : "remove-namespace"}, #200
                                  {"pass" : ClangDeltaPass, "arg" : "aggregate-to-scalar"}, #201
                                  #{"pass" : (ClangDeltaPass, "arg" : "binop-simplification"}, #201
@@ -192,8 +198,9 @@ class CReduce:
                                  {"pass" : ClangDeltaPass, "arg" : "simplify-struct"}, #253
                                  {"pass" : ClangDeltaPass, "arg" : "replace-undefined-function"}, #254
                                  {"pass" : ClangDeltaPass, "arg" : "replace-array-index-var"}, #255
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #256
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-recursive-template-instantiation"}, #257
+                                 {"pass" : ClangDeltaPass, "arg" : "replace-array-access-with-index"}, #256
+                                 {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #257
+                                 {"pass" : ClangDeltaPass, "arg" : "simplify-recursive-template-instantiation"}, #258
                                  {"pass" : LinesDeltaPass, "arg" : "0"}, #410
                                  {"pass" : LinesDeltaPass, "arg" : "1"}, #411
                                  {"pass" : LinesDeltaPass, "arg" : "2"}, #412
@@ -313,9 +320,15 @@ class CReduce:
                                        {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #112
                                        {"pass" : BalancedDeltaPass, "arg" : "parens"}, #113
                                        {"pass" : BalancedDeltaPass, "arg" : "angles"}, #114
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #150
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #151
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #152
+                                       {"pass" : BalancedDeltaPass, "arg" : "square"}, #115
+                                       {"pass" : BalancedDeltaPass, "arg" : "curly-inside"}, #150
+                                       {"pass" : BalancedDeltaPass, "arg" : "parens-inside"}, #151
+                                       {"pass" : BalancedDeltaPass, "arg" : "angles-inside"}, #152
+                                       {"pass" : BalancedDeltaPass, "arg" : "square-inside"}, #153
+                                       {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #160
+                                       {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #161
+                                       {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #162
+                                       {"pass" : BalancedDeltaPass, "arg" : "square-only"}, #163
                                        {"pass" : ClangDeltaPass, "arg" : "aggregate-to-scalar"}, #201
                                        #{"pass" : (ClangDeltaPass, "arg" : "binop-simplification"}, #201
                                        {"pass" : ClangDeltaPass, "arg" : "param-to-local"}, #204
@@ -350,7 +363,8 @@ class CReduce:
                                        {"pass" : ClangDeltaPass, "arg" : "simplify-struct"}, #253
                                        {"pass" : ClangDeltaPass, "arg" : "replace-undefined-function"}, #254
                                        {"pass" : ClangDeltaPass, "arg" : "replace-array-index-var"}, #255
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #256
+                                       {"pass" : ClangDeltaPass, "arg" : "replace-array-access-with-index"}, #256
+                                       {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #257
                                        {"pass" : LinesDeltaPass, "arg" : "0"}, #410
                                        {"pass" : LinesDeltaPass, "arg" : "1"}, #411
                                        {"pass" : LinesDeltaPass, "arg" : "2"}, #412
