@@ -34,6 +34,7 @@ parser.add_argument("--debug", action="store_true", default=False, help="Print d
 parser.add_argument("--log-level", type=str, choices=["INFO", "DEBUG", "WARNING", "ERROR"], default="INFO", help="Define the verbosity of the logged events")
 parser.add_argument("--log-file", type=str, help="Log events into LOG_FILE instead of stderr. New events are append to the end of the file")
 parser.add_argument("--no-kill", action="store_true", default=False, help="Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)")
+parser.add_argument("--no-setpgrp", action="store_true", default=False, help="Don't create a new process group for each invocation of the interestingness test")
 parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(CReduce.GIVEUP_CONSTANT))
 parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
 parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
@@ -105,6 +106,7 @@ reducer.silent_pass_bug = args.shaddap
 reducer.die_on_pass_bug = args.die_on_pass_bug
 reducer.also_interesting = args.also_interesting
 reducer.no_kill = args.no_kill
+reducer.no_setpgrp = args.no_setpgrp
 reducer.no_give_up = args.no_give_up
 reducer.print_diff = args.print_diff
 reducer.save_temps = args.save_temps

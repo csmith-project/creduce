@@ -8,6 +8,7 @@ import multiprocessing.connection
 import os
 import platform
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -429,6 +430,7 @@ class CReduce:
         self.die_on_pass_bug = False
         self.also_interesting = -1
         self.no_kill = False
+        self.no_setpgrp = False
         self.no_give_up = False
         self.print_diff = False
         self.save_temps = False
@@ -609,7 +611,7 @@ class CReduce:
         process = multiprocessing.Process(target=self.interestingness_test.run)
         process.start()
 
-        if platform.system() != "Windows":
+        if not self.no_setpgrp and platform.system() != "Windows":
             os.setpgid(process.pid, process.pid)
 
         return process
@@ -638,8 +640,10 @@ class CReduce:
             if proc.is_alive() and not self.no_kill:
                 if platform.system() == "Windows":
                     subprocess.run(["TASKKILL", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                elif self.no_setpgrp:
+                    os.kill(proc.pid, signal.SIGTERM)
                 else:
-                    os.killpg(proc.pid, 15)
+                    os.killpg(proc.pid, signal.SIGTERM)
 
             proc.join()
 
