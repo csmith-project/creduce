@@ -70,14 +70,12 @@ if __name__ == "__main__":
     if args.sllooww:
         pass_options.add(CReduce.PassOption.slow)
 
-    if args.test_path:
-        if not os.path.isfile(args.test_path):
-            print("Could not find test path!")
-            sys.exit(1)
+    if os.path.isfile(args.interestingness_test):
+        sys.path.append(os.path.abspath(os.path.dirname(args.interestingness_test)))
 
-        sys.path.append(os.path.abspath(os.path.dirname(args.test_path)))
+    (module_name, _) = os.path.splitext(os.path.basename(args.interestingness_test))
 
-    reducer = CReduce(args.interestingness_test, args.test_cases)
+    reducer = CReduce(module_name, args.test_cases)
 
     reducer.tidy = args.tidy
     reducer.silent_pass_bug = args.shaddap

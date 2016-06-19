@@ -4,7 +4,12 @@ class CReduceError(Exception):
     pass
 
 class UnknownArgumentError(CReduceError):
-    pass
+    def __init__(self, pass_, arg):
+        self.pass_ = pass_
+        self.arg = arg
+
+    def __str__(self):
+        return "The argument '{}' is not valid for pass '{}'!".format(self.arg, self.pass_.__name__)
 
 class InvalidFileError(CReduceError):
     def __init__(self, path, error):
