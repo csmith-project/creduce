@@ -57,6 +57,9 @@ class BalancedDeltaPass(DeltaPass):
         elif arg == "curly-inside":
             config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_inside
+        elif arg == "square":
+            config["search"] = nestedmatcher.BalancedExpr.squares
+            config["replace_fn"] = replace_all
         elif arg == "angles":
             config["search"] = nestedmatcher.BalancedExpr.angles
             config["replace_fn"] = replace_all
