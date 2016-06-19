@@ -635,7 +635,7 @@ class CReduce:
                 self.total_file_size = total_file_size
 
     def _fork_variant(self, variant_path):
-        process = multiprocessing.Process(target=run_test, args=(self.test_module_name, self.test_cases))
+        process = multiprocessing.Process(target=run_test, args=(self.test_module_name, [variant_path]))
         process.start()
 
         if not self.no_setpgrp and platform.system() != "Windows":
