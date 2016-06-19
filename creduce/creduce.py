@@ -768,7 +768,7 @@ class CReduce:
 
                     if (self.also_interesting != -1 and
                         self.also_interesting == variant["proc"].exitcode):
-                        extra_dir = self._get_extra_dir("creduce_extra_", self.MAX_EXTRA_DIRS)
+                        extra_dir = self._get_extra_dir(self.__orig_dir, "creduce_extra_", self.MAX_EXTRA_DIRS)
 
                         if extra_dir is not None:
                             shutil.move(variant["tmp_dir"], extra_dir)
@@ -815,11 +815,11 @@ class CReduce:
         return group
 
     @staticmethod
-    def _get_extra_dir(prefix, max_number):
+    def _get_extra_dir(path, prefix, max_number):
         for i in range(0, max_number + 1):
-            digits = round(math.log10(max_number), 0)
-            extra_dir = os.path.join(self.__orig_dir,
-                                     ("{}{" + digits + ":d}").format(prefix, i))
+            digits = int(round(math.log10(max_number), 0))
+            extra_dir = os.path.join(path,
+                                     ("{0}{1:0" + str(digits) + "d}").format(prefix, i))
 
             if not os.path.exists(extra_dir):
                 break
@@ -835,7 +835,7 @@ class CReduce:
         if not self.die_on_pass_bug:
             logging.warning("{}::{} has encountered a non fatal bug: {}".format(delta_method, delta_arg, problem))
 
-        crash_dir = self._get_extra_dir("creduce_bug_", self.MAX_CRASH_DIRS)
+        crash_dir = self._get_extra_dir(self.__orig_dir, "creduce_bug_", self.MAX_CRASH_DIRS)
 
         if crash_dir == None:
             return
