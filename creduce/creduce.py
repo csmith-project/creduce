@@ -1,6 +1,7 @@
 import difflib
 import enum
 import filecmp
+import importlib.util
 import logging
 import math
 import multiprocessing
@@ -35,6 +36,18 @@ from .utils.error import InsaneTestCaseError
 from .utils.error import InvalidTestCaseError
 from .utils.error import PassBugError
 from .utils.error import ZeroSizeError
+
+def check_test(module_name, test_cases):
+    module_spec = importlib.util.find_spec(module_name)
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    return module.check(test_cases)
+
+def run_test(module_name, test_cases):
+    module_spec = importlib.util.find_spec(module_name)
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    module.run(test_cases)
 
 class TemporaryDirectory:
     def __init__(self, **kwargs):
@@ -434,8 +447,8 @@ class CReduce:
                             },
     }
 
-    def __init__(self, interestingness_test, test_cases):
-        self.interestingness_test = interestingness_test
+    def __init__(self, test_module_name, test_cases):
+        self.test_module_name = test_module_name
         self.test_cases = []
         self.total_file_size = 0
         self.orig_total_file_size = 0
@@ -580,7 +593,7 @@ class CReduce:
             os.chdir(tmp_dir_name)
             self._copy_test_cases(tmp_dir_name)
 
-            result = self.interestingness_test.check()
+            result = check_test(self.test_module_name, self.test_cases)
 
             if result:
                 logging.debug("sanity check successful")
@@ -622,7 +635,7 @@ class CReduce:
                 self.total_file_size = total_file_size
 
     def _fork_variant(self, variant_path):
-        process = multiprocessing.Process(target=self.interestingness_test.run)
+        process = multiprocessing.Process(target=run_test, args=(self.test_module_name, self.test_cases))
         process.start()
 
         if not self.no_setpgrp and platform.system() != "Windows":
