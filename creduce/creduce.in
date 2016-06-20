@@ -57,6 +57,7 @@ my $SAVE_TEMPS;
 my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
+my $TIMEOUT_IN_SECONDS = 300; # 5 minutes.
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
 my $SILENT_PASS_BUGS = 0;
@@ -82,6 +83,7 @@ my @options = (
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
+    ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
@@ -115,7 +117,7 @@ It should be deterministic and might want to enforce resource limits
 on sub-commands that it invokes (e.g. using ulimit). In particular,
 C-Reduce is known to sometimes introduce an infinite loop into the
 program being reduced. Therefore, if the interestingness test runs the
-compiled program, it probably should do so under a timeout.
+compiled program. The default timeout is 5 minutes.
 
 As a quick example, if you consider a file to be interesting if GCC's
 vectorizer fires while compiling it, you might use this
@@ -264,16 +266,28 @@ sub create_extra_dir() {
 # returns true if interesting, false otherwise
 sub delta_test () {
     my $res;
-    if ($DEBUG) {
-	$res = runit ("$test");
-    } else {
-        if($^O eq "MSWin32") {
-            $res = runit ("$test > NUL 2>&1");
+    eval {
+        local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required.
+        alarm($TIMEOUT_IN_SECONDS);
+        if ($DEBUG) {
+            $res = runit ("$test");
         } else {
-            $res = runit ("$test > /dev/null 2>&1");
+            if($^O eq "MSWin32") {
+                $res = runit ("$test > NUL 2>&1");
+            } else {
+                $res = runit ("$test > /dev/null 2>&1");
+            }
         }
+        create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
+        alarm(0);
+    };
+    if ($@) {
+        print "Killed due to a timeout. Interestingness test ran $TIMEOUT_IN_SECONDS" if $DEBUG;
+        killem();
+        # Maybe we need to remove the temp dirs
+        remove_tmpdirs();
+        $res = 1;
     }
-    create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
     return ($res == 0);
 }
 
