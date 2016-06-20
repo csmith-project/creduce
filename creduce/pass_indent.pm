@@ -71,14 +71,16 @@ sub invoke_astyle ($) {
     }
 }
 
-sub invoke_clang_format ($) {
-    (my $cfile) = @_;
+sub invoke_clang_format ($$) {
+    (my $cfile, my $arg) = @_;
     if ($^O eq "MSWin32") {
-	system qq{"$clang_format" -i $cfile > NUL 2>&1};
+	system qq{"$clang_format" -i $arg $cfile > NUL 2>&1};
     } else {
-	system qq{"$clang_format" -i $cfile >/dev/null 2>&1};
+	system qq{"$clang_format" -i $arg $cfile >/dev/null 2>&1};
     }
 }
+
+my $spaces = "-style='{SpacesInAngles: true}'";
 
 sub transform ($$$) {
     (my $cfile, my $arg, my $state) = @_;
@@ -87,14 +89,16 @@ sub transform ($$$) {
   AGAIN:
     if ($arg eq "regular") {
 	return ($STOP, \$index) unless ($index == 0);
-	invoke_clang_format($cfile);
+	invoke_clang_format($cfile, $spaces);
     } elsif ($arg eq "final") {
 	if ($index == 0) {
 	    invoke_indent($cfile) if defined ($indent);
 	} elsif ($index == 1) {
 	    invoke_astyle($cfile) if defined ($astyle);
 	} elsif ($index == 2) {
-	    invoke_clang_format($cfile);
+	    invoke_clang_format($cfile, $spaces);
+	} elsif ($index == 3) {
+	    invoke_clang_format($cfile, "");
 	} else {
 	    return ($STOP, \$index);
 	}
