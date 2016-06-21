@@ -11,18 +11,12 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(clang_delta)
 
-# Find LLVM
-find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+###############################################################################
 
-# Check LLVM version
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.8")
-  message(FATAL_ERROR "LLVM version must be >= 3.8")
-endif()
-set(LLVM_VERSION ${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
+# find_package(LLVM) is done by the topmost "CMakeLists.txt" file.
 
-# Add flags for LLVM
+# Add flags for compiling against LLVM.
+#
 add_definitions(${LLVM_DEFINITIONS})
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
   $<$<CONFIG:Release>:NDEBUG>)

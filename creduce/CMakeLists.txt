@@ -17,18 +17,13 @@ set(LIB_EXEC_DIR "${CMAKE_INSTALL_PREFIX}/libexec")
 set(PKG_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/${creduce_PACKAGE}")
 set(PERL_LIB_DIR "${PKG_DATA_DIR}/perl")
 
-###
+###############################################################################
 
-include(FindPerl)
-if(${PERL_VERSION_STRING} VERSION_LESS "5.10.0")
-  message(FATAL_ERROR "C-Reduce requires Perl 5.10.0 or later")
-endif()
+# find_package(LLVM) is done by the topmost "CMakeLists.txt" file.
 
-find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+# include(FindPerl) is done by the topmost "CMakeLists.txt" file.
 
-###
+###############################################################################
 
 # Check for the run-time prerequisites of C-Reduce.  We only warn the user when
 # these are not found at configure time.  Let the user install the dependencies

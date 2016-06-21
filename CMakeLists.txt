@@ -9,13 +9,38 @@
 ###############################################################################
 
 cmake_minimum_required(VERSION 2.8.12)
-project(creduce)
 
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(CheckIncludeFile)
 include(CheckCXXCompilerFlag)
 include(GetGitRevisionDescription)
+
+project(creduce)
+
+###############################################################################
+
+# Locate LLVM and check its version.  Do this here because we need the LLVM
+# package definitions in the "CMakeLists.txt" files for multiple subdirs.
+#
+find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.8")
+  message(FATAL_ERROR "C-Reduce requires LLVM 3.8 or later")
+endif()
+
+# Locate Perl and check its version.
+#
+include(FindPerl)
+if(${PERL_VERSION_STRING} VERSION_LESS "5.10.0")
+  message(FATAL_ERROR "C-Reduce requires Perl 5.10.0 or later")
+endif()
+
+# Locate flex.  Do this here because we need the package definitions in the
+# "CMakeLists.txt" files for multiple subdirs.
+#
+find_package(FLEX)
 
 ###############################################################################
 
@@ -41,11 +66,12 @@ endif()
 
 add_definitions("-DGIT_VERSION=\"${GIT_HASH}\"")
 
-###
+###############################################################################
 
-# Generate config.h
+# Generate the "config.h" file.
 #
-set(ENABLE_TRANS_ASSERT OFF CACHE BOOL "Use assert() in clang_delta transformations.")
+set(ENABLE_TRANS_ASSERT OFF CACHE BOOL
+  "Use assert() in clang_delta transformations.")
 
 check_include_file("dlfcn.h"		HAVE_DLFCN_H)
 check_include_file("inttypes.h"		HAVE_INTTYPES_H)
@@ -67,22 +93,24 @@ set(creduce_PACKAGE_URL			"http://embed.cs.utah.edu/creduce/")
 set(creduce_PACKAGE_VERSION		"2.6.0")
 set(creduce_VERSION			"2.6.0")
 
-#FIXME: Should be determined automatically
+# FIXME: Should be determined automatically.
 set(YYTEXT_POINTER 1)
 
 configure_file("cmake_config.h.in" "${PROJECT_BINARY_DIR}/config.h")
 add_definitions("-DHAVE_CONFIG_H")
 
-###
+###############################################################################
 
-# Include this flag if the C++ compiler supports it.
+# Use option `-fvisibility-inlines-hidden` if the C++ compiler supports it.
 # See LLVM file `share/llvm/cmake/HandleLLVMOptions.cmake`.
+#
 check_cxx_compiler_flag(
   "-fvisibility-inlines-hidden"
   SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG
   )
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   # XXX figure out how to get "-std=c++11 -fno-rtti" from LLVM.  That's how we
   # get those options in the Automake path...
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers")
@@ -92,7 +120,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3")
 endif()
 
-###
+###############################################################################
 
 add_subdirectory(clang_delta)
 add_subdirectory(clex)
