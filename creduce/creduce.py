@@ -685,8 +685,7 @@ class CReduce:
             raise ZeroSizeError(self.test_cases)
 
         for test_case in self.test_cases:
-            test_case_name = os.path.basename(test_case)
-            state = pass_.new(test_case_name, arg)
+            state = pass_.new(test_case, arg)
             stopped = False
             since_success = 0
             self.__num_running = 0
@@ -698,7 +697,7 @@ class CReduce:
                     os.chdir(tmp_dir.name)
                     self._copy_test_cases(tmp_dir.name)
 
-                    variant_path = os.path.join(tmp_dir.name, test_case_name)
+                    variant_path = os.path.join(tmp_dir.name, os.path.basename(test_case))
 
                     (result, state) = pass_.transform(variant_path, arg, state)
 
