@@ -681,6 +681,14 @@ class CReduce:
     def _get_running_variants(variants):
         return [v for v in variants if v["proc"].is_alive()]
 
+    @staticmethod
+    def _get_successful_variants(variants):
+        return [v for v in variants if not v["proc"].is_alive() and v["proc"].exitcode == 0]
+
+    @staticmethod
+    def _has_successful_variant(variants):
+        return any(v["proc"].exitcode == 0 for v in variants if not v["proc"].is_alive())
+
     def _run_delta_pass(self, pass_, arg):
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
 
@@ -696,11 +704,13 @@ class CReduce:
             while True:
                 # Create new variants and launch tests as long as:
                 # (a) there has been no error and the transformation space is not exhausted,
-                # (b) the test fot the first variant in the list is still running, and
-                # (c) the maximum number of parallel test instances has not been reached
+                # (b) the test fot the first variant in the list is still running,
+                # (c) the maximum number of parallel test instances has not been reached, and
+                # (d) no earlier variant has already been successful (don't waste resources)
                 while (not stopped and
                        (not variants or variants[0]["proc"].is_alive()) and
-                       len(self._get_running_variants(variants)) < self.__parallel_tests):
+                       len(self._get_running_variants(variants)) < self.__parallel_tests and
+                       not self._has_successful_variant(variants)):
                     tmp_dir = TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps))
 
                     os.chdir(tmp_dir.name)
