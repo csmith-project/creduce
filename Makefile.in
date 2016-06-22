@@ -367,6 +367,7 @@ SUBDIRS = \
 
 EXTRA_DIST = \
 	CMakeLists.txt \
+	cmake \
 	cmake_config.h.in \
 	git-hash.sh
 

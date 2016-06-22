@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+## Copyright (c) 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -14,44 +14,24 @@ cmake_minimum_required(VERSION 2.8.12)
 
 ###############################################################################
 
-project(clex)
+project(topformflat)
 
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${CMAKE_BINARY_DIR})
 
-FLEX_TARGET(clex_scanner
-  clex.l
-  ${PROJECT_BINARY_DIR}/clex.c
+FLEX_TARGET(topformflat_scanner
+  topformflat.l
+  ${PROJECT_BINARY_DIR}/topformflat.c
   )
 
-add_executable(clex
-  ${FLEX_clex_scanner_OUTPUTS}
-  defs.h
-  driver.c
-  )
-
-###############################################################################
-
-project(strlex)
-include_directories(${PROJECT_BINARY_DIR})
-include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${CMAKE_BINARY_DIR})
-
-FLEX_TARGET(strlex_scanner
-  strlex.l
-  ${PROJECT_BINARY_DIR}/strlex.c
-  )
-
-add_executable(strlex
-  ${FLEX_strlex_scanner_OUTPUTS}
-  defs.h
-  driver.c
+add_executable(topformflat
+  ${FLEX_topformflat_scanner_OUTPUTS}
   )
 
 ###############################################################################
 
-install(TARGETS clex strlex
+install(TARGETS topformflat
   RUNTIME DESTINATION "libexec"
   )
 
