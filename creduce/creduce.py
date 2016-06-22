@@ -473,7 +473,6 @@ class CReduce:
     def reduce(self, parallel_tests, skip_initial=False, pass_group=PassGroup.all, pass_options=set()):
         self.__parallel_tests = parallel_tests
         self.__orig_dir = os.getcwd()
-        self.__variants = []
         self.__statistics = {}
 
         if platform.system() == "Windows":
@@ -634,7 +633,7 @@ class CReduce:
             else:
                 self.total_file_size = total_file_size
 
-    def _fork_variant(self, variant_path):
+    def _create_variant(self, variant_path):
         process = multiprocessing.Process(target=run_test, args=(self.test_module_name, [variant_path]))
         process.start()
 
@@ -643,8 +642,9 @@ class CReduce:
 
         return process
 
-    def _wait_for_results(self):
-        descriptors = [v["proc"].sentinel for v in self.__variants if v["proc"].is_alive()]
+    @staticmethod
+    def _wait_for_results(variants):
+        descriptors = [v["proc"].sentinel for v in variants if v["proc"].is_alive()]
 
         # On Windows it is only possible to wait on 64 processes
         if platform.system() == "Windows":
@@ -658,8 +658,8 @@ class CReduce:
 
         return multiprocessing.connection.wait(descriptors)
 
-    def _kill_variants(self):
-        for v in self.__variants:
+    def _kill_variants(self, variants):
+        for v in variants:
             proc = v["proc"]
 
             #logging.warning("Kill {}".format(v["proc"].sentinel))
@@ -675,8 +675,11 @@ class CReduce:
             proc.join()
 
         # Performs implicit cleanup of the temporary directories
-        self.__variants = []
-        self.__num_running = 0
+        variants.clear()
+
+    @staticmethod
+    def _get_running_variants(variants):
+        return [v for v in variants if v["proc"].is_alive()]
 
     def _run_delta_pass(self, pass_, arg):
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
@@ -688,10 +691,16 @@ class CReduce:
             state = pass_.new(test_case, arg)
             stopped = False
             since_success = 0
-            self.__num_running = 0
+            variants = []
 
             while True:
-                while not stopped and self.__num_running < self.__parallel_tests:
+                # Create new variants and launch tests as long as:
+                # (a) there has been no error and the transformation space is not exhausted,
+                # (b) the test fot the first variant in the list is still running, and
+                # (c) the maximum number of parallel test instances has not been reached
+                while (not stopped and
+                       (not variants or variants[0]["proc"].is_alive()) and
+                       len(self._get_running_variants(variants)) < self.__parallel_tests):
                     tmp_dir = TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps))
 
                     os.chdir(tmp_dir.name)
@@ -720,36 +729,33 @@ class CReduce:
 
                             stopped = True
                         else:
-                            proc = self._fork_variant(variant_path)
+                            proc = self._create_variant(variant_path)
                             variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
                             #logging.warning("Fork {}".format(proc.sentinel))
-                            self.__variants.append(variant)
-                            self.__num_running += 1
-                            #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, self.__num_running, len(self.__variants)))
+                            variants.append(variant)
+                            #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, len(self._get_running_variants(variants)), len(variants)))
                             state = pass_.advance(test_case, arg, state)
 
                     os.chdir(self.__orig_dir)
 
-                if self.__num_running > 0:
-                    #logging.debug("parent is waiting")
-                    self._wait_for_results()
-                    #logging.warning("Processes finished")
+                #logging.debug("parent is waiting")
+                self._wait_for_results(variants)
+                #logging.warning("Processes finished")
 
-                while self.__variants:
-                    variant = self.__variants[0]
+                while variants:
+                    variant = variants[0]
 
                     if variant["proc"].is_alive():
                         #logging.warning("First still alive")
                         break
 
-                    self.__variants.pop(0)
-                    self.__num_running -= 1
+                    variants.pop(0)
                     #logging.warning("Handle {}".format(variant["proc"].sentinel))
 
                     if (variant["proc"].exitcode == 0 and
                         (self.max_improvement is None or
                          self._file_size_difference(test_case, variant["variant_path"]) < self.max_improvement)):
-                        self._kill_variants()
+                        self._kill_variants(variants)
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
@@ -779,7 +785,7 @@ class CReduce:
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
                 if not self.no_give_up and since_success > self.GIVEUP_CONSTANT:
-                    self._kill_variants()
+                    self._kill_variants(variants)
 
                     if not self.silent_pass_bug:
                         self._report_pass_bug(pass_, arg, "pass got stuck")
@@ -788,7 +794,7 @@ class CReduce:
                     # start same pass with next test case
                     break
 
-                if stopped and not self.__variants:
+                if stopped and not variants:
                     # Abort pass for this test case and
                     # start same pass with next test case
                     break
