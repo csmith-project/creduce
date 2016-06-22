@@ -66,6 +66,7 @@ my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
 my $NOSETPGRP = 0;
 my $MAX_WIN;
+my $NO_CACHE = 0;
 
 my @options = (
     ["--n",                   "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
@@ -83,6 +84,7 @@ my @options = (
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
+    ["--no-cache",            "const",   1, \$NO_CACHE,        "Don't cache behavior of passes"],
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
@@ -557,6 +559,7 @@ EOT
 my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
+my %cache = ();
 
 # invariant: parallel execution does not escape this function
 #
@@ -574,11 +577,21 @@ sub delta_pass ($) {
     check_for_nonzero_size();
 
     print "\n" if $DEBUG;
-    print "===< $delta_method :: $delta_arg >===\n";
+    my $passname = "$delta_method :: $delta_arg";
+    print "===< $passname >===\n";
 
     @toreduce = sort bysize @toreduce;
     foreach my $fn (@toreduce) {
-	next unless (-s $fn > 0);
+        next unless (-s $fn > 0);
+	my $file_before_pass = read_file($fn);
+	if (!$NO_CACHE) {
+	  my $cached = $cache{$passname}{$file_before_pass};
+	  if (defined $cached) {
+	    write_file($fn, $cached);
+	    print "(cache hit for $fn)\n";
+	    next;
+	  }
+	}
 	my $state = call_new ($delta_method,$fileonly{$fn},$delta_arg);
 	my $since_success = 0;
 	my $stopped = 0;
@@ -679,9 +692,9 @@ sub delta_pass ($) {
 
 		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;
-		
+
 		$since_success = 0;
-		$method_worked{$delta_method." :: ".$delta_arg}++;
+		$method_worked{$passname}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
 		print "timestamp ".time()." size ".(-s $fn)."\n"
@@ -689,9 +702,9 @@ sub delta_pass ($) {
 	    } else {
 		print "delta test failure\n" if $DEBUG;
 		$since_success++;
-		$method_failed{$delta_method." :: ".$delta_arg}++;
+		$method_failed{$passname}++;
 	    }
-	    print "[${pass_num} ${delta_method} :: ${delta_arg}] " if $DEBUG;
+	    print "[${pass_num} $passname] " if $DEBUG;
 	    File::Path::remove_tree ($tmpdir, {verbose => 0, safe => 0, error => \my $err})
 		unless $SAVE_TEMPS;
 	}
@@ -709,6 +722,7 @@ sub delta_pass ($) {
 	# termination condition for this pass
 	if (($skip || $stopped) && scalar(@variants)==0) {
 	    remove_tmpdirs();
+	    $cache{$passname}{$file_before_pass} = read_file($fn) unless $NO_CACHE;
 	    next;
 	}
 

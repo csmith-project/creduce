@@ -71,7 +71,7 @@ sub run_clang_delta ($) {
 # utility code to help us replace the nth occurrence of a pattern
 $replace_cont = 0;
 $matched = 0;
-sub replace_aux ($$$) { 
+sub replace_aux ($$$) {
     my ($index,$original,$replacement) = @_;
     $replace_cont++;
     $matched = 1;
