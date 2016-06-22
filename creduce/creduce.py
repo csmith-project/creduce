@@ -749,7 +749,9 @@ class CReduce:
                     os.chdir(self.__orig_dir)
 
                 #logging.debug("parent is waiting")
-                self._wait_for_results(variants)
+                # Only wait if the first variant is not ready yet
+                if variants and variants[0]["proc"].is_alive():
+                    self._wait_for_results(variants)
                 #logging.warning("Processes finished")
 
                 while variants:
