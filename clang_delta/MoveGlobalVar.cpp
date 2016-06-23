@@ -43,6 +43,11 @@ bool MoveGlobalVar::isSpecialDecl(const std::string &Name)
 
 bool MoveGlobalVar::HandleTopLevelDecl(DeclGroupRef D) 
 {
+  if (TransformationManager::isCXXLangOpt()) {
+    ValidInstanceNum = 0;
+    return true;
+  }
+
   DeclGroupRef::iterator I = D.begin();
   TransAssert((I != D.end()) && "Bad DeclGroupRef!");
 
