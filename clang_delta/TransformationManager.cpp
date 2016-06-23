@@ -85,17 +85,25 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   
   ClangInstance->createDiagnostics();
 
+  TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
+  PreprocessorOptions &PPOpts = ClangInstance->getPreprocessorOpts();
+  if (const char *env = getenv("CREDUCE_TARGET_TRIPLE")) {
+    TargetOpts.Triple = std::string(env);
+  } else {
+    TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
+  }
+  llvm::Triple T(TargetOpts.Triple);
   CompilerInvocation &Invocation = ClangInstance->getInvocation();
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
   if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_C);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_C, T, PPOpts);
   }
   else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g., 
     // It results an empty AST for the caller. 
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_CXX);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_CXX, T, PPOpts);
   }
   else if(IK == IK_OpenCL) {
     //Commandline parameters
@@ -121,19 +129,12 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
     CompilerInvocation::CreateFromArgs(Invocation,
                                        &Args[0], &Args[0] + Args.size(),
                                        ClangInstance->getDiagnostics());
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_OpenCL);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(),
+                               IK_OpenCL, T, PPOpts);
   }
   else {
     ErrorMsg = "Unsupported file type!";
     return false;
-  }
-
-  TargetOptions &TargetOpts = ClangInstance->getTargetOpts();
-
-  if (const char *env = getenv("CREDUCE_TARGET_TRIPLE")) {
-    TargetOpts.Triple = std::string(env);
-  } else {
-    TargetOpts.Triple = LLVM_DEFAULT_TARGET_TRIPLE;
   }
 
   TargetInfo *Target = 
