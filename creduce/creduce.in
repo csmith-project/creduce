@@ -879,7 +879,7 @@ my @all_methods = (
 
 if ($SANITIZE) {
     push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+	{ "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 1000, "last_pass_pri" => 1000, },
         { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 1001, },
         { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
         { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
@@ -999,7 +999,16 @@ foreach my $mref (@all_methods) {
     my %method = %{$mref};
     my $mname = $method{"name"};
     die unless defined ($mname);
+
+    # a tiny bit of typo protection
+    foreach my $k (keys %method) {
+	die "didn't expect '$k'"
+	  unless ($k eq "name" || $k eq "first_pass_pri" ||
+		  $k eq "pri" || $k eq "last_pass_pri" || $k eq "arg");
+    }
+
     next if defined ($prereqs_checked{$mname});
+
     # FIXME supposedly we can just require $mname; (without the eval)
     # here but that doesn't work...
     eval "require $mname";
