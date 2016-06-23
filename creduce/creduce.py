@@ -639,10 +639,12 @@ class CReduce:
             while True:
                 # Create new variants and launch tests as long as:
                 # (a) there has been no error and the transformation space is not exhausted,
-                # (b) the test fot the first variant in the list is still running,
-                # (c) the maximum number of parallel test instances has not been reached, and
-                # (d) no earlier variant has already been successful (don't waste resources)
+                # (b) there are not already to many variants (FIXME: can be removed later),
+                # (c) the test fot the first variant in the list is still running,
+                # (d) the maximum number of parallel test instances has not been reached, and
+                # (e) no earlier variant has already been successful (don't waste resources)
                 while (not stopped and
+                       len(variants) < 200 and
                        (not variants or variants[0]["proc"].poll() is None) and
                        len(parallel.get_running_variants(variants)) < self.__parallel_tests and
                        not parallel.has_successful_variant(variants)):
