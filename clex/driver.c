@@ -59,7 +59,6 @@ enum mode_t {
   MODE_COLLAPSE_TOKS,
   MODE_SHORTEN_STRING,
   MODE_X_STRING,
-  MODE_SHORTEN_INT,
   MODE_REMOVE_ASM_COMMENT,
   MODE_REMOVE_ASM_LINE,
   MODE_NONE,
@@ -326,39 +325,6 @@ void x_string(int idx) {
   }
 }
 
-int nonzero_digit(char c) { return (c >= '1' && c <= '9'); }
-
-int count_nonzero(char *s) {
-  int c = 0;
-  while (*s != 0) {
-    if (nonzero_digit(*s))
-      c++;
-    s++;
-  }
-  return c;
-}
-
-void shorten_int(int idx) {
-  int i;
-  int matched = 0;
-  for (i = 0; i < toks; i++) {
-    if (!matched && tok_list[i].kind == TOK_NUMBER) {
-      char *s = tok_list[i].str;
-      int l = count_nonzero(s);
-      if (idx > l) {
-        idx -= l;
-      } else {
-      }
-    }
-    printf("%s", tok_list[i].str);
-  }
-  if (matched) {
-    exit(OK);
-  } else {
-    exit(STOP);
-  }
-}
-
 void delete_string(int idx) {
   int i;
   int matched = 0;
@@ -547,8 +513,6 @@ int main(int argc, char *argv[]) {
     mode = MODE_SHORTEN_STRING;
   } else if (strcmp(cmd, "x-string") == 0) {
     mode = MODE_X_STRING;
-  } else if (strcmp(cmd, "shorten-int") == 0) {
-    mode = MODE_SHORTEN_INT;
   } else if (strcmp(cmd, "remove-asm-comment") == 0) {
     mode = MODE_REMOVE_ASM_COMMENT;
   } else if (strcmp(cmd, "remove-asm-line") == 0) {
@@ -605,9 +569,6 @@ int main(int argc, char *argv[]) {
     assert(0);
   case MODE_X_STRING:
     x_string(tok_index);
-    assert(0);
-  case MODE_SHORTEN_INT:
-    shorten_int(tok_index);
     assert(0);
   case MODE_REMOVE_ASM_COMMENT:
     remove_asm_comment(tok_index);
