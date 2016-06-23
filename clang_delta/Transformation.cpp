@@ -785,6 +785,11 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return getBaseDeclFromType(AT);
   }
 
+  case Type::TypeOfExpr: {
+    const Expr *E = dyn_cast<TypeOfExprType>(Ty)->getUnderlyingExpr();
+    return getBaseDeclFromType(E->getType().getTypePtr());
+  }
+
   default:
     Base = Ty->getAsCXXRecordDecl();
     TransAssert(Base && "Bad base class type!");
