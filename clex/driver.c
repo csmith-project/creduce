@@ -152,8 +152,6 @@ static void collapse_toks(int tok_index) {
   exit(STOP);
 }
 
-// FIXME: have a C++ mode that avoids trying to rename C++ keywords?
-
 static void rename_toks(int tok_index) {
   assert(tok_index >= 0);
   int unused;
