@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--die-on-pass-bug", action="store_true", default=False, help="Terminate C-Reduce if a pass encounters an otherwise non-fatal problem")
     parser.add_argument("--sanitize", action="store_true", default=False, help="Attempt to obscure details from the original source file")
     parser.add_argument("--sllooww", action="store_true", default=False, help="Try harder to reduce, but perhaps take a long time to do so")
-    parser.add_argument("--also-interesting", metavar="EXIT_CODE", type=int, help="A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant")
+    parser.add_argument("--also-interesting", metavar="EXIT_CODE", type=int, default=-1, help="A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant")
     parser.add_argument("--debug", action="store_true", default=False, help="Print debug information")
     parser.add_argument("--log-level", type=str, choices=["INFO", "DEBUG", "WARNING", "ERROR"], default="INFO", help="Define the verbosity of the logged events")
     parser.add_argument("--log-file", type=str, help="Log events into LOG_FILE instead of stderr. New events are append to the end of the file")
@@ -70,12 +70,7 @@ if __name__ == "__main__":
     if args.sllooww:
         pass_options.add(CReduce.PassOption.slow)
 
-    if os.path.isfile(args.interestingness_test):
-        sys.path.append(os.path.abspath(os.path.dirname(args.interestingness_test)))
-
-    (module_name, _) = os.path.splitext(os.path.basename(args.interestingness_test))
-
-    reducer = CReduce(module_name, args.test_cases)
+    reducer = CReduce(args.interestingness_test, args.test_cases)
 
     reducer.tidy = args.tidy
     reducer.silent_pass_bug = args.shaddap

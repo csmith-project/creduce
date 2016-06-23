@@ -37,17 +37,7 @@ from .utils.error import InvalidTestCaseError
 from .utils.error import PassBugError
 from .utils.error import ZeroSizeError
 
-def check_test(module_name, test_cases):
-    module_spec = importlib.util.find_spec(module_name)
-    module = importlib.util.module_from_spec(module_spec)
-    module_spec.loader.exec_module(module)
-    return module.check(test_cases)
-
-def run_test(module_name, test_cases):
-    module_spec = importlib.util.find_spec(module_name)
-    module = importlib.util.module_from_spec(module_spec)
-    module_spec.loader.exec_module(module)
-    module.run(test_cases)
+from .utils import parallel
 
 class TemporaryDirectory:
     def __init__(self, **kwargs):
@@ -447,8 +437,8 @@ class CReduce:
                             },
     }
 
-    def __init__(self, test_module_name, test_cases):
-        self.test_module_name = test_module_name
+    def __init__(self, test_path, test_cases):
+        self.test_path = os.path.abspath(test_path)
         self.test_cases = []
         self.total_file_size = 0
         self.orig_total_file_size = 0
@@ -592,9 +582,10 @@ class CReduce:
             os.chdir(tmp_dir_name)
             self._copy_test_cases(tmp_dir_name)
 
-            result = check_test(self.test_module_name, self.test_cases)
+            proc = parallel.create_variant(self.test_path, self.test_cases, self.no_setpgrp)
+            proc.wait()
 
-            if result:
+            if proc.returncode == 0:
                 logging.debug("sanity check successful")
                 os.chdir(self.__orig_dir)
                 return True
@@ -633,62 +624,6 @@ class CReduce:
             else:
                 self.total_file_size = total_file_size
 
-    def _create_variant(self, variant_path):
-        process = multiprocessing.Process(target=run_test, args=(self.test_module_name, [variant_path]))
-        process.start()
-
-        if not self.no_setpgrp and platform.system() != "Windows":
-            os.setpgid(process.pid, process.pid)
-
-        return process
-
-    @staticmethod
-    def _wait_for_results(variants):
-        descriptors = [v["proc"].sentinel for v in variants if v["proc"].is_alive()]
-
-        # On Windows it is only possible to wait on 64 processes
-        if platform.system() == "Windows":
-            descriptors = descriptors[0:64]
-
-        #logging.warning("Waiting for {}".format(descriptors))
-
-        # If all processes have already ended do not wait
-        if not descriptors:
-            return descriptors
-
-        return multiprocessing.connection.wait(descriptors)
-
-    def _kill_variants(self, variants):
-        for v in variants:
-            proc = v["proc"]
-
-            #logging.warning("Kill {}".format(v["proc"].sentinel))
-
-            if proc.is_alive() and not self.no_kill:
-                if platform.system() == "Windows":
-                    subprocess.run(["TASKKILL", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                elif self.no_setpgrp:
-                    os.kill(proc.pid, signal.SIGTERM)
-                else:
-                    os.killpg(proc.pid, signal.SIGTERM)
-
-            proc.join()
-
-        # Performs implicit cleanup of the temporary directories
-        variants.clear()
-
-    @staticmethod
-    def _get_running_variants(variants):
-        return [v for v in variants if v["proc"].is_alive()]
-
-    @staticmethod
-    def _get_successful_variants(variants):
-        return [v for v in variants if not v["proc"].is_alive() and v["proc"].exitcode == 0]
-
-    @staticmethod
-    def _has_successful_variant(variants):
-        return any(v["proc"].exitcode == 0 for v in variants if not v["proc"].is_alive())
-
     def _run_delta_pass(self, pass_, arg):
         logging.info("===< {} :: {} >===".format(pass_.__name__, arg))
 
@@ -708,15 +643,16 @@ class CReduce:
                 # (c) the maximum number of parallel test instances has not been reached, and
                 # (d) no earlier variant has already been successful (don't waste resources)
                 while (not stopped and
-                       (not variants or variants[0]["proc"].is_alive()) and
-                       len(self._get_running_variants(variants)) < self.__parallel_tests and
-                       not self._has_successful_variant(variants)):
+                       (not variants or variants[0]["proc"].poll() is None) and
+                       len(parallel.get_running_variants(variants)) < self.__parallel_tests and
+                       not parallel.has_successful_variant(variants)):
                     tmp_dir = TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps))
 
                     os.chdir(tmp_dir.name)
                     self._copy_test_cases(tmp_dir.name)
 
                     variant_path = os.path.join(tmp_dir.name, os.path.basename(test_case))
+                    variants_paths = [os.path.join(tmp_dir.name, os.path.basename(tc)) for tc in self.test_cases]
 
                     (result, state) = pass_.transform(variant_path, arg, state)
 
@@ -739,7 +675,7 @@ class CReduce:
 
                             stopped = True
                         else:
-                            proc = self._create_variant(variant_path)
+                            proc = parallel.create_variant(self.test_path, variants_paths, self.no_setpgrp)
                             variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
                             #logging.warning("Fork {}".format(proc.sentinel))
                             variants.append(variant)
@@ -748,26 +684,26 @@ class CReduce:
 
                     os.chdir(self.__orig_dir)
 
-                #logging.debug("parent is waiting")
                 # Only wait if the first variant is not ready yet
-                if variants and variants[0]["proc"].is_alive():
-                    self._wait_for_results(variants)
-                #logging.warning("Processes finished")
+                if variants and variants[0]["proc"].poll() is None:
+                    #logging.debug("parent is waiting")
+                    parallel.wait_for_results(variants)
+                    #logging.warning("Processes finished")
 
                 while variants:
                     variant = variants[0]
 
-                    if variant["proc"].is_alive():
+                    if variant["proc"].poll() is None:
                         #logging.warning("First still alive")
                         break
 
                     variants.pop(0)
-                    #logging.warning("Handle {}".format(variant["proc"].sentinel))
+                    #logging.warning("Handle {}".format(variant["proc"]._handle))
 
-                    if (variant["proc"].exitcode == 0 and
+                    if (variant["proc"].returncode == 0 and
                         (self.max_improvement is None or
                          self._file_size_difference(test_case, variant["variant_path"]) < self.max_improvement)):
-                        self._kill_variants(variants)
+                        parallel.kill_variants(variants, self.no_kill, self.no_setpgrp)
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
@@ -784,7 +720,7 @@ class CReduce:
                         logging.debug("delta test failure")
 
                     if (self.also_interesting != -1 and
-                        self.also_interesting == variant["proc"].exitcode):
+                        self.also_interesting == variant["proc"].returncode):
                         extra_dir = self._get_extra_dir(self.__orig_dir, "creduce_extra_", self.MAX_EXTRA_DIRS)
 
                         if extra_dir is not None:
@@ -797,7 +733,7 @@ class CReduce:
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
                 if not self.no_give_up and since_success > self.GIVEUP_CONSTANT:
-                    self._kill_variants(variants)
+                    parallel.kill_variants(variants, self.no_kill, self.no_setpgrp)
 
                     if not self.silent_pass_bug:
                         self._report_pass_bug(pass_, arg, "pass got stuck")
