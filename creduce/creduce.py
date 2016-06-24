@@ -440,6 +440,7 @@ class CReduce:
     def __init__(self, test_path, test_cases):
         self.test_path = os.path.abspath(test_path)
         self.test_cases = []
+        self.cache = {}
         self.total_file_size = 0
         self.orig_total_file_size = 0
         self.tidy = False
@@ -451,6 +452,7 @@ class CReduce:
         self.no_give_up = False
         self.print_diff = False
         self.save_temps = False
+        self.no_cache = False
         self.max_improvement = None
 
         for test_case in test_cases:
@@ -524,7 +526,7 @@ class CReduce:
         return True
 
     @staticmethod
-    def _generate_statistics_key(pass_, arg):
+    def _generate_unique_pass_key(pass_, arg):
         return str(pass_) + str(arg)
 
     @staticmethod
@@ -533,7 +535,7 @@ class CReduce:
 
         for category in pass_group:
             for p in pass_group[category]:
-                key = CReduce._generate_statistics_key(p["pass"], p["arg"])
+                key = CReduce._generate_unique_pass_key(p["pass"], p["arg"])
                 stats[key] = {"pass" : p["pass"],
                               "arg" : p["arg"],
                               "worked" : 0,
@@ -542,7 +544,7 @@ class CReduce:
         return stats
 
     def _update_pass_statistics(self, pass_, arg, success):
-        key = self._generate_statistics_key(pass_, arg)
+        key = self._generate_unique_pass_key(pass_, arg)
 
         if success:
             self.__statistics[key]["worked"] += 1
@@ -631,6 +633,22 @@ class CReduce:
             raise ZeroSizeError(self.test_cases)
 
         for test_case in self.test_cases:
+            if os.path.getsize(test_case) == 0:
+                continue
+
+            if not self.no_cache:
+                with open(test_case, mode="r+") as tmp_file:
+                    test_case_before_pass = tmp_file.read()
+
+                    pass_key = self._generate_unique_pass_key(pass_, arg)
+
+                    if (pass_key in self.cache and
+                        test_case_before_pass in self.cache[pass_key]):
+                        tmp_file.truncate(0)
+                        tmp_file.write(self.cache[pass_key][test_case_before_pass])
+                        logging.info("cache hit for {}".format(test_case))
+                        continue
+
             state = pass_.new(test_case, arg)
             stopped = False
             since_success = 0
@@ -745,6 +763,14 @@ class CReduce:
                     break
 
                 if stopped and not variants:
+                    # Cache result of this pass
+                    if not self.no_cache:
+                        with open(test_case, mode="r") as tmp_file:
+                            if pass_key not in self.cache:
+                                self.cache[pass_key] = {}
+
+                            self.cache[pass_key][test_case_before_pass] = tmp_file.read()
+
                     # Abort pass for this test case and
                     # start same pass with next test case
                     break

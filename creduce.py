@@ -34,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
     parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
+    parser.add_argument("--no-cache", action="store_true", default=False, help="Don't cache behavior of passes")
     #parser.add_argument("--no-default-passes", action="store_true", default=False, help="Start with an empty pass schedule")
     #parser.add_argument("--add-pass", metavar=("PASS", "SUBPASS", "PRIORITY"), nargs=3, help="Add the specified pass to the schedule")
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
@@ -81,6 +82,7 @@ if __name__ == "__main__":
     reducer.no_give_up = args.no_give_up
     reducer.print_diff = args.print_diff
     reducer.save_temps = args.save_temps
+    reducer.no_cache = args.no_cache
     reducer.max_improvement = args.max_improvement
 
     # Track runtime
