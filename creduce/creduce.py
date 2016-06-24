@@ -210,14 +210,8 @@ class CReduce:
                                  {"pass" : LinesDeltaPass, "arg" : "10"}, #413
                                  {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #450
                                  {"pass" : CommentsDeltaPass, "arg" : "0"}, #451
-                                 {"pass" : PeepDeltaPass, "arg" : "a"}, #500
                                  {"pass" : SpecialDeltaPass, "arg" : "b"}, #555
                                  {"pass" : SpecialDeltaPass, "arg" : "c"}, #555
-                                 {"pass" : IntsDeltaPass, "arg" : "a"}, #600
-                                 {"pass" : IntsDeltaPass, "arg" : "b"}, #601
-                                 {"pass" : IntsDeltaPass, "arg" : "c"}, #602
-                                 {"pass" : IntsDeltaPass, "arg" : "d"}, #603
-                                 {"pass" : IntsDeltaPass, "arg" : "e"}, #603
                                  {"pass" : IndentDeltaPass, "arg" : "regular"}, #1000
                                  {"pass" : ClexDeltaPass, "arg" : "delete-string", "include" : {PassOption.sanitize}}, #1001
                                  {"pass" : ClexDeltaPass, "arg" : "remove-asm-line", "include" : {PassOption.sanitize}}, #1002
@@ -259,7 +253,13 @@ class CReduce:
                                  {"pass" : ClexDeltaPass, "arg" : "rm-toks-1"}, #9031
                                  {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-8", "include" : {PassOption.slow}}, #9100
                                  {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-4", "exclude" : {PassOption.slow}}, #9100
+                                 {"pass" : PeepDeltaPass, "arg" : "a"}, #9500
                                  {"pass" : PeepDeltaPass, "arg" : "b", "include" : {PassOption.slow}}, #9500
+                                 {"pass" : IntsDeltaPass, "arg" : "a"}, #9600
+                                 {"pass" : IntsDeltaPass, "arg" : "b"}, #9601
+                                 {"pass" : IntsDeltaPass, "arg" : "c"}, #9602
+                                 {"pass" : IntsDeltaPass, "arg" : "d"}, #9603
+                                 {"pass" : IntsDeltaPass, "arg" : "e"}, #9603
                                 ],
                        "last" : [{"pass" : ClangDeltaPass, "arg" : "rename-fun"}, #207
                                  {"pass" : ClangDeltaPass, "arg" : "rename-param"}, #209
@@ -374,14 +374,8 @@ class CReduce:
                                        {"pass" : LinesDeltaPass, "arg" : "10"}, #413
                                        {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #450
                                        {"pass" : CommentsDeltaPass, "arg" : "0"}, #451
-                                       {"pass" : PeepDeltaPass, "arg" : "a"}, #500
                                        {"pass" : SpecialDeltaPass, "arg" : "b"}, #555
                                        {"pass" : SpecialDeltaPass, "arg" : "c"}, #555
-                                       {"pass" : IntsDeltaPass, "arg" : "a"}, #600
-                                       {"pass" : IntsDeltaPass, "arg" : "b"}, #601
-                                       {"pass" : IntsDeltaPass, "arg" : "c"}, #602
-                                       {"pass" : IntsDeltaPass, "arg" : "d"}, #603
-                                       {"pass" : IntsDeltaPass, "arg" : "e"}, #603
                                        {"pass" : IndentDeltaPass, "arg" : "regular"}, #1000
                                        {"pass" : ClexDeltaPass, "arg" : "delete-string", "include" : {PassOption.sanitize}}, #1001
                                        {"pass" : ClexDeltaPass, "arg" : "shorten-string", "include" : {PassOption.sanitize}}, #1010
@@ -421,7 +415,13 @@ class CReduce:
                                        {"pass" : ClexDeltaPass, "arg" : "rm-toks-1"}, #9031
                                        {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-8", "include" : {PassOption.slow}}, #9100
                                        {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-4", "exclude" : {PassOption.slow}}, #9100
+                                       {"pass" : PeepDeltaPass, "arg" : "a"}, #9500
                                        {"pass" : PeepDeltaPass, "arg" : "b", "include" : {PassOption.slow}}, #9500
+                                       {"pass" : IntsDeltaPass, "arg" : "a"}, #9600
+                                       {"pass" : IntsDeltaPass, "arg" : "b"}, #9601
+                                       {"pass" : IntsDeltaPass, "arg" : "c"}, #9602
+                                       {"pass" : IntsDeltaPass, "arg" : "d"}, #9603
+                                       {"pass" : IntsDeltaPass, "arg" : "e"}, #9603
                                       ],
                              "last" : [{"pass" : ClangDeltaPass, "arg" : "rename-fun"}, #207
                                        {"pass" : ClangDeltaPass, "arg" : "rename-param"}, #209
