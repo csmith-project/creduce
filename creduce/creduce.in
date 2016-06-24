@@ -560,6 +560,7 @@ my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
 my %cache = ();
+my $start_time = time();
 
 # invariant: parallel execution does not escape this function
 #
@@ -697,7 +698,7 @@ sub delta_pass ($) {
 		$method_worked{$passname}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $fn)."\n"
+		print "timestamp " . (time()-$start_time) . " size ".(-s $fn)."\n"
 		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
