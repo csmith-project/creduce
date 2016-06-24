@@ -18,6 +18,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 #include "TransformationManager.h"
+#include "git_version.h"
 
 static TransformationManager *TransMgr;
 static int ErrorCode = -1;
@@ -25,9 +26,7 @@ static int ErrorCode = -1;
 static void PrintVersion()
 {
   llvm::outs() << "clang_delta " << PACKAGE_VERSION << "\n";
-#ifdef GIT_VERSION
-  llvm::outs() << "Git version: " << GIT_VERSION << "\n";
-#endif
+  llvm::outs() << "Git version: " << git_version << "\n";
   // XXX print copyright, contact info, etc.?
 }
 
