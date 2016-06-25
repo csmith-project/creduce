@@ -26,23 +26,16 @@ class CommentsDeltaPass(DeltaPass):
             prog2 = prog
 
         while True:
-            if state == -2:
-                def replace_fn(m):
-                    if m is not None and m.group(2) is not None:
-                        return m.group(2)
-                    else:
-                        return ""
-
-                prog2 = re.sub(r"/\*[^*]*\*+([^/*][^*]*\*+)*/|(\"(\.|[^\"\\])*\"|'(\.|[^'\\])*'|.[^/\"'\\]*)", replace_fn, prog2, flags=re.DOTALL)
+            if state > -1:
+                return (DeltaPass.Result.stop, state)
+            elif state == -2:
+                # Remove all multiline comments
+                # Replace /* any number of * if not followed by / or anything but * */
+                # FIXME: What about the rest of the original regex?
+                prog2 = re.sub(r"/\*(?:\*(?!/)|[^*])*\*/", "", prog2, flags=re.DOTALL)
             elif state == -1:
+                # Remove all single line comments
                 prog2 = re.sub(r"//.*$", "", prog2, flags=re.MULTILINE)
-            else:
-                #TODO: Is this correct?
-                pass
-
-            if prog == prog2 and state == -2:
-                state = -1
-                continue
 
             if prog != prog2:
                 with open(test_case, "w") as out_file:
@@ -50,4 +43,4 @@ class CommentsDeltaPass(DeltaPass):
 
                 return (DeltaPass.Result.ok, state)
             else:
-                return (DeltaPass.Result.stop, state)
+                state = cls.advance(test_case, arg, state)
