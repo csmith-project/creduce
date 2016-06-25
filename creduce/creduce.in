@@ -784,6 +784,7 @@ my @all_methods = (
     { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 161,  },
     { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 162,  },
     { "name" => "pass_balanced", "arg" => "square-only",            "pri" => 163,  },
+    { "name" => "pass_balanced", "arg" => "parens-to-zero",         "pri" => 164,  "first_pass_pri" => 44 },
 
     { "name" => "pass_clang",    "arg" => "remove-namespace",       "pri" => 200,  },
     { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 201,  },
