@@ -785,7 +785,7 @@ my @all_methods = (
     { "name" => "pass_balanced", "arg" => "angles-inside",          "pri" => 152,  },
     { "name" => "pass_balanced", "arg" => "square-inside",          "pri" => 153,  },
     { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 160,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 161,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 9700,  }, # sometimes *real* slow
     { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 162,  },
     { "name" => "pass_balanced", "arg" => "square-only",            "pri" => 163,  },
 
