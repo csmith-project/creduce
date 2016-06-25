@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013, 2015 The University of Utah
+## Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -27,7 +27,7 @@ use constant {
 
     VERSION		=> q{@VERSION@},
 
-    GIT_HASH		=> q{@GIT_HASH@},
+    GIT_VERSION		=> q{@GIT_HASH@},
 
     # External programs invoked.
     #
@@ -46,7 +46,7 @@ our @EXPORT_OK = qw(
     PACKAGE_URL
     PACKAGE_VERSION
     VERSION
-    GIT_HASH
+    GIT_VERSION
     ASTYLE
     CLANG_FORMAT
     INDENT

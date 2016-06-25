@@ -64,8 +64,6 @@ if(GIT_HASH MATCHES "^\\$")
   endif()
 endif()
 
-add_definitions("-DGIT_VERSION=\"${GIT_HASH}\"")
-
 ###############################################################################
 
 # Generate the "config.h" file.

@@ -10,11 +10,7 @@
 
 libexec_PROGRAMS = unifdef
 
-GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-
-unifdef_CPPFLAGS = \
-	$(GIT_FLAG)
+unifdef_CPPFLAGS =
 
 unifdef_SOURCES = \
 	unifdef.c \
