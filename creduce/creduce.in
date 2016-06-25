@@ -95,7 +95,7 @@ my @options = (
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
 
 my $PKG = creduce_config::PACKAGE_STRING;
-my $COMMIT = creduce_config::GIT_HASH;
+my $COMMIT = creduce_config::GIT_VERSION;
 my $help = <<HELP;
 $PKG ($COMMIT) -- a C and C++ program reducer
 
