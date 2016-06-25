@@ -52,10 +52,17 @@ def wait_for_results(variants):
         _wait_for_result_posix(variants)
 
 def _kill_variant_posix(pid, no_setpgrp):
-    if no_setpgrp:
-        os.kill(pid, signal.SIGTERM)
-    else:
-        os.killpg(pid, signal.SIGTERM)
+    try:
+        if no_setpgrp:
+            os.kill(pid, signal.SIGTERM)
+        else:
+            os.killpg(pid, signal.SIGTERM)
+    except PermissionError:
+        # On BSD based systems it is not allowed to kill a process group if it
+        # consists of zombie processes
+        # See: http://stackoverflow.com/questions/12521705/why-would-killpg-return-not-permitted-when-ownership-is-correct
+        # Just do nothing in this case; everything has died and init will reap the zombies
+        pass
 
 def _kill_variant_win32(pid, no_setpgrp):
     if no_setpgrp:
