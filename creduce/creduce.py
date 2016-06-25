@@ -175,7 +175,6 @@ class CReduce:
                                  Pass(BalancedDeltaPass, "angles-inside"), #152
                                  Pass(BalancedDeltaPass, "square-inside"), #153
                                  Pass(BalancedDeltaPass, "curly-only"), #160
-                                 Pass(BalancedDeltaPass, "parens-only"), #161
                                  Pass(BalancedDeltaPass, "angles-only"), #162
                                  Pass(BalancedDeltaPass, "square-only"), #163
                                  Pass(ClangDeltaPass, "remove-namespace"), #200
@@ -290,6 +289,7 @@ class CReduce:
                                  Pass(IntsDeltaPass, "c"), #9602
                                  Pass(IntsDeltaPass, "d"), #9603
                                  Pass(IntsDeltaPass, "e"), #9603
+                                 Pass(BalancedDeltaPass, "parens-only"), #9700
                                 ],
                        "last" : [Pass(ClangDeltaPass, "rename-fun"), #207
                                  Pass(ClangDeltaPass, "rename-param"), #209
@@ -359,7 +359,6 @@ class CReduce:
                                        Pass(BalancedDeltaPass, "angles-inside"), #152
                                        Pass(BalancedDeltaPass, "square-inside"), #153
                                        Pass(BalancedDeltaPass, "curly-only"), #160
-                                       Pass(BalancedDeltaPass, "parens-only"), #161
                                        Pass(BalancedDeltaPass, "angles-only"), #162
                                        Pass(BalancedDeltaPass, "square-only"), #163
                                        Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
@@ -453,6 +452,7 @@ class CReduce:
                                        Pass(IntsDeltaPass, "c"), #9602
                                        Pass(IntsDeltaPass, "d"), #9603
                                        Pass(IntsDeltaPass, "e"), #9603
+                                       Pass(BalancedDeltaPass, "parens-only"), #9700
                                       ],
                              "last" : [Pass(ClangDeltaPass, "rename-fun"), #207
                                        Pass(ClangDeltaPass, "rename-param"), #209
