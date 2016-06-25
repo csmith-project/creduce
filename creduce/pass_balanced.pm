@@ -76,6 +76,8 @@ sub transform ($$$) {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'[]'}))//s;
 	} elsif ($arg eq "angles") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'<>'}))//s;
+	} elsif ($arg eq "parens-to-zero") {
+	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))/0/s;
 	} elsif ($arg eq "parens") {
 	    $rest2 =~ s/^(?<all>($RE{balanced}{-parens=>'()'}))//s;
 	} elsif ($arg eq "curly") {
