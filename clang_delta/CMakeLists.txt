@@ -15,13 +15,19 @@ project(clang_delta)
 
 # find_package(LLVM) is done by the topmost "CMakeLists.txt" file.
 
+# Generate file "git_version.cpp".
+#
+configure_file("git_version.cpp.in" "git_version.cpp" @ONLY)
+
 # Add flags for compiling against LLVM.
 #
 add_definitions(${LLVM_DEFINITIONS})
 set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
   $<$<CONFIG:Release>:NDEBUG>)
-include_directories(${LLVM_INCLUDE_DIRS})
+# include_directories(${PROJECT_BINARY_DIR}) --- if we generated .h files here
 include_directories(${CMAKE_BINARY_DIR})
+include_directories(${PROJECT_SOURCE_DIR}) # needed for gen'ed .cpp files
+include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIBRARY_DIRS})
 
 llvm_map_components_to_libnames(LLVM_LIBS
@@ -195,6 +201,8 @@ add_executable(clang_delta
   UnifyFunctionDecl.h
   UnionToStruct.cpp
   UnionToStruct.h
+  ${PROJECT_BINARY_DIR}/git_version.cpp
+  git_version.h
 )
 
 target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
