@@ -560,6 +560,7 @@ my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
 my %cache = ();
+my $start_time = time();
 
 # invariant: parallel execution does not escape this function
 #
@@ -697,7 +698,7 @@ sub delta_pass ($) {
 		$method_worked{$passname}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $fn)."\n"
+		print "timestamp " . (time()-$start_time) . " size ".(-s $fn)."\n"
 		    if $TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
@@ -849,12 +850,12 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
     { "name" => "pass_clang",    "arg" => "move-global-var",                       "last_pass_pri" => 993, },
     { "name" => "pass_clang",    "arg" => "unify-function-decl",                   "last_pass_pri" => 994, },
-    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 500,  },
-    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 600,  },
-    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 601,  },
-    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 602,  },
-    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 603,  },
-    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 603,  },
+    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 9500,  },
+    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 9600,  },
+    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 9601,  },
+    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 9602,  },
+    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 9603,  },
+    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 9603,  },
     { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
     { "name" => "pass_clex",     "arg" => "delete-string",                         "last_pass_pri" => 1001, },
     { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 9999, },
