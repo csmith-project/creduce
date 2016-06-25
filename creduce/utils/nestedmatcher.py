@@ -60,20 +60,22 @@ def __get_balanced_match(pattern, string, pos=0, search=False):
         if pos == -1:
             return None
     else:
-        if string[pos] != pattern.start:
+        if not string[pos].startswith(pattern.start):
             return None
 
     start_pos = pos
     depth = 1
-    pos += 1
+    pos += len(pattern.start)
 
     while pos < len(string) and depth > 0:
-        if string[pos] == pattern.start:
+        if string[pos].startswith(pattern.start):
             depth += 1
-        elif string[pos] == pattern.end:
+            pos += len(pattern.start)
+        elif string[pos].startswith(pattern.end):
             depth -= 1
-
-        pos += 1
+            pos += len(pattern.end)
+        else:
+            pos += 1
 
     if depth != 0:
         return None
