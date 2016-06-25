@@ -51,6 +51,9 @@ making sure that your interestingness test does not find files like
 this to be interesting."""
         return message
 
+class PassOptionError(CReduceError):
+    pass
+
 class PassBugError(CReduceError):
     MSG = """***************************************************
 

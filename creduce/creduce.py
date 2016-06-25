@@ -71,13 +71,42 @@ class TemporaryDirectory:
         if self._finalizer.detach():
             self._cleanup(self.name)
 
-class CReduce:
+class Pass:
     @enum.unique
-    class PassOption(enum.Enum):
+    class Option(enum.Enum):
         sanitize = "sanitize"
         slow = "slow"
         windows = "windows"
 
+    @classmethod
+    def _check_pass_options(cls, options):
+        return all(isinstance(opt, cls.Option) for opt in options)
+
+    def __init__(self, pass_, arg, *, include=None, exclude=None):
+        self.pass_ = pass_
+        self.arg = arg
+
+        if include is not None:
+            tmp = set(include)
+
+            if self._check_pass_options(tmp):
+                self.include = tmp
+            else:
+                raise Pass.PassOptionError()
+        else:
+            self.include = None
+
+        if exclude is not None:
+            tmp = set(exclude)
+
+            if self._check_pass_options(tmp):
+                self.exclude = tmp
+            else:
+                raise Pass.PassOptionError()
+        else:
+            self.exclude = None
+
+class CReduce:
     @enum.unique
     class PassGroup(enum.Enum):
         all = "all"
@@ -94,345 +123,347 @@ class CReduce:
     MAX_CRASH_DIRS = 10
     MAX_EXTRA_DIRS = 25000
 
-    groups = {PassGroup.all : {"first" : [{"pass" : IncludesDeltaPass, "arg" : "0"}, #0
-                                          {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #0
-                                  {"pass" : CommentsDeltaPass, "arg" : "0"}, #0
-                                  {"pass" : BlankDeltaPass, "arg" : "0"}, #1
-                                  {"pass" : ClangBinarySearchDeltaPass, "arg" : "replace-function-def-with-decl"}, #2
-                                  {"pass" : ClangBinarySearchDeltaPass, "arg" : "remove-unused-function"}, #3
-                                  {"pass" : LinesDeltaPass, "arg" : "0"}, #20
-                                  {"pass" : LinesDeltaPass, "arg" : "0"}, #21
-                                  #{"pass" : LinesDeltaPass, "arg" : "0"}, #22
-                                  {"pass" : LinesDeltaPass, "arg" : "1"}, #23
-                                  {"pass" : LinesDeltaPass, "arg" : "1"}, #24
-                                  #{"pass" : LinesDeltaPass, "arg" : "1"}, #25
-                                  {"pass" : LinesDeltaPass, "arg" : "2"}, #27
-                                  {"pass" : LinesDeltaPass, "arg" : "2"}, #28
-                                  #{"pass" : LinesDeltaPass, "arg" : "2"}, #29
-                                  {"pass" : LinesDeltaPass, "arg" : "10"}, #30
-                                  {"pass" : LinesDeltaPass, "arg" : "10"}, #31
-                                  #{"pass" : LinesDeltaPass, "arg" : "10"}, #32
-                                  {"pass" : ClangBinarySearchDeltaPass, "arg" : "replace-function-def-with-decl"}, #33
-                                  {"pass" : ClangBinarySearchDeltaPass, "arg" : "remove-unused-function"}, #34
-                                  {"pass" : LinesDeltaPass, "arg" : "0"}, #35
-                                  {"pass" : LinesDeltaPass, "arg" : "1"}, #36
-                                  {"pass" : LinesDeltaPass, "arg" : "2"}, #37
-                                  {"pass" : LinesDeltaPass, "arg" : "10"}, #38
-                                  {"pass" : ClangDeltaPass, "arg" : "remove-unused-function"}, #40
-                                  {"pass" : BalancedDeltaPass, "arg" : "curly"}, #41
-                                  {"pass" : BalancedDeltaPass, "arg" : "curly2"}, #42
-                                  {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #43
-                                  {"pass" : ClangDeltaPass, "arg" : "callexpr-to-value"}, #49
-                                  {"pass" : ClangDeltaPass, "arg" : "replace-callexpr"}, #50
-                                  {"pass" : ClangDeltaPass, "arg" : "simplify-callexpr"}, #51
-                                  {"pass" : ClangDeltaPass, "arg" : "remove-unused-enum-member"}, #51
-                                  {"pass" : ClangDeltaPass, "arg" : "remove-enum-member-value"}, #52
-                                  {"pass" : ClangDeltaPass, "arg" : "remove-unused-var"}, #53
-                                  {"pass" : SpecialDeltaPass, "arg" : "a"}, #110
-                                  {"pass" : SpecialDeltaPass, "arg" : "b"}, #110
-                                  {"pass" : SpecialDeltaPass, "arg" : "c"}, #110
+    groups = {PassGroup.all : {"first" : [Pass(IncludesDeltaPass, "0"), #0
+                                          Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #0
+                                  Pass(CommentsDeltaPass, "0"), #0
+                                  Pass(BlankDeltaPass, "0"), #1
+                                  Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #2
+                                  Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #3
+                                  Pass(LinesDeltaPass, "0"), #20
+                                  Pass(LinesDeltaPass, "0"), #21
+                                  #Pass(LinesDeltaPass, "0"), #22
+                                  Pass(LinesDeltaPass, "1"), #23
+                                  Pass(LinesDeltaPass, "1"), #24
+                                  #Pass(LinesDeltaPass, "1"), #25
+                                  Pass(LinesDeltaPass, "2"), #27
+                                  Pass(LinesDeltaPass, "2"), #28
+                                  #Pass(LinesDeltaPass, "2"), #29
+                                  Pass(LinesDeltaPass, "10"), #30
+                                  Pass(LinesDeltaPass, "10"), #31
+                                  #Pass(LinesDeltaPass, "10"), #32
+                                  Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #33
+                                  Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #34
+                                  Pass(LinesDeltaPass, "0"), #35
+                                  Pass(LinesDeltaPass, "1"), #36
+                                  Pass(LinesDeltaPass, "2"), #37
+                                  Pass(LinesDeltaPass, "10"), #38
+                                  Pass(ClangDeltaPass, "remove-unused-function"), #40
+                                  Pass(BalancedDeltaPass, "curly"), #41
+                                  Pass(BalancedDeltaPass, "curly2"), #42
+                                  Pass(BalancedDeltaPass, "curly3"), #43
+                                  Pass(ClangDeltaPass, "callexpr-to-value"), #49
+                                  Pass(ClangDeltaPass, "replace-callexpr"), #50
+                                  Pass(ClangDeltaPass, "simplify-callexpr"), #51
+                                  Pass(ClangDeltaPass, "remove-unused-enum-member"), #51
+                                  Pass(ClangDeltaPass, "remove-enum-member-value"), #52
+                                  Pass(ClangDeltaPass, "remove-unused-var"), #53
+                                  Pass(SpecialDeltaPass, "a"), #110
+                                  Pass(SpecialDeltaPass, "b"), #110
+                                  Pass(SpecialDeltaPass, "c"), #110
                                  ],
-                       "main" : [{"pass" : IncludeIncludesDeltaPass, "arg" : "0"}, #100
-                                 {"pass" : TernaryDeltaPass, "arg" : "b"}, #104
-                                 {"pass" : TernaryDeltaPass, "arg" : "c"}, #105
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly"}, #110
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly2"}, #111
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #112
-                                 {"pass" : BalancedDeltaPass, "arg" : "parens"}, #113
-                                 {"pass" : BalancedDeltaPass, "arg" : "angles"}, #114
-                                 {"pass" : BalancedDeltaPass, "arg" : "square"}, #115
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly-inside"}, #150
-                                 {"pass" : BalancedDeltaPass, "arg" : "parens-inside"}, #151
-                                 {"pass" : BalancedDeltaPass, "arg" : "angles-inside"}, #152
-                                 {"pass" : BalancedDeltaPass, "arg" : "square-inside"}, #153
-                                 {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #160
-                                 {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #161
-                                 {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #162
-                                 {"pass" : BalancedDeltaPass, "arg" : "square-only"}, #163
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-namespace"}, #200
-                                 {"pass" : ClangDeltaPass, "arg" : "aggregate-to-scalar"}, #201
-                                 #{"pass" : (ClangDeltaPass, "arg" : "binop-simplification"}, #201
-                                 {"pass" : ClangDeltaPass, "arg" : "local-to-global"}, #202
-                                 {"pass" : ClangDeltaPass, "arg" : "param-to-global"}, #203
-                                 {"pass" : ClangDeltaPass, "arg" : "param-to-local"}, #204
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-nested-function"}, #205
-                                 {"pass" : ClangDeltaPass, "arg" : "union-to-struct"}, #208
-                                 {"pass" : ClangDeltaPass, "arg" : "return-void"}, #212
-                                 {"pass" : ClangDeltaPass, "arg" : "simple-inliner"}, #213
-                                 {"pass" : ClangDeltaPass, "arg" : "reduce-pointer-level"}, #214
-                                 {"pass" : ClangDeltaPass, "arg" : "lift-assignment-expr"}, #215
-                                 {"pass" : ClangDeltaPass, "arg" : "copy-propagation"}, #216
-                                 {"pass" : ClangDeltaPass, "arg" : "callexpr-to-value"}, #217
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-callexpr"}, #218
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-callexpr"}, #219
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unused-function"}, #220
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unused-enum-member"}, #221
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-enum-member-value"}, #222
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unused-var"}, #223
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-if"}, #224
-                                 {"pass" : ClangDeltaPass, "arg" : "reduce-array-dim"}, #225
-                                 {"pass" : ClangDeltaPass, "arg" : "reduce-array-size"}, #226
-                                 {"pass" : ClangDeltaPass, "arg" : "move-function-body"}, #227
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-comma-expr"}, #228
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-dependent-typedef"}, #229
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-simple-typedef"}, #230
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-dependent-typedef"}, #231
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-one-level-typedef-type"}, #232
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unused-field"}, #233
-                                 {"pass" : ClangDeltaPass, "arg" : "instantiate-template-type-param-to-int"}, #234
-                                 {"pass" : ClangDeltaPass, "arg" : "instantiate-template-param"}, #235
-                                 {"pass" : ClangDeltaPass, "arg" : "template-arg-to-int"}, #236
-                                 {"pass" : ClangDeltaPass, "arg" : "template-non-type-arg-to-int"}, #237
-                                 {"pass" : ClangDeltaPass, "arg" : "reduce-class-template-param"}, #238
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-trivial-base-template"}, #239
-                                 {"pass" : ClangDeltaPass, "arg" : "class-template-to-class"}, #240
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-base-class"}, #241
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-derived-class"}, #242
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unresolved-base"}, #243
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-ctor-initializer"}, #244
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-class-with-base-template-spec"}, #245
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-nested-class"}, #246
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-unused-outer-class"}, #247
-                                 {"pass" : ClangDeltaPass, "arg" : "empty-struct-to-int"}, #248
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-pointer"}, #249
-                                 {"pass" : ClangDeltaPass, "arg" : "reduce-pointer-pairs"}, #250
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-array"}, #251
-                                 {"pass" : ClangDeltaPass, "arg" : "remove-addr-taken"}, #252
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-struct"}, #253
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-undefined-function"}, #254
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-array-index-var"}, #255
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-array-access-with-index"}, #256
-                                 {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #257
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-recursive-template-instantiation"}, #258
-                                 {"pass" : LinesDeltaPass, "arg" : "0"}, #410
-                                 {"pass" : LinesDeltaPass, "arg" : "1"}, #411
-                                 {"pass" : LinesDeltaPass, "arg" : "2"}, #412
-                                 {"pass" : LinesDeltaPass, "arg" : "10"}, #413
-                                 {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #450
-                                 {"pass" : CommentsDeltaPass, "arg" : "0"}, #451
-                                 {"pass" : SpecialDeltaPass, "arg" : "b"}, #555
-                                 {"pass" : SpecialDeltaPass, "arg" : "c"}, #555
-                                 {"pass" : IndentDeltaPass, "arg" : "regular"}, #1000
-                                 {"pass" : ClexDeltaPass, "arg" : "delete-string", "include" : {PassOption.sanitize}}, #1001
-                                 {"pass" : ClexDeltaPass, "arg" : "remove-asm-line", "include" : {PassOption.sanitize}}, #1002
-                                 {"pass" : ClexDeltaPass, "arg" : "remove-asm-comment", "include" : {PassOption.sanitize}}, #1003
-                                 {"pass" : ClexDeltaPass, "arg" : "shorten-string", "include" : {PassOption.sanitize}}, #1010
-                                 {"pass" : ClexDeltaPass, "arg" : "x-string", "include" : {PassOption.sanitize}}, #1011
-                                 #{"pass" : (ClexDeltaPass, "arg" : "collapse-toks", "include" : {PassOption.sanitize}}, #5000
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-32", "include" : {PassOption.slow}}, #9000
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-31", "include" : {PassOption.slow}}, #9001
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-30", "include" : {PassOption.slow}}, #9002
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-29", "include" : {PassOption.slow}}, #9003
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-28", "include" : {PassOption.slow}}, #9004
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-27", "include" : {PassOption.slow}}, #9005
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-26", "include" : {PassOption.slow}}, #9006
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-25", "include" : {PassOption.slow}}, #9007
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-24", "include" : {PassOption.slow}}, #9008
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-23", "include" : {PassOption.slow}}, #9009
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-22", "include" : {PassOption.slow}}, #9010
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-21", "include" : {PassOption.slow}}, #9011
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-20", "include" : {PassOption.slow}}, #9012
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-19", "include" : {PassOption.slow}}, #9013
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-18", "include" : {PassOption.slow}}, #9014
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-17", "include" : {PassOption.slow}}, #9015
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-16"}, #9016
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-15"}, #9017
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-14"}, #9018
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-13"}, #9019
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-12"}, #9020
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-11"}, #9021
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-10"}, #9022
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-9"}, #9023
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-8"}, #9024
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-7"}, #9025
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-6"}, #9026
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-5"}, #9027
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-4"}, #9028
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-3"}, #9029
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-2"}, #9030
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-toks-1"}, #9031
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-8", "include" : {PassOption.slow}}, #9100
-                                 {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-4", "exclude" : {PassOption.slow}}, #9100
-                                 {"pass" : PeepDeltaPass, "arg" : "a"}, #9500
-                                 {"pass" : PeepDeltaPass, "arg" : "b", "include" : {PassOption.slow}}, #9500
-                                 {"pass" : IntsDeltaPass, "arg" : "a"}, #9600
-                                 {"pass" : IntsDeltaPass, "arg" : "b"}, #9601
-                                 {"pass" : IntsDeltaPass, "arg" : "c"}, #9602
-                                 {"pass" : IntsDeltaPass, "arg" : "d"}, #9603
-                                 {"pass" : IntsDeltaPass, "arg" : "e"}, #9603
+                       "main" : [Pass(IncludeIncludesDeltaPass, "0"), #100
+                                 Pass(TernaryDeltaPass, "b"), #104
+                                 Pass(TernaryDeltaPass, "c"), #105
+                                 Pass(BalancedDeltaPass, "curly"), #110
+                                 Pass(BalancedDeltaPass, "curly2"), #111
+                                 Pass(BalancedDeltaPass, "curly3"), #112
+                                 Pass(BalancedDeltaPass, "parens"), #113
+                                 Pass(BalancedDeltaPass, "angles"), #114
+                                 Pass(BalancedDeltaPass, "square"), #115
+                                 Pass(BalancedDeltaPass, "curly-inside"), #150
+                                 Pass(BalancedDeltaPass, "parens-inside"), #151
+                                 Pass(BalancedDeltaPass, "angles-inside"), #152
+                                 Pass(BalancedDeltaPass, "square-inside"), #153
+                                 Pass(BalancedDeltaPass, "curly-only"), #160
+                                 Pass(BalancedDeltaPass, "parens-only"), #161
+                                 Pass(BalancedDeltaPass, "angles-only"), #162
+                                 Pass(BalancedDeltaPass, "square-only"), #163
+                                 Pass(ClangDeltaPass, "remove-namespace"), #200
+                                 Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
+                                 #Pass(ClangDeltaPass, "binop-simplification"), #201
+                                 Pass(ClangDeltaPass, "local-to-global"), #202
+                                 Pass(ClangDeltaPass, "param-to-global"), #203
+                                 Pass(ClangDeltaPass, "param-to-local"), #204
+                                 Pass(ClangDeltaPass, "remove-nested-function"), #205
+                                 Pass(ClangDeltaPass, "union-to-struct"), #208
+                                 Pass(ClangDeltaPass, "return-void"), #212
+                                 Pass(ClangDeltaPass, "simple-inliner"), #213
+                                 Pass(ClangDeltaPass, "reduce-pointer-level"), #214
+                                 Pass(ClangDeltaPass, "lift-assignment-expr"), #215
+                                 Pass(ClangDeltaPass, "copy-propagation"), #216
+                                 Pass(ClangDeltaPass, "callexpr-to-value"), #217
+                                 Pass(ClangDeltaPass, "replace-callexpr"), #218
+                                 Pass(ClangDeltaPass, "simplify-callexpr"), #219
+                                 Pass(ClangDeltaPass, "remove-unused-function"), #220
+                                 Pass(ClangDeltaPass, "remove-unused-enum-member"), #221
+                                 Pass(ClangDeltaPass, "remove-enum-member-value"), #222
+                                 Pass(ClangDeltaPass, "remove-unused-var"), #223
+                                 Pass(ClangDeltaPass, "simplify-if"), #224
+                                 Pass(ClangDeltaPass, "reduce-array-dim"), #225
+                                 Pass(ClangDeltaPass, "reduce-array-size"), #226
+                                 Pass(ClangDeltaPass, "move-function-body"), #227
+                                 Pass(ClangDeltaPass, "simplify-comma-expr"), #228
+                                 Pass(ClangDeltaPass, "simplify-dependent-typedef"), #229
+                                 Pass(ClangDeltaPass, "replace-simple-typedef"), #230
+                                 Pass(ClangDeltaPass, "replace-dependent-typedef"), #231
+                                 Pass(ClangDeltaPass, "replace-one-level-typedef-type"), #232
+                                 Pass(ClangDeltaPass, "remove-unused-field"), #233
+                                 Pass(ClangDeltaPass, "instantiate-template-type-param-to-int"), #234
+                                 Pass(ClangDeltaPass, "instantiate-template-param"), #235
+                                 Pass(ClangDeltaPass, "template-arg-to-int"), #236
+                                 Pass(ClangDeltaPass, "template-non-type-arg-to-int"), #237
+                                 Pass(ClangDeltaPass, "reduce-class-template-param"), #238
+                                 Pass(ClangDeltaPass, "remove-trivial-base-template"), #239
+                                 Pass(ClangDeltaPass, "class-template-to-class"), #240
+                                 Pass(ClangDeltaPass, "remove-base-class"), #241
+                                 Pass(ClangDeltaPass, "replace-derived-class"), #242
+                                 Pass(ClangDeltaPass, "remove-unresolved-base"), #243
+                                 Pass(ClangDeltaPass, "remove-ctor-initializer"), #244
+                                 Pass(ClangDeltaPass, "replace-class-with-base-template-spec"), #245
+                                 Pass(ClangDeltaPass, "simplify-nested-class"), #246
+                                 Pass(ClangDeltaPass, "remove-unused-outer-class"), #247
+                                 Pass(ClangDeltaPass, "empty-struct-to-int"), #248
+                                 Pass(ClangDeltaPass, "remove-pointer"), #249
+                                 Pass(ClangDeltaPass, "reduce-pointer-pairs"), #250
+                                 Pass(ClangDeltaPass, "remove-array"), #251
+                                 Pass(ClangDeltaPass, "remove-addr-taken"), #252
+                                 Pass(ClangDeltaPass, "simplify-struct"), #253
+                                 Pass(ClangDeltaPass, "replace-undefined-function"), #254
+                                 Pass(ClangDeltaPass, "replace-array-index-var"), #255
+                                 Pass(ClangDeltaPass, "replace-array-access-with-index"), #256
+                                 Pass(ClangDeltaPass, "replace-dependent-name"), #257
+                                 Pass(ClangDeltaPass, "simplify-recursive-template-instantiation"), #258
+                                 Pass(LinesDeltaPass, "0"), #410
+                                 Pass(LinesDeltaPass, "1"), #411
+                                 Pass(LinesDeltaPass, "2"), #412
+                                 Pass(LinesDeltaPass, "10"), #413
+                                 Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #450
+                                 Pass(CommentsDeltaPass, "0"), #451
+                                 Pass(SpecialDeltaPass, "b"), #555
+                                 Pass(SpecialDeltaPass, "c"), #555
+                                 Pass(IndentDeltaPass, "regular"), #1000
+                                 Pass(ClexDeltaPass, "rename-toks", include={Pass.Option.sanitize}), #1000
+                                 Pass(ClexDeltaPass, "delete-string", include={Pass.Option.sanitize}), #1001
+                                 Pass(ClexDeltaPass, "remove-asm-line", include={Pass.Option.sanitize}), #1002
+                                 Pass(ClexDeltaPass, "remove-asm-comment", include={Pass.Option.sanitize}), #1003
+                                 Pass(ClexDeltaPass, "shorten-string", include={Pass.Option.sanitize}), #1010
+                                 Pass(ClexDeltaPass, "x-string", include={Pass.Option.sanitize}), #1011
+                                 #Pass(ClexDeltaPass, "collapse-toks", include={Pass.Option.sanitize}), #5000
+                                 Pass(ClexDeltaPass, "rm-toks-32", include={Pass.Option.slow}), #9000
+                                 Pass(ClexDeltaPass, "rm-toks-31", include={Pass.Option.slow}), #9001
+                                 Pass(ClexDeltaPass, "rm-toks-30", include={Pass.Option.slow}), #9002
+                                 Pass(ClexDeltaPass, "rm-toks-29", include={Pass.Option.slow}), #9003
+                                 Pass(ClexDeltaPass, "rm-toks-28", include={Pass.Option.slow}), #9004
+                                 Pass(ClexDeltaPass, "rm-toks-27", include={Pass.Option.slow}), #9005
+                                 Pass(ClexDeltaPass, "rm-toks-26", include={Pass.Option.slow}), #9006
+                                 Pass(ClexDeltaPass, "rm-toks-25", include={Pass.Option.slow}), #9007
+                                 Pass(ClexDeltaPass, "rm-toks-24", include={Pass.Option.slow}), #9008
+                                 Pass(ClexDeltaPass, "rm-toks-23", include={Pass.Option.slow}), #9009
+                                 Pass(ClexDeltaPass, "rm-toks-22", include={Pass.Option.slow}), #9010
+                                 Pass(ClexDeltaPass, "rm-toks-21", include={Pass.Option.slow}), #9011
+                                 Pass(ClexDeltaPass, "rm-toks-20", include={Pass.Option.slow}), #9012
+                                 Pass(ClexDeltaPass, "rm-toks-19", include={Pass.Option.slow}), #9013
+                                 Pass(ClexDeltaPass, "rm-toks-18", include={Pass.Option.slow}), #9014
+                                 Pass(ClexDeltaPass, "rm-toks-17", include={Pass.Option.slow}), #9015
+                                 Pass(ClexDeltaPass, "rm-toks-16"), #9016
+                                 Pass(ClexDeltaPass, "rm-toks-15"), #9017
+                                 Pass(ClexDeltaPass, "rm-toks-14"), #9018
+                                 Pass(ClexDeltaPass, "rm-toks-13"), #9019
+                                 Pass(ClexDeltaPass, "rm-toks-12"), #9020
+                                 Pass(ClexDeltaPass, "rm-toks-11"), #9021
+                                 Pass(ClexDeltaPass, "rm-toks-10"), #9022
+                                 Pass(ClexDeltaPass, "rm-toks-9"), #9023
+                                 Pass(ClexDeltaPass, "rm-toks-8"), #9024
+                                 Pass(ClexDeltaPass, "rm-toks-7"), #9025
+                                 Pass(ClexDeltaPass, "rm-toks-6"), #9026
+                                 Pass(ClexDeltaPass, "rm-toks-5"), #9027
+                                 Pass(ClexDeltaPass, "rm-toks-4"), #9028
+                                 Pass(ClexDeltaPass, "rm-toks-3"), #9029
+                                 Pass(ClexDeltaPass, "rm-toks-2"), #9030
+                                 Pass(ClexDeltaPass, "rm-toks-1"), #9031
+                                 Pass(ClexDeltaPass, "rm-tok-pattern-8", include={Pass.Option.slow}), #9100
+                                 Pass(ClexDeltaPass, "rm-tok-pattern-4", exclude={Pass.Option.slow}), #9100
+                                 Pass(PeepDeltaPass, "a"), #9500
+                                 Pass(PeepDeltaPass, "b", include={Pass.Option.slow}), #9500
+                                 Pass(IntsDeltaPass, "a"), #9600
+                                 Pass(IntsDeltaPass, "b"), #9601
+                                 Pass(IntsDeltaPass, "c"), #9602
+                                 Pass(IntsDeltaPass, "d"), #9603
+                                 Pass(IntsDeltaPass, "e"), #9603
                                 ],
-                       "last" : [{"pass" : ClangDeltaPass, "arg" : "rename-fun"}, #207
-                                 {"pass" : ClangDeltaPass, "arg" : "rename-param"}, #209
-                                 {"pass" : ClangDeltaPass, "arg" : "rename-var"}, #210
-                                 {"pass" : ClangDeltaPass, "arg" : "rename-class"}, #211
-                                 {"pass" : ClangDeltaPass, "arg" : "rename-cxx-method"}, #212
-                                 {"pass" : ClangDeltaPass, "arg" : "combine-global-var"}, #990
-                                 {"pass" : ClangDeltaPass, "arg" : "combine-local-var"}, #991
-                                 {"pass" : ClangDeltaPass, "arg" : "simplify-struct-union-decl"}, #992
-                                 {"pass" : ClangDeltaPass, "arg" : "move-global-var"}, #993
-                                 {"pass" : ClangDeltaPass, "arg" : "unify-function-decl"}, #994
-                                 {"pass" : LinesDeltaPass, "arg" : "0"}, #999
-                                 {"pass" : ClexDeltaPass, "arg" : "rename-toks", "include" : {PassOption.sanitize}}, #1000
-                                 {"pass" : ClexDeltaPass, "arg" : "delete-string"}, #1001
-                                 {"pass" : IndentDeltaPass, "arg" : "final"}, #9999
+                       "last" : [Pass(ClangDeltaPass, "rename-fun"), #207
+                                 Pass(ClangDeltaPass, "rename-param"), #209
+                                 Pass(ClangDeltaPass, "rename-var"), #210
+                                 Pass(ClangDeltaPass, "rename-class"), #211
+                                 Pass(ClangDeltaPass, "rename-cxx-method"), #212
+                                 Pass(ClangDeltaPass, "combine-global-var"), #990
+                                 Pass(ClangDeltaPass, "combine-local-var"), #991
+                                 Pass(ClangDeltaPass, "simplify-struct-union-decl"), #992
+                                 Pass(ClangDeltaPass, "move-global-var"), #993
+                                 Pass(ClangDeltaPass, "unify-function-decl"), #994
+                                 Pass(LinesDeltaPass, "0"), #999
+                                 Pass(ClexDeltaPass, "rename-toks", include={Pass.Option.sanitize}), #1000
+                                 Pass(ClexDeltaPass, "delete-string"), #1001
+                                 Pass(IndentDeltaPass, "final"), #9999
                                 ]
                       },
-              PassGroup.opencl120 : {"first" : [{"pass" : IncludesDeltaPass, "arg" : "0"}, #0
-                                        {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #0
-                                        {"pass" : CommentsDeltaPass, "arg" : "0"}, #0
-                                        {"pass" : BlankDeltaPass, "arg" : "0"}, #1
-                                        {"pass" : ClangBinarySearchDeltaPass, "arg" : "replace-function-def-with-decl"}, #2
-                                        {"pass" : ClangBinarySearchDeltaPass, "arg" : "remove-unused-function"}, #3
-                                        {"pass" : LinesDeltaPass, "arg" : "0"}, #20
-                                        {"pass" : LinesDeltaPass, "arg" : "0"}, #21
-                                        #{"pass" : LinesDeltaPass, "arg" : "0"}, #22
-                                        {"pass" : LinesDeltaPass, "arg" : "1"}, #23
-                                        {"pass" : LinesDeltaPass, "arg" : "1"}, #24
-                                        #{"pass" : LinesDeltaPass, "arg" : "1"}, #25
-                                        {"pass" : LinesDeltaPass, "arg" : "2"}, #27
-                                        {"pass" : LinesDeltaPass, "arg" : "2"}, #28
-                                        #{"pass" : LinesDeltaPass, "arg" : "2"}, #29
-                                        {"pass" : LinesDeltaPass, "arg" : "10"}, #30
-                                        {"pass" : LinesDeltaPass, "arg" : "10"}, #31
-                                        #{"pass" : LinesDeltaPass, "arg" : "10"}, #32
-                                        {"pass" : ClangBinarySearchDeltaPass, "arg" : "replace-function-def-with-decl"}, #33
-                                        {"pass" : ClangBinarySearchDeltaPass, "arg" : "remove-unused-function"}, #34
-                                        {"pass" : LinesDeltaPass, "arg" : "0"}, #35
-                                        {"pass" : LinesDeltaPass, "arg" : "1"}, #36
-                                        {"pass" : LinesDeltaPass, "arg" : "2"}, #37
-                                        {"pass" : LinesDeltaPass, "arg" : "10"}, #38
-                                        {"pass" : ClangDeltaPass, "arg" : "remove-unused-function"}, #40
-                                        {"pass" : BalancedDeltaPass, "arg" : "curly"}, #41
-                                        {"pass" : BalancedDeltaPass, "arg" : "curly2"}, #42
-                                        {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #43
-                                        {"pass" : ClangDeltaPass, "arg" : "callexpr-to-value"}, #49
-                                        {"pass" : ClangDeltaPass, "arg" : "replace-callexpr"}, #50
-                                        {"pass" : ClangDeltaPass, "arg" : "simplify-callexpr"}, #51
-                                        {"pass" : ClangDeltaPass, "arg" : "remove-unused-enum-member"}, #51
-                                        {"pass" : ClangDeltaPass, "arg" : "remove-enum-member-value"}, #52
-                                        {"pass" : ClangDeltaPass, "arg" : "remove-unused-var"}, #53
-                                        {"pass" : SpecialDeltaPass, "arg" : "a"}, #110
-                                        {"pass" : SpecialDeltaPass, "arg" : "b"}, #110
-                                        {"pass" : SpecialDeltaPass, "arg" : "c"}, #110
+              PassGroup.opencl120 : {"first" : [Pass(IncludesDeltaPass, "0"), #0
+                                        Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #0
+                                        Pass(CommentsDeltaPass, "0"), #0
+                                        Pass(BlankDeltaPass, "0"), #1
+                                        Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #2
+                                        Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #3
+                                        Pass(LinesDeltaPass, "0"), #20
+                                        Pass(LinesDeltaPass, "0"), #21
+                                        #Pass(LinesDeltaPass, "0"), #22
+                                        Pass(LinesDeltaPass, "1"), #23
+                                        Pass(LinesDeltaPass, "1"), #24
+                                        #Pass(LinesDeltaPass, "1"), #25
+                                        Pass(LinesDeltaPass, "2"), #27
+                                        Pass(LinesDeltaPass, "2"), #28
+                                        #Pass(LinesDeltaPass, "2"), #29
+                                        Pass(LinesDeltaPass, "10"), #30
+                                        Pass(LinesDeltaPass, "10"), #31
+                                        #Pass(LinesDeltaPass, "10"), #32
+                                        Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #33
+                                        Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #34
+                                        Pass(LinesDeltaPass, "0"), #35
+                                        Pass(LinesDeltaPass, "1"), #36
+                                        Pass(LinesDeltaPass, "2"), #37
+                                        Pass(LinesDeltaPass, "10"), #38
+                                        Pass(ClangDeltaPass, "remove-unused-function"), #40
+                                        Pass(BalancedDeltaPass, "curly"), #41
+                                        Pass(BalancedDeltaPass, "curly2"), #42
+                                        Pass(BalancedDeltaPass, "curly3"), #43
+                                        Pass(ClangDeltaPass, "callexpr-to-value"), #49
+                                        Pass(ClangDeltaPass, "replace-callexpr"), #50
+                                        Pass(ClangDeltaPass, "simplify-callexpr"), #51
+                                        Pass(ClangDeltaPass, "remove-unused-enum-member"), #51
+                                        Pass(ClangDeltaPass, "remove-enum-member-value"), #52
+                                        Pass(ClangDeltaPass, "remove-unused-var"), #53
+                                        Pass(SpecialDeltaPass, "a"), #110
+                                        Pass(SpecialDeltaPass, "b"), #110
+                                        Pass(SpecialDeltaPass, "c"), #110
                                        ],
-                             "main" : [{"pass" : IncludeIncludesDeltaPass, "arg" : "0"}, #100
-                                       {"pass" : TernaryDeltaPass, "arg" : "b"}, #104
-                                       {"pass" : TernaryDeltaPass, "arg" : "c"}, #105
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly"}, #110
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly2"}, #111
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly3"}, #112
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens"}, #113
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles"}, #114
-                                       {"pass" : BalancedDeltaPass, "arg" : "square"}, #115
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly-inside"}, #150
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens-inside"}, #151
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles-inside"}, #152
-                                       {"pass" : BalancedDeltaPass, "arg" : "square-inside"}, #153
-                                       {"pass" : BalancedDeltaPass, "arg" : "curly-only"}, #160
-                                       {"pass" : BalancedDeltaPass, "arg" : "parens-only"}, #161
-                                       {"pass" : BalancedDeltaPass, "arg" : "angles-only"}, #162
-                                       {"pass" : BalancedDeltaPass, "arg" : "square-only"}, #163
-                                       {"pass" : ClangDeltaPass, "arg" : "aggregate-to-scalar"}, #201
-                                       #{"pass" : (ClangDeltaPass, "arg" : "binop-simplification"}, #201
-                                       {"pass" : ClangDeltaPass, "arg" : "param-to-local"}, #204
-                                       {"pass" : ClangDeltaPass, "arg" : "union-to-struct"}, #208
-                                       {"pass" : ClangDeltaPass, "arg" : "return-void"}, #212
-                                       {"pass" : ClangDeltaPass, "arg" : "simple-inliner"}, #213
-                                       {"pass" : ClangDeltaPass, "arg" : "reduce-pointer-level"}, #214
-                                       {"pass" : ClangDeltaPass, "arg" : "lift-assignment-expr"}, #215
-                                       {"pass" : ClangDeltaPass, "arg" : "copy-propagation"}, #216
-                                       {"pass" : ClangDeltaPass, "arg" : "callexpr-to-value"}, #217
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-callexpr"}, #218
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-callexpr"}, #219
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-unused-function"}, #220
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-unused-enum-member"}, #221
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-enum-member-value"}, #222
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-unused-var"}, #223
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-if"}, #224
-                                       {"pass" : ClangDeltaPass, "arg" : "reduce-array-dim"}, #225
-                                       {"pass" : ClangDeltaPass, "arg" : "reduce-array-size"}, #226
-                                       {"pass" : ClangDeltaPass, "arg" : "move-function-body"}, #227
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-comma-expr"}, #228
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-dependent-typedef"}, #229
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-simple-typedef"}, #230
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-dependent-typedef"}, #231
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-one-level-typedef-type"}, #232
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-unused-field"}, #233
-                                       {"pass" : ClangDeltaPass, "arg" : "empty-struct-to-int"}, #248
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-pointer"}, #249
-                                       {"pass" : ClangDeltaPass, "arg" : "reduce-pointer-pairs"}, #250
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-array"}, #251
-                                       {"pass" : ClangDeltaPass, "arg" : "remove-addr-taken"}, #252
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-struct"}, #253
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-undefined-function"}, #254
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-array-index-var"}, #255
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-array-access-with-index"}, #256
-                                       {"pass" : ClangDeltaPass, "arg" : "replace-dependent-name"}, #257
-                                       {"pass" : LinesDeltaPass, "arg" : "0"}, #410
-                                       {"pass" : LinesDeltaPass, "arg" : "1"}, #411
-                                       {"pass" : LinesDeltaPass, "arg" : "2"}, #412
-                                       {"pass" : LinesDeltaPass, "arg" : "10"}, #413
-                                       {"pass" : UnIfDefDeltaPass, "arg" : "0", "exclude" : {PassOption.windows}}, #450
-                                       {"pass" : CommentsDeltaPass, "arg" : "0"}, #451
-                                       {"pass" : SpecialDeltaPass, "arg" : "b"}, #555
-                                       {"pass" : SpecialDeltaPass, "arg" : "c"}, #555
-                                       {"pass" : IndentDeltaPass, "arg" : "regular"}, #1000
-                                       {"pass" : ClexDeltaPass, "arg" : "delete-string", "include" : {PassOption.sanitize}}, #1001
-                                       {"pass" : ClexDeltaPass, "arg" : "shorten-string", "include" : {PassOption.sanitize}}, #1010
-                                       {"pass" : ClexDeltaPass, "arg" : "x-string", "include" : {PassOption.sanitize}}, #1011
-                                       #{"pass" : (ClexDeltaPass, "arg" : "collapse-toks", "include" : {PassOption.sanitize}}, #5000
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-32", "include" : {PassOption.slow}}, #9000
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-31", "include" : {PassOption.slow}}, #9001
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-30", "include" : {PassOption.slow}}, #9002
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-29", "include" : {PassOption.slow}}, #9003
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-28", "include" : {PassOption.slow}}, #9004
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-27", "include" : {PassOption.slow}}, #9005
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-26", "include" : {PassOption.slow}}, #9006
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-25", "include" : {PassOption.slow}}, #9007
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-24", "include" : {PassOption.slow}}, #9008
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-23", "include" : {PassOption.slow}}, #9009
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-22", "include" : {PassOption.slow}}, #9010
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-21", "include" : {PassOption.slow}}, #9011
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-20", "include" : {PassOption.slow}}, #9012
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-19", "include" : {PassOption.slow}}, #9013
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-18", "include" : {PassOption.slow}}, #9014
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-17", "include" : {PassOption.slow}}, #9015
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-16"}, #9016
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-15"}, #9017
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-14"}, #9018
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-13"}, #9019
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-12"}, #9020
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-11"}, #9021
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-10"}, #9022
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-9"}, #9023
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-8"}, #9024
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-7"}, #9025
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-6"}, #9026
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-5"}, #9027
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-4"}, #9028
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-3"}, #9029
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-2"}, #9030
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-toks-1"}, #9031
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-8", "include" : {PassOption.slow}}, #9100
-                                       {"pass" : ClexDeltaPass, "arg" : "rm-tok-pattern-4", "exclude" : {PassOption.slow}}, #9100
-                                       {"pass" : PeepDeltaPass, "arg" : "a"}, #9500
-                                       {"pass" : PeepDeltaPass, "arg" : "b", "include" : {PassOption.slow}}, #9500
-                                       {"pass" : IntsDeltaPass, "arg" : "a"}, #9600
-                                       {"pass" : IntsDeltaPass, "arg" : "b"}, #9601
-                                       {"pass" : IntsDeltaPass, "arg" : "c"}, #9602
-                                       {"pass" : IntsDeltaPass, "arg" : "d"}, #9603
-                                       {"pass" : IntsDeltaPass, "arg" : "e"}, #9603
+                             "main" : [Pass(IncludeIncludesDeltaPass, "0"), #100
+                                       Pass(TernaryDeltaPass, "b"), #104
+                                       Pass(TernaryDeltaPass, "c"), #105
+                                       Pass(BalancedDeltaPass, "curly"), #110
+                                       Pass(BalancedDeltaPass, "curly2"), #111
+                                       Pass(BalancedDeltaPass, "curly3"), #112
+                                       Pass(BalancedDeltaPass, "parens"), #113
+                                       Pass(BalancedDeltaPass, "angles"), #114
+                                       Pass(BalancedDeltaPass, "square"), #115
+                                       Pass(BalancedDeltaPass, "curly-inside"), #150
+                                       Pass(BalancedDeltaPass, "parens-inside"), #151
+                                       Pass(BalancedDeltaPass, "angles-inside"), #152
+                                       Pass(BalancedDeltaPass, "square-inside"), #153
+                                       Pass(BalancedDeltaPass, "curly-only"), #160
+                                       Pass(BalancedDeltaPass, "parens-only"), #161
+                                       Pass(BalancedDeltaPass, "angles-only"), #162
+                                       Pass(BalancedDeltaPass, "square-only"), #163
+                                       Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
+                                       #Pass(ClangDeltaPass, "binop-simplification"), #201
+                                       Pass(ClangDeltaPass, "param-to-local"), #204
+                                       Pass(ClangDeltaPass, "union-to-struct"), #208
+                                       Pass(ClangDeltaPass, "return-void"), #212
+                                       Pass(ClangDeltaPass, "simple-inliner"), #213
+                                       Pass(ClangDeltaPass, "reduce-pointer-level"), #214
+                                       Pass(ClangDeltaPass, "lift-assignment-expr"), #215
+                                       Pass(ClangDeltaPass, "copy-propagation"), #216
+                                       Pass(ClangDeltaPass, "callexpr-to-value"), #217
+                                       Pass(ClangDeltaPass, "replace-callexpr"), #218
+                                       Pass(ClangDeltaPass, "simplify-callexpr"), #219
+                                       Pass(ClangDeltaPass, "remove-unused-function"), #220
+                                       Pass(ClangDeltaPass, "remove-unused-enum-member"), #221
+                                       Pass(ClangDeltaPass, "remove-enum-member-value"), #222
+                                       Pass(ClangDeltaPass, "remove-unused-var"), #223
+                                       Pass(ClangDeltaPass, "simplify-if"), #224
+                                       Pass(ClangDeltaPass, "reduce-array-dim"), #225
+                                       Pass(ClangDeltaPass, "reduce-array-size"), #226
+                                       Pass(ClangDeltaPass, "move-function-body"), #227
+                                       Pass(ClangDeltaPass, "simplify-comma-expr"), #228
+                                       Pass(ClangDeltaPass, "simplify-dependent-typedef"), #229
+                                       Pass(ClangDeltaPass, "replace-simple-typedef"), #230
+                                       Pass(ClangDeltaPass, "replace-dependent-typedef"), #231
+                                       Pass(ClangDeltaPass, "replace-one-level-typedef-type"), #232
+                                       Pass(ClangDeltaPass, "remove-unused-field"), #233
+                                       Pass(ClangDeltaPass, "empty-struct-to-int"), #248
+                                       Pass(ClangDeltaPass, "remove-pointer"), #249
+                                       Pass(ClangDeltaPass, "reduce-pointer-pairs"), #250
+                                       Pass(ClangDeltaPass, "remove-array"), #251
+                                       Pass(ClangDeltaPass, "remove-addr-taken"), #252
+                                       Pass(ClangDeltaPass, "simplify-struct"), #253
+                                       Pass(ClangDeltaPass, "replace-undefined-function"), #254
+                                       Pass(ClangDeltaPass, "replace-array-index-var"), #255
+                                       Pass(ClangDeltaPass, "replace-array-access-with-index"), #256
+                                       Pass(ClangDeltaPass, "replace-dependent-name"), #257
+                                       Pass(LinesDeltaPass, "0"), #410
+                                       Pass(LinesDeltaPass, "1"), #411
+                                       Pass(LinesDeltaPass, "2"), #412
+                                       Pass(LinesDeltaPass, "10"), #413
+                                       Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #450
+                                       Pass(CommentsDeltaPass, "0"), #451
+                                       Pass(SpecialDeltaPass, "b"), #555
+                                       Pass(SpecialDeltaPass, "c"), #555
+                                       Pass(IndentDeltaPass, "regular"), #1000
+                                       Pass(ClexDeltaPass, "rename-toks", include={Pass.Option.sanitize}), #1000
+                                       Pass(ClexDeltaPass, "delete-string", include={Pass.Option.sanitize}), #1001
+                                       Pass(ClexDeltaPass, "shorten-string", include={Pass.Option.sanitize}), #1010
+                                       Pass(ClexDeltaPass, "x-string", include={Pass.Option.sanitize}), #1011
+                                       #Pass(ClexDeltaPass, "collapse-toks", include={Pass.Option.sanitize}), #5000
+                                       Pass(ClexDeltaPass, "rm-toks-32", include={Pass.Option.slow}), #9000
+                                       Pass(ClexDeltaPass, "rm-toks-31", include={Pass.Option.slow}), #9001
+                                       Pass(ClexDeltaPass, "rm-toks-30", include={Pass.Option.slow}), #9002
+                                       Pass(ClexDeltaPass, "rm-toks-29", include={Pass.Option.slow}), #9003
+                                       Pass(ClexDeltaPass, "rm-toks-28", include={Pass.Option.slow}), #9004
+                                       Pass(ClexDeltaPass, "rm-toks-27", include={Pass.Option.slow}), #9005
+                                       Pass(ClexDeltaPass, "rm-toks-26", include={Pass.Option.slow}), #9006
+                                       Pass(ClexDeltaPass, "rm-toks-25", include={Pass.Option.slow}), #9007
+                                       Pass(ClexDeltaPass, "rm-toks-24", include={Pass.Option.slow}), #9008
+                                       Pass(ClexDeltaPass, "rm-toks-23", include={Pass.Option.slow}), #9009
+                                       Pass(ClexDeltaPass, "rm-toks-22", include={Pass.Option.slow}), #9010
+                                       Pass(ClexDeltaPass, "rm-toks-21", include={Pass.Option.slow}), #9011
+                                       Pass(ClexDeltaPass, "rm-toks-20", include={Pass.Option.slow}), #9012
+                                       Pass(ClexDeltaPass, "rm-toks-19", include={Pass.Option.slow}), #9013
+                                       Pass(ClexDeltaPass, "rm-toks-18", include={Pass.Option.slow}), #9014
+                                       Pass(ClexDeltaPass, "rm-toks-17", include={Pass.Option.slow}), #9015
+                                       Pass(ClexDeltaPass, "rm-toks-16"), #9016
+                                       Pass(ClexDeltaPass, "rm-toks-15"), #9017
+                                       Pass(ClexDeltaPass, "rm-toks-14"), #9018
+                                       Pass(ClexDeltaPass, "rm-toks-13"), #9019
+                                       Pass(ClexDeltaPass, "rm-toks-12"), #9020
+                                       Pass(ClexDeltaPass, "rm-toks-11"), #9021
+                                       Pass(ClexDeltaPass, "rm-toks-10"), #9022
+                                       Pass(ClexDeltaPass, "rm-toks-9"), #9023
+                                       Pass(ClexDeltaPass, "rm-toks-8"), #9024
+                                       Pass(ClexDeltaPass, "rm-toks-7"), #9025
+                                       Pass(ClexDeltaPass, "rm-toks-6"), #9026
+                                       Pass(ClexDeltaPass, "rm-toks-5"), #9027
+                                       Pass(ClexDeltaPass, "rm-toks-4"), #9028
+                                       Pass(ClexDeltaPass, "rm-toks-3"), #9029
+                                       Pass(ClexDeltaPass, "rm-toks-2"), #9030
+                                       Pass(ClexDeltaPass, "rm-toks-1"), #9031
+                                       Pass(ClexDeltaPass, "rm-tok-pattern-8", include={Pass.Option.slow}), #9100
+                                       Pass(ClexDeltaPass, "rm-tok-pattern-4", exclude={Pass.Option.slow}), #9100
+                                       Pass(PeepDeltaPass, "a"), #9500
+                                       Pass(PeepDeltaPass, "b", include={Pass.Option.slow}), #9500
+                                       Pass(IntsDeltaPass, "a"), #9600
+                                       Pass(IntsDeltaPass, "b"), #9601
+                                       Pass(IntsDeltaPass, "c"), #9602
+                                       Pass(IntsDeltaPass, "d"), #9603
+                                       Pass(IntsDeltaPass, "e"), #9603
                                       ],
-                             "last" : [{"pass" : ClangDeltaPass, "arg" : "rename-fun"}, #207
-                                       {"pass" : ClangDeltaPass, "arg" : "rename-param"}, #209
-                                       {"pass" : ClangDeltaPass, "arg" : "rename-var"}, #210
-                                       {"pass" : ClangDeltaPass, "arg" : "combine-local-var"}, #991
-                                       {"pass" : ClangDeltaPass, "arg" : "simplify-struct-union-decl"}, #992
-                                       {"pass" : ClangDeltaPass, "arg" : "unify-function-decl"}, #994
-                                       {"pass" : LinesDeltaPass, "arg" : "0"}, #999
-                                       {"pass" : ClexDeltaPass, "arg" : "rename-toks", "include" : {PassOption.sanitize}}, #1000
-                                       {"pass" : ClexDeltaPass, "arg" : "delete-string"}, #1001
-                                       {"pass" : IndentDeltaPass, "arg" : "final"}, #9999
+                             "last" : [Pass(ClangDeltaPass, "rename-fun"), #207
+                                       Pass(ClangDeltaPass, "rename-param"), #209
+                                       Pass(ClangDeltaPass, "rename-var"), #210
+                                       Pass(ClangDeltaPass, "combine-local-var"), #991
+                                       Pass(ClangDeltaPass, "simplify-struct-union-decl"), #992
+                                       Pass(ClangDeltaPass, "unify-function-decl"), #994
+                                       Pass(LinesDeltaPass, "0"), #999
+                                       Pass(ClexDeltaPass, "rename-toks", include={Pass.Option.sanitize}), #1000
+                                       Pass(ClexDeltaPass, "delete-string"), #1001
+                                       Pass(IndentDeltaPass, "final"), #9999
                                       ]
                             },
     }
@@ -468,7 +499,7 @@ class CReduce:
         self.__statistics = {}
 
         if platform.system() == "Windows":
-            pass_options.add(self.PassOption.windows)
+            pass_options.add(self.Pass.Option.windows)
 
         pass_group = self._prepare_pass_group(pass_group, pass_options)
         missing = self._check_prerequisites(pass_group)
@@ -535,9 +566,9 @@ class CReduce:
 
         for category in pass_group:
             for p in pass_group[category]:
-                key = CReduce._generate_unique_pass_key(p["pass"], p["arg"])
-                stats[key] = {"pass" : p["pass"],
-                              "arg" : p["arg"],
+                key = CReduce._generate_unique_pass_key(p.pass_, p.arg)
+                stats[key] = {"pass" : p.pass_,
+                              "arg" : p.arg,
                               "worked" : 0,
                               "failed" : 0}
 
@@ -567,7 +598,7 @@ class CReduce:
         passes = set()
 
         for category in pass_group:
-            passes |= set(map(lambda p: p["pass"], pass_group[category]))
+            passes |= set(map(lambda p: p.pass_, pass_group[category]))
 
         for p in passes:
             if not p.check_prerequisites():
@@ -610,12 +641,12 @@ class CReduce:
 
     def _run_additional_passes(self, passes):
         for p in passes:
-            self._run_delta_pass(p["pass"], p["arg"])
+            self._run_delta_pass(p.pass_, p.arg)
 
     def _run_main_passes(self, passes):
         while True:
             for p in passes:
-                self._run_delta_pass(p["pass"], p["arg"])
+                self._run_delta_pass(p.pass_, p.arg)
 
             total_file_size = self._get_total_file_size()
 
@@ -787,8 +818,8 @@ class CReduce:
         group = self.groups[pass_group]
 
         def pass_filter(p):
-            return ((("include" not in p) or bool(p["include"] & pass_options)) and
-                    (("exclude" not in p) or not bool(p["exclude"] & pass_options)))
+            return (((p.include is None) or bool(p.include & pass_options)) and
+                    ((p.exclude is None) or not bool(p.exclude & pass_options)))
 
         for category in group:
             group[category] = [p for p in group[category] if pass_filter(p)]
