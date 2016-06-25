@@ -63,6 +63,9 @@ class BalancedDeltaPass(DeltaPass):
         elif arg == "angles":
             config["search"] = nestedmatcher.BalancedExpr.angles
             config["replace_fn"] = replace_all
+        elif arg == "parens-to-zero":
+            config["search"] = nestedmatcher.BalancedExpr.parens
+            config["replace_fn"] = lambda string, match: string[0:match[0]] + "0" + string[match[1]:]
         elif arg == "parens":
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_all

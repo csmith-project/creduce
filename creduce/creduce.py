@@ -177,6 +177,7 @@ class CReduce:
                                  Pass(BalancedDeltaPass, "curly-only"), #160
                                  Pass(BalancedDeltaPass, "angles-only"), #162
                                  Pass(BalancedDeltaPass, "square-only"), #163
+                                 Pass(BalancedDeltaPass, "parens-to-zero"), #164
                                  Pass(ClangDeltaPass, "remove-namespace"), #200
                                  Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
                                  #Pass(ClangDeltaPass, "binop-simplification"), #201
@@ -361,6 +362,7 @@ class CReduce:
                                        Pass(BalancedDeltaPass, "curly-only"), #160
                                        Pass(BalancedDeltaPass, "angles-only"), #162
                                        Pass(BalancedDeltaPass, "square-only"), #163
+                                       Pass(BalancedDeltaPass, "parens-to-zero"), #164
                                        Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
                                        #Pass(ClangDeltaPass, "binop-simplification"), #201
                                        Pass(ClangDeltaPass, "param-to-local"), #204
