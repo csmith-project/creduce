@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2015 The University of Utah
+## Copyright (c) 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -20,6 +20,9 @@ unifdef_SOURCES = \
 	unifdef.c \
 	unifdef.h \
 	version.h
+
+EXTRA_DIST = \
+	CMakeLists.txt
 
 ###############################################################################
 

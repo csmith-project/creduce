@@ -325,6 +325,9 @@ unifdef_SOURCES = \
 	unifdef.h \
 	version.h
 
+EXTRA_DIST = \
+	CMakeLists.txt
+
 all: all-am
 
 .SUFFIXES:

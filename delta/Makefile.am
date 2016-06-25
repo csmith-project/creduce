@@ -32,6 +32,7 @@ am__skiplex :=
 #
 EXTRA_DIST = \
 	Build.mk \
+	CMakeLists.txt \
 	License.txt \
 	Readme \
 	Test.mk \
