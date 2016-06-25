@@ -749,16 +749,12 @@ my @all_methods = (
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
-    #{ "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  23, },
     { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  24, },
-    #{ "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  25, },
     { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  27, },
     { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  28, },
-    #{ "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  29, },
     { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  30, },
     { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  31, },
-    #{ "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  32, },
 
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" => 34, },
@@ -884,7 +880,7 @@ my @all_methods = (
 
 if ($SANITIZE) {
     push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+	{ "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 1000, "last_pass_pri" => 1000, },
         { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 1001, },
         { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
         { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
@@ -1004,7 +1000,16 @@ foreach my $mref (@all_methods) {
     my %method = %{$mref};
     my $mname = $method{"name"};
     die unless defined ($mname);
+
+    # a tiny bit of typo protection
+    foreach my $k (keys %method) {
+	die "didn't expect '$k'"
+	  unless ($k eq "name" || $k eq "first_pass_pri" ||
+		  $k eq "pri" || $k eq "last_pass_pri" || $k eq "arg");
+    }
+
     next if defined ($prereqs_checked{$mname});
+
     # FIXME supposedly we can just require $mname; (without the eval)
     # here but that doesn't work...
     eval "require $mname";
