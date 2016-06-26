@@ -269,7 +269,7 @@ sub create_extra_dir() {
 sub delta_test () {
     my $res;
     eval {
-        local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required.
+        local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
         alarm($TIMEOUT_IN_SECONDS);
         if ($DEBUG) {
             $res = runit ("$test");
@@ -284,11 +284,9 @@ sub delta_test () {
         alarm(0);
     };
     if ($@) {
-        print "Killed due to a timeout. Interestingness test ran $TIMEOUT_IN_SECONDS" if $DEBUG;
-        killem();
-        # Maybe we need to remove the temp dirs
-        remove_tmpdirs();
-        $res = 1;
+        print "(Interestingness test killed by timeout at ${TIMEOUT_IN_SECONDS} seconds.)\n";
+	kill ('TERM', 0); # take out the whole process group
+	die("bug -- should not have reached this line");
     }
     return ($res == 0);
 }
