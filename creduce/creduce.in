@@ -64,7 +64,6 @@ my $SILENT_PASS_BUGS = 0;
 my $TIDY = 0;
 my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
-my $NOSETPGRP = 0;
 my $MAX_WIN;
 my $NO_CACHE = 0;
 
@@ -78,7 +77,6 @@ my @options = (
     ["--also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
     ["--no-kill",             "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
-    ["--no-setpgrp",          "const",   1, \$NOSETPGRP,       "Don't create a new process group for each invocation of the interestingness test"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
@@ -446,7 +444,7 @@ sub fork_helper($) {
             # put this process (the child) into a process group named by
             # its pid so that we'll be able to kill its entire subtree
             # later
-            setpgrp() unless $NOSETPGRP;
+            setpgrp();
 	    # flip the T/F flag back into a 0/1
             my $res = delta_test();
 	    print "delta_test() returned $res\n" if $DEBUG;
