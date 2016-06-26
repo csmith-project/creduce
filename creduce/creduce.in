@@ -112,16 +112,29 @@ using a relative path to the current working directory. On the other
 hand, when the interestingness test refers to any file that is not
 being reduced, this should be done using an absolute path.
 
-The interestingness test should not expect any command line arguments.
-It should be deterministic and might want to enforce resource limits
-on sub-commands that it invokes (e.g. using ulimit). In particular,
-C-Reduce is known to sometimes introduce an infinite loop into the
-program being reduced. Therefore, if the interestingness test runs the
-compiled program. The default timeout is 5 minutes.
+The interestingness test should be deterministic and should not expect
+any command line arguments.
 
-As a quick example, if you consider a file to be interesting if GCC's
-vectorizer fires while compiling it, you might use this
-interestingness test:
+C-Reduce can and does introduce infinite loops during
+reduction. Therefore, if your interestingness test runs the compiled
+program, this should be done under a timeout. You can implement the
+timeout yourself, for example using ulimit, or alternatively you can
+give C-Reduce a timeout (which is on by default, but is set very
+long: 5 minutes). An advantage of using C-Reduce's timeout is that
+when the test does timeout, a message will be printed. You should
+verify that timeouts are not occurring too often.
+
+There is a particularly subtle issue regarding timeouts, which is that
+the interestingness test may slow down due to resource contention when
+C-Reduce runs multiple copies of it on different cores. We have
+observed slowdowns of up to 50% due to (we suspect) cache
+thrashing. You must take this slowdown into account when choosing a
+timeout or else timeouts might occur very frequently, in which case
+C-Reduce will not work well.
+
+As a quick example of an interestingness test, if you consider a file
+to be interesting if GCC's vectorizer fires while compiling it, you
+might write this shell script:
 
   gcc -w -O3 foo.c -S &&
   grep xmm foo.s
@@ -138,13 +151,6 @@ commands:
 This should result in "0" being echoed to the terminal. If this does
 not happen, the interestingness test is flawed and C-Reduce won't be
 able to make use of it.
-
-By default, C-Reduce invokes the interestingness test in a new process
-group. In rare cases, such as when the interestingness test invokes
-GDB, this can be a problem. If so, you may use the --no-setpgrp
-command line option to suppress the use of process groups. Be aware
-that this will interfere with C-Reduce's ability to kill off
-subprocesses of an interestingness test.
 
 If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
