@@ -177,11 +177,9 @@ class CReduce:
                                  Pass(BalancedDeltaPass, "curly-only"), #160
                                  Pass(BalancedDeltaPass, "angles-only"), #162
                                  Pass(BalancedDeltaPass, "square-only"), #163
-                                 Pass(BalancedDeltaPass, "parens-to-zero"), #164
                                  Pass(ClangDeltaPass, "remove-namespace"), #200
                                  Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
                                  #Pass(ClangDeltaPass, "binop-simplification"), #201
-                                 Pass(ClangDeltaPass, "local-to-global"), #202
                                  Pass(ClangDeltaPass, "param-to-global"), #203
                                  Pass(ClangDeltaPass, "param-to-local"), #204
                                  Pass(ClangDeltaPass, "remove-nested-function"), #205
@@ -249,6 +247,7 @@ class CReduce:
                                  Pass(ClexDeltaPass, "shorten-string", include={Pass.Option.sanitize}), #1010
                                  Pass(ClexDeltaPass, "x-string", include={Pass.Option.sanitize}), #1011
                                  #Pass(ClexDeltaPass, "collapse-toks", include={Pass.Option.sanitize}), #5000
+                                 Pass(BalancedDeltaPass, "parens-to-zero"), #9000
                                  Pass(ClexDeltaPass, "rm-toks-32", include={Pass.Option.slow}), #9000
                                  Pass(ClexDeltaPass, "rm-toks-31", include={Pass.Option.slow}), #9001
                                  Pass(ClexDeltaPass, "rm-toks-30", include={Pass.Option.slow}), #9002
@@ -265,24 +264,25 @@ class CReduce:
                                  Pass(ClexDeltaPass, "rm-toks-19", include={Pass.Option.slow}), #9013
                                  Pass(ClexDeltaPass, "rm-toks-18", include={Pass.Option.slow}), #9014
                                  Pass(ClexDeltaPass, "rm-toks-17", include={Pass.Option.slow}), #9015
-                                 Pass(ClexDeltaPass, "rm-toks-16"), #9016
-                                 Pass(ClexDeltaPass, "rm-toks-15"), #9017
-                                 Pass(ClexDeltaPass, "rm-toks-14"), #9018
-                                 Pass(ClexDeltaPass, "rm-toks-13"), #9019
-                                 Pass(ClexDeltaPass, "rm-toks-12"), #9020
-                                 Pass(ClexDeltaPass, "rm-toks-11"), #9021
-                                 Pass(ClexDeltaPass, "rm-toks-10"), #9022
-                                 Pass(ClexDeltaPass, "rm-toks-9"), #9023
-                                 Pass(ClexDeltaPass, "rm-toks-8"), #9024
-                                 Pass(ClexDeltaPass, "rm-toks-7"), #9025
-                                 Pass(ClexDeltaPass, "rm-toks-6"), #9026
-                                 Pass(ClexDeltaPass, "rm-toks-5"), #9027
-                                 Pass(ClexDeltaPass, "rm-toks-4"), #9028
-                                 Pass(ClexDeltaPass, "rm-toks-3"), #9029
-                                 Pass(ClexDeltaPass, "rm-toks-2"), #9030
-                                 Pass(ClexDeltaPass, "rm-toks-1"), #9031
+                                 Pass(ClexDeltaPass, "rm-toks-1"), #9016
+                                 Pass(ClexDeltaPass, "rm-toks-2"), #9017
+                                 Pass(ClexDeltaPass, "rm-toks-3"), #9018
+                                 Pass(ClexDeltaPass, "rm-toks-4"), #9019
+                                 Pass(ClexDeltaPass, "rm-toks-5"), #9020
+                                 Pass(ClexDeltaPass, "rm-toks-6"), #9021
+                                 Pass(ClexDeltaPass, "rm-toks-7"), #9022
+                                 Pass(ClexDeltaPass, "rm-toks-8"), #9023
+                                 Pass(ClexDeltaPass, "rm-toks-9"), #9024
+                                 Pass(ClexDeltaPass, "rm-toks-10"), #9025
+                                 Pass(ClexDeltaPass, "rm-toks-11"), #9026
+                                 Pass(ClexDeltaPass, "rm-toks-12"), #9027
+                                 Pass(ClexDeltaPass, "rm-toks-13"), #9028
+                                 Pass(ClexDeltaPass, "rm-toks-14"), #9029
+                                 Pass(ClexDeltaPass, "rm-toks-15"), #9030
+                                 Pass(ClexDeltaPass, "rm-toks-16"), #9031
                                  Pass(ClexDeltaPass, "rm-tok-pattern-8", include={Pass.Option.slow}), #9100
                                  Pass(ClexDeltaPass, "rm-tok-pattern-4", exclude={Pass.Option.slow}), #9100
+                                 Pass(ClangDeltaPass, "local-to-global"), #9500
                                  Pass(PeepDeltaPass, "a"), #9500
                                  Pass(PeepDeltaPass, "b", include={Pass.Option.slow}), #9500
                                  Pass(IntsDeltaPass, "a"), #9600
@@ -362,7 +362,6 @@ class CReduce:
                                        Pass(BalancedDeltaPass, "curly-only"), #160
                                        Pass(BalancedDeltaPass, "angles-only"), #162
                                        Pass(BalancedDeltaPass, "square-only"), #163
-                                       Pass(BalancedDeltaPass, "parens-to-zero"), #164
                                        Pass(ClangDeltaPass, "aggregate-to-scalar"), #201
                                        #Pass(ClangDeltaPass, "binop-simplification"), #201
                                        Pass(ClangDeltaPass, "param-to-local"), #204
@@ -413,6 +412,7 @@ class CReduce:
                                        Pass(ClexDeltaPass, "shorten-string", include={Pass.Option.sanitize}), #1010
                                        Pass(ClexDeltaPass, "x-string", include={Pass.Option.sanitize}), #1011
                                        #Pass(ClexDeltaPass, "collapse-toks", include={Pass.Option.sanitize}), #5000
+                                       Pass(BalancedDeltaPass, "parens-to-zero"), #9000
                                        Pass(ClexDeltaPass, "rm-toks-32", include={Pass.Option.slow}), #9000
                                        Pass(ClexDeltaPass, "rm-toks-31", include={Pass.Option.slow}), #9001
                                        Pass(ClexDeltaPass, "rm-toks-30", include={Pass.Option.slow}), #9002
@@ -429,22 +429,22 @@ class CReduce:
                                        Pass(ClexDeltaPass, "rm-toks-19", include={Pass.Option.slow}), #9013
                                        Pass(ClexDeltaPass, "rm-toks-18", include={Pass.Option.slow}), #9014
                                        Pass(ClexDeltaPass, "rm-toks-17", include={Pass.Option.slow}), #9015
-                                       Pass(ClexDeltaPass, "rm-toks-16"), #9016
-                                       Pass(ClexDeltaPass, "rm-toks-15"), #9017
-                                       Pass(ClexDeltaPass, "rm-toks-14"), #9018
-                                       Pass(ClexDeltaPass, "rm-toks-13"), #9019
-                                       Pass(ClexDeltaPass, "rm-toks-12"), #9020
-                                       Pass(ClexDeltaPass, "rm-toks-11"), #9021
-                                       Pass(ClexDeltaPass, "rm-toks-10"), #9022
-                                       Pass(ClexDeltaPass, "rm-toks-9"), #9023
-                                       Pass(ClexDeltaPass, "rm-toks-8"), #9024
-                                       Pass(ClexDeltaPass, "rm-toks-7"), #9025
-                                       Pass(ClexDeltaPass, "rm-toks-6"), #9026
-                                       Pass(ClexDeltaPass, "rm-toks-5"), #9027
-                                       Pass(ClexDeltaPass, "rm-toks-4"), #9028
-                                       Pass(ClexDeltaPass, "rm-toks-3"), #9029
-                                       Pass(ClexDeltaPass, "rm-toks-2"), #9030
-                                       Pass(ClexDeltaPass, "rm-toks-1"), #9031
+                                       Pass(ClexDeltaPass, "rm-toks-1"), #9016
+                                       Pass(ClexDeltaPass, "rm-toks-2"), #9017
+                                       Pass(ClexDeltaPass, "rm-toks-3"), #9018
+                                       Pass(ClexDeltaPass, "rm-toks-4"), #9019
+                                       Pass(ClexDeltaPass, "rm-toks-5"), #9020
+                                       Pass(ClexDeltaPass, "rm-toks-6"), #9021
+                                       Pass(ClexDeltaPass, "rm-toks-7"), #9022
+                                       Pass(ClexDeltaPass, "rm-toks-8"), #9023
+                                       Pass(ClexDeltaPass, "rm-toks-9"), #9024
+                                       Pass(ClexDeltaPass, "rm-toks-10"), #9025
+                                       Pass(ClexDeltaPass, "rm-toks-11"), #9026
+                                       Pass(ClexDeltaPass, "rm-toks-12"), #9027
+                                       Pass(ClexDeltaPass, "rm-toks-13"), #9028
+                                       Pass(ClexDeltaPass, "rm-toks-14"), #9029
+                                       Pass(ClexDeltaPass, "rm-toks-15"), #9030
+                                       Pass(ClexDeltaPass, "rm-toks-16"), #9031
                                        Pass(ClexDeltaPass, "rm-tok-pattern-8", include={Pass.Option.slow}), #9100
                                        Pass(ClexDeltaPass, "rm-tok-pattern-4", exclude={Pass.Option.slow}), #9100
                                        Pass(PeepDeltaPass, "a"), #9500
