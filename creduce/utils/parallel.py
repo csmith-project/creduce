@@ -5,7 +5,7 @@ import signal
 import subprocess
 import sys
 
-def create_variant(test_path, test_cases, no_setpgrp):
+def create_variant(test_path, test_cases):
     cmd = [test_path]
 
     if isinstance(test_cases, list):
@@ -13,7 +13,7 @@ def create_variant(test_path, test_cases, no_setpgrp):
     else:
         cmd.append(test_cases)
 
-    if not no_setpgrp and sys.platform != "win32":
+    if sys.platform != "win32":
         def preexec_fn():
             pid = os.getpid()
             os.setpgid(pid, pid)
@@ -51,12 +51,9 @@ def wait_for_results(variants):
     else:
         _wait_for_result_posix(variants)
 
-def _kill_variant_posix(pid, no_setpgrp):
+def _kill_variant_posix(pid):
     try:
-        if no_setpgrp:
-            os.kill(pid, signal.SIGTERM)
-        else:
-            os.killpg(pid, signal.SIGTERM)
+        os.killpg(pid, signal.SIGTERM)
     except PermissionError:
         # On BSD based systems it is not allowed to kill a process group if it
         # consists of zombie processes
@@ -64,13 +61,10 @@ def _kill_variant_posix(pid, no_setpgrp):
         # Just do nothing in this case; everything has died and init will reap the zombies
         pass
 
-def _kill_variant_win32(pid, no_setpgrp):
-    if no_setpgrp:
-        subprocess.run(["TASKKILL", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    else:
-        subprocess.run(["TASKKILL", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def _kill_variant_win32(pid):
+    subprocess.run(["TASKKILL", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-def kill_variants(variants, no_kill, no_setpgrp):
+def kill_variants(variants, no_kill):
     for v in variants:
         proc = v["proc"]
 
@@ -78,9 +72,9 @@ def kill_variants(variants, no_kill, no_setpgrp):
 
         if proc.poll() is None and not no_kill:
             if sys.platform == "win32":
-                _kill_variant_win32(proc.pid, no_setpgrp)
+                _kill_variant_win32(proc.pid)
             else:
-                _kill_variant_posix(proc.pid, no_setpgrp)
+                _kill_variant_posix(proc.pid)
 
         proc.wait()
 

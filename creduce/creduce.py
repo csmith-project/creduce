@@ -481,7 +481,6 @@ class CReduce:
         self.die_on_pass_bug = False
         self.also_interesting = -1
         self.no_kill = False
-        self.no_setpgrp = False
         self.no_give_up = False
         self.print_diff = False
         self.save_temps = False
@@ -617,7 +616,7 @@ class CReduce:
             os.chdir(tmp_dir_name)
             self._copy_test_cases(tmp_dir_name)
 
-            proc = parallel.create_variant(self.test_path, self.test_cases, self.no_setpgrp)
+            proc = parallel.create_variant(self.test_path, self.test_cases)
             proc.wait()
 
             if proc.returncode == 0:
@@ -728,7 +727,7 @@ class CReduce:
 
                             stopped = True
                         else:
-                            proc = parallel.create_variant(self.test_path, variants_paths, self.no_setpgrp)
+                            proc = parallel.create_variant(self.test_path, variants_paths)
                             variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
                             #logging.warning("Fork {}".format(proc.sentinel))
                             variants.append(variant)
@@ -756,7 +755,7 @@ class CReduce:
                     if (variant["proc"].returncode == 0 and
                         (self.max_improvement is None or
                          self._file_size_difference(test_case, variant["variant_path"]) < self.max_improvement)):
-                        parallel.kill_variants(variants, self.no_kill, self.no_setpgrp)
+                        parallel.kill_variants(variants, self.no_kill)
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
@@ -786,7 +785,7 @@ class CReduce:
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
                 if not self.no_give_up and since_success > self.GIVEUP_CONSTANT:
-                    parallel.kill_variants(variants, self.no_kill, self.no_setpgrp)
+                    parallel.kill_variants(variants, self.no_kill)
 
                     if not self.silent_pass_bug:
                         self._report_pass_bug(pass_, arg, "pass got stuck")
