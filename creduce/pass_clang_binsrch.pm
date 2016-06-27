@@ -123,7 +123,7 @@ sub transform ($$$) {
 	if ($end > $instances) {
 	    $end = $instances;
 	}
-	
+
 	my $dec = $end - $index + 1;
 
 	my $cmd = qq{"$clang_delta" --transformation=$which --counter=$index --to-counter=$end $cfile};
@@ -143,8 +143,8 @@ sub transform ($$$) {
 	    } else {
 		unlink $tmpfile;
 		return ($ERROR, "crashed: $cmd");
-	    }   
-	} 	
+	    }
+	}
 	File::Copy::move($tmpfile, $cfile);
     } else {
       rechunk:
