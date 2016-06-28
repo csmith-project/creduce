@@ -37,8 +37,6 @@ from .utils.error import InvalidTestCaseError
 from .utils.error import PassBugError
 from .utils.error import ZeroSizeError
 
-from .utils import parallel
-
 class TemporaryDirectory:
     def __init__(self, **kwargs):
         if "delete" in kwargs:
@@ -470,8 +468,8 @@ class CReduce:
                             },
     }
 
-    def __init__(self, test_path, test_cases):
-        self.test_path = os.path.abspath(test_path)
+    def __init__(self, test_runner, test_cases):
+        self.test_runner = test_runner
         self.test_cases = []
         self.cache = {}
         self.total_file_size = 0
@@ -616,10 +614,11 @@ class CReduce:
             os.chdir(tmp_dir_name)
             self._copy_test_cases(tmp_dir_name)
 
-            proc = parallel.create_variant(self.test_path, self.test_cases)
-            proc.wait()
 
-            if proc.returncode == 0:
+            variant = self.test_runner.create_variant(self.test_cases)
+            variant.wait()
+
+            if variant.exitcode == 0:
                 logging.debug("sanity check successful")
                 os.chdir(self.__orig_dir)
                 return True
@@ -695,9 +694,9 @@ class CReduce:
                 # (e) no earlier variant has already been successful (don't waste resources)
                 while (not stopped and
                        len(variants) < 200 and
-                       (not variants or variants[0]["proc"].poll() is None) and
-                       len(parallel.get_running_variants(variants)) < self.__parallel_tests and
-                       not parallel.has_successful_variant(variants)):
+                       (not variants or variants[0]["proc"].is_alive()) and
+                       len(self.test_runner.get_running_variants(variants)) < self.__parallel_tests and
+                       not self.test_runner.has_successful_variant(variants)):
                     tmp_dir = TemporaryDirectory(prefix="creduce-", delete=(not self.save_temps))
 
                     os.chdir(tmp_dir.name)
@@ -727,7 +726,7 @@ class CReduce:
 
                             stopped = True
                         else:
-                            proc = parallel.create_variant(self.test_path, variants_paths)
+                            proc = self.test_runner.create_variant(variants_paths)
                             variant = {"proc": proc, "state": state, "tmp_dir": tmp_dir, "variant_path": variant_path}
                             #logging.warning("Fork {}".format(proc.sentinel))
                             variants.append(variant)
@@ -737,25 +736,25 @@ class CReduce:
                     os.chdir(self.__orig_dir)
 
                 # Only wait if the first variant is not ready yet
-                if variants and variants[0]["proc"].poll() is None:
+                if variants and variants[0]["proc"].is_alive():
                     #logging.debug("parent is waiting")
-                    parallel.wait_for_results(variants)
+                    self.test_runner.wait_for_results(variants)
                     #logging.warning("Processes finished")
 
                 while variants:
                     variant = variants[0]
 
-                    if variant["proc"].poll() is None:
+                    if variant["proc"].is_alive():
                         #logging.warning("First still alive")
                         break
 
                     variants.pop(0)
-                    #logging.warning("Handle {}".format(variant["proc"]._handle))
+                    #logging.warning("Handle {}".format(variant["proc"].handle))
 
-                    if (variant["proc"].returncode == 0 and
+                    if (variant["proc"].exitcode == 0 and
                         (self.max_improvement is None or
                          self._file_size_difference(test_case, variant["variant_path"]) < self.max_improvement)):
-                        parallel.kill_variants(variants, self.no_kill)
+                        self.test_runner.kill_variants(variants, self.no_kill)
                         shutil.copy(variant["variant_path"], test_case)
                         state = pass_.advance_on_success(test_case, arg, variant["state"])
                         stopped = False
@@ -772,7 +771,7 @@ class CReduce:
                         logging.debug("delta test failure")
 
                     if (self.also_interesting != -1 and
-                        self.also_interesting == variant["proc"].returncode):
+                        self.also_interesting == variant["proc"].exitcode):
                         extra_dir = self._get_extra_dir(self.__orig_dir, "creduce_extra_", self.MAX_EXTRA_DIRS)
 
                         if extra_dir is not None:
@@ -785,7 +784,7 @@ class CReduce:
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
                 if not self.no_give_up and since_success > self.GIVEUP_CONSTANT:
-                    parallel.kill_variants(variants, self.no_kill)
+                    self.test_runner.kill_variants(variants, self.no_kill)
 
                     if not self.silent_pass_bug:
                         self._report_pass_bug(pass_, arg, "pass got stuck")

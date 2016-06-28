@@ -33,6 +33,13 @@ class InvalidTestCaseError(InvalidFileError):
     def __str__(self):
         return "The specified test case '{}' cannot be {}!".format(self.path, self._get_error_name())
 
+class InvalidInterestingnessTestError(InvalidFileError):
+    def __init__(self, path):
+        self.path = path
+
+    def __str__(self):
+        return "The specified interestingness test '{}' cannot be executed!".format(self.path)
+
 class ZeroSizeError(CReduceError):
     def __init__(self, test_cases):
         super().__init__()

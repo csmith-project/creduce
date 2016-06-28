@@ -9,6 +9,7 @@ import time
 
 from creduce.creduce import CReduce
 from creduce.utils.error import CReduceError
+from creduce.utils import parallel
 
 if __name__ == "__main__":
     try:
@@ -39,7 +40,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
     parser.add_argument("--max-improvement", metavar="BYTES", type=int, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
     parser.add_argument("--pass-group", type=str, choices=list(map(str, CReduce.PassGroup)), default="all", help="Set of passes used during the reduction")
-    parser.add_argument("--test-path", type=str, help="Path to the file implementing the test module")
+    parser.add_argument("--no-fast-test", action="store_true", help="Use the general test runner even if a faster implementation is available")
     parser.add_argument("interestingness_test", metavar="INTERESTINGNESS_TEST", help="Executable to check interestingness of test cases")
     parser.add_argument("test_cases", metavar="TEST_CASE", nargs="+", help="Test cases")
 
@@ -70,7 +71,13 @@ if __name__ == "__main__":
     if args.sllooww:
         pass_options.add(CReduce.PassOption.slow)
 
-    reducer = CReduce(args.interestingness_test, args.test_cases)
+    if (not args.no_fast_test and
+        parallel.PythonRunner.is_valid_test(args.interestingness_test)):
+        test_runner = parallel.PythonRunner(args.interestingness_test)
+    else:
+        test_runner = parallel.GeneralRunner(args.interestingness_test)
+
+    reducer = CReduce(test_runner, args.test_cases)
 
     reducer.tidy = args.tidy
     reducer.silent_pass_bug = args.shaddap
