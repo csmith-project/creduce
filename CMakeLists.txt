@@ -124,7 +124,13 @@ add_subdirectory(clang_delta)
 add_subdirectory(clex)
 add_subdirectory(creduce)
 add_subdirectory(delta)
-add_subdirectory(unifdef)
+# `unifdef' requires a Unix-y platform.
+if(UNIX)
+  add_subdirectory(unifdef)
+else()
+  message(WARNING
+    "Internal tool `unifdef${CMAKE_EXECUTABLE_SUFFIX}' cannot be compiled on this OS; skipping.")
+endif()
 
 ###############################################################################
 
