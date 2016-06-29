@@ -120,19 +120,24 @@ any command line arguments.
 C-Reduce can and does introduce infinite loops during
 reduction. Therefore, if your interestingness test runs the compiled
 program, this should be done under a timeout. You can implement the
-timeout yourself, for example using ulimit, or alternatively you can
-give C-Reduce a timeout (which is on by default, but is set very
-long: 5 minutes). An advantage of using C-Reduce's timeout is that
-when the test does timeout, a message will be printed. You should
-verify that timeouts are not occurring too often.
+timeout yourself, for example using the UNIX "timeout" command, or
+alternatively you can give C-Reduce a timeout (which is on by default,
+but is set very long: 5 minutes). An advantage of using C-Reduce's
+timeout is that when a test is killed due to timing out, a message
+will be printed. If you do implement a timeout yourself, we recommend
+that your interestingness test returns exit code 124 when a subcommand
+times out. This will not affect the reduction but it will cause
+C-Reduce to print a message stating the the interestingness test
+reported a timeout. It is important to ensure that timeouts are not
+occurring too often (especially during C-Reduce's initial passes) or
+else C-Reduce will work poorly.
 
 There is a particularly subtle issue regarding timeouts, which is that
 the interestingness test may slow down due to resource contention when
 C-Reduce runs multiple copies of it on different cores. We have
 observed slowdowns of up to 50% due to (we suspect) cache
 thrashing. You must take this slowdown into account when choosing a
-timeout or else timeouts might occur very frequently, in which case
-C-Reduce will not work well.
+timeout or else timeouts might occur very frequently.
 
 As a quick example of an interestingness test, if you consider a file
 to be interesting if GCC's vectorizer fires while compiling it, you
