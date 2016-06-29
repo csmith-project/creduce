@@ -286,6 +286,7 @@ sub delta_test () {
                 $res = runit ("$test > /dev/null 2>&1");
             }
         }
+	print "(Interestingness test reported a timeout.)\n" if $res == 124;
         create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
         alarm(0);
     };
