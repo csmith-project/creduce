@@ -3,6 +3,13 @@ import os
 class CReduceError(Exception):
     pass
 
+class PrerequisitesNotFoundError(CReduceError):
+    def __init__(self, missing):
+        self.missing = missing
+
+    def __str__(self):
+        return "Missing prerequisites for passes {}!".format(", ".join(self.missing))
+
 class UnknownArgumentError(CReduceError):
     def __init__(self, pass_, arg):
         self.pass_ = pass_
