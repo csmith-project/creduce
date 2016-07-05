@@ -61,4 +61,4 @@ def check(test_cases):
         return False
 
 if __name__ == "__main__":
-    run("file1.c")
+    run(["file1.c"])
