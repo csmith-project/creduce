@@ -764,10 +764,9 @@ my @all_methods = (
     { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
     { "name" => "pass_lines",    "arg" => "3",                      "pri" => 413,  "first_pass_pri" =>  23, },
     { "name" => "pass_lines",    "arg" => "4",                      "pri" => 414,  "first_pass_pri" =>  24, },
-    { "name" => "pass_lines",    "arg" => "5",                      "pri" => 415,  "first_pass_pri" =>  25, },
-    { "name" => "pass_lines",    "arg" => "6",                      "pri" => 416,  "first_pass_pri" =>  26, },
-    { "name" => "pass_lines",    "arg" => "7",                      "pri" => 417,  "first_pass_pri" =>  27, },
-    { "name" => "pass_lines",    "arg" => "8",                      "pri" => 418,  "first_pass_pri" =>  28, },
+    { "name" => "pass_lines",    "arg" => "6",                      "pri" => 415,  "first_pass_pri" =>  25, },
+    { "name" => "pass_lines",    "arg" => "8",                      "pri" => 416,  "first_pass_pri" =>  26, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 417,  "first_pass_pri" =>  27, },
 
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" => 34, },
