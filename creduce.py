@@ -32,7 +32,8 @@ if __name__ == "__main__":
     parser.add_argument("--log-level", type=str, choices=["INFO", "DEBUG", "WARNING", "ERROR"], default="INFO", help="Define the verbosity of the logged events")
     parser.add_argument("--log-file", type=str, help="Log events into LOG_FILE instead of stderr. New events are append to the end of the file")
     parser.add_argument("--no-kill", action="store_true", default=False, help="Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)")
-    parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(parallel.TestManager.GIVEUP_CONSTANT))
+    #TODO: Don't use fixed manager here
+    parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(parallel.ConservativeTestManager.GIVEUP_CONSTANT))
     parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
     parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
@@ -43,6 +44,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
     parser.add_argument("--max-improvement", metavar="BYTES", type=int, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
     parser.add_argument("--pass-group", type=str, choices=list(map(str, CReduce.PassGroup)), default="all", help="Set of passes used during the reduction")
+    parser.add_argument("--test-manager", type=str, choices=["conservative", "fast-conservative", "non-deterministic"], help="Strategy for the parallel reduction process")
     parser.add_argument("--no-fast-test", action="store_true", help="Use the general test runner even if a faster implementation is available")
     parser.add_argument("interestingness_test", metavar="INTERESTINGNESS_TEST", help="Executable to check interestingness of test cases")
     parser.add_argument("test_cases", metavar="TEST_CASE", nargs="+", help="Test cases")
@@ -82,8 +84,14 @@ if __name__ == "__main__":
 
     pass_statistic = statistics.PassStatistic()
 
-    #TODO: Add more manager
-    test_manager = parallel.TestManager(test_runner, pass_statistic, args.test_cases, args.n, args.no_cache, args.shaddap, args.die_on_pass_bug, args.print_diff, args.max_improvement, args.no_give_up, args.also_interesting)
+    if args.test_manager == "fast-conservative":
+        test_manager_class = parallel.FastConservativeTestManager
+    elif args.test_manager == "non-deterministic":
+        test_manager_class = parallel.NonDeterministicTestManager
+    else:
+        test_manager_class = parallel.ConservativeTestManager
+
+    test_manager = test_manager_class(test_runner, pass_statistic, args.test_cases, args.n, args.no_cache, args.shaddap, args.die_on_pass_bug, args.print_diff, args.max_improvement, args.no_give_up, args.also_interesting)
 
     reducer = CReduce(test_manager)
 
