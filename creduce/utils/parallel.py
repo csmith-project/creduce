@@ -267,7 +267,6 @@ class AbstractTestRunner:
 
         # On Windows it is only possible to wait on max. 64 processes at once
         for i in range(0, len(handles), 64):
-            #logging.warning("Waiting for {}".format(handles[i:(i + 64)]))
             multiprocessing.connection.wait(handles[i:(i + 64)])
 
     @classmethod
@@ -379,7 +378,7 @@ class TestManager:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
 
         self.__orig_total_file_size = self.total_file_size
-        self.__cache = {}
+        self._cache = {}
 
     @property
     def total_file_size(self):
@@ -431,7 +430,7 @@ class TestManager:
     #TODO: Move to error module
     def _report_pass_bug(self, test_env, problem):
         if not self.die_on_pass_bug:
-            logging.warning("{}::{} has encountered a non fatal bug: {}".format(self.__pass, self.__arg, problem))
+            logging.warning("{}::{} has encountered a non fatal bug: {}".format(self._pass, self._arg, problem))
 
         crash_dir = self._get_extra_dir("creduce_bug_", self.MAX_CRASH_DIRS)
 
@@ -448,10 +447,10 @@ class TestManager:
             info_file.write("{}\n".format(self.PACKAGE))
             info_file.write("{}\n".format(self.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
-            info_file.write(PassBugError.MSG.format(self.__pass, self.__arg, problem, crash_dir))
+            info_file.write(PassBugError.MSG.format(self._pass, self._arg, problem, crash_dir))
 
         if self.die_on_pass_bug:
-            raise PassBugError(self.__pass, self.__arg, problem, crash_dir)
+            raise PassBugError(self._pass, self._arg, problem, crash_dir)
 
     @staticmethod
     def _diff_files(orig_file, changed_file):
@@ -529,7 +528,7 @@ class TestManager:
         # Copy state from base_env
         test_env.state = self._base_test_env.state
 
-        (result, test_env.state) = self.__pass.transform(test_env.test_case_path, self.__arg, test_env.state)
+        (result, test_env.state) = self._pass.transform(test_env.test_case_path, self._arg, test_env.state)
 
         # Transform can alter the state. This has to be reflected in the base test env
         self._base_test_env.state = test_env.state
@@ -537,11 +536,11 @@ class TestManager:
         return (test_env, result)
 
     def run_pass(self, pass_, arg):
-        self.__pass = pass_
-        self.__arg = arg
+        self._pass = pass_
+        self._arg = arg
         self._environments = []
 
-        logging.info("===< {} :: {} >===".format(self.__pass.__name__, self.__arg))
+        logging.info("===< {} :: {} >===".format(self._pass.__name__, self._arg))
 
         if self.total_file_size == 0:
             raise ZeroSizeError(self.test_cases)
@@ -554,19 +553,19 @@ class TestManager:
                 with open(test_case, mode="r+") as tmp_file:
                     test_case_before_pass = tmp_file.read()
 
-                    pass_key = self._generate_unique_pass_key(self.__pass, self.__arg)
+                    pass_key = self._generate_unique_pass_key(self._pass, self._arg)
 
-                    if (pass_key in self.__cache and
-                        test_case_before_pass in self.__cache[pass_key]):
+                    if (pass_key in self._cache and
+                        test_case_before_pass in self._cache[pass_key]):
                         tmp_file.truncate(0)
-                        tmp_file.write(self.__cache[pass_key][test_case_before_pass])
+                        tmp_file.write(self._cache[pass_key][test_case_before_pass])
                         logging.info("cache hit for {}".format(test_case))
                         continue
 
             # Create initial test environment
             self._base_test_env = self.test_runner.create_environment()
             self._base_test_env.copy_files(test_case, self.test_cases ^ {test_case})
-            self._base_test_env.state = self.__pass.new(self._base_test_env.test_case_path, self.__arg)
+            self._base_test_env.state = self._pass.new(self._base_test_env.test_case_path, self._arg)
             #logging.debug("Base state initial: {}".format(self._base_test_env.state))
 
             self._stopped = False
@@ -600,7 +599,7 @@ class TestManager:
                             self._environments.append(test_env)
 
                             #TODO: Needs to be moved to create_test_env
-                            self._base_test_env.state = pass_.advance(self._base_test_env.test_case_path, self.__arg, self._base_test_env.state)
+                            self._base_test_env.state = pass_.advance(self._base_test_env.test_case_path, self._arg, self._base_test_env.state)
                             #logging.debug("Base state advance: {}".format(self._base_test_env.state))
 
                 self.wait_for_results()
@@ -624,10 +623,10 @@ class TestManager:
                     # Cache result of this pass
                     if not self.no_cache:
                         with open(test_case, mode="r") as tmp_file:
-                            if pass_key not in self.__cache:
-                                self.__cache[pass_key] = {}
+                            if pass_key not in self._cache:
+                                self._cache[pass_key] = {}
 
-                            self.__cache[pass_key][test_case_before_pass] = tmp_file.read()
+                            self._cache[pass_key][test_case_before_pass] = tmp_file.read()
 
                     # Abort pass for this test case and
                     # start same pass with next test case
@@ -667,12 +666,12 @@ class TestManager:
                 #FIXME: Need to move to create_env
                 self._base_test_env = test_env
                 shutil.copy(self._base_test_env.test_case_path, ".")
-                self._base_test_env.state = self.__pass.advance_on_success(test_env.test_case_path, self.__arg, self._base_test_env.state)
+                self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
                 #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
                 self._stopped = False
                 self.__since_success = 0
-                self.pass_statistic.update(self.__pass, self.__arg, success=True)
+                self.pass_statistic.update(self._pass, self._arg, success=True)
 
                 pct = 100 - (self.total_file_size * 100.0 / self.__orig_total_file_size)
                 logging.info("({}%, {} bytes)".format(round(pct, 1), self.total_file_size))
@@ -680,7 +679,7 @@ class TestManager:
                 logging.debug("delta test failure")
 
                 self.__since_success += 1
-                self.pass_statistic.update(self.__pass, self.__arg, success=False)
+                self.pass_statistic.update(self._pass, self._arg, success=False)
 
                 if (self.also_interesting is not None and
                     test_env.check_result(self.also_interesting)):
