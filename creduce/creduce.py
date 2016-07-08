@@ -77,23 +77,16 @@ class CReduce:
                                   Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #2
                                   Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #3
                                   Pass(LinesDeltaPass, "0"), #20
-                                  Pass(LinesDeltaPass, "0"), #21
-                                  #Pass(LinesDeltaPass, "0"), #22
-                                  Pass(LinesDeltaPass, "1"), #23
-                                  Pass(LinesDeltaPass, "1"), #24
-                                  #Pass(LinesDeltaPass, "1"), #25
-                                  Pass(LinesDeltaPass, "2"), #27
-                                  Pass(LinesDeltaPass, "2"), #28
-                                  #Pass(LinesDeltaPass, "2"), #29
-                                  Pass(LinesDeltaPass, "10"), #30
-                                  Pass(LinesDeltaPass, "10"), #31
-                                  #Pass(LinesDeltaPass, "10"), #32
+                                  Pass(LinesDeltaPass, "1"), #21
+                                  Pass(LinesDeltaPass, "2"), #22
+                                  Pass(LinesDeltaPass, "3"), #23
+                                  Pass(LinesDeltaPass, "4"), #24
+                                  Pass(LinesDeltaPass, "5"), #25
+                                  Pass(LinesDeltaPass, "6"), #26
+                                  Pass(LinesDeltaPass, "7"), #27
+                                  Pass(LinesDeltaPass, "8"), #30
                                   Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #33
                                   Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #34
-                                  Pass(LinesDeltaPass, "0"), #35
-                                  Pass(LinesDeltaPass, "1"), #36
-                                  Pass(LinesDeltaPass, "2"), #37
-                                  Pass(LinesDeltaPass, "10"), #38
                                   Pass(ClangDeltaPass, "remove-unused-function"), #40
                                   Pass(BalancedDeltaPass, "curly"), #41
                                   Pass(BalancedDeltaPass, "curly2"), #42
@@ -103,7 +96,7 @@ class CReduce:
                                   Pass(ClangDeltaPass, "simplify-callexpr"), #51
                                   Pass(ClangDeltaPass, "remove-unused-enum-member"), #51
                                   Pass(ClangDeltaPass, "remove-enum-member-value"), #52
-                                  Pass(ClangDeltaPass, "remove-unused-var"), #53
+                                  Pass(ClangBinarySearchDeltaPass, "remove-unused-var"), #53
                                   Pass(SpecialDeltaPass, "a"), #110
                                   Pass(SpecialDeltaPass, "b"), #110
                                   Pass(SpecialDeltaPass, "c"), #110
@@ -142,7 +135,7 @@ class CReduce:
                                  Pass(ClangDeltaPass, "remove-unused-function"), #220
                                  Pass(ClangDeltaPass, "remove-unused-enum-member"), #221
                                  Pass(ClangDeltaPass, "remove-enum-member-value"), #222
-                                 Pass(ClangDeltaPass, "remove-unused-var"), #223
+                                 Pass(ClangBinarySearchDeltaPass, "remove-unused-var"), #223
                                  Pass(ClangDeltaPass, "simplify-if"), #224
                                  Pass(ClangDeltaPass, "reduce-array-dim"), #225
                                  Pass(ClangDeltaPass, "reduce-array-size"), #226
@@ -181,7 +174,12 @@ class CReduce:
                                  Pass(LinesDeltaPass, "0"), #410
                                  Pass(LinesDeltaPass, "1"), #411
                                  Pass(LinesDeltaPass, "2"), #412
-                                 Pass(LinesDeltaPass, "10"), #413
+                                 Pass(LinesDeltaPass, "3"), #413
+                                 Pass(LinesDeltaPass, "4"), #414
+                                 Pass(LinesDeltaPass, "5"), #415
+                                 Pass(LinesDeltaPass, "6"), #416
+                                 Pass(LinesDeltaPass, "7"), #417
+                                 Pass(LinesDeltaPass, "8"), #418
                                  Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #450
                                  Pass(CommentsDeltaPass, "0"), #451
                                  Pass(SpecialDeltaPass, "b"), #555
@@ -262,23 +260,16 @@ class CReduce:
                                         Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #2
                                         Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #3
                                         Pass(LinesDeltaPass, "0"), #20
-                                        Pass(LinesDeltaPass, "0"), #21
-                                        #Pass(LinesDeltaPass, "0"), #22
-                                        Pass(LinesDeltaPass, "1"), #23
-                                        Pass(LinesDeltaPass, "1"), #24
-                                        #Pass(LinesDeltaPass, "1"), #25
-                                        Pass(LinesDeltaPass, "2"), #27
-                                        Pass(LinesDeltaPass, "2"), #28
-                                        #Pass(LinesDeltaPass, "2"), #29
-                                        Pass(LinesDeltaPass, "10"), #30
-                                        Pass(LinesDeltaPass, "10"), #31
-                                        #Pass(LinesDeltaPass, "10"), #32
+                                        Pass(LinesDeltaPass, "1"), #21
+                                        Pass(LinesDeltaPass, "2"), #22
+                                        Pass(LinesDeltaPass, "3"), #23
+                                        Pass(LinesDeltaPass, "4"), #24
+                                        Pass(LinesDeltaPass, "5"), #25
+                                        Pass(LinesDeltaPass, "6"), #26
+                                        Pass(LinesDeltaPass, "7"), #27
+                                        Pass(LinesDeltaPass, "8"), #28
                                         Pass(ClangBinarySearchDeltaPass, "replace-function-def-with-decl"), #33
                                         Pass(ClangBinarySearchDeltaPass, "remove-unused-function"), #34
-                                        Pass(LinesDeltaPass, "0"), #35
-                                        Pass(LinesDeltaPass, "1"), #36
-                                        Pass(LinesDeltaPass, "2"), #37
-                                        Pass(LinesDeltaPass, "10"), #38
                                         Pass(ClangDeltaPass, "remove-unused-function"), #40
                                         Pass(BalancedDeltaPass, "curly"), #41
                                         Pass(BalancedDeltaPass, "curly2"), #42
@@ -288,7 +279,7 @@ class CReduce:
                                         Pass(ClangDeltaPass, "simplify-callexpr"), #51
                                         Pass(ClangDeltaPass, "remove-unused-enum-member"), #51
                                         Pass(ClangDeltaPass, "remove-enum-member-value"), #52
-                                        Pass(ClangDeltaPass, "remove-unused-var"), #53
+                                        Pass(ClangBinarySearchDeltaPass, "remove-unused-var"), #53
                                         Pass(SpecialDeltaPass, "a"), #110
                                         Pass(SpecialDeltaPass, "b"), #110
                                         Pass(SpecialDeltaPass, "c"), #110
@@ -324,7 +315,7 @@ class CReduce:
                                        Pass(ClangDeltaPass, "remove-unused-function"), #220
                                        Pass(ClangDeltaPass, "remove-unused-enum-member"), #221
                                        Pass(ClangDeltaPass, "remove-enum-member-value"), #222
-                                       Pass(ClangDeltaPass, "remove-unused-var"), #223
+                                       Pass(ClangBinarySearchDeltaPass, "remove-unused-var"), #223
                                        Pass(ClangDeltaPass, "simplify-if"), #224
                                        Pass(ClangDeltaPass, "reduce-array-dim"), #225
                                        Pass(ClangDeltaPass, "reduce-array-size"), #226
@@ -348,7 +339,12 @@ class CReduce:
                                        Pass(LinesDeltaPass, "0"), #410
                                        Pass(LinesDeltaPass, "1"), #411
                                        Pass(LinesDeltaPass, "2"), #412
-                                       Pass(LinesDeltaPass, "10"), #413
+                                       Pass(LinesDeltaPass, "3"), #413
+                                       Pass(LinesDeltaPass, "4"), #414
+                                       Pass(LinesDeltaPass, "5"), #415
+                                       Pass(LinesDeltaPass, "6"), #416
+                                       Pass(LinesDeltaPass, "7"), #417
+                                       Pass(LinesDeltaPass, "8"), #418
                                        Pass(UnIfDefDeltaPass, "0", exclude={Pass.Option.windows}), #450
                                        Pass(CommentsDeltaPass, "0"), #451
                                        Pass(SpecialDeltaPass, "b"), #555
