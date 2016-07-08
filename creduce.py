@@ -6,6 +6,7 @@ import argparse
 import logging
 import multiprocessing
 import os
+import os.path
 import sys
 import time
 
@@ -13,6 +14,41 @@ from creduce.creduce import CReduce
 from creduce.utils.error import CReduceError
 from creduce.utils import parallel
 from creduce.utils import statistics
+
+def get_pass_group_path(name):
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(script_path, "creduce", "pass_groups", name + ".json")
+
+def get_available_pass_groups():
+    # Check for relative path
+    #TODO: Check also for absolute install path, maybe /usr/local/share?
+    script_path = os.path.dirname(os.path.realpath(__file__))
+
+    if os.path.isdir(os.path.join(script_path, "./creduce/pass_groups")):
+        pass_group_dir = os.path.join(script_path, "./creduce/pass_groups")
+    else:
+        #TODO: More specific error
+        raise CReduceError()
+
+    group_names = []
+
+    for entry in os.listdir(pass_group_dir):
+        path = os.path.join(pass_group_dir, entry)
+
+        if not os.path.isfile(path):
+            continue
+
+        try:
+            pass_group_dict = CReduce.load_pass_group_file(path)
+            CReduce.parse_pass_group_dict(pass_group_dict, set())
+        except CReduceError:
+            #TODO: Add more specific error
+            logging.warning("Skipping file {}. Not valid pass group.".format(path))
+        else:
+            (name, _) = os.path.splitext(entry)
+            group_names.append(name)
+
+    return group_names
 
 if __name__ == "__main__":
     try:
@@ -39,11 +75,11 @@ if __name__ == "__main__":
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
     parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
     parser.add_argument("--no-cache", action="store_true", default=False, help="Don't cache behavior of passes")
-    #parser.add_argument("--no-default-passes", action="store_true", default=False, help="Start with an empty pass schedule")
-    #parser.add_argument("--add-pass", metavar=("PASS", "SUBPASS", "PRIORITY"), nargs=3, help="Add the specified pass to the schedule")
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
     parser.add_argument("--max-improvement", metavar="BYTES", type=int, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
-    parser.add_argument("--pass-group", type=str, choices=list(map(str, CReduce.PassGroup)), default="all", help="Set of passes used during the reduction")
+    passes_group = parser.add_mutually_exclusive_group()
+    passes_group.add_argument("--pass-group", type=str, choices=get_available_pass_groups(), help="Set of passes used during the reduction")
+    passes_group.add_argument("--pass-group-file", type=str, help="JSON file defining a custom pass group")
     parser.add_argument("--test-manager", type=str, choices=["conservative", "fast-conservative", "non-deterministic"], help="Strategy for the parallel reduction process")
     parser.add_argument("--no-fast-test", action="store_true", help="Use the general test runner even if a faster implementation is available")
     parser.add_argument("interestingness_test", metavar="INTERESTINGNESS_TEST", help="Executable to check interestingness of test cases")
@@ -70,11 +106,24 @@ if __name__ == "__main__":
 
     pass_options = set()
 
+    if sys.platform == "win32":
+        pass_options.add(CReduce.Pass.Option.windows)
+
     if args.sanitize:
         pass_options.add(CReduce.PassOption.sanitize)
 
     if args.sllooww:
         pass_options.add(CReduce.PassOption.slow)
+
+    if args.pass_group is not None:
+        pass_group_file = get_pass_group_path(args.pass_group)
+    elif args.pass_group_file is not None:
+        pass_group_file = args.pass_group_file
+    else:
+        pass_group_file = get_pass_group_path("all")
+
+    pass_group_dict = CReduce.load_pass_group_file(pass_group_file)
+    pass_group = CReduce.parse_pass_group_dict(pass_group_dict, pass_options)
 
     if (not args.no_fast_test and
         parallel.PythonTestRunner.is_valid_test(args.interestingness_test)):
@@ -102,9 +151,7 @@ if __name__ == "__main__":
         time_start = time.monotonic()
 
     try:
-        success = reducer.reduce(skip_initial=args.skip_initial_passes,
-                                 pass_group=CReduce.PassGroup(args.pass_group),
-                                 pass_options=pass_options)
+        success = reducer.reduce(pass_group, skip_initial=args.skip_initial_passes)
     except CReduceError as err:
         print(err)
 
