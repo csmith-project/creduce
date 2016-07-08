@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#TODO: Add mutually exclusive options to load pass group or custom json file
+
 import argparse
 import logging
 import multiprocessing

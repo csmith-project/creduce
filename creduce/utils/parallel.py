@@ -1,3 +1,5 @@
+#TODO: Move arg into pass and make it an object
+
 import difflib
 import filecmp
 import importlib.util
@@ -39,6 +41,7 @@ class AbstractTestEnvironment:
         self.additional_files = set()
         self.state = None
         self._dir = tempfile.mkdtemp(prefix="creduce-")
+        self.save_temps = save_temps
 
         if not save_temps:
             self._finalizer = weakref.finalize(self, self._cleanup, self.path)
@@ -82,6 +85,10 @@ class AbstractTestEnvironment:
     @property
     def test_case_path(self):
         return os.path.join(self.path, self.test_case)
+
+    @property
+    def additional_files_paths(self):
+        return [os.path.join(self.path, f) for f in self.additional_files]
 
     def start_test(self):
         raise NotImplementedError("Missing 'start_test' implementation in class '{}'".format(self.__class__))
@@ -290,7 +297,7 @@ class AbstractTestRunner:
 
     def kill(self, environments):
         for test_env in environments:
-            #logging.warning("Kill {}".format(v.handle))
+            #logging.debug("Kill {}".format(test_env.process_pid))
 
             if not test_env.has_result() and not self.no_kill:
                 if sys.platform == "win32":
@@ -299,9 +306,6 @@ class AbstractTestRunner:
                     self._kill_posix(test_env.process_pid)
 
             test_env.wait_for_result()
-
-        # Performs implicit cleanup of the temporary directories
-        environments.clear()
 
 class GeneralTestRunner(AbstractTestRunner):
     def __init__(self, test_script, save_temps, no_kill):
@@ -488,23 +492,23 @@ class TestManager:
             raise InsaneTestCaseError(self.test_cases, "TODO")
 
     def _get_active_tests(self):
-        return [env for env in self.__environments if not env.has_result()]
+        return [env for env in self._environments if not env.has_result()]
 
     def _get_finished_tests(self):
-        return [env for env in self.__environments if env.has_result()]
+        return [env for env in self._environments if env.has_result()]
 
     def can_create_test_env(self):
         # Create new variants and launch tests as long as:
         # (a) there has been no error and the transformation space is not exhausted,
-        if self.__stopped:
+        if self._stopped:
             return False
 
         # (b) there are not already to many variants (FIXME: can potentionally be removed later),
-        if len(self.__environments) > 200:
+        if len(self._environments) > 200:
             return False
 
         # (c) the test for the first variant in the list is still running,
-        if self.__environments and self.__environments[0].has_result():
+        if self._environments and self._environments[0].has_result():
             return False
 
         # (d) the maximum number of parallel test instances has not been reached, and
@@ -518,20 +522,24 @@ class TestManager:
         return True
 
     def create_test_env(self):
+        #TODO: Create a clone function for test envs
         test_env = self.test_runner.create_environment()
-        test_env.copy_files(self.__test_case, self.test_cases ^ {self.__test_case})
+        # Copy files from base env
+        test_env.copy_files(self._base_test_env.test_case_path, self._base_test_env.additional_files_paths)
+        # Copy state from base_env
+        test_env.state = self._base_test_env.state
 
-        (result, self.__state) = self.__pass.transform(test_env.test_case_path, self.__arg, self.__state)
-        # Currently unused but necessary for other managers
-        test_env.state = self.__state
+        (result, test_env.state) = self.__pass.transform(test_env.test_case_path, self.__arg, test_env.state)
+
+        # Transform can alter the state. This has to be reflected in the base test env
+        self._base_test_env.state = test_env.state
 
         return (test_env, result)
 
     def run_pass(self, pass_, arg):
         self.__pass = pass_
         self.__arg = arg
-        self.__environments = []
-        self.__state = None
+        self._environments = []
 
         logging.info("===< {} :: {} >===".format(self.__pass.__name__, self.__arg))
 
@@ -539,9 +547,7 @@ class TestManager:
             raise ZeroSizeError(self.test_cases)
 
         for test_case in self.test_cases:
-            self.__test_case = test_case
-
-            if self._get_file_size([self.__test_case]) == 0:
+            if self._get_file_size([test_case]) == 0:
                 continue
 
             if not self.no_cache:
@@ -554,43 +560,48 @@ class TestManager:
                         test_case_before_pass in self.__cache[pass_key]):
                         tmp_file.truncate(0)
                         tmp_file.write(self.__cache[pass_key][test_case_before_pass])
-                        logging.info("cache hit for {}".format(self.__test_case))
+                        logging.info("cache hit for {}".format(test_case))
                         continue
 
-            self.__state = self.__pass.new(self.__test_case, self.__arg)
-            self.__stopped = False
+            # Create initial test environment
+            self._base_test_env = self.test_runner.create_environment()
+            self._base_test_env.copy_files(test_case, self.test_cases ^ {test_case})
+            self._base_test_env.state = self.__pass.new(self._base_test_env.test_case_path, self.__arg)
+            #logging.debug("Base state initial: {}".format(self._base_test_env.state))
+
+            self._stopped = False
             self.__since_success = 0
 
             while True:
                 while self.can_create_test_env():
                     (test_env, result) = self.create_test_env()
+                    #logging.debug("Base state create: {}".format(self._base_test_env.state))
 
                     if result != DeltaPass.Result.ok and result != DeltaPass.Result.stop:
                         if not self.silent_pass_bug:
                             self._report_pass_bug(test_env, str(test_env.state) if result == DeltaPass.Result.error else "unknown return code")
 
                     if result == DeltaPass.Result.stop or result == DeltaPass.Result.error:
-                        self.__stopped = True
+                        self._stopped = True
                     else:
                         if self.print_diff:
-                            diff_str = self._diff_files(self.__test_case, test_env.test_case_path)
+                            diff_str = self._diff_files(self._base_test_env.test_case_path, test_env.test_case_path)
                             #TODO: Can we print somehow different?
                             print(diff_str)
 
                         # Report bug if transform did not change the file
-                        if filecmp.cmp(self.__test_case, test_env.test_case_path):
+                        if filecmp.cmp(self._base_test_env.test_case_path, test_env.test_case_path):
                             if not self.silent_pass_bug:
                                 self._report_pass_bug(test_env, "pass failed to modify the variant")
 
-                            self.__stopped = True
+                            self._stopped = True
                         else:
-                            #self.start_test(pass_, arg, test_env)
                             test_env.start_test()
-                            #logging.warning("Fork {}".format(proc.sentinel))
-                            self.__environments.append(test_env)
-                            #logging.warning("forked {}, num_running = {}, variants = {}".format(proc.pid, len(self._get_running_variants(variants)), len(variants)))
+                            self._environments.append(test_env)
+
                             #TODO: Needs to be moved to create_test_env
-                            self.__state = pass_.advance(self.__test_case, self.__arg, self.__state)
+                            self._base_test_env.state = pass_.advance(self._base_test_env.test_case_path, self.__arg, self._base_test_env.state)
+                            #logging.debug("Base state advance: {}".format(self._base_test_env.state))
 
                 self.wait_for_results()
                 self.process_results()
@@ -599,8 +610,8 @@ class TestManager:
                 # nasty heuristic for avoiding getting stuck by buggy passes
                 # that keep reporting success w/o making progress
                 if not self.no_give_up and self.__since_success > self.GIVEUP_CONSTANT:
-                    self.test_runner.kill(variants)
-                    self.__environments = []
+                    self.test_runner.kill(self._environments)
+                    self._environments = []
 
                     if not self.silent_pass_bug:
                         self._report_pass_bug(test_env, "pass got stuck")
@@ -609,7 +620,7 @@ class TestManager:
                     # start same pass with next test case
                     break
 
-                if self.__stopped and not self.__environments:
+                if self._stopped and not self._environments:
                     # Cache result of this pass
                     if not self.no_cache:
                         with open(test_case, mode="r") as tmp_file:
@@ -626,39 +637,40 @@ class TestManager:
         logging.debug("Wait for results")
 
         # Only wait if the first variant is not ready yet
-        if self.__environments and not self.__environments[0].has_result():
-            #logging.debug("parent is waiting")
-            self.test_runner.wait(self.__environments)
-            #logging.warning("Processes finished")
+        if self._environments and not self._environments[0].has_result():
+            self.test_runner.wait(self._environments)
 
     def process_results(self):
         logging.debug("Process results")
 
-        while self.__environments:
-            test_env = self.__environments[0]
+        while self._environments:
+            test_env = self._environments[0]
 
             if not test_env.has_result():
                 #logging.debug("First still alive")
                 break
 
-            self.__environments.pop(0)
+            self._environments.pop(0)
             #logging.info("Handle {}".format(test_env.__repr__()))
 
             if test_env.check_result(0):
                 logging.debug("delta test success")
 
                 if (self.max_improvement is not None and
-                    self._file_size_difference(self.__test_case, test_env.test_case_path) < self.max_improvement):
+                    self._file_size_difference(self._base_test_env.test_case_path, test_env.test_case_path) < self.max_improvement):
                     logging.debug("Too large improvement")
                     continue
 
-                self.test_runner.kill(self.__environments)
+                self.test_runner.kill(self._environments)
+                self._environments = []
 
-                shutil.copy(test_env.test_case_path, ".")
                 #FIXME: Need to move to create_env
-                self.__state = self.__pass.advance_on_success(test_env.test_case_path, self.__arg, test_env.state)
+                self._base_test_env = test_env
+                shutil.copy(self._base_test_env.test_case_path, ".")
+                self._base_test_env.state = self.__pass.advance_on_success(test_env.test_case_path, self.__arg, self._base_test_env.state)
+                #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
-                self.__stopped = False
+                self._stopped = False
                 self.__since_success = 0
                 self.pass_statistic.update(self.__pass, self.__arg, success=True)
 
@@ -682,4 +694,4 @@ class TestManager:
             test_env = None
 
     def cleanup_results(self):
-        self.__environments = [env for env in self.__environments if not env.has_result() or env.check_result(0)]
+        self._environments = [env for env in self._environments if not env.has_result() or env.check_result(0)]
