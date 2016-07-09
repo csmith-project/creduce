@@ -72,7 +72,6 @@ class AbstractTestEnvironment:
             shutil.copy(f, self.path)
 
     def dump(self, dst):
-        #TODO: dump test script
         if self.test_case is not None:
             shutil.copy(self.test_case, dst)
 
