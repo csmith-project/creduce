@@ -531,6 +531,7 @@ class ConservativeTestManager:
 
         (result, test_env.state) = self._pass.transform(test_env.test_case_path, self._arg, test_env.state)
 
+        #TODO: Can the state be altered if the transform fails?
         # Transform can alter the state. This has to be reflected in the base test env
         self._base_test_env.state = test_env.state
 

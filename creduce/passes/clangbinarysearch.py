@@ -108,7 +108,9 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                         os.unlink(tmp_file.name)
                         return (DeltaPass.Result.error, new_state)
 
+                #TODO: Why does this return OK?
                 shutil.move(tmp_file.name, test_case)
+                return (DeltaPass.Result.ok, new_state)
             else:
                 if not cls.__rechunk(new_state):
                     return (DeltaPass.Result.stop, new_state)
