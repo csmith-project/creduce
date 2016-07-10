@@ -31,6 +31,8 @@ use Regexp::Common;
 use File::Spec;
 use File::Temp;
 use File::Copy;
+use Carp;
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Load and use the Term::ReadKey module if available, don't complain otherwise
 my $SKIP_KEY_OFF = 0;
@@ -305,7 +307,7 @@ sub delta_test () {
 
 sub copy_files_here() {
     foreach my $f (@toreduce) {
-	File::Copy::copy($f,$fileonly{$f}) or die;
+	File::Copy::copy($f,$fileonly{$f}) or die "cannot copy '$f'";
     }
 }
 
@@ -1031,10 +1033,15 @@ $test = File::Spec->rel2abs(shift @ARGV);
 usage() unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
-while (@ARGV) {
+{
+  my %files_seen;
+  while (@ARGV) {
     my $f = File::Spec->rel2abs(shift @ARGV);
+    die "oops-- shouldn't try to reduce '$f' more than once" if ($files_seen{$f});
+    $files_seen{$f} = 1;
     push @toreduce, $f;
     check_file_attributes("file", $f, "efrw");
+  }
 }
 
 sub bysize {
