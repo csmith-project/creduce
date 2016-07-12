@@ -144,9 +144,9 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
         cmd = [self.test_script]
 
         if self.test_case is not None:
-            cmd.append(self.test_case)
+            cmd.append(self.test_case_path)
 
-        cmd.extend(self.additional_files)
+        cmd.extend(self.additional_files_paths)
 
         if sys.platform != "win32":
             def preexec_fn():
@@ -212,9 +212,9 @@ class PythonTestEnvironment(AbstractTestEnvironment):
         files = []
 
         if self.test_case is not None:
-            files.append(self.test_case)
+            files.append(self.test_case_path)
 
-        files.extend(self.additional_files)
+        files.extend(self.additional_files_paths)
 
         self.__process = multiprocessing.Process(target=_run_test, args=(self.module_spec, self.path, files))
         self.__process.start()
@@ -364,7 +364,7 @@ class AbstractTestManager:
     def __init__(self, test_runner, pass_statistic, test_cases, parallel_tests, no_cache, silent_pass_bug, die_on_pass_bug, print_diff, max_improvement, no_give_up, also_interesting):
         self.test_runner = test_runner
         self.pass_statistic = pass_statistic
-        self.test_cases = set(test_cases)
+        self.test_cases = set()
         self.parallel_tests = parallel_tests
         self.no_cache = no_cache
         self.silent_pass_bug = silent_pass_bug
@@ -376,6 +376,7 @@ class AbstractTestManager:
 
         for test_case in test_cases:
             self._check_file_permissions(test_case, [os.F_OK, os.R_OK, os.W_OK], InvalidTestCaseError)
+            self.test_cases.add(os.path.abspath(test_case))
 
         self._orig_total_file_size = self.total_file_size
         self._cache = {}
@@ -547,6 +548,8 @@ class AbstractTestManager:
             raise ZeroSizeError(self.test_cases)
 
         for test_case in self.test_cases:
+            self._current_test_case = test_case
+
             if self._get_file_size([test_case]) == 0:
                 continue
 
@@ -666,7 +669,7 @@ class AbstractTestManager:
 
                 #FIXME: Need to move to create_env
                 self._base_test_env = test_env
-                shutil.copy(self._base_test_env.test_case_path, ".")
+                shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
                 self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
                 #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
@@ -724,7 +727,7 @@ class FastConservativeTestManager(ConservativeTestManager):
 
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
-            shutil.copy(self._base_test_env.test_case_path, ".")
+            shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
             self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
             #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
@@ -796,7 +799,7 @@ class NonDeterministicTestManager(AbstractTestManager):
 
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
-            shutil.copy(self._base_test_env.test_case_path, ".")
+            shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
             self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
             #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
