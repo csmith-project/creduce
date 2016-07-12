@@ -149,19 +149,18 @@ if __name__ == "__main__":
         time_start = time.monotonic()
 
     try:
-        success = reducer.reduce(pass_group, skip_initial=args.skip_initial_passes)
+        reducer.reduce(pass_group, skip_initial=args.skip_initial_passes)
     except CReduceError as err:
         print(err)
 
-    if success:
-        print("pass statistics:")
+    print("pass statistics:")
 
-        for item in pass_statistic.sorted_results:
-            print("method {pass} :: {arg} worked {worked} times and failed {failed} times".format(**item))
+    for item in pass_statistic.sorted_results:
+        print("method {pass} :: {arg} worked {worked} times and failed {failed} times".format(**item))
 
-        for test_case in test_manager.sorted_test_cases:
-            with open(test_case, mode="r") as test_case_file:
-                print(test_case_file.read())
+    for test_case in test_manager.sorted_test_cases:
+        with open(test_case, mode="r") as test_case_file:
+            print(test_case_file.read())
 
     if args.timing:
         time_stop = time.monotonic()
