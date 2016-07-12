@@ -6,20 +6,16 @@ import tempfile
 from .delta import DeltaPass
 
 class BlankDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return True
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return 0
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
     @staticmethod
@@ -41,8 +37,7 @@ class BlankDeltaPass(DeltaPass):
 
         return matched
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         patterns = [r"^\s*$", r"^#"]
 
         if state >= len(patterns):
@@ -51,7 +46,7 @@ class BlankDeltaPass(DeltaPass):
             success = False
 
             while not success and state < len(patterns):
-                success = cls.__transform(test_case, patterns[state])
+                success = self.__transform(test_case, patterns[state])
                 state += 1
 
             return (DeltaPass.Result.ok if success else DeltaPass.Result.stop, state)

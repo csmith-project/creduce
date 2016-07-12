@@ -6,16 +6,13 @@ import tempfile
 from .delta import DeltaPass
 
 class LinesDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return shutil.which("topformflat") is not None
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return {"start": 1}
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         new_state = state.copy()
         pos = new_state["index"]
         new_state["index"] -= new_state["chunk"]
@@ -24,12 +21,10 @@ class LinesDeltaPass(DeltaPass):
 
         return new_state
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         new_state = state.copy()
 
         if "start" in new_state:
@@ -40,7 +35,7 @@ class LinesDeltaPass(DeltaPass):
             with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 with open(test_case, "r") as in_file:
                     try:
-                        proc = subprocess.run(["topformflat", arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
+                        proc = subprocess.run(["topformflat", self.arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
                     except subprocess.SubprocessError:
                         return (DeltaPass.Result.error, new_state)
 

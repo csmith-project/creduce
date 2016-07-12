@@ -7,24 +7,19 @@ import tempfile
 from .delta import DeltaPass
 
 class UnIfDefDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return shutil.which("unifdef") is not None
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return 0
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         try:
             proc = subprocess.run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:

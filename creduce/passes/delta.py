@@ -8,22 +8,29 @@ class DeltaPass:
         stop = 1
         error = 2
 
-    @classmethod
-    def check_prerequisites(cls):
-        raise NotImplementedError("Class {} has not implemented 'check_prerequisites'!".format(cls.__name__))
+    @enum.unique
+    class Option(enum.Enum):
+        sanitize = "sanitize"
+        slow = "slow"
+        windows = "windows"
 
-    @classmethod
-    def new(cls, test_case, arg):
-        raise NotImplementedError("Class {} has not implemented 'new'!".format(cls.__name__))
+    def __init__(self, arg):
+        self.arg = arg
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
-        raise NotImplementedError("Class {} has not implemented 'advance'!".format(cls.__name__))
+    def __repr__(self):
+        return "{}::{}".format(type(self).__name__, self.arg)
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
-        raise NotImplementedError("Class {} has not implemented 'advance_on_success'!".format(cls.__name__))
+    def check_prerequisites(self):
+        raise NotImplementedError("Class {} has not implemented 'check_prerequisites'!".format(type(self).__name__))
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
-        raise NotImplementedError("Class {} has not implemented 'transform'!".format(cls.__name__))
+    def new(self, test_case):
+        raise NotImplementedError("Class {} has not implemented 'new'!".format(type(self).__name__))
+
+    def advance(self, test_case, state):
+        raise NotImplementedError("Class {} has not implemented 'advance'!".format(type(self).__name__))
+
+    def advance_on_success(self, test_case, state):
+        raise NotImplementedError("Class {} has not implemented 'advance_on_success'!".format(type(self).__name__))
+
+    def transform(self, test_case, state):
+        raise NotImplementedError("Class {} has not implemented 'transform'!".format(type(self).__name__))

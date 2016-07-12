@@ -19,33 +19,27 @@ class TernaryDeltaPass(DeltaPass):
              (varnumexp_pattern, "c"),
              (border_or_space_pattern, "del2")]
 
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return True
 
-    @classmethod
-    def __get_next_match(cls, test_case, arg, pos):
+    def __get_next_match(self, test_case, pos):
         with open(test_case, "r") as in_file:
             prog = in_file.read()
 
-        m = nestedmatcher.search(cls.parts, prog, pos=pos)
+        m = nestedmatcher.search(self.parts, prog, pos=pos)
 
         return m
 
-    @classmethod
-    def new(cls, test_case, arg):
-        return cls.__get_next_match(test_case, arg, pos=0)
+    def new(self, test_case):
+        return self.__get_next_match(test_case, pos=0)
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
-        return cls.__get_next_match(test_case, arg, pos=state["all"][0] + 1)
+    def advance(self, test_case, state):
+        return self.__get_next_match(test_case, pos=state["all"][0] + 1)
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
-        return cls.__get_next_match(test_case, arg, pos=state["all"][0])
+    def advance_on_success(self, test_case, state):
+        return self.__get_next_match(test_case, pos=state["all"][0])
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         with open(test_case, "r") as in_file:
             prog = in_file.read()
             prog2 = prog
@@ -54,10 +48,10 @@ class TernaryDeltaPass(DeltaPass):
             if state is None:
                 return (DeltaPass.Result.stop, state)
             else:
-                if arg not in ["b", "c"]:
+                if self.arg not in ["b", "c"]:
                     raise UnknownArgumentError()
 
-                prog2 = prog2[0:state["del1"][1]] + prog2[state[arg][0]:state[arg][1]] + prog2[state["del2"][0]:]
+                prog2 = prog2[0:state["del1"][1]] + prog2[state[self.arg][0]:state[self.arg][1]] + prog2[state["del2"][0]:]
 
                 if prog != prog2:
                     with open(test_case, "w") as out_file:
@@ -65,4 +59,4 @@ class TernaryDeltaPass(DeltaPass):
 
                     return (DeltaPass.Result.ok, state)
                 else:
-                    state = cls.advance(test_case, arg, state)
+                    state = self.advance(test_case, state)

@@ -9,6 +9,7 @@ import sys
 import time
 
 from creduce.creduce import CReduce
+from creduce.passes.delta import DeltaPass
 from creduce.utils.error import CReduceError
 from creduce.utils import parallel
 from creduce.utils import statistics
@@ -105,13 +106,13 @@ if __name__ == "__main__":
     pass_options = set()
 
     if sys.platform == "win32":
-        pass_options.add(CReduce.Pass.Option.windows)
+        pass_options.add(DeltaPass.Option.windows)
 
     if args.sanitize:
-        pass_options.add(CReduce.PassOption.sanitize)
+        pass_options.add(DeltaPass.Option.sanitize)
 
     if args.sllooww:
-        pass_options.add(CReduce.PassOption.slow)
+        pass_options.add(DeltaPass.Option.slow)
 
     if args.pass_group is not None:
         pass_group_file = get_pass_group_path(args.pass_group)

@@ -8,16 +8,13 @@ import tempfile
 from .delta import DeltaPass
 
 class ClangBinarySearchDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return shutil.which("clang_delta") is not None
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return {"start": 1}
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         if "start" in state:
             return state
         else:
@@ -28,14 +25,12 @@ class ClangBinarySearchDeltaPass(DeltaPass):
 
             return new_state
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @staticmethod
-    def __count_instances(test_case, arg):
+    def __count_instances(self, test_case):
         try:
-            proc = subprocess.run(["clang_delta", "--query-instances={}".format(arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
+            proc = subprocess.run(["clang_delta", "--query-instances={}".format(self.arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
             return 0
 
@@ -58,14 +53,13 @@ class ClangBinarySearchDeltaPass(DeltaPass):
 
         return True
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         new_state = state.copy()
 
         if "start" in new_state:
             del new_state["start"]
 
-            instances = cls.__count_instances(test_case, arg)
+            instances = self.__count_instances(test_case)
 
             new_state["chunk"] = instances
             new_state["instances"] = instances
@@ -81,10 +75,10 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                 dec = end - new_state["index"] + 1
 
                 with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    logging.debug(" ".join(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
+                    logging.debug(" ".join(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
 
                     try:
-                        proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
+                        proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
                     except subprocess.SubprocessError:
                         return (DeltaPass.Result.error, new_state)
 
@@ -100,7 +94,7 @@ class ClangBinarySearchDeltaPass(DeltaPass):
 
                         logging.debug("out of instances!")
 
-                        if not cls.__rechunk(new_state):
+                        if not self.__rechunk(new_state):
                             return (DeltaPass.Result.stop, new_state)
 
                         continue
@@ -112,7 +106,7 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                 shutil.move(tmp_file.name, test_case)
                 return (DeltaPass.Result.ok, new_state)
             else:
-                if not cls.__rechunk(new_state):
+                if not self.__rechunk(new_state):
                     return (DeltaPass.Result.stop, new_state)
 
         return (DeltaPass.Result.ok, new_state)

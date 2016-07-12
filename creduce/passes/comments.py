@@ -3,24 +3,19 @@ import re
 from .delta import DeltaPass
 
 class CommentsDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return True
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return -2
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         with open(test_case, "r") as in_file:
             prog = in_file.read()
             prog2 = prog
@@ -43,4 +38,4 @@ class CommentsDeltaPass(DeltaPass):
 
                 return (DeltaPass.Result.ok, state)
             else:
-                state = cls.advance(test_case, arg, state)
+                state = self.advance(test_case, state)

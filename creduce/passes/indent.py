@@ -4,8 +4,7 @@ import subprocess
 from .delta import DeltaPass
 
 class IndentDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         if shutil.which("clang-format") is None:
             return False
 
@@ -17,30 +16,26 @@ class IndentDeltaPass(DeltaPass):
 
         return True
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return 0
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         with open(test_case, "r") as in_file:
             old = in_file.read()
 
         while True:
-            if arg == "regular":
+            if self.arg == "regular":
                 if state != 0:
                     return (DeltaPass.Result.stop, state)
                 else:
                     cmd = ["clang-format", "-i", test_case]
-            elif arg == "final":
+            elif self.arg == "final":
                 if state == 0:
                     cmd = ["indent", "-nbad", "-nbap", "-nbbb", "-cs", "-pcs", "-prs", "-saf", "-sai", "-saw", "-sob", "-ss", test_case]
                 elif state == 1:

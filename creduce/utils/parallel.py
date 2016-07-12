@@ -1,4 +1,3 @@
-#TODO: Move arg into pass and make it an object
 #TODO: Kill process implicitly if test env is deleted
 
 import difflib
@@ -431,7 +430,7 @@ class AbstractTestManager:
     #TODO: Move to error module
     def _report_pass_bug(self, test_env, problem):
         if not self.die_on_pass_bug:
-            logging.warning("{}::{} has encountered a non fatal bug: {}".format(self._pass, self._arg, problem))
+            logging.warning("{} has encountered a non fatal bug: {}".format(self._pass, problem))
 
         crash_dir = self._get_extra_dir("creduce_bug_", self.MAX_CRASH_DIRS)
 
@@ -448,10 +447,10 @@ class AbstractTestManager:
             info_file.write("{}\n".format(self.PACKAGE))
             info_file.write("{}\n".format(self.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
-            info_file.write(PassBugError.MSG.format(self._pass, self._arg, problem, crash_dir))
+            info_file.write(PassBugError.MSG.format(self._pass, problem, crash_dir))
 
         if self.die_on_pass_bug:
-            raise PassBugError(self._pass, self._arg, problem, crash_dir)
+            raise PassBugError(self._pass, problem, crash_dir)
 
     @staticmethod
     def _diff_files(orig_file, changed_file):
@@ -468,10 +467,6 @@ class AbstractTestManager:
     @staticmethod
     def _file_size_difference(orig_file, changed_file):
         return (os.path.getsize(orig_file) - os.path.getsize(changed_file))
-
-    @staticmethod
-    def _generate_unique_pass_key(pass_, arg):
-        return str(pass_) + str(arg)
 
     def check_sanity(self):
         logging.debug("perform sanity check... ")
@@ -529,7 +524,7 @@ class AbstractTestManager:
         # Copy state from base_env
         test_env.state = self._base_test_env.state
 
-        (result, test_env.state) = self._pass.transform(test_env.test_case_path, self._arg, test_env.state)
+        (result, test_env.state) = self._pass.transform(test_env.test_case_path, test_env.state)
 
         #TODO: Can the state be altered if the transform fails?
         # Transform can alter the state. This has to be reflected in the base test env
@@ -537,12 +532,11 @@ class AbstractTestManager:
 
         return (test_env, result)
 
-    def run_pass(self, pass_, arg):
+    def run_pass(self, pass_):
         self._pass = pass_
-        self._arg = arg
         self._environments = []
 
-        logging.info("===< {} :: {} >===".format(self._pass.__name__, self._arg))
+        logging.info("===< {} >===".format(self._pass))
 
         if self.total_file_size == 0:
             raise ZeroSizeError(self.test_cases)
@@ -557,7 +551,7 @@ class AbstractTestManager:
                 with open(test_case, mode="r+") as tmp_file:
                     test_case_before_pass = tmp_file.read()
 
-                    pass_key = self._generate_unique_pass_key(self._pass, self._arg)
+                    pass_key = repr(self._pass)
 
                     if (pass_key in self._cache and
                         test_case_before_pass in self._cache[pass_key]):
@@ -569,7 +563,7 @@ class AbstractTestManager:
             # Create initial test environment
             self._base_test_env = self.test_runner.create_environment()
             self._base_test_env.copy_files(test_case, self.test_cases ^ {test_case})
-            self._base_test_env.state = self._pass.new(self._base_test_env.test_case_path, self._arg)
+            self._base_test_env.state = self._pass.new(self._base_test_env.test_case_path)
             #logging.debug("Base state initial: {}".format(self._base_test_env.state))
 
             self._stopped = False
@@ -603,7 +597,7 @@ class AbstractTestManager:
                             self._environments.append(test_env)
 
                             #TODO: Needs to be moved to create_test_env
-                            self._base_test_env.state = pass_.advance(self._base_test_env.test_case_path, self._arg, self._base_test_env.state)
+                            self._base_test_env.state = self._pass.advance(self._base_test_env.test_case_path, self._base_test_env.state)
                             #logging.debug("Base state advance: {}".format(self._base_test_env.state))
 
                 self.wait_for_results()
@@ -654,7 +648,7 @@ class AbstractTestManager:
                 break
 
             self._environments.pop(0)
-            #logging.info("Handle {}".format(test_env.__repr__()))
+            #logging.info("Handle {}".format(test_env))
 
             if test_env.check_result(0):
                 logging.debug("delta test success")
@@ -670,12 +664,12 @@ class AbstractTestManager:
                 #FIXME: Need to move to create_env
                 self._base_test_env = test_env
                 shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-                self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
+                self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
                 #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
                 self._stopped = False
                 self._since_success = 0
-                self.pass_statistic.update(self._pass, self._arg, success=True)
+                self.pass_statistic.update(self._pass, success=True)
 
                 pct = 100 - (self.total_file_size * 100.0 / self._orig_total_file_size)
                 logging.info("({}%, {} bytes)".format(round(pct, 1), self.total_file_size))
@@ -683,7 +677,7 @@ class AbstractTestManager:
                 logging.debug("delta test failure")
 
                 self._since_success += 1
-                self.pass_statistic.update(self._pass, self._arg, success=False)
+                self.pass_statistic.update(self._pass, success=False)
 
                 if (self.also_interesting is not None and
                     test_env.check_result(self.also_interesting)):
@@ -728,7 +722,7 @@ class FastConservativeTestManager(ConservativeTestManager):
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
+            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
             #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
 class NonDeterministicTestManager(AbstractTestManager):
@@ -760,7 +754,7 @@ class NonDeterministicTestManager(AbstractTestManager):
         # Copy state from base_env
         test_env.state = self._base_test_env.state
 
-        (result, test_env.state) = self._pass.transform(test_env.test_case_path, self._arg, test_env.state)
+        (result, test_env.state) = self._pass.transform(test_env.test_case_path, test_env.state)
 
         # Transform can alter the state. This has to be reflected in the base test env
         self._base_test_env.state = test_env.state
@@ -800,12 +794,12 @@ class NonDeterministicTestManager(AbstractTestManager):
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._arg, self._base_test_env.state)
+            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
             #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
 
             self._stopped = False
             self._since_success = 0
-            self.pass_statistic.update(self._pass, self._arg, success=True)
+            self.pass_statistic.update(self._pass, success=True)
 
             pct = 100 - (self.total_file_size * 100.0 / self._orig_total_file_size)
             logging.info("({}%, {} bytes)".format(round(pct, 1), self.total_file_size))

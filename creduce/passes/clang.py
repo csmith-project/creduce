@@ -6,27 +6,22 @@ import tempfile
 from .delta import DeltaPass
 
 class ClangDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return shutil.which("clang_delta") is not None
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return 1
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         return state + 1
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             try:
-                proc = subprocess.run(["clang_delta", "--transformation={}".format(arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
+                proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
                 return (DeltaPass.Result.error, state)
 

@@ -4,12 +4,10 @@ from .delta import DeltaPass
 from ..utils.error import UnknownArgumentError
 
 class SpecialDeltaPass(DeltaPass):
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return True
 
-    @classmethod
-    def __get_config(cls, arg):
+    def __get_config(self):
         config = {"search": None,
                   "replace_fn": None,
                  }
@@ -20,13 +18,13 @@ class SpecialDeltaPass(DeltaPass):
         def replace_empty(m):
             return ""
 
-        if arg == "a":
+        if self.arg == "a":
             config["search"] = r"transparent_crc\s*\((?P<list>[^)]*)\)"
             config["replace_fn"] = replace_printf
-        elif arg == "b":
+        elif self.arg == "b":
             config["search"] = r'extern "C"'
             config["replace_fn"] = replace_empty
-        elif arg == "c":
+        elif self.arg == "c":
             config["search"] = r'extern "C\+\+"'
             config["replace_fn"] = replace_empty
         else:
@@ -34,36 +32,31 @@ class SpecialDeltaPass(DeltaPass):
 
         return config
 
-    @classmethod
-    def __get_next_match(cls, test_case, arg, pos):
+    def __get_next_match(self, test_case, pos):
         with open(test_case, "r") as in_file:
             prog = in_file.read()
 
-        config = cls.__get_config(arg)
+        config = self.__get_config()
         regex = re.compile(config["search"], flags=re.DOTALL)
         m = regex.search(prog, pos=pos)
 
         return m
 
-    @classmethod
-    def new(cls, test_case, arg):
-        return cls.__get_next_match(test_case, arg, pos=0)
+    def new(self, test_case):
+        return self.__get_next_match(test_case, pos=0)
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
-        return cls.__get_next_match(test_case, arg, pos=state.start() + 1)
+    def advance(self, test_case, state):
+        return self.__get_next_match(test_case, pos=state.start() + 1)
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
-        return cls.__get_next_match(test_case, arg, pos=state.start())
+    def advance_on_success(self, test_case, state):
+        return self.__get_next_match(test_case, pos=state.start())
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         with open(test_case, "r") as in_file:
             prog = in_file.read()
             prog2 = prog
 
-        config = cls.__get_config(arg)
+        config = self.__get_config()
 
         while True:
             if state is None:
@@ -77,4 +70,4 @@ class SpecialDeltaPass(DeltaPass):
 
                     return (DeltaPass.Result.ok, state)
                 else:
-                    state = cls.advance(test_case, arg, state)
+                    state = self.advance(test_case, state)

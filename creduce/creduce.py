@@ -23,44 +23,10 @@ from .passes import special
 from .passes import ternary
 from .passes import unifdef
 
+from .passes.delta import DeltaPass
 from .utils.error import CReduceError
 from .utils.error import PassOptionError
 from .utils.error import PrerequisitesNotFoundError
-
-class Pass:
-    @enum.unique
-    class Option(enum.Enum):
-        sanitize = "sanitize"
-        slow = "slow"
-        windows = "windows"
-
-    @classmethod
-    def _check_pass_options(cls, options):
-        return all(isinstance(opt, cls.Option) for opt in options)
-
-    def __init__(self, pass_, arg, *, include=None, exclude=None):
-        self.pass_ = pass_
-        self.arg = arg
-
-        if include is not None:
-            tmp = set(include)
-
-            if self._check_pass_options(tmp):
-                self.include = tmp
-            else:
-                raise PassOptionError()
-        else:
-            self.include = None
-
-        if exclude is not None:
-            tmp = set(exclude)
-
-            if self._check_pass_options(tmp):
-                self.exclude = tmp
-            else:
-                raise PassOptionError()
-        else:
-            self.exclude = None
 
 class CReduce:
     pass_name_mapping = {
@@ -100,7 +66,15 @@ class CReduce:
         pass_group = {}
 
         def parse_options(options):
-            return set(Pass.Option(opt) for opt in options)
+            valid_options = set()
+
+            for opt in options:
+                try:
+                    valid_options.add(DeltaPass.Option(opt))
+                except ValueError:
+                    raise PassOptionError(opt)
+
+            return valid_options
 
         def include_pass(pass_dict, options):
             return ((("include" not in pass_dict) or bool(parse_options(pass_dict["include"]) & options)) and
@@ -127,8 +101,7 @@ class CReduce:
                 if "arg" not in pass_dict:
                     raise CReduceError("Missing arg for pass {}".format(pass_dict["pass"]))
 
-                #TODO: Create pass instances and get rid of Pass class
-                pass_group[category].append(Pass(pass_class, pass_dict["arg"]))
+                pass_group[category].append(pass_class(pass_dict["arg"]))
 
         return pass_group
 
@@ -162,7 +135,7 @@ class CReduce:
         missing = []
 
         for category in pass_group:
-            passes |= set(map(lambda p: p.pass_, pass_group[category]))
+            passes |= set(pass_group[category])
 
         for p in passes:
             if not p.check_prerequisites():
@@ -174,28 +147,16 @@ class CReduce:
 
     def _run_additional_passes(self, passes):
         for p in passes:
-            self.test_manager.run_pass(p.pass_, p.arg)
+            self.test_manager.run_pass(p)
 
     def _run_main_passes(self, passes):
         while True:
             total_file_size = self.test_manager.total_file_size
 
             for p in passes:
-                self.test_manager.run_pass(p.pass_, p.arg)
+                self.test_manager.run_pass(p)
 
             logging.info("Termination check: size was {}; now {}".format(total_file_size, self.test_manager.total_file_size))
 
             if  self.test_manager.total_file_size >= total_file_size:
                 break
-
-    def _prepare_pass_group(self, pass_group, pass_options):
-        group = self.groups[pass_group]
-
-        def pass_filter(p):
-            return (((p.include is None) or bool(p.include & pass_options)) and
-                    ((p.exclude is None) or not bool(p.exclude & pass_options)))
-
-        for category in group:
-            group[category] = [p for p in group[category] if pass_filter(p)]
-
-        return group

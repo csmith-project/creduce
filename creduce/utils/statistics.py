@@ -2,16 +2,12 @@ class PassStatistic:
     def __init__(self):
         self.stats = {}
 
-    @staticmethod
-    def _generate_unique_pass_key(pass_, arg):
-        return str(pass_) + str(arg)
-
-    def update(self, pass_, arg, success):
-        key = self._generate_unique_pass_key(pass_, arg)
+    def update(self, pass_, success):
+        key = repr(pass_)
 
         if key not in self.stats:
             self.stats[key] = {"pass" : pass_,
-                               "arg" : arg,
+                               "arg" : pass_.arg,
                                "worked" : 0,
                                "failed" : 0}
 

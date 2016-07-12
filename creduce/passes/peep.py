@@ -121,22 +121,19 @@ class PeepDeltaPass(DeltaPass):
         delimited_regexes_to_replace.append(([nestedmatcher.RegExPattern(r",\s*")] + x, "1"))
         delimited_regexes_to_replace.append(([nestedmatcher.RegExPattern(r",\s*")] + x, ""))
 
-    @classmethod
-    def check_prerequisites(cls):
+    def check_prerequisites(self):
         return True
 
-    @classmethod
-    def new(cls, test_case, arg):
+    def new(self, test_case):
         return {"pos" : 0, "regex" : 0}
 
-    @classmethod
-    def advance(cls, test_case, arg, state):
+    def advance(self, test_case, state):
         new_state = state.copy()
 
-        if arg == "a":
-            lim = len(cls.regexes_to_replace)
-        elif arg == "b":
-            lim = len(cls.delimited_regexes_to_replace);
+        if self.arg == "a":
+            lim = len(self.regexes_to_replace)
+        elif self.arg == "b":
+            lim = len(self.delimited_regexes_to_replace);
         else:
             raise UnknownArgumentError()
 
@@ -148,12 +145,10 @@ class PeepDeltaPass(DeltaPass):
 
         return new_state
 
-    @classmethod
-    def advance_on_success(cls, test_case, arg, state):
+    def advance_on_success(self, test_case, state):
         return state
 
-    @classmethod
-    def transform(cls, test_case, arg, state):
+    def transform(self, test_case, state):
         new_state = state.copy()
 
         with open(test_case, "r") as in_file:
@@ -164,8 +159,8 @@ class PeepDeltaPass(DeltaPass):
             if new_state["pos"] > len(prog):
                 return (DeltaPass.Result.stop, new_state)
 
-            if arg == "a":
-                l = cls.regexes_to_replace[new_state["regex"]]
+            if self.arg == "a":
+                l = self.regexes_to_replace[new_state["regex"]]
                 search = l[0];
                 replace = l[1];
 
@@ -179,20 +174,20 @@ class PeepDeltaPass(DeltaPass):
                             out_file.write(prog2)
 
                         return (DeltaPass.Result.ok, new_state)
-            elif arg == "b":
-                l = cls.delimited_regexes_to_replace[new_state["regex"]]
+            elif self.arg == "b":
+                l = self.delimited_regexes_to_replace[new_state["regex"]]
                 search = l[0]
                 replace = l[1]
 
                 if prog2.startswith(","):
-                    front = (cls.border_or_space_optional_pattern, "delim1")
+                    front = (self.border_or_space_optional_pattern, "delim1")
                 else:
-                    front = (cls.border_or_space_pattern, "delim1")
+                    front = (self.border_or_space_pattern, "delim1")
 
                 if prog2.endswith(","):
-                    back = (cls.border_or_space_optional_pattern, "delim2")
+                    back = (self.border_or_space_optional_pattern, "delim2")
                 else:
-                    back = (cls.border_or_space_pattern, "delim2")
+                    back = (self.border_or_space_pattern, "delim2")
 
                 search = [front] + search + [back]
 
@@ -209,4 +204,4 @@ class PeepDeltaPass(DeltaPass):
             else:
                 raise UnknownArgumentError()
 
-            new_state = cls.advance(test_case, arg, new_state)
+            new_state = self.advance(test_case, new_state)

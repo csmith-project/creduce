@@ -71,7 +71,7 @@ class PassOptionError(CReduceError):
 class PassBugError(CReduceError):
     MSG = """***************************************************
 
-{}::{} has encountered a bug:
+{} has encountered a bug:
 {}
 
 Please consider tarring up {}
@@ -80,15 +80,14 @@ and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.
 ***************************************************
 """
 
-    def __init__(self, delta_method, delta_arg, problem, crash_dir):
+    def __init__(self, delta_pass, problem, crash_dir):
         super().__init__()
-        self.delta_method = delta_method
-        self.delta_arg = delta_arg
+        self.delta_pass = delta_pass
         self.problem = problem
         self.crash_dir = crash_dir
 
     def __str__(self):
-        return self.MSG.format(self.delta_method, self.delta_arg, self.problem, self.crash_dir)
+        return self.MSG.format(self.delta_pass, self.problem, self.crash_dir)
 
 class InsaneTestCaseError(CReduceError):
     def __init__(self, test_cases, test):
