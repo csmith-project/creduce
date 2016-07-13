@@ -99,7 +99,7 @@ class BalancedPass(AbstractPass):
 
         while True:
             if state is None:
-                return (Result.stop, state)
+                return (self.Result.stop, state)
             else:
                 prog2 = config["replace_fn"](prog2, state)
 
@@ -107,6 +107,6 @@ class BalancedPass(AbstractPass):
                     with open(test_case, "w") as out_file:
                         out_file.write(prog2)
 
-                    return (Result.ok, state)
+                    return (self.Result.ok, state)
                 else:
                     state = self.advance(test_case, state)
