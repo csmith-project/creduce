@@ -1,3 +1,5 @@
+#TODO: Make argument optional
+
 import re
 import enum
 
