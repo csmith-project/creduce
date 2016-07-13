@@ -2,16 +2,15 @@ import os
 import tempfile
 import unittest
 
-from ..passes import DeltaPass
-from ..passes import SpecialDeltaPass
+from ..passes import SpecialPass
 
 class SpecialTest(unittest.TestCase):
     def test_a(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write('// Useless comment\ntransparent_crc(g_376.f0, "g_376.f0", print_hash_value);\ntransparent_crc(g_1194[i].f0, "g_1194[i].f0", print_hash_value);\nint a = 9;')
 
-        state = SpecialDeltaPass.new(tmp_file.name, "a")
-        (_, state) = SpecialDeltaPass.transform(tmp_file.name, "a", state)
+        state = SpecialPass.new(tmp_file.name, "a")
+        (_, state) = SpecialPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -24,8 +23,8 @@ class SpecialTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write('void foo(){} extern "C" {int a;}; a = 9;\n')
 
-        state = SpecialDeltaPass.new(tmp_file.name, "b")
-        (_, state) = SpecialDeltaPass.transform(tmp_file.name, "b", state)
+        state = SpecialPass.new(tmp_file.name, "b")
+        (_, state) = SpecialPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -38,8 +37,8 @@ class SpecialTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write('void foo(){} extern "C++" {int a;}; a = 9;\n')
 
-        state = SpecialDeltaPass.new(tmp_file.name, "c")
-        (_, state) = SpecialDeltaPass.transform(tmp_file.name, "c", state)
+        state = SpecialPass.new(tmp_file.name, "c")
+        (_, state) = SpecialPass.transform(tmp_file.name, "c", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -52,14 +51,14 @@ class SpecialTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write('// Useless comment\ntransparent_crc(g_376.f0, "g_376.f0", print_hash_value);\ntransparent_crc(g_1194[i].f0, "g_1194[i].f0", print_hash_value);\nint a = 9;')
 
-        state = SpecialDeltaPass.new(tmp_file.name, "a")
-        (result, state) = SpecialDeltaPass.transform(tmp_file.name, "a", state)
+        state = SpecialPass.new(tmp_file.name, "a")
+        (result, state) = SpecialPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 4:
-            state = SpecialDeltaPass.advance_on_success(tmp_file.name, "a", state)
-            (result, state) = SpecialDeltaPass.transform(tmp_file.name, "a", state)
+        while result == SpecialPass.Result.ok and iteration < 4:
+            state = SpecialPass.advance_on_success(tmp_file.name, "a", state)
+            (result, state) = SpecialPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -74,17 +73,17 @@ class SpecialTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write('// Useless comment\ntransparent_crc(g_376.f0, "g_376.f0", print_hash_value);\ntransparent_crc(g_1194[i].f0, "g_1194[i].f0", print_hash_value);\nint a = 9;')
 
-        state = SpecialDeltaPass.new(tmp_file.name, "a")
-        (result, state) = SpecialDeltaPass.transform(tmp_file.name, "a", state)
+        state = SpecialPass.new(tmp_file.name, "a")
+        (result, state) = SpecialPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 4:
+        while result == SpecialPass.Result.ok and iteration < 4:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write('// Useless comment\ntransparent_crc(g_376.f0, "g_376.f0", print_hash_value);\ntransparent_crc(g_1194[i].f0, "g_1194[i].f0", print_hash_value);\nint a = 9;')
 
-            state = SpecialDeltaPass.advance(tmp_file.name, "a", state)
-            (result, state) = SpecialDeltaPass.transform(tmp_file.name, "a", state)
+            state = SpecialPass.advance(tmp_file.name, "a", state)
+            (result, state) = SpecialPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         os.unlink(tmp_file.name)

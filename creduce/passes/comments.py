@@ -1,8 +1,8 @@
 import re
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class CommentsDeltaPass(DeltaPass):
+class CommentsPass(AbstractPass):
     def check_prerequisites(self):
         return True
 
@@ -22,7 +22,7 @@ class CommentsDeltaPass(DeltaPass):
 
         while True:
             if state > -1:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             elif state == -2:
                 # Remove all multiline comments
                 # Replace /* any number of * if not followed by / or anything but * */
@@ -36,6 +36,6 @@ class CommentsDeltaPass(DeltaPass):
                 with open(test_case, "w") as out_file:
                     out_file.write(prog2)
 
-                return (DeltaPass.Result.ok, state)
+                return (self.Result.ok, state)
             else:
                 state = self.advance(test_case, state)

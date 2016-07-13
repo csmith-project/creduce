@@ -1,9 +1,9 @@
 import re
 
-from .delta import DeltaPass
+from . import AbstractPass
 from ..utils.error import UnknownArgumentError
 
-class SpecialDeltaPass(DeltaPass):
+class SpecialPass(AbstractPass):
     def check_prerequisites(self):
         return True
 
@@ -60,7 +60,7 @@ class SpecialDeltaPass(DeltaPass):
 
         while True:
             if state is None:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             else:
                 prog2 = prog2[:state.start()] + config["replace_fn"](state) + prog2[state.end():]
 
@@ -68,6 +68,6 @@ class SpecialDeltaPass(DeltaPass):
                     with open(test_case, "w") as out_file:
                         out_file.write(prog2)
 
-                    return (DeltaPass.Result.ok, state)
+                    return (self.Result.ok, state)
                 else:
                     state = self.advance(test_case, state)

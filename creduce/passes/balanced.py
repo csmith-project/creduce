@@ -1,8 +1,8 @@
-from .delta import DeltaPass
+from . import AbstractPass
 from ..utils import nestedmatcher
 from ..utils.error import UnknownArgumentError
 
-class BalancedDeltaPass(DeltaPass):
+class BalancedPass(AbstractPass):
     def check_prerequisites(self):
         return True
 
@@ -99,7 +99,7 @@ class BalancedDeltaPass(DeltaPass):
 
         while True:
             if state is None:
-                return (DeltaPass.Result.stop, state)
+                return (Result.stop, state)
             else:
                 prog2 = config["replace_fn"](prog2, state)
 
@@ -107,6 +107,6 @@ class BalancedDeltaPass(DeltaPass):
                     with open(test_case, "w") as out_file:
                         out_file.write(prog2)
 
-                    return (DeltaPass.Result.ok, state)
+                    return (Result.ok, state)
                 else:
                     state = self.advance(test_case, state)

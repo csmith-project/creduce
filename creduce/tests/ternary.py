@@ -2,16 +2,15 @@ import os
 import tempfile
 import unittest
 
-from ..passes import DeltaPass
-from ..passes import TernaryDeltaPass
+from ..passes import TernaryPass
 
 class TernaryTest(unittest.TestCase):
     def test_b(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("int res = a ? b : c;\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (_, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        state = TernaryPass.new(tmp_file.name, "b")
+        (_, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -24,8 +23,8 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("int res = a ? b : c;\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "c")
-        (_, state) = TernaryDeltaPass.transform(tmp_file.name, "c", state)
+        state = TernaryPass.new(tmp_file.name, "c")
+        (_, state) = TernaryPass.transform(tmp_file.name, "c", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -38,8 +37,8 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("int res = (a != 0) ? (b + 5) : c;\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (_, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        state = TernaryPass.new(tmp_file.name, "b")
+        (_, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -52,12 +51,12 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        state = TernaryPass.new(tmp_file.name, "b")
+        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
-        while result == DeltaPass.Result.ok:
-            state = TernaryDeltaPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        while result == TernaryPass.Result.ok:
+            state = TernaryPass.advance_on_success(tmp_file.name, "b", state)
+            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -70,14 +69,14 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
            tmp_file.write("// no ? match :!\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        state = TernaryPass.new(tmp_file.name, "b")
+        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 5:
-            state = TernaryDeltaPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        while result == TernaryPass.Result.ok and iteration < 5:
+            state = TernaryPass.advance_on_success(tmp_file.name, "b", state)
+            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -92,17 +91,17 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryDeltaPass.new(tmp_file.name, "b")
-        (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+        state = TernaryPass.new(tmp_file.name, "b")
+        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 6:
+        while result == TernaryPass.Result.ok and iteration < 6:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-            state = TernaryDeltaPass.advance(tmp_file.name, "b", state)
-            (result, state) = TernaryDeltaPass.transform(tmp_file.name, "b", state)
+            state = TernaryPass.advance(tmp_file.name, "b", state)
+            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
             iteration += 1
 
         os.unlink(tmp_file.name)

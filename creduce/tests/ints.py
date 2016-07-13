@@ -2,16 +2,15 @@ import os
 import tempfile
 import unittest
 
-from ..passes import DeltaPass
-from ..passes import IntsDeltaPass
+from ..passes import IntsPass
 
 class IntsTest(unittest.TestCase):
     def test_a(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "a")
-        (_, state) = IntsDeltaPass.transform(tmp_file.name, "a", state)
+        state = IntsPass.new(tmp_file.name, "a")
+        (_, state) = IntsPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -24,8 +23,8 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "b")
-        (_, state) = IntsDeltaPass.transform(tmp_file.name, "b", state)
+        state = IntsPass.new(tmp_file.name, "b")
+        (_, state) = IntsPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -38,8 +37,8 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "c")
-        (_, state) = IntsDeltaPass.transform(tmp_file.name, "c", state)
+        state = IntsPass.new(tmp_file.name, "c")
+        (_, state) = IntsPass.transform(tmp_file.name, "c", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -52,8 +51,8 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "d")
-        (_, state) = IntsDeltaPass.transform(tmp_file.name, "d", state)
+        state = IntsPass.new(tmp_file.name, "d")
+        (_, state) = IntsPass.transform(tmp_file.name, "d", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -66,8 +65,8 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "e")
-        (_, state) = IntsDeltaPass.transform(tmp_file.name, "e", state)
+        state = IntsPass.new(tmp_file.name, "e")
+        (_, state) = IntsPass.transform(tmp_file.name, "e", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -80,14 +79,14 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "a")
-        (result, state) = IntsDeltaPass.transform(tmp_file.name, "a", state)
+        state = IntsPass.new(tmp_file.name, "a")
+        (result, state) = IntsPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 6:
-            state = IntsDeltaPass.advance_on_success(tmp_file.name, "a", state)
-            (result, state) = IntsDeltaPass.transform(tmp_file.name, "a", state)
+        while result == IntsPass.Result.ok and iteration < 6:
+            state = IntsPass.advance_on_success(tmp_file.name, "a", state)
+            (result, state) = IntsPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -102,17 +101,17 @@ class IntsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-        state = IntsDeltaPass.new(tmp_file.name, "a")
-        (result, state) = IntsDeltaPass.transform(tmp_file.name, "a", state)
+        state = IntsPass.new(tmp_file.name, "a")
+        (result, state) = IntsPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 4:
+        while result == IntsPass.Result.ok and iteration < 4:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("Compute 123L + 0x456 + 0789!\n")
 
-            state = IntsDeltaPass.advance(tmp_file.name, "a", state)
-            (result, state) = IntsDeltaPass.transform(tmp_file.name, "a", state)
+            state = IntsPass.advance(tmp_file.name, "a", state)
+            (result, state) = IntsPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         os.unlink(tmp_file.name)

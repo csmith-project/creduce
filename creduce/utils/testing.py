@@ -16,7 +16,7 @@ import sys
 import tempfile
 import weakref
 
-from ..passes import DeltaPass
+from ..passes import AbstractPass
 
 from .error import InsaneTestCaseError
 from .error import InvalidInterestingnessTestError
@@ -579,11 +579,11 @@ class AbstractTestManager:
                     (test_env, result) = self.create_test_env()
                     #logging.debug("Base state create: {}".format(self._base_test_env.state))
 
-                    if result != DeltaPass.Result.ok and result != DeltaPass.Result.stop:
+                    if result != self._pass.Result.ok and result != self._pass.Result.stop:
                         if not self.silent_pass_bug:
-                            self._report_pass_bug(test_env, str(test_env.state) if result == DeltaPass.Result.error else "unknown return code")
+                            self._report_pass_bug(test_env, str(test_env.state) if result == self._pass.Result.error else "unknown return code")
 
-                    if result == DeltaPass.Result.stop or result == DeltaPass.Result.error:
+                    if result == self._pass.Result.stop or result == self._pass.Result.error:
                         self._stopped = True
                     else:
                         if self.print_diff:

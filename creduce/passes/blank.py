@@ -3,9 +3,9 @@ import re
 import shutil
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class BlankDeltaPass(DeltaPass):
+class BlankPass(AbstractPass):
     def check_prerequisites(self):
         return True
 
@@ -41,7 +41,7 @@ class BlankDeltaPass(DeltaPass):
         patterns = [r"^\s*$", r"^#"]
 
         if state >= len(patterns):
-            return (DeltaPass.Result.stop, state)
+            return (self.Result.stop, state)
         else:
             success = False
 
@@ -49,4 +49,4 @@ class BlankDeltaPass(DeltaPass):
                 success = self.__transform(test_case, patterns[state])
                 state += 1
 
-            return (DeltaPass.Result.ok if success else DeltaPass.Result.stop, state)
+            return (self.Result.ok if success else self.Result.stop, state)

@@ -3,9 +3,9 @@ import shutil
 import subprocess
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class LinesDeltaPass(DeltaPass):
+class LinesPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which("topformflat") is not None
 
@@ -37,7 +37,7 @@ class LinesDeltaPass(DeltaPass):
                     try:
                         proc = subprocess.run(["topformflat", self.arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
                     except subprocess.SubprocessError:
-                        return (DeltaPass.Result.error, new_state)
+                        return (self.Result.error, new_state)
 
                 for l in proc.stdout.splitlines(keepends=True):
                     if not l.isspace():
@@ -50,7 +50,7 @@ class LinesDeltaPass(DeltaPass):
 
             new_state["index"] = len(data)
             new_state["chunk"] = len(data)
-            return (DeltaPass.Result.ok, new_state)
+            return (self.Result.ok, new_state)
         else:
             logging.debug("***TRANSFORM REGULAR chunk {} at {}***".format(new_state["chunk"], new_state["index"]));
 
@@ -75,11 +75,11 @@ class LinesDeltaPass(DeltaPass):
                     break
                 else:
                     if new_state["chunk"] <= 1:
-                        return (DeltaPass.Result.stop, new_state)
+                        return (self.Result.stop, new_state)
 
                     new_state["chunk"] = int(float(new_state["chunk"]) / 2.0)
                     new_state["index"] = len(data)
 
                     logging.debug("granularity reduced to {}".format(new_state["chunk"]))
 
-            return (DeltaPass.Result.ok, new_state)
+            return (self.Result.ok, new_state)

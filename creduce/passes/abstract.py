@@ -1,7 +1,7 @@
 import re
 import enum
 
-class DeltaPass:
+class AbstractPass:
     @enum.unique
     class Result(enum.Enum):
         ok = 0

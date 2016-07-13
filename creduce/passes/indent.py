@@ -1,9 +1,9 @@
 import shutil
 import subprocess
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class IndentDeltaPass(DeltaPass):
+class IndentPass(AbstractPass):
     def check_prerequisites(self):
         if shutil.which("clang-format") is None:
             return False
@@ -32,7 +32,7 @@ class IndentDeltaPass(DeltaPass):
         while True:
             if self.arg == "regular":
                 if state != 0:
-                    return (DeltaPass.Result.stop, state)
+                    return (self.Result.stop, state)
                 else:
                     cmd = ["clang-format", "-i", test_case]
             elif self.arg == "final":
@@ -43,12 +43,12 @@ class IndentDeltaPass(DeltaPass):
                 elif state == 2:
                     cmd = ["clang-format", "-i", test_case]
                 else:
-                    return (DeltaPass.Result.stop, state)
+                    return (self.Result.stop, state)
 
             try:
                 subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except subprocess.SubprocessError:
-                return (DeltaPass.Result.error, state)
+                return (self.Result.error, state)
 
             with open(test_case, "r") as in_file:
                 new = in_file.read()
@@ -58,4 +58,4 @@ class IndentDeltaPass(DeltaPass):
             else:
                 break
 
-        return (DeltaPass.Result.ok, state)
+        return (self.Result.ok, state)

@@ -1,8 +1,8 @@
-from .delta import DeltaPass
+from . import AbstractPass
 from ..utils.error import UnknownArgumentError
 from ..utils import nestedmatcher
 
-class TernaryDeltaPass(DeltaPass):
+class TernaryPass(AbstractPass):
     varnum = r"(?:[-+]?[0-9a-zA-Z\_]+)"
     border = r"[*{([:,})\];]"
     border_or_space = r"(?:(?:" + border + r")|\s)"
@@ -46,7 +46,7 @@ class TernaryDeltaPass(DeltaPass):
 
         while True:
             if state is None:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             else:
                 if self.arg not in ["b", "c"]:
                     raise UnknownArgumentError()
@@ -57,6 +57,6 @@ class TernaryDeltaPass(DeltaPass):
                     with open(test_case, "w") as out_file:
                         out_file.write(prog2)
 
-                    return (DeltaPass.Result.ok, state)
+                    return (self.Result.ok, state)
                 else:
                     state = self.advance(test_case, state)

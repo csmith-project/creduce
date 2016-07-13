@@ -1,9 +1,9 @@
 import re
 
-from .delta import DeltaPass
+from . import AbstractPass
 from ..utils.error import UnknownArgumentError
 
-class IntsDeltaPass(DeltaPass):
+class IntsPass(AbstractPass):
     border_or_space = r"(?:(?:[*,:;{}[\]()])|\s)"
 
     def check_prerequisites(self):
@@ -83,7 +83,7 @@ class IntsDeltaPass(DeltaPass):
         #FIXME: Could potentially match variable names
         while True:
             if state is None:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             else:
                 prog2 = prog2[:state.start()] + config["replace_fn"](state) + prog2[state.end():]
 
@@ -91,6 +91,6 @@ class IntsDeltaPass(DeltaPass):
                     with open(test_case, "w") as out_file:
                         out_file.write(prog2)
 
-                    return (DeltaPass.Result.ok, state)
+                    return (self.Result.ok, state)
                 else:
                     state = self.advance(test_case, state)

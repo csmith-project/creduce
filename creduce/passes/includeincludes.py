@@ -3,9 +3,9 @@ import re
 import shutil
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class IncludeIncludesDeltaPass(DeltaPass):
+class IncludeIncludesPass(AbstractPass):
     def check_prerequisites(self):
         return True
 
@@ -20,7 +20,7 @@ class IncludeIncludesDeltaPass(DeltaPass):
 
     def transform(self, test_case, state):
         success = self.__transform(test_case, state)
-        return (DeltaPass.Result.ok if success else DeltaPass.Result.stop, state)
+        return (self.Result.ok if success else self.Result.stop, state)
 
     def __transform(self, test_case, state):
         with open(test_case, "r") as in_file:

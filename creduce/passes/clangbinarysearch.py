@@ -5,9 +5,9 @@ import shutil
 import subprocess
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class ClangBinarySearchDeltaPass(DeltaPass):
+class ClangBinarySearchPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which("clang_delta") is not None
 
@@ -80,11 +80,11 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                     try:
                         proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
                     except subprocess.SubprocessError:
-                        return (DeltaPass.Result.error, new_state)
+                        return (self.Result.error, new_state)
 
                 if proc.returncode == 0:
                     shutil.move(tmp_file.name, test_case)
-                    return (DeltaPass.Result.ok, new_state)
+                    return (self.Result.ok, new_state)
                 else:
                     if proc.returncode == 255:
                         #TODO: Do something?
@@ -95,18 +95,18 @@ class ClangBinarySearchDeltaPass(DeltaPass):
                         logging.debug("out of instances!")
 
                         if not self.__rechunk(new_state):
-                            return (DeltaPass.Result.stop, new_state)
+                            return (self.Result.stop, new_state)
 
                         continue
                     else:
                         os.unlink(tmp_file.name)
-                        return (DeltaPass.Result.error, new_state)
+                        return (self.Result.error, new_state)
 
                 #TODO: Why does this return OK?
                 shutil.move(tmp_file.name, test_case)
-                return (DeltaPass.Result.ok, new_state)
+                return (self.Result.ok, new_state)
             else:
                 if not self.__rechunk(new_state):
-                    return (DeltaPass.Result.stop, new_state)
+                    return (self.Result.stop, new_state)
 
-        return (DeltaPass.Result.ok, new_state)
+        return (self.Result.ok, new_state)

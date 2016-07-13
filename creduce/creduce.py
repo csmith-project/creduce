@@ -12,21 +12,21 @@ from .utils.error import PrerequisitesNotFoundError
 
 class CReduce:
     pass_name_mapping = {
-        "balanced": passes.BalancedDeltaPass,
-        "blank": passes.BlankDeltaPass,
-        "clang": passes.ClangDeltaPass,
-        "clangbinarysearch": passes.ClangBinarySearchDeltaPass,
-        "clex": passes.ClexDeltaPass,
-        "comments": passes.CommentsDeltaPass,
-        "includeincludes": passes.IncludeIncludesDeltaPass,
-        "includes": passes.IncludesDeltaPass,
-        "indent": passes.IndentDeltaPass,
-        "ints": passes.IntsDeltaPass,
-        "lines": passes.LinesDeltaPass,
-        "peep": passes.PeepDeltaPass,
-        "special": passes.SpecialDeltaPass,
-        "ternary": passes.TernaryDeltaPass,
-        "unifdef": passes.UnIfDefDeltaPass,
+        "balanced": passes.BalancedPass,
+        "blank": passes.BlankPass,
+        "clang": passes.ClangPass,
+        "clangbinarysearch": passes.ClangBinarySearchPass,
+        "clex": passes.ClexPass,
+        "comments": passes.CommentsPass,
+        "includeincludes": passes.IncludeIncludesPass,
+        "includes": passes.IncludesPass,
+        "indent": passes.IndentPass,
+        "ints": passes.IntsPass,
+        "lines": passes.LinesPass,
+        "peep": passes.PeepPass,
+        "special": passes.SpecialPass,
+        "ternary": passes.TernaryPass,
+        "unifdef": passes.UnIfDefPass,
     }
 
     def __init__(self, test_manager):
@@ -52,7 +52,7 @@ class CReduce:
 
             for opt in options:
                 try:
-                    valid_options.add(passes.DeltaPass.Option(opt))
+                    valid_options.add(passes.AbstractPass.Option(opt))
                 except ValueError:
                     raise PassOptionError(opt)
 

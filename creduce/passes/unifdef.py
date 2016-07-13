@@ -4,9 +4,9 @@ import shutil
 import subprocess
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class UnIfDefDeltaPass(DeltaPass):
+class UnIfDefPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which("unifdef") is not None
 
@@ -23,7 +23,7 @@ class UnIfDefDeltaPass(DeltaPass):
         try:
             proc = subprocess.run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
-            return (DeltaPass.Result.error, state)
+            return (self.Result.error, state)
 
         defs = {}
 
@@ -40,18 +40,18 @@ class UnIfDefDeltaPass(DeltaPass):
                 if n_index >= len(deflist):
                     #FIXME: Changed: No unlink in Perl script
                     os.unlink(tmp_file.name)
-                    return (DeltaPass.Result.stop, state)
+                    return (self.Result.stop, state)
 
                 def_ = deflist[n_index]
 
                 try:
                     proc = subprocess.run(["unifdef", "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case], universal_newlines=True)
                 except subprocess.SubprocessError:
-                    return (DeltaPass.Result.error, state)
+                    return (self.Result.error, state)
 
                 if filecmp.cmp(test_case, tmp_file.name, shallow=False):
                     state += 1
                     continue
 
                 shutil.move(tmp_file.name, test_case)
-                return (DeltaPass.Result.ok, state)
+                return (self.Result.ok, state)

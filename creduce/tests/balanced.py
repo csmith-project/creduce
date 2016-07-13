@@ -2,16 +2,15 @@ import os
 import tempfile
 import unittest
 
-from ..passes import DeltaPass
-from ..passes import BalancedDeltaPass
+from ..passes import BalancedPass
 
 class BalancedParensTest(unittest.TestCase):
     def test_parens_no_match(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+        state = BalancedPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -24,8 +23,8 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+        state = BalancedPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -38,8 +37,8 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+        state = BalancedPass.new(tmp_file.name, "parens")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -52,10 +51,10 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens")
+        state = BalancedPass.new(tmp_file.name, "parens")
         # Transform failed
-        state = BalancedDeltaPass.advance(tmp_file.name, "parens", state)
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens", state)
+        state = BalancedPass.advance(tmp_file.name, "parens", state)
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -69,8 +68,8 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -83,8 +82,8 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -97,8 +96,8 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -111,10 +110,10 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
+        state = BalancedPass.new(tmp_file.name, "parens-only")
         # Transform failed
-        state = BalancedDeltaPass.advance(tmp_file.name, "parens-only", state)
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.advance(tmp_file.name, "parens-only", state)
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -127,10 +126,10 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
-        state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-only", state)
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.advance_on_success(tmp_file.name, "parens-only", state)
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -143,14 +142,14 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 7:
-            state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-only", state)
-            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        while result == BalancedPass.Result.ok and iteration < 7:
+            state = BalancedPass.advance_on_success(tmp_file.name, "parens-only", state)
+            (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -165,17 +164,17 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-only")
-        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+        state = BalancedPass.new(tmp_file.name, "parens-only")
+        (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 7:
+        while result == BalancedPass.Result.ok and iteration < 7:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-            state = BalancedDeltaPass.advance(tmp_file.name, "parens-only", state)
-            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-only", state)
+            state = BalancedPass.advance(tmp_file.name, "parens-only", state)
+            (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
             iteration += 1
 
         os.unlink(tmp_file.name)
@@ -187,8 +186,8 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -201,8 +200,8 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -215,8 +214,8 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -229,10 +228,10 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
         # Transform failed
-        state = BalancedDeltaPass.advance(tmp_file.name, "parens-inside", state)
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.advance(tmp_file.name, "parens-inside", state)
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -245,10 +244,10 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
-        state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-inside", state)
-        (_, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.advance_on_success(tmp_file.name, "parens-inside", state)
+        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -261,14 +260,14 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 4:
-            state = BalancedDeltaPass.advance_on_success(tmp_file.name, "parens-inside", state)
-            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        while result == BalancedPass.Result.ok and iteration < 4:
+            state = BalancedPass.advance_on_success(tmp_file.name, "parens-inside", state)
+            (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -283,17 +282,17 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedDeltaPass.new(tmp_file.name, "parens-inside")
-        (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 7:
+        while result == BalancedPass.Result.ok and iteration < 7:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-            state = BalancedDeltaPass.advance(tmp_file.name, "parens-inside", state)
-            (result, state) = BalancedDeltaPass.transform(tmp_file.name, "parens-inside", state)
+            state = BalancedPass.advance(tmp_file.name, "parens-inside", state)
+            (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
             iteration += 1
 
         os.unlink(tmp_file.name)

@@ -3,9 +3,9 @@ import shutil
 import subprocess
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class ClexDeltaPass(DeltaPass):
+class ClexPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which("clex") is not None
 
@@ -23,15 +23,15 @@ class ClexDeltaPass(DeltaPass):
             try:
                 proc = subprocess.run(["clex", str(self.arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
-                return (DeltaPass.Result.error, state)
+                return (self.Result.error, state)
 
         if proc.returncode == 51:
             shutil.move(tmp_file.name, test_case)
-            return (DeltaPass.Result.ok, state)
+            return (self.Result.ok, state)
         else:
             os.unlink(tmp_file.name)
 
             if proc.returncode == 71:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             else:
-                return (DeltaPass.Result.error, state)
+                return (self.Result.error, state)

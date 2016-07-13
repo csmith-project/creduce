@@ -2,16 +2,15 @@ import os
 import tempfile
 import unittest
 
-from ..passes import DeltaPass
-from ..passes import PeepDeltaPass
+from ..passes import PeepPass
 
 class PeepTest(unittest.TestCase):
     def test_a_1(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("<That's a small test> whether the transformation works!\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -24,8 +23,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("{That's a small test} whether the transformation works!\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -38,8 +37,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("namespace creduce {Some more content} which is not interesting!\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -52,8 +51,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("namespace {Some more content} which is not interesting!\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -66,8 +65,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {} test;\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -80,8 +79,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {} test;\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "b")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+        state = PeepPass.new(tmp_file.name, "b")
+        (_, state) = PeepPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -94,14 +93,14 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (result, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (result, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 5:
-            state = PeepDeltaPass.advance_on_success(tmp_file.name, "a", state)
-            (result, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        while result == PeepPass.Result.ok and iteration < 5:
+            state = PeepPass.advance_on_success(tmp_file.name, "a", state)
+            (result, state) = PeepPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -116,17 +115,17 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "a")
-        (result, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+        state = PeepPass.new(tmp_file.name, "a")
+        (result, state) = PeepPass.transform(tmp_file.name, "a", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 8:
+        while result == PeepPass.Result.ok and iteration < 8:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-            state = PeepDeltaPass.advance(tmp_file.name, "a", state)
-            (result, state) = PeepDeltaPass.transform(tmp_file.name, "a", state)
+            state = PeepPass.advance(tmp_file.name, "a", state)
+            (result, state) = PeepPass.transform(tmp_file.name, "a", state)
             iteration += 1
 
         os.unlink(tmp_file.name)
@@ -137,14 +136,14 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "b")
-        (result, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+        state = PeepPass.new(tmp_file.name, "b")
+        (result, state) = PeepPass.transform(tmp_file.name, "b", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 9:
-            state = PeepDeltaPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+        while result == PeepPass.Result.ok and iteration < 9:
+            state = PeepPass.advance_on_success(tmp_file.name, "b", state)
+            (result, state) = PeepPass.transform(tmp_file.name, "b", state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -159,17 +158,17 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepDeltaPass.new(tmp_file.name, "b")
-        (result, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+        state = PeepPass.new(tmp_file.name, "b")
+        (result, state) = PeepPass.transform(tmp_file.name, "b", state)
 
         iteration = 0
 
-        while result == DeltaPass.Result.ok and iteration < 38:
+        while result == PeepPass.Result.ok and iteration < 38:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-            state = PeepDeltaPass.advance(tmp_file.name, "b", state)
-            (result, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+            state = PeepPass.advance(tmp_file.name, "b", state)
+            (result, state) = PeepPass.transform(tmp_file.name, "b", state)
             iteration += 1
 
         os.unlink(tmp_file.name)
@@ -180,8 +179,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write(",0,")
 
-        state = PeepDeltaPass.new(tmp_file.name, "b")
-        (_, state) = PeepDeltaPass.transform(tmp_file.name, "b", state)
+        state = PeepPass.new(tmp_file.name, "b")
+        (_, state) = PeepPass.transform(tmp_file.name, "b", state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()

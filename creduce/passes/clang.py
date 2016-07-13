@@ -3,9 +3,9 @@ import subprocess
 import shutil
 import tempfile
 
-from .delta import DeltaPass
+from . import AbstractPass
 
-class ClangDeltaPass(DeltaPass):
+class ClangPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which("clang_delta") is not None
 
@@ -23,15 +23,15 @@ class ClangDeltaPass(DeltaPass):
             try:
                 proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
-                return (DeltaPass.Result.error, state)
+                return (self.Result.error, state)
 
         if proc.returncode == 0:
             shutil.move(tmp_file.name, test_case)
-            return (DeltaPass.Result.ok, state)
+            return (self.Result.ok, state)
         else:
             os.unlink(tmp_file.name)
 
             if proc.returncode == 255 or proc.returncode == 1:
-                return (DeltaPass.Result.stop, state)
+                return (self.Result.stop, state)
             else:
-                return (DeltaPass.Result.error, state)
+                return (self.Result.error, state)

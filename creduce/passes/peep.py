@@ -1,9 +1,9 @@
 import re
 
-from .delta import DeltaPass
+from . import AbstractPass
 from ..utils import nestedmatcher
 
-class PeepDeltaPass(DeltaPass):
+class PeepPass(AbstractPass):
     border = r"[*{([:,})\];]"
     border_or_space = r"(?:(?:" + border + r")|\s)"
     border_or_space_optional = r"(?:(?:" + border + r")|\s)?"
@@ -157,7 +157,7 @@ class PeepDeltaPass(DeltaPass):
 
         while True:
             if new_state["pos"] > len(prog):
-                return (DeltaPass.Result.stop, new_state)
+                return (self.Result.stop, new_state)
 
             if self.arg == "a":
                 l = self.regexes_to_replace[new_state["regex"]]
@@ -173,7 +173,7 @@ class PeepDeltaPass(DeltaPass):
                         with open(test_case, "w") as out_file:
                             out_file.write(prog2)
 
-                        return (DeltaPass.Result.ok, new_state)
+                        return (self.Result.ok, new_state)
             elif self.arg == "b":
                 l = self.delimited_regexes_to_replace[new_state["regex"]]
                 search = l[0]
@@ -200,7 +200,7 @@ class PeepDeltaPass(DeltaPass):
                         with open(test_case, "w") as out_file:
                             out_file.write(prog2)
 
-                        return (DeltaPass.Result.ok, new_state)
+                        return (self.Result.ok, new_state)
             else:
                 raise UnknownArgumentError()
 
