@@ -16,7 +16,7 @@ import sys
 import tempfile
 import weakref
 
-from ..passes.delta import DeltaPass
+from ..passes import DeltaPass
 
 from .error import InsaneTestCaseError
 from .error import InvalidInterestingnessTestError

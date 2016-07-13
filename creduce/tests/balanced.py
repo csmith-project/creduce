@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from ..passes.delta import DeltaPass
-from ..passes.balanced import BalancedDeltaPass
+from ..passes import DeltaPass
+from ..passes import BalancedDeltaPass
 
 class BalancedParensTest(unittest.TestCase):
     def test_parens_no_match(self):

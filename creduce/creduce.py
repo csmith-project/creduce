@@ -1,5 +1,3 @@
-#TODO: import all pass classes in passes module
-
 import enum
 import json
 import logging
@@ -7,44 +5,28 @@ import os
 import platform
 import sys
 
-from .passes import balanced
-from .passes import blank
-from .passes import clang
-from .passes import clangbinarysearch
-from .passes import clex
-from .passes import comments
-from .passes import includeincludes
-from .passes import includes
-from .passes import indent
-from .passes import ints
-from .passes import lines
-from .passes import peep
-from .passes import special
-from .passes import ternary
-from .passes import unifdef
-
-from .passes.delta import DeltaPass
+from . import passes
 from .utils.error import CReduceError
 from .utils.error import PassOptionError
 from .utils.error import PrerequisitesNotFoundError
 
 class CReduce:
     pass_name_mapping = {
-        "balanced": balanced.BalancedDeltaPass,
-        "blank": blank.BlankDeltaPass,
-        "clang": clang.ClangDeltaPass,
-        "clangbinarysearch": clangbinarysearch.ClangBinarySearchDeltaPass,
-        "clex": clex.ClexDeltaPass,
-        "comments": comments.CommentsDeltaPass,
-        "includeincludes": includeincludes.IncludeIncludesDeltaPass,
-        "includes": includes.IncludesDeltaPass,
-        "indent": indent.IndentDeltaPass,
-        "ints": ints.IntsDeltaPass,
-        "lines": lines.LinesDeltaPass,
-        "peep": peep.PeepDeltaPass,
-        "special": special.SpecialDeltaPass,
-        "ternary": ternary.TernaryDeltaPass,
-        "unifdef": unifdef.UnIfDefDeltaPass,
+        "balanced": passes.BalancedDeltaPass,
+        "blank": passes.BlankDeltaPass,
+        "clang": passes.ClangDeltaPass,
+        "clangbinarysearch": passes.ClangBinarySearchDeltaPass,
+        "clex": passes.ClexDeltaPass,
+        "comments": passes.CommentsDeltaPass,
+        "includeincludes": passes.IncludeIncludesDeltaPass,
+        "includes": passes.IncludesDeltaPass,
+        "indent": passes.IndentDeltaPass,
+        "ints": passes.IntsDeltaPass,
+        "lines": passes.LinesDeltaPass,
+        "peep": passes.PeepDeltaPass,
+        "special": passes.SpecialDeltaPass,
+        "ternary": passes.TernaryDeltaPass,
+        "unifdef": passes.UnIfDefDeltaPass,
     }
 
     def __init__(self, test_manager):
@@ -70,7 +52,7 @@ class CReduce:
 
             for opt in options:
                 try:
-                    valid_options.add(DeltaPass.Option(opt))
+                    valid_options.add(passes.DeltaPass.Option(opt))
                 except ValueError:
                     raise PassOptionError(opt)
 

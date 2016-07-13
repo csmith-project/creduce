@@ -8,8 +8,8 @@ import os.path
 import sys
 import time
 
-from creduce.creduce import CReduce
-from creduce.passes.delta import DeltaPass
+from creduce import CReduce
+from creduce.passes import DeltaPass
 from creduce.utils.error import CReduceError
 from creduce.utils import parallel
 from creduce.utils import statistics

@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from ..passes.delta import DeltaPass
-from ..passes.special import SpecialDeltaPass
+from ..passes import DeltaPass
+from ..passes import SpecialDeltaPass
 
 class SpecialTest(unittest.TestCase):
     def test_a(self):

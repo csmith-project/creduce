@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from ..passes.delta import DeltaPass
-from ..passes.comments import CommentsDeltaPass
+from ..passes import DeltaPass
+from ..passes import CommentsDeltaPass
 
 class CommentsTest(unittest.TestCase):
     def test_block(self):

@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from ..passes.delta import DeltaPass
-from ..passes.ternary import TernaryDeltaPass
+from ..passes import DeltaPass
+from ..passes import TernaryDeltaPass
 
 class TernaryTest(unittest.TestCase):
     def test_b(self):

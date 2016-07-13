@@ -2,8 +2,8 @@ import os
 import tempfile
 import unittest
 
-from ..passes.delta import DeltaPass
-from ..passes.peep import PeepDeltaPass
+from ..passes import DeltaPass
+from ..passes import PeepDeltaPass
 
 class PeepTest(unittest.TestCase):
     def test_a_1(self):
