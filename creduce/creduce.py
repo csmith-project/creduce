@@ -132,15 +132,13 @@ class CReduce:
     @staticmethod
     def _check_prerequisites(pass_group):
         passes = set()
-        missing = []
+        missing = set()
 
         for category in pass_group:
-            passes |= set(pass_group[category])
-
-        for p in passes:
-            if not p.check_prerequisites():
-                logging.error("Prereqs not found for pass {}".format(p))
-                missing.append(p)
+            for p in pass_group[category]:
+                if not p.check_prerequisites():
+                    logging.error("Prereqs not found for pass {}".format(p))
+                    missing.add(str(p))
 
         if missing:
             raise PrerequisitesNotFoundError(missing)
