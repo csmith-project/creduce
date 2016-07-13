@@ -4,13 +4,16 @@ import unittest
 
 from ..passes import TernaryPass
 
-class TernaryTest(unittest.TestCase):
+class TernaryBTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = TernaryPass("b")
+
     def test_b(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("int res = a ? b : c;\n")
 
-        state = TernaryPass.new(tmp_file.name, "b")
-        (_, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -19,26 +22,12 @@ class TernaryTest(unittest.TestCase):
 
         self.assertEqual(variant, "int res = b;\n")
 
-    def test_c(self):
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
-            tmp_file.write("int res = a ? b : c;\n")
-
-        state = TernaryPass.new(tmp_file.name, "c")
-        (_, state) = TernaryPass.transform(tmp_file.name, "c", state)
-
-        with open(tmp_file.name, mode="r") as variant_file:
-            variant = variant_file.read()
-
-        os.unlink(tmp_file.name)
-
-        self.assertEqual(variant, "int res = c;\n")
-
     def test_parens(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("int res = (a != 0) ? (b + 5) : c;\n")
 
-        state = TernaryPass.new(tmp_file.name, "b")
-        (_, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -51,12 +40,12 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryPass.new(tmp_file.name, "b")
-        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
-        while result == TernaryPass.Result.ok:
-            state = TernaryPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        while result == self.pass_.Result.ok:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -69,14 +58,14 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
            tmp_file.write("// no ? match :!\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryPass.new(tmp_file.name, "b")
-        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == TernaryPass.Result.ok and iteration < 5:
-            state = TernaryPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        while result == self.pass_.Result.ok and iteration < 5:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -91,19 +80,37 @@ class TernaryTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-        state = TernaryPass.new(tmp_file.name, "b")
-        (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == TernaryPass.Result.ok and iteration < 6:
+        while result == self.pass_.Result.ok and iteration < 6:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("// no ? match :\nint res = a ? (ba ? bb : bc) : c\nint sec = t ? u : v\n")
 
-            state = TernaryPass.advance(tmp_file.name, "b", state)
-            (result, state) = TernaryPass.transform(tmp_file.name, "b", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)
 
         self.assertEqual(iteration, 4)
+
+class TernaryCTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = TernaryPass("c")
+
+    def test_c(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("int res = a ? b : c;\n")
+
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "int res = c;\n")

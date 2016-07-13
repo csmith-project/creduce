@@ -4,13 +4,16 @@ import unittest
 
 from ..passes import PeepPass
 
-class PeepTest(unittest.TestCase):
+class PeepATestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = PeepPass("a")
+
     def test_a_1(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("<That's a small test> whether the transformation works!\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -23,8 +26,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("{That's a small test} whether the transformation works!\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -37,8 +40,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("namespace creduce {Some more content} which is not interesting!\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -51,8 +54,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("namespace {Some more content} which is not interesting!\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -65,8 +68,8 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {} test;\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (_, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -75,32 +78,18 @@ class PeepTest(unittest.TestCase):
 
         self.assertEqual(variant, " test;\n")
 
-    def test_b_1(self):
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
-            tmp_file.write("struct test_t {} test;\n")
-
-        state = PeepPass.new(tmp_file.name, "b")
-        (_, state) = PeepPass.transform(tmp_file.name, "b", state)
-
-        with open(tmp_file.name, mode="r") as variant_file:
-            variant = variant_file.read()
-
-        os.unlink(tmp_file.name)
-
-        self.assertEqual(variant, "struct 0 {} test;\n")
-
     def test_success_a(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (result, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == PeepPass.Result.ok and iteration < 5:
-            state = PeepPass.advance_on_success(tmp_file.name, "a", state)
-            (result, state) = PeepPass.transform(tmp_file.name, "a", state)
+        while result == self.pass_.Result.ok and iteration < 5:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -115,35 +104,53 @@ class PeepTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepPass.new(tmp_file.name, "a")
-        (result, state) = PeepPass.transform(tmp_file.name, "a", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == PeepPass.Result.ok and iteration < 8:
+        while result == self.pass_.Result.ok and iteration < 8:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-            state = PeepPass.advance(tmp_file.name, "a", state)
-            (result, state) = PeepPass.transform(tmp_file.name, "a", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)
 
         self.assertEqual(iteration, 6)
 
+class PeepBTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = PeepPass("b")
+
+    def test_b_1(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("struct test_t {} test;\n")
+
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "struct 0 {} test;\n")
+
     def test_success_b(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepPass.new(tmp_file.name, "b")
-        (result, state) = PeepPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == PeepPass.Result.ok and iteration < 9:
-            state = PeepPass.advance_on_success(tmp_file.name, "b", state)
-            (result, state) = PeepPass.transform(tmp_file.name, "b", state)
+        while result == self.pass_.Result.ok and iteration < 11:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -151,24 +158,24 @@ class PeepTest(unittest.TestCase):
 
         os.unlink(tmp_file.name)
 
-        self.assertEqual(iteration, 7)
+        self.assertEqual(iteration, 9)
         self.assertEqual(variant, "struct  { ;}  = {};\n")
 
     def test_no_success_b(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-        state = PeepPass.new(tmp_file.name, "b")
-        (result, state) = PeepPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == PeepPass.Result.ok and iteration < 38:
+        while result == self.pass_.Result.ok and iteration < 38:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("struct test_t {int a;} foo = {1};\n")
 
-            state = PeepPass.advance(tmp_file.name, "b", state)
-            (result, state) = PeepPass.transform(tmp_file.name, "b", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)
@@ -176,11 +183,12 @@ class PeepTest(unittest.TestCase):
         self.assertEqual(iteration, 36)
 
     def test_infinite_loop(self):
+        #FIXME: Why is this test failing?
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write(",0,")
 
-        state = PeepPass.new(tmp_file.name, "b")
-        (_, state) = PeepPass.transform(tmp_file.name, "b", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()

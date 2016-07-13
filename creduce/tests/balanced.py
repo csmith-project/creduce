@@ -4,13 +4,16 @@ import unittest
 
 from ..passes import BalancedPass
 
-class BalancedParensTest(unittest.TestCase):
+class BalancedParensTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = BalancedPass("parens")
+
     def test_parens_no_match(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -23,8 +26,8 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -37,8 +40,8 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -51,10 +54,10 @@ class BalancedParensTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens")
+        state = self.pass_.new(tmp_file.name)
         # Transform failed
-        state = BalancedPass.advance(tmp_file.name, "parens", state)
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens", state)
+        state = self.pass_.advance(tmp_file.name, state)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -63,13 +66,16 @@ class BalancedParensTest(unittest.TestCase):
 
         self.assertEqual(variant, "This (is a  test)!\n")
 
-class BalancedParensOnlyTest(unittest.TestCase):
+class BalancedParensOnlyTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = BalancedPass("parens-only")
+
     def test_parens_no_match(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -82,8 +88,8 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -96,8 +102,8 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -110,10 +116,10 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
+        state = self.pass_.new(tmp_file.name)
         # Transform failed
-        state = BalancedPass.advance(tmp_file.name, "parens-only", state)
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.advance(tmp_file.name, state)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -126,10 +132,10 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
-        state = BalancedPass.advance_on_success(tmp_file.name, "parens-only", state)
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
+        state = self.pass_.advance_on_success(tmp_file.name, state)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -142,14 +148,14 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == BalancedPass.Result.ok and iteration < 7:
-            state = BalancedPass.advance_on_success(tmp_file.name, "parens-only", state)
-            (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        while result == self.pass_.Result.ok and iteration < 7:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -164,30 +170,33 @@ class BalancedParensOnlyTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-only")
-        (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == BalancedPass.Result.ok and iteration < 7:
+        while result == self.pass_.Result.ok and iteration < 7:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-            state = BalancedPass.advance(tmp_file.name, "parens-only", state)
-            (result, state) = BalancedPass.transform(tmp_file.name, "parens-only", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)
 
         self.assertEqual(iteration, 5)
 
-class BalancedParensInsideTest(unittest.TestCase):
+class BalancedParensInsideTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = BalancedPass("parens-inside")
+
     def test_parens_no_match(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a simple test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -200,8 +209,8 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This is a (simple) test!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -214,8 +223,8 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -228,10 +237,10 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
+        state = self.pass_.new(tmp_file.name)
         # Transform failed
-        state = BalancedPass.advance(tmp_file.name, "parens-inside", state)
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.advance(tmp_file.name, state)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -244,10 +253,10 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This (is a (simple) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
-        state = BalancedPass.advance_on_success(tmp_file.name, "parens-inside", state)
-        (_, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
+        state = self.pass_.advance_on_success(tmp_file.name, state)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -260,14 +269,14 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == BalancedPass.Result.ok and iteration < 4:
-            state = BalancedPass.advance_on_success(tmp_file.name, "parens-inside", state)
-            (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        while result == self.pass_.Result.ok and iteration < 4:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -282,17 +291,17 @@ class BalancedParensInsideTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-        state = BalancedPass.new(tmp_file.name, "parens-inside")
-        (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == BalancedPass.Result.ok and iteration < 7:
+        while result == self.pass_.Result.ok and iteration < 7:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("(This) (is a (((more)) complex) test)!\n")
 
-            state = BalancedPass.advance(tmp_file.name, "parens-inside", state)
-            (result, state) = BalancedPass.transform(tmp_file.name, "parens-inside", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)

@@ -4,13 +4,16 @@ import unittest
 
 from ..passes import CommentsPass
 
-class CommentsTest(unittest.TestCase):
+class CommentsTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = CommentsPass("0")
+
     def test_block(self):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This /* contains *** /* two */ /*comments*/!\n")
 
-        state = CommentsPass.new(tmp_file.name, "0")
-        (_, state) = CommentsPass.transform(tmp_file.name, "0", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -23,8 +26,8 @@ class CommentsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("This ///contains //two\n //comments\n!\n")
 
-        state = CommentsPass.new(tmp_file.name, "0")
-        (_, state) = CommentsPass.transform(tmp_file.name, "0", state)
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
@@ -37,14 +40,14 @@ class CommentsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("/*This*/ ///contains //two\n //comments\n!\n")
 
-        state = CommentsPass.new(tmp_file.name, "0")
-        (result, state) = CommentsPass.transform(tmp_file.name, "0", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == CommentsPass.Result.ok and iteration < 4:
-            state = CommentsPass.advance_on_success(tmp_file.name, "0", state)
-            (result, state) = CommentsPass.transform(tmp_file.name, "0", state)
+        while result == self.pass_.Result.ok and iteration < 4:
+            state = self.pass_.advance_on_success(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
@@ -59,17 +62,17 @@ class CommentsTest(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write("/*This*/ ///contains //two\n //comments\n!\n")
 
-        state = CommentsPass.new(tmp_file.name, "0")
-        (result, state) = CommentsPass.transform(tmp_file.name, "0", state)
+        state = self.pass_.new(tmp_file.name)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
 
         iteration = 0
 
-        while result == CommentsPass.Result.ok and iteration < 4:
+        while result == self.pass_.Result.ok and iteration < 4:
             with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
                 tmp_file.write("/*This*/ ///contains //two\n //comments\n!\n")
 
-            state = CommentsPass.advance(tmp_file.name, "0", state)
-            (result, state) = CommentsPass.transform(tmp_file.name, "0", state)
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
             iteration += 1
 
         os.unlink(tmp_file.name)
