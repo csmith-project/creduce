@@ -42,6 +42,7 @@ class AbstractTestEnvironment:
         self.state = None
         self._dir = tempfile.mkdtemp(prefix="creduce-")
         self.save_temps = save_temps
+        self._base_size = None
 
         if not save_temps:
             self._finalizer = weakref.finalize(self, self._cleanup, self.path)
@@ -65,6 +66,7 @@ class AbstractTestEnvironment:
         if test_case is not None:
             self.test_case = os.path.basename(test_case)
             shutil.copy(test_case, self.path)
+            self._base_size = os.path.getsize(test_case)
 
         for f in additional_files:
             self.additional_files.add(os.path.basename(f))
@@ -76,6 +78,13 @@ class AbstractTestEnvironment:
 
         for f in self.additional_files:
             shutil.copy(f, dst)
+
+    @property
+    def size_improvement(self):
+        if self._base_size is None:
+            return None
+        else:
+            return (self._base_size - os.path.getsize(self.test_case_path))
 
     @property
     def path(self):
@@ -464,10 +473,6 @@ class AbstractTestManager:
 
         return "".join(diffed_lines)
 
-    @staticmethod
-    def _file_size_difference(orig_file, changed_file):
-        return (os.path.getsize(orig_file) - os.path.getsize(changed_file))
-
     def check_sanity(self):
         logging.debug("perform sanity check... ")
 
@@ -654,7 +659,7 @@ class AbstractTestManager:
                 logging.debug("delta test success")
 
                 if (self.max_improvement is not None and
-                    self._file_size_difference(self._base_test_env.test_case_path, test_env.test_case_path) < self.max_improvement):
+                    test_env.size_improvement > self.max_improvement):
                     logging.debug("Too large improvement")
                     continue
 
@@ -691,8 +696,10 @@ class AbstractTestManager:
             test_env = None
 
     def cleanup_results(self):
-        #FIXME: Need to remove those with too large improvement as well
-        self._environments = [env for env in self._environments if not env.has_result() or env.check_result(0)]
+        # Only keep unfinished environments or sucessful evironments with valid improvement size
+        self._environments = [env for env in self._environments if not env.has_result() or
+                                                                   (env.check_result(0) and
+                                                                   env.size_improvement <= self.max_improvement)]
 
 class ConservativeTestManager(AbstractTestManager):
     pass
@@ -706,7 +713,7 @@ class FastConservativeTestManager(ConservativeTestManager):
 
         for i, test_env in enumerate(self._environments):
             if (self.max_improvement is not None and
-                self._file_size_difference(self._base_test_env.test_case_path, test_env.test_case_path) < self.max_improvement):
+                test_env.size_improvement > self.max_improvement):
                 continue
 
             if test_env.check_result(0):
@@ -778,7 +785,7 @@ class NonDeterministicTestManager(AbstractTestManager):
                 continue
 
             if (self.max_improvement is not None and
-                self._file_size_difference(self._base_test_env.test_case_path, test_env.test_case_path) < self.max_improvement):
+                test_env.size_improvement > self.max_improvement):
                 continue
 
             if test_env.check_result(0):
