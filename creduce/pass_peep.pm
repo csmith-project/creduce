@@ -70,7 +70,7 @@ sub advance ($$$) {
     if ($sh{"index2"} >= $lim) {
 	$sh{"index2"} = 0;
 	$sh{"index"}++;
-    } 
+    }
     return \%sh;
 }
 
@@ -87,9 +87,9 @@ sub transform ($$$) {
     my $prog2 = $prog;
 
     while (1) {
-	
+
 	return ($STOP, \%sh) if ($sh{"index"} > length ($prog));
-	
+
 	if (0) {
 	} elsif ($which eq "a") {
 	    my $l = $regexes_to_replace[$sh{"index2"}];
@@ -122,7 +122,7 @@ sub transform ($$$) {
 	    } else {
 		$back = "(?<delim2>$borderorspc)";
 	    }
-	    
+
 	    # special cases to avoid infinite replacement loops
 	    goto out if ($repl eq "0" && $rest =~ /^($front)0$back/sm);
 	    goto out if ($repl eq "1" && $rest =~ /^($front)0$back/sm);
@@ -133,13 +133,13 @@ sub transform ($$$) {
 	    goto out if ($repl =~ /,\s*0/ && $rest =~ /^($front),\s*0$back/sm);
 	    goto out if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*0$back/sm);
 	    goto out if ($repl =~ /,\s*1/ && $rest =~ /^($front),\s*1$back/sm);
-	    
+
 	    if ($rest =~ s/^$front(?<str>$str)$back/$+{delim1}$repl$+{delim2}/sm) {
 		$prog2 = $first.$rest;
 		if ($prog ne $prog2) {
 		    write_file ($cfile, $prog2);
 		    return ($OK, \%sh);
-		} 
+		}
 	    }
 	} else {
 	    die;
