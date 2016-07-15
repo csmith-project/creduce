@@ -18,6 +18,8 @@ use warnings;
 
 use creduce_regexes;
 use creduce_utils;
+
+use Regexp::Common;
 use re 'eval';
 
 sub check_prereqs () {
@@ -63,6 +65,8 @@ sub advance ($$$) {
 	$lim = scalar (@regexes_to_replace);
     } elsif ($which eq "b") {
 	$lim = scalar (@delimited_regexes_to_replace);
+    } elsif ($which eq "c") {
+        $lim = 1;
     } else {
 	die;
     }
@@ -141,8 +145,24 @@ sub transform ($$$) {
 		    return ($OK, \%sh);
 		}
 	    }
+	} elsif ($which eq "c") {
+	  my $index = $sh{"index"};
+	  my $first = substr($prog2, 0, $index);
+	  my $rest = substr($prog2, $index);
+
+	  if ($rest =~ m/^while\s*$RE{balanced}{-parens=>'()'}\s*$RE{balanced}{-parens=>'{}'}/) {
+	    my $expr = $1;
+	    my $body = $2;
+	    my $remain = substr($rest, $+[0]);
+	    $body =~ s/break\s*;//g;
+	    $prog2 = $first.$body.$remain;
+	    if ($prog ne $prog2) {
+	      write_file ($cfile, $prog2);
+	      return ($OK, \%sh);
+	    }
+	  }
 	} else {
-	    die;
+	  die;
 	}
       out:
 	$state = advance($cfile, $which, \%sh);
