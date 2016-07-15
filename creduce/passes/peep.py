@@ -134,6 +134,8 @@ class PeepPass(AbstractPass):
             lim = len(self.regexes_to_replace)
         elif self.arg == "b":
             lim = len(self.delimited_regexes_to_replace);
+        elif self.arg == "c":
+            lim = 1
         else:
             raise UnknownArgumentError()
 
@@ -195,6 +197,24 @@ class PeepPass(AbstractPass):
 
                 if m is not None:
                     prog2 = prog2[0:m["delim1"][1]] + replace + prog2[m["delim2"][0]:]
+
+                    if prog != prog2:
+                        with open(test_case, "w") as out_file:
+                            out_file.write(prog2)
+
+                        return (self.Result.ok, new_state)
+            elif self.arg == "c":
+                search = [nestedmatcher.RegExPattern(r"^while\s*"),
+                          nestedmatcher.BalancedPattern(nestedmatcher.BalancedExpr.parens),
+                          nestedmatcher.RegExPattern(r"\s*"),
+                          (nestedmatcher.BalancedPattern(nestedmatcher.BalancedExpr.curlies), "body")]
+
+                m = nestedmatcher.search(search, prog2, pos=new_state["pos"], search=False)
+
+                if m is not None:
+                    body = prog2[m["body"][0]:m["body"][1]]
+                    body = re.sub(r"break\s*;", "", body)
+                    prog2 = prog2[0:m["all"][0]] + body + prog2[m["all"][1]:]
 
                     if prog != prog2:
                         with open(test_case, "w") as out_file:

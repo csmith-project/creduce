@@ -196,3 +196,22 @@ class PeepBTestCase(unittest.TestCase):
         os.unlink(tmp_file.name)
 
         self.assertEqual(variant, ",,")
+
+class PeepCTestCase(unittest.TestCase):
+    def setUp(self):
+        self.pass_ = PeepPass("c")
+
+    def test_c_1(self):
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
+            tmp_file.write("while   (a == b)\n{\n    int a = 4;\n    short b = 5;\n    break;\n}\n\nulong c = 18;\n")
+
+        state = self.pass_.new(tmp_file.name)
+        (_, state) = self.pass_.transform(tmp_file.name, state)
+
+        with open(tmp_file.name, mode="r") as variant_file:
+            variant = variant_file.read()
+
+        os.unlink(tmp_file.name)
+
+        self.assertEqual(variant, "{\n    int a = 4;\n    short b = 5;\n    \n}\n\nulong c = 18;\n")
+

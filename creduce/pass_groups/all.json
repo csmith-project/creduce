@@ -155,6 +155,7 @@
     {"pass": "clex", "arg": "rm-tok-pattern-4", "exclude": ["slow"]},
     {"pass": "clang", "arg": "local-to-global"},
     {"pass": "peep", "arg": "a"},
+    {"pass": "peep", "arg": "c"},
     {"pass": "peep", "arg": "b", "include": ["slow"]},
     {"pass": "ints", "arg": "a"},
     {"pass": "ints", "arg": "b"},
