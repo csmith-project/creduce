@@ -699,7 +699,8 @@ class AbstractTestManager:
         # Only keep unfinished environments or sucessful evironments with valid improvement size
         self._environments = [env for env in self._environments if not env.has_result() or
                                                                    (env.check_result(0) and
-                                                                   env.size_improvement <= self.max_improvement)]
+                                                                    (self.max_improvement is None or
+                                                                     env.size_improvement <= self.max_improvement))]
 
 class ConservativeTestManager(AbstractTestManager):
     pass
