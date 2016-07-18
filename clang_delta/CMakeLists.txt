@@ -201,6 +201,8 @@ add_executable(clang_delta
   UnifyFunctionDecl.h
   UnionToStruct.cpp
   UnionToStruct.h
+  VectorToArray.cpp
+  VectorToArray.h
   ${PROJECT_BINARY_DIR}/git_version.cpp
   git_version.h
 )
