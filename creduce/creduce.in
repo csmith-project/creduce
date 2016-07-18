@@ -855,6 +855,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "replace-array-access-with-index",     "pri" => 256,  },
     { "name" => "pass_clang",    "arg" => "replace-dependent-name", "pri" => 257,  },
     { "name" => "pass_clang",    "arg" => "simplify-recursive-template-instantiation",       "pri" => 258, },
+    { "name" => "pass_clang",    "arg" => "vector-to-array",        "pri" => 259   },    
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, },
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },

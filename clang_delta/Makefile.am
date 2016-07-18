@@ -264,6 +264,8 @@ clang_delta_SOURCES = \
 	UnifyFunctionDecl.h \
 	UnionToStruct.cpp \
 	UnionToStruct.h \
+	VectorToArray.cpp \
+	VectorToArray.h \
 	git_version.h
 
 nodist_clang_delta_SOURCES = \

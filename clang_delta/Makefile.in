@@ -180,7 +180,8 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-Transformation.$(OBJEXT) \
 	clang_delta-TransformationManager.$(OBJEXT) \
 	clang_delta-UnifyFunctionDecl.$(OBJEXT) \
-	clang_delta-UnionToStruct.$(OBJEXT)
+	clang_delta-UnionToStruct.$(OBJEXT) \
+	clang_delta-VectorToArray.$(OBJEXT)
 nodist_clang_delta_OBJECTS = clang_delta-git_version.$(OBJEXT)
 clang_delta_OBJECTS = $(am_clang_delta_OBJECTS) \
 	$(nodist_clang_delta_OBJECTS)
@@ -655,6 +656,8 @@ clang_delta_SOURCES = \
 	UnifyFunctionDecl.h \
 	UnionToStruct.cpp \
 	UnionToStruct.h \
+	VectorToArray.cpp \
+	VectorToArray.h \
 	git_version.h
 
 nodist_clang_delta_SOURCES = \
@@ -835,6 +838,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-TransformationManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-UnifyFunctionDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-UnionToStruct.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-VectorToArray.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-git_version.Po@am__quote@
 
 .cpp.o:
@@ -1837,6 +1841,20 @@ clang_delta-UnionToStruct.obj: UnionToStruct.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='UnionToStruct.cpp' object='clang_delta-UnionToStruct.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-UnionToStruct.obj `if test -f 'UnionToStruct.cpp'; then $(CYGPATH_W) 'UnionToStruct.cpp'; else $(CYGPATH_W) '$(srcdir)/UnionToStruct.cpp'; fi`
+
+clang_delta-VectorToArray.o: VectorToArray.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-VectorToArray.o -MD -MP -MF $(DEPDIR)/clang_delta-VectorToArray.Tpo -c -o clang_delta-VectorToArray.o `test -f 'VectorToArray.cpp' || echo '$(srcdir)/'`VectorToArray.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-VectorToArray.Tpo $(DEPDIR)/clang_delta-VectorToArray.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='VectorToArray.cpp' object='clang_delta-VectorToArray.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-VectorToArray.o `test -f 'VectorToArray.cpp' || echo '$(srcdir)/'`VectorToArray.cpp
+
+clang_delta-VectorToArray.obj: VectorToArray.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-VectorToArray.obj -MD -MP -MF $(DEPDIR)/clang_delta-VectorToArray.Tpo -c -o clang_delta-VectorToArray.obj `if test -f 'VectorToArray.cpp'; then $(CYGPATH_W) 'VectorToArray.cpp'; else $(CYGPATH_W) '$(srcdir)/VectorToArray.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-VectorToArray.Tpo $(DEPDIR)/clang_delta-VectorToArray.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='VectorToArray.cpp' object='clang_delta-VectorToArray.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-VectorToArray.obj `if test -f 'VectorToArray.cpp'; then $(CYGPATH_W) 'VectorToArray.cpp'; else $(CYGPATH_W) '$(srcdir)/VectorToArray.cpp'; fi`
 
 clang_delta-git_version.o: git_version.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-git_version.o -MD -MP -MF $(DEPDIR)/clang_delta-git_version.Tpo -c -o clang_delta-git_version.o `test -f 'git_version.cpp' || echo '$(srcdir)/'`git_version.cpp
