@@ -73,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
     parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
+    parser.add_argument("--timeout", type=int, nargs="?", const=300, help="Interestingness test timeout in seconds")
     parser.add_argument("--no-cache", action="store_true", default=False, help="Don't cache behavior of passes")
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
     parser.add_argument("--max-improvement", metavar="BYTES", type=int, help="Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)")
@@ -126,9 +127,9 @@ if __name__ == "__main__":
 
     if (not args.no_fast_test and
         testing.PythonTestRunner.is_valid_test(args.interestingness_test)):
-        test_runner = testing.PythonTestRunner(args.interestingness_test, args.save_temps, args.no_kill)
+        test_runner = testing.PythonTestRunner(args.interestingness_test, args.timeout, args.save_temps, args.no_kill)
     else:
-        test_runner = testing.GeneralTestRunner(args.interestingness_test, args.save_temps, args.no_kill)
+        test_runner = testing.GeneralTestRunner(args.interestingness_test, args.timeout, args.save_temps, args.no_kill)
 
     pass_statistic = statistics.PassStatistic()
 

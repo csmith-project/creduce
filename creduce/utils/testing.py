@@ -14,6 +14,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import weakref
 
 from ..passes import AbstractPass
@@ -36,11 +37,12 @@ def _run_test(module_spec, test_dir, test_cases):
     module.run(test_cases)
 
 class AbstractTestEnvironment:
-    def __init__(self, save_temps):
+    def __init__(self, timeout, save_temps):
         self.test_case = None
         self.additional_files = set()
         self.state = None
         self._dir = tempfile.mkdtemp(prefix="creduce-")
+        self.timeout = timeout
         self.save_temps = save_temps
         self._base_size = None
 
@@ -111,12 +113,13 @@ class AbstractTestEnvironment:
         raise NotImplementedError("Missing 'wait_for_result' implementation in class '{}'".format(self.__class__))
 
 class GeneralTestEnvironment(AbstractTestEnvironment):
-    def __init__(self, test_script, save_temps):
-        super().__init__(save_temps)
+    def __init__(self, test_script, timeout, save_temps):
+        super().__init__(timeout, save_temps)
 
         self.test_script = test_script
         self.__exitcode = None
         self.__process = None
+        self.__timer = None
 
     def dump(self, dst):
         super().dump(dst)
@@ -165,6 +168,14 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
 
         self.__process = subprocess.Popen(cmd, cwd=self.path, preexec_fn=preexec_fn, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+        if self.timeout is not None:
+            def timeout(pid):
+                logging.debug("Test {} timed out!".format(pid))
+                AbstractTestRunner.killpg(pid)
+
+            self.__timer = threading.Timer(self.timeout, timeout, [self.process_pid])
+            self.__timer.start()
+
     def has_result(self):
         if self.__process is None:
             return False
@@ -184,8 +195,8 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
             return self.__process.wait()
 
 class PythonTestEnvironment(AbstractTestEnvironment):
-    def __init__(self, module_spec, save_temps):
-        super().__init__(save_temps)
+    def __init__(self, module_spec, timeout, save_temps):
+        super().__init__(timeout, save_temps)
 
         self.module_spec = module_spec
         self.__exitcode = None
@@ -227,6 +238,14 @@ class PythonTestEnvironment(AbstractTestEnvironment):
         self.__process = multiprocessing.Process(target=_run_test, args=(self.module_spec, self.path, files))
         self.__process.start()
 
+        if self.timeout is not None:
+            def timeout(pid):
+                logging.debug("Test {} timed out!".format(pid))
+                AbstractTestRunner.killpg(pid)
+
+            self.__timer = threading.Timer(self.timeout, timeout, [self.process_pid])
+            self.__timer.start()
+
     def has_result(self):
         if self.__process is None:
             return False
@@ -246,10 +265,11 @@ class PythonTestEnvironment(AbstractTestEnvironment):
             return self.__process.join()
 
 class AbstractTestRunner:
-    def __init__(self, test, save_temps, no_kill):
+    def __init__(self, test, timeout, save_temps, no_kill):
         if not self.is_valid_test(test):
             raise InvalidInterestingnessTestError(test)
 
+        self.timeout = timeout
         self.save_temps = save_temps
         self.no_kill = no_kill
 
@@ -314,9 +334,17 @@ class AbstractTestRunner:
 
             test_env.wait_for_result()
 
+    @classmethod
+    def killpg(cls, pid):
+        if sys.platform == "win32":
+            cls._kill_win32(pid)
+        else:
+            cls._kill_posix(pid)
+
+
 class GeneralTestRunner(AbstractTestRunner):
-    def __init__(self, test_script, save_temps, no_kill):
-        super().__init__(test_script, save_temps, no_kill)
+    def __init__(self, test_script, timeout, save_temps, no_kill):
+        super().__init__(test_script, timeout, save_temps, no_kill)
 
         self.test_script = os.path.abspath(test_script)
 
@@ -329,11 +357,11 @@ class GeneralTestRunner(AbstractTestRunner):
         return True
 
     def create_environment(self):
-        return GeneralTestEnvironment(self.test_script, self.save_temps)
+        return GeneralTestEnvironment(self.test_script, self.timeout, self.save_temps)
 
 class PythonTestRunner(AbstractTestRunner):
-    def __init__(self, test_module, save_temps, no_kill):
-        super().__init__(test_module, save_temps, no_kill)
+    def __init__(self, test_module, timeout, save_temps, no_kill):
+        super().__init__(test_module, timeout, save_temps, no_kill)
 
         if os.path.isfile(test_module):
             (module_name, _) = os.path.splitext(os.path.basename(test_module))
@@ -358,7 +386,7 @@ class PythonTestRunner(AbstractTestRunner):
         return (getattr(module, "run", None) is not None)
 
     def create_environment(self):
-        return PythonTestEnvironment(self.module_spec, self.save_temps)
+        return PythonTestEnvironment(self.module_spec, self.timeout, self.save_temps)
 
 class AbstractTestManager:
     #TODO: How can we get this information?
