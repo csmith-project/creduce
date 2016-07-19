@@ -20,6 +20,7 @@
 class Transformation;
 namespace clang {
   class CompilerInstance;
+  class Preprocessor;
 }
 
 class TransformationManager {
@@ -38,6 +39,8 @@ public:
   static bool isCLangOpt();
 
   static bool isOpenCLLangOpt();
+
+  static clang::Preprocessor &getPreprocessor();
 
   static int ErrorInvalidCounter;
 

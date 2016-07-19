@@ -46,6 +46,11 @@ TransformationManager *TransformationManager::GetInstance()
   return TransformationManager::Instance;
 }
 
+Preprocessor &TransformationManager::getPreprocessor()
+{
+  return GetInstance()->ClangInstance->getPreprocessor();
+}
+
 bool TransformationManager::isCXXLangOpt()
 {
   TransAssert(TransformationManager::Instance && "Invalid Instance!");
