@@ -378,6 +378,9 @@ class PythonTestRunner(AbstractTestRunner):
             else:
                 module_spec = importlib.util.find_spec(test_script)
 
+            if module_spec is None:
+                return False
+
             module = importlib.util.module_from_spec(module_spec)
             module_spec.loader.exec_module(module)
         except FileNotFoundError:
