@@ -86,12 +86,6 @@ sub read_file ($) {
 	$prog .= $line;
     }
     close INF;
-    if (substr($prog, 0, 1) ne " ") {
-	$prog = " $prog";
-    }
-    if (substr ($prog, -1, 1) ne " ") {
-	$prog = "$prog ";
-    }
     return $prog;
 }
 
