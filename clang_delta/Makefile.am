@@ -142,6 +142,8 @@ clang_delta_SOURCES = \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \
 	EmptyStructToInt.h \
+	ExpressionDetector.cpp \
+	ExpressionDetector.h \
 	InstantiateTemplateParam.cpp \
 	InstantiateTemplateParam.h \
 	InstantiateTemplateTypeParamToInt.cpp \

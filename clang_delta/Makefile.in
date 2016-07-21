@@ -120,6 +120,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 	clang_delta-CombineLocalVarDecl.$(OBJEXT) \
 	clang_delta-CopyPropagation.$(OBJEXT) \
 	clang_delta-EmptyStructToInt.$(OBJEXT) \
+	clang_delta-ExpressionDetector.$(OBJEXT) \
 	clang_delta-InstantiateTemplateParam.$(OBJEXT) \
 	clang_delta-InstantiateTemplateTypeParamToInt.$(OBJEXT) \
 	clang_delta-LiftAssignmentExpr.$(OBJEXT) \
@@ -533,6 +534,8 @@ clang_delta_SOURCES = \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \
 	EmptyStructToInt.h \
+	ExpressionDetector.cpp \
+	ExpressionDetector.h \
 	InstantiateTemplateParam.cpp \
 	InstantiateTemplateParam.h \
 	InstantiateTemplateTypeParamToInt.cpp \
@@ -774,6 +777,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CombineLocalVarDecl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-CopyPropagation.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-EmptyStructToInt.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-ExpressionDetector.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-InstantiateTemplateParam.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-InstantiateTemplateTypeParamToInt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clang_delta-LiftAssignmentExpr.Po@am__quote@
@@ -983,6 +987,20 @@ clang_delta-EmptyStructToInt.obj: EmptyStructToInt.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='EmptyStructToInt.cpp' object='clang_delta-EmptyStructToInt.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-EmptyStructToInt.obj `if test -f 'EmptyStructToInt.cpp'; then $(CYGPATH_W) 'EmptyStructToInt.cpp'; else $(CYGPATH_W) '$(srcdir)/EmptyStructToInt.cpp'; fi`
+
+clang_delta-ExpressionDetector.o: ExpressionDetector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ExpressionDetector.o -MD -MP -MF $(DEPDIR)/clang_delta-ExpressionDetector.Tpo -c -o clang_delta-ExpressionDetector.o `test -f 'ExpressionDetector.cpp' || echo '$(srcdir)/'`ExpressionDetector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ExpressionDetector.Tpo $(DEPDIR)/clang_delta-ExpressionDetector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ExpressionDetector.cpp' object='clang_delta-ExpressionDetector.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ExpressionDetector.o `test -f 'ExpressionDetector.cpp' || echo '$(srcdir)/'`ExpressionDetector.cpp
+
+clang_delta-ExpressionDetector.obj: ExpressionDetector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-ExpressionDetector.obj -MD -MP -MF $(DEPDIR)/clang_delta-ExpressionDetector.Tpo -c -o clang_delta-ExpressionDetector.obj `if test -f 'ExpressionDetector.cpp'; then $(CYGPATH_W) 'ExpressionDetector.cpp'; else $(CYGPATH_W) '$(srcdir)/ExpressionDetector.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/clang_delta-ExpressionDetector.Tpo $(DEPDIR)/clang_delta-ExpressionDetector.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ExpressionDetector.cpp' object='clang_delta-ExpressionDetector.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -c -o clang_delta-ExpressionDetector.obj `if test -f 'ExpressionDetector.cpp'; then $(CYGPATH_W) 'ExpressionDetector.cpp'; else $(CYGPATH_W) '$(srcdir)/ExpressionDetector.cpp'; fi`
 
 clang_delta-InstantiateTemplateParam.o: InstantiateTemplateParam.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(clang_delta_CPPFLAGS) $(CPPFLAGS) $(clang_delta_CXXFLAGS) $(CXXFLAGS) -MT clang_delta-InstantiateTemplateParam.o -MD -MP -MF $(DEPDIR)/clang_delta-InstantiateTemplateParam.Tpo -c -o clang_delta-InstantiateTemplateParam.o `test -f 'InstantiateTemplateParam.cpp' || echo '$(srcdir)/'`InstantiateTemplateParam.cpp
