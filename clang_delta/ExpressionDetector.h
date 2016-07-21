@@ -87,7 +87,7 @@ private:
 
   VarToExprMap ProcessedExprs;
 
-  StmtToExprSetMap InvalidExprsInUO;
+  StmtToExprSetMap InvalidExprsInUOBO;
 
   StmtToVarVecMap TmpVarsInStmt;
 
