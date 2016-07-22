@@ -308,9 +308,14 @@ void ExpressionDetector::HandleTranslationUnit(ASTContext &Ctx)
   TransAssert(TheStmt && "NULL TheStmt!");
   TransAssert(TheExpr && "NULL TheExpr");
 
-  StaticVarNameQueryWrap->TraverseDecl(TheFunc);
-  TmpVarNameQueryWrap->TraverseDecl(TheFunc);
-  doRewrite();
+  if (DoReplacement) {
+    RewriteHelper->replaceExpr(TheExpr, Replacement);
+  }
+  else {
+    StaticVarNameQueryWrap->TraverseDecl(TheFunc);
+    TmpVarNameQueryWrap->TraverseDecl(TheFunc);
+    doRewrite();
+  }
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())

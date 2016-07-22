@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2016 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -72,6 +72,12 @@ static void PrintHelpMessage()
   llvm::outs() << "simultaneously. Note that currently only ";
   llvm::outs() << "replace-function-def-with-decl supports this feature.)\n";
 
+  llvm::outs() << "  --replacement=\"string\": ";
+  llvm::outs() << "instead of performing normal rewriting, the candidate ";
+  llvm::outs() << "pointed by the counter will be replaced by the passed ";
+  llvm::outs() << "\"string\". Currently, this option works only with ";
+  llvm::outs() << "transformation expression-detector.\n";
+
   llvm::outs() << "  --output=<filename>: ";
   llvm::outs() << "specify where to output the transformed source code ";
   llvm::outs() << "(default: stdout)\n";
@@ -141,6 +147,9 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
   }
   else if (!ArgName.compare("output")) {
     TransMgr->setOutputFileName(ArgValue);
+  }
+  else if (!ArgName.compare("replacement")) {
+    TransMgr->setReplacement(ArgValue);
   }
   else {
     DieOnBadCmdArg("--" + ArgValueStr);

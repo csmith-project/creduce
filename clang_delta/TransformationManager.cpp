@@ -235,6 +235,7 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg, int &ErrorCo
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
+  CurrentTransformationImpl->setReplacement(Replacement);
   if (ToCounter > 0) {
     if (CurrentTransformationImpl->isMultipleRewritesEnabled()) {
       CurrentTransformationImpl->setToCounter(ToCounter);

@@ -75,6 +75,10 @@ public:
     OutputFileName = FileName;
   }
 
+  void setReplacement(const std::string &Str) {
+    Replacement = Str;
+  }
+
   void setQueryInstanceFlag(bool Flag) {
     QueryInstanceOnly = Flag;
   }
@@ -116,6 +120,8 @@ private:
   std::string SrcFileName;
 
   std::string OutputFileName;
+
+  std::string Replacement;
 
   std::string CurrentTransName;
 
