@@ -77,6 +77,7 @@ public:
 
   void setReplacement(const std::string &Str) {
     Replacement = Str;
+    DoReplacement = true;
   }
 
   void setQueryInstanceFlag(bool Flag) {
@@ -121,13 +122,15 @@ private:
 
   std::string OutputFileName;
 
-  std::string Replacement;
-
   std::string CurrentTransName;
 
   clang::CompilerInstance *ClangInstance;
 
   bool QueryInstanceOnly;
+
+  bool DoReplacement;
+
+  std::string Replacement;
 
   // Unimplemented
   TransformationManager(const TransformationManager &);

@@ -235,7 +235,8 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg, int &ErrorCo
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
-  CurrentTransformationImpl->setReplacement(Replacement);
+  if (DoReplacement)
+    CurrentTransformationImpl->setReplacement(Replacement);
   if (ToCounter > 0) {
     if (CurrentTransformationImpl->isMultipleRewritesEnabled()) {
       CurrentTransformationImpl->setToCounter(ToCounter);
@@ -356,7 +357,9 @@ TransformationManager::TransformationManager()
     OutputFileName(""),
     CurrentTransName(""),
     ClangInstance(NULL),
-    QueryInstanceOnly(false)
+    QueryInstanceOnly(false),
+    DoReplacement(false),
+    Replacement("")
 {
   // Nothing to do
 }
