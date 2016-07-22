@@ -72,7 +72,7 @@ static void PrintHelpMessage()
   llvm::outs() << "simultaneously. Note that currently only ";
   llvm::outs() << "replace-function-def-with-decl supports this feature.)\n";
 
-  llvm::outs() << "  --replacement=\"string\": ";
+  llvm::outs() << "  --replacement=<string>: ";
   llvm::outs() << "instead of performing normal rewriting, the candidate ";
   llvm::outs() << "pointed by the counter will be replaced by the passed ";
   llvm::outs() << "\"string\". Currently, this option works only with ";
