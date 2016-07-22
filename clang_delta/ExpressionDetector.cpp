@@ -32,6 +32,23 @@ considered valid. The transformation also injects a static control \
 variable to ensure that the expression of interest will be printed \
 only once.\n";
 
+// Some known issues:
+// (1) Because we don't have any array-bound analysis, this pass will
+//     turn the following code into one that would coredump:
+//    if (argc == 2 && !strcmp(argv[1], "xxx"))
+//  ==>
+//    int __creduce_expr_tmp = !strcmp(argv[1], "xxx");
+//    ...
+// (2) we don't perform pointer analysis, the transformed program
+//     will produce different result from the original one, e.g.,
+//    int *x = &g;
+//    foo((*x) += 1 || g);
+//  ==>
+//    int *x = &g;
+//    int __creduce_expr_tmp = g;
+//    ...
+//    foo((*x) += 1 || __creduce_expr_tmp);
+
 static RegisterTransformation<ExpressionDetector>
          Trans("expression-detector", DescriptionMsg);
 
