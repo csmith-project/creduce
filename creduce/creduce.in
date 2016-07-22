@@ -482,7 +482,7 @@ sub wait_helper() {
 
             my $exit_code;
             if ($proc->GetExitCode($exit_code) != Win32::Process::STILL_ACTIVE()) {
-                $? = ($exit_code == 0) ? 1 << 8 : 0;
+                $? = $exit_code << 8;
                 return $proc->GetProcessID();
             }
             push @procs, $proc;
