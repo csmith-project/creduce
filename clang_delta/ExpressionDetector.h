@@ -38,16 +38,28 @@ friend class ExprDetectorTempVarVisitor;
 public:
   ExpressionDetector(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
-      CollectionVisitor(NULL), StaticVarNameQueryWrap(NULL),
+      CollectionVisitor(NULL), ControlVarNameQueryWrap(NULL),
       TmpVarNameQueryWrap(NULL), TheFunc(NULL), TheStmt(NULL), TheExpr(NULL),
-      StaticVarNamePrefix("__creduce_printed_"),
-      TmpVarNamePrefix("__creduce_expr_tmp_"), HasStdio(false),
-      HasPrintf(false)
+      PrintedVarNamePrefix("__creduce_printed_"),
+      CheckedVarNamePrefix("__creduce_checked_"), ControlVarNamePrefix(""),
+      TmpVarNamePrefix("__creduce_expr_tmp_")
   { }
 
   ~ExpressionDetector(void);
 
 private:
+  struct HeaderFunctionInfo {
+    HeaderFunctionInfo () : HasHeader(false), HasFunction(false) { }
+
+    bool HasHeader;
+    bool HasFunction;
+    clang::SourceLocation HeaderLoc;
+    clang::SourceLocation FunctionLoc;
+    std::string HeaderName;
+    std::string FunctionName;
+    std::string FunctionDeclStr;
+  };
+
   typedef std::vector<const clang::Expr *> ExprVector;
 
   typedef std::map<const clang::Stmt *, ExprVector> StmtToExprMap;
@@ -75,7 +87,7 @@ private:
 
   void doRewrite();
 
-  bool shouldAddPrintf(clang::SourceLocation Loc);
+  bool shouldAddFunctionDecl(clang::SourceLocation Loc);
 
   bool isIdenticalExpr(const clang::Expr *E1, const clang::Expr *E2);
 
@@ -93,7 +105,7 @@ private:
 
   ExprDetectorCollectionVisitor *CollectionVisitor;
 
-  TransNameQueryWrap *StaticVarNameQueryWrap;
+  TransNameQueryWrap *ControlVarNameQueryWrap;
 
   TransNameQueryWrap *TmpVarNameQueryWrap;
 
@@ -103,15 +115,15 @@ private:
 
   clang::Expr *TheExpr;
 
-  std::string StaticVarNamePrefix;
+  std::string PrintedVarNamePrefix;
+
+  std::string CheckedVarNamePrefix;
+
+  std::string ControlVarNamePrefix;
 
   std::string TmpVarNamePrefix;
 
-  bool HasStdio;
-
-  bool HasPrintf;
-
-  clang::SourceLocation StdioHeaderLoc;
+  HeaderFunctionInfo HFInfo;
 
   // Unimplemented
   ExpressionDetector(void);

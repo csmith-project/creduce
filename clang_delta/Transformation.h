@@ -74,7 +74,8 @@ public:
       Rewritten(false),
       MultipleRewrites(false),
       ToCounter(-1),
-      DoReplacement(false)
+      DoReplacement(false),
+      CheckReference(false)
   {
     // Nothing to do
   }
@@ -94,7 +95,8 @@ public:
       Rewritten(false),
       MultipleRewrites(MultipleRewritesFlag),
       ToCounter(-1),
-      DoReplacement(false)
+      DoReplacement(false),
+      CheckReference(false)
   {
     // Nothing to do
   }
@@ -125,6 +127,11 @@ public:
   void setReplacement(const std::string &Str) {
     Replacement = Str;
     DoReplacement = true;
+  }
+
+  void setReferenceValue(const std::string &Str) {
+    ReferenceValue = Str;
+    CheckReference = true;
   }
 
   bool transSuccess() {
@@ -312,6 +319,10 @@ protected:
   bool DoReplacement;
 
   std::string Replacement;
+
+  bool CheckReference;
+
+  std::string ReferenceValue;
 };
 
 class TransNameQueryVisitor;

@@ -80,6 +80,11 @@ public:
     DoReplacement = true;
   }
 
+  void setReferenceValue(const std::string &Str) {
+    ReferenceValue = Str;
+    CheckReference = true;
+  }
+
   void setQueryInstanceFlag(bool Flag) {
     QueryInstanceOnly = Flag;
   }
@@ -131,6 +136,10 @@ private:
   bool DoReplacement;
 
   std::string Replacement;
+
+  bool CheckReference;
+
+  std::string ReferenceValue;
 
   // Unimplemented
   TransformationManager(const TransformationManager &);

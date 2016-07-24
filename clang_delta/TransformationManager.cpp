@@ -170,6 +170,15 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
                            &ClangInstance->getPreprocessor());
   ClangInstance->createASTContext();
 
+  // It's not elegant to initialize these two here... Ideally, we 
+  // would put them in doTransformation, but we need these two
+  // flags being set before Transformation::Initialize, which
+  // is invoked through ClangInstance->setASTConsumer.
+  if (DoReplacement)
+    CurrentTransformationImpl->setReplacement(Replacement);
+  if (CheckReference)
+    CurrentTransformationImpl->setReferenceValue(ReferenceValue);
+
   assert(CurrentTransformationImpl && "Bad transformation instance!");
   ClangInstance->setASTConsumer(
     std::unique_ptr<ASTConsumer>(CurrentTransformationImpl));
@@ -235,8 +244,6 @@ bool TransformationManager::doTransformation(std::string &ErrorMsg, int &ErrorCo
 
   CurrentTransformationImpl->setQueryInstanceFlag(QueryInstanceOnly);
   CurrentTransformationImpl->setTransformationCounter(TransformationCounter);
-  if (DoReplacement)
-    CurrentTransformationImpl->setReplacement(Replacement);
   if (ToCounter > 0) {
     if (CurrentTransformationImpl->isMultipleRewritesEnabled()) {
       CurrentTransformationImpl->setToCounter(ToCounter);
@@ -359,7 +366,9 @@ TransformationManager::TransformationManager()
     ClangInstance(NULL),
     QueryInstanceOnly(false),
     DoReplacement(false),
-    Replacement("")
+    Replacement(""),
+    CheckReference(false),
+    ReferenceValue("")
 {
   // Nothing to do
 }

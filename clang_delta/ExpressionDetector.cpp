@@ -37,7 +37,7 @@ only once.\n";
 //     turn the following code into one that would coredump:
 //    if (argc == 2 && !strcmp(argv[1], "xxx"))
 //  ==>
-//    int __creduce_expr_tmp = !strcmp(argv[1], "xxx");
+//    int __creduce_expr_tmp_xxx = !strcmp(argv[1], "xxx");
 //    ...
 // (2) we don't perform pointer analysis, the transformed program
 //     will produce different result from the original one, e.g.,
@@ -45,9 +45,9 @@ only once.\n";
 //    foo((*x) += 1 || g);
 //  ==>
 //    int *x = &g;
-//    int __creduce_expr_tmp = g;
+//    int __creduce_expr_tmp_xxx = g;
 //    ...
-//    foo((*x) += 1 || __creduce_expr_tmp);
+//    foo((*x) += 1 || __creduce_expr_tmp_xxx);
 
 static RegisterTransformation<ExpressionDetector>
          Trans("expression-detector", DescriptionMsg);
@@ -55,8 +55,9 @@ static RegisterTransformation<ExpressionDetector>
 namespace {
 class IncludesPPCallbacks : public PPCallbacks {
 public:
-  IncludesPPCallbacks(SourceManager &M, bool &Stdio, SourceLocation &Loc)
-    : SrcManager(M), HasStdio(Stdio), StdioHeaderLoc(Loc)
+  IncludesPPCallbacks(SourceManager &M, const std::string &Name,
+                      bool &H, SourceLocation &Loc)
+    : SrcManager(M), HeaderName(Name), HasHeader(H), HeaderLoc(Loc)
   { }
 
   void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
@@ -68,9 +69,11 @@ public:
 private:
   SourceManager &SrcManager;
 
-  bool &HasStdio;
+  const std::string &HeaderName;
 
-  SourceLocation &StdioHeaderLoc;
+  bool &HasHeader;
+
+  SourceLocation &HeaderLoc;
 };
 
 void IncludesPPCallbacks::InclusionDirective(SourceLocation HashLoc,
@@ -86,9 +89,9 @@ void IncludesPPCallbacks::InclusionDirective(SourceLocation HashLoc,
   if (!SrcManager.isInMainFile(HashLoc))
     return;
   // We may have multiple "#include <stdio.h>". Only handle the first one.
-  if (!HasStdio && FileName == "stdio.h") {
-    HasStdio = true;
-    StdioHeaderLoc = HashLoc;
+  if (!HasHeader && FileName == HeaderName) {
+    HasHeader = true;
+    HeaderLoc = HashLoc;
   }
 }
 
@@ -210,8 +213,11 @@ private:
 
 bool ExprDetectorCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (FD->getNameAsString() == "printf")
-    ConsumerInstance->HasPrintf = true;
+  if (!ConsumerInstance->HFInfo.HasFunction &&
+      FD->getNameAsString() == ConsumerInstance->HFInfo.FunctionName) {
+    ConsumerInstance->HFInfo.HasFunction = true;
+    ConsumerInstance->HFInfo.FunctionLoc = FD->getSourceRange().getBegin();
+  }
 
   if (ConsumerInstance->isInIncludedFile(FD) ||
       !FD->isThisDeclarationADefinition())
@@ -268,13 +274,29 @@ void ExpressionDetector::Initialize(ASTContext &context)
 {
   Transformation::Initialize(context);
   CollectionVisitor = new ExprDetectorCollectionVisitor(this);
-  StaticVarNameQueryWrap = 
-    new TransNameQueryWrap(StaticVarNamePrefix);
+  if (CheckReference) {
+    ControlVarNamePrefix = CheckedVarNamePrefix;
+    HFInfo.HeaderName = "stdlib.h";
+    HFInfo.FunctionName = "abort";
+    HFInfo.FunctionDeclStr = "void abort(void)";
+  }
+  else {
+    ControlVarNamePrefix = PrintedVarNamePrefix;
+    HFInfo.HeaderName = "stdio.h";
+    HFInfo.FunctionName = "printf";
+    HFInfo.FunctionDeclStr = "int printf(const char *format, ...)";
+  }
+
+  ControlVarNameQueryWrap = 
+    new TransNameQueryWrap(ControlVarNamePrefix);
   TmpVarNameQueryWrap =
     new TransNameQueryWrap(TmpVarNamePrefix);
   Preprocessor &PP = TransformationManager::getPreprocessor();
   IncludesPPCallbacks *C =
-    new IncludesPPCallbacks(PP.getSourceManager(), HasStdio, StdioHeaderLoc);
+    new IncludesPPCallbacks(PP.getSourceManager(),
+                            HFInfo.HeaderName,
+                            HFInfo.HasHeader,
+                            HFInfo.HeaderLoc);
   PP.addPPCallbacks(std::unique_ptr<PPCallbacks>(C));
 }
 
@@ -312,7 +334,7 @@ void ExpressionDetector::HandleTranslationUnit(ASTContext &Ctx)
     RewriteHelper->replaceExpr(TheExpr, Replacement);
   }
   else {
-    StaticVarNameQueryWrap->TraverseDecl(TheFunc);
+    ControlVarNameQueryWrap->TraverseDecl(TheFunc);
     TmpVarNameQueryWrap->TraverseDecl(TheFunc);
     doRewrite();
   }
@@ -322,15 +344,17 @@ void ExpressionDetector::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransInternalError;
 }
 
-// Return true if 
-// (1) we don't have printf declaration; and
-// (2) stdio.h is not included in the main file; or
-//     stdio.h appears after the Loc.
-bool ExpressionDetector::shouldAddPrintf(SourceLocation Loc)
+// Return true if
+// (1) we don't have the function declaration or the decl appears after
+//     the recorded FunctionLoc; and
+// (2) header file is not included in the main file or header file
+//     appears after the Loc.
+bool ExpressionDetector::shouldAddFunctionDecl(SourceLocation Loc)
 {
-  return !HasPrintf &&
-         (!HasStdio ||
-          SrcManager->isBeforeInSLocAddrSpace(Loc, StdioHeaderLoc));
+  return (!HFInfo.HasFunction ||
+          SrcManager->isBeforeInSLocAddrSpace(Loc, HFInfo.FunctionLoc)) &&
+         (!HFInfo.HasHeader ||
+          SrcManager->isBeforeInSLocAddrSpace(Loc, HFInfo.HeaderLoc));
 }
 
 void ExpressionDetector::addOneTempVar(const VarDecl *VD)
@@ -347,9 +371,10 @@ bool ExpressionDetector::refToTmpVar(const NamedDecl *ND)
 {
   StringRef Name = ND->getName();
   // We don't want to repeatly replace temporary variables
-  // __creduce_expr_tmp_xxx and __creduce_printed_yy.
+  // __creduce_expr_tmp_xxx, __creduce_printed_yy and __creduce_checked_zzz.
   return Name.startswith(TmpVarNamePrefix) ||
-         Name.startswith(StaticVarNamePrefix);
+         Name.startswith(PrintedVarNamePrefix) ||
+         Name.startswith(CheckedVarNamePrefix);
 }
 
 // Reference: IdenticalExprChecker.cpp from Clang
@@ -491,13 +516,32 @@ bool ExpressionDetector::isValidExpr(Stmt *S, const Expr *E)
     }
   }
 
-  // don't handle !__creduce_printed
+  // don't handle !__creduce_printed and !__creduce_checked
   if (const UnaryOperator *UO = dyn_cast<UnaryOperator>(E)) {
     if (UO->getOpcode() == UO_LNot) {
       if (const DeclRefExpr *SubE =
           dyn_cast<DeclRefExpr>(UO->getSubExpr()->IgnoreParenCasts())) {
-        if (SubE->getDecl()->getName().startswith(StaticVarNamePrefix))
+        StringRef SubEName = SubE->getDecl()->getName();
+        if (SubEName.startswith(PrintedVarNamePrefix) ||
+            SubEName.startswith(CheckedVarNamePrefix))
           return false;
+      }
+    }
+  }
+
+  // skip if (__creduce_expr_tmp != xxx)
+  if (const BinaryOperator *BO = dyn_cast<BinaryOperator>(E)) {
+    if (BO->getOpcode() == BO_NE) {
+      const Expr *Lhs = BO->getLHS()->IgnoreParenCasts();
+      const Expr *Rhs = BO->getRHS()->IgnoreParenCasts();
+      const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(Lhs);
+      Stmt::StmtClass SC = Rhs->getStmtClass();
+      bool IsLit = SC == Stmt::IntegerLiteralClass ||
+                   SC == Stmt::FloatingLiteralClass;
+      if (IsLit && DRE &&
+          DRE->getDecl()->getName().startswith(TmpVarNamePrefix) &&
+          S->getStmtClass() == Stmt::IfStmtClass) {
+        return false;
       }
     }
   }
@@ -517,16 +561,16 @@ bool ExpressionDetector::isValidExpr(Stmt *S, const Expr *E)
   // If the Expr is the LHS of a binary operator, we don't
   // need to process it, e.g., given
   //   a = x + y;
-  // we don't need to replace "a" with "__creduce_tmp_xxx"
+  // we don't need to replace "a" with "__creduce_expr_tmp_xxx"
   // 
   // We also skip x++, --x and &x, because we don't want to make
   // the following transformation:
   //   x++;
   // ==>
-  //   __creduce_tmp = x;
-  //   ++__creduce_tmp;
+  //   __creduce_expr_tmp_xxx = x;
+  //   ++__creduce_expr_tmp_xxx;
   // In the original code, we pre-increment x, but after the "transformation",
-  // we would end up doing that for __creduce_tmp.
+  // we would end up doing that for __creduce_expr_tmp_xxx.
   // Note that we cache the result, because we don't want to re-visit the same
   // statement many times. Gain a log of performance improvement.
   auto EI = InvalidExprsInUOBO.find(S);
@@ -557,9 +601,9 @@ bool ExpressionDetector::isValidExpr(Stmt *S, const Expr *E)
 
   // The optimization above only works for single iteration. The code
   // below handles the following patterns:
-  //   int __creduce_expr_tmp1 = y[1];
-  //   ...printf("%d\n", __creduce_expr_tmp1);
-  //   x = __creduce_expr_tmp1 + y[1] + y[1]
+  //   int __creduce_expr_tmp_1 = y[1];
+  //   ...printf("%d\n", __creduce_expr_tmp_1);
+  //   x = __creduce_expr_tmp_1 + y[1] + y[1]
   // We don't need to generate another tmp var for y[1] in this case.
   auto VI = TmpVarsInStmt.find(S);
   if (VI == TmpVarsInStmt.end()) {
@@ -627,10 +671,10 @@ static std::string getFormatString(const BuiltinType *BT)
 void ExpressionDetector::doRewrite()
 {
   SourceLocation LocStart = TheStmt->getLocStart();
-  if (shouldAddPrintf(LocStart)) {
+  if (shouldAddFunctionDecl(LocStart)) {
     SourceLocation Loc =
       SrcManager->getLocForStartOfFile(SrcManager->getMainFileID());
-    TheRewriter.InsertText(Loc, "int printf(const char *format, ...);\n");
+    TheRewriter.InsertText(Loc, HFInfo.FunctionDeclStr+";\n");
   }
 
   std::string Str, ExprStr, TmpVarName;
@@ -642,15 +686,23 @@ void ExpressionDetector::doRewrite()
                std::to_string(TmpVarNameQueryWrap->getMaxNamePostfix()+1);
   Str += TyStr + " " + TmpVarName + " = " + ExprStr + ";\n";
 
-  std::string StaticVarName = StaticVarNamePrefix +
-    std::to_string(StaticVarNameQueryWrap->getMaxNamePostfix()+1);
-  const Type *Ty = TheExpr->getType().getTypePtr()->getUnqualifiedDesugaredType();
-  std::string FormatStr = getFormatString(dyn_cast<BuiltinType>(Ty));
-  Str += "static int " + StaticVarName + " = 0;\n";
-  Str += "if (!" + StaticVarName + ") {\n";
-  Str += "  printf(\"creduce_value(%" + FormatStr + ")\\n\", ";
-  Str += TmpVarName + ");\n";
-  Str += "  " + StaticVarName + " = 1;\n";
+  std::string ControlVarName = ControlVarNamePrefix +
+    std::to_string(ControlVarNameQueryWrap->getMaxNamePostfix()+1);
+  Str += "static int " + ControlVarName + " = 0;\n";
+  Str += "if (!" + ControlVarName + ") {\n";
+  if (CheckReference) {
+    Str += "  if (" + TmpVarName + " != " + ReferenceValue + ") ";
+    Str +=  HFInfo.FunctionName + "();\n";
+  }
+  else {
+    const Type *Ty =
+      TheExpr->getType().getTypePtr()->getUnqualifiedDesugaredType();
+    std::string FormatStr = getFormatString(dyn_cast<BuiltinType>(Ty));
+    Str += "  " + HFInfo.FunctionName;
+    Str += "(\"creduce_value(%" + FormatStr + ")\\n\", ";
+    Str += TmpVarName + ");\n";
+  }
+  Str += "  " + ControlVarName + " = 1;\n";
   Str += "}";
 
   bool NeedParen = TheStmt->getStmtClass() != Stmt::DeclStmtClass;
@@ -662,6 +714,6 @@ void ExpressionDetector::doRewrite()
 ExpressionDetector::~ExpressionDetector(void)
 {
   delete CollectionVisitor;
-  delete StaticVarNameQueryWrap;
+  delete ControlVarNameQueryWrap;
   delete TmpVarNameQueryWrap;
 }

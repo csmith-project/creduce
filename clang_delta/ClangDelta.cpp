@@ -78,6 +78,12 @@ static void PrintHelpMessage()
   llvm::outs() << "\"string\". Currently, this option works only with ";
   llvm::outs() << "transformation expression-detector.\n";
 
+  llvm::outs() << "  --check-reference=<value>: ";
+  llvm::outs() << "insert code to check if the candidate designated by the ";
+  llvm::outs() << "counter equals to the reference value or not. Currently, ";
+  llvm::outs() << "this option works only with transformation ";
+  llvm::outs() << "expression-detector.\n";
+
   llvm::outs() << "  --output=<filename>: ";
   llvm::outs() << "specify where to output the transformed source code ";
   llvm::outs() << "(default: stdout)\n";
@@ -150,6 +156,9 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
   }
   else if (!ArgName.compare("replacement")) {
     TransMgr->setReplacement(ArgValue);
+  }
+  else if (!ArgName.compare("check-reference")) {
+    TransMgr->setReferenceValue(ArgValue);
   }
   else {
     DieOnBadCmdArg("--" + ArgValueStr);
