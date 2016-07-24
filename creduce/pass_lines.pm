@@ -82,7 +82,7 @@ sub transform ($$$) {
 	print "***TRANSFORM START***\n" if $DEBUG;
 	delete $sh{"start"};
 	my $outfile = File::Temp::tmpnam();
-	my $cmd = qq{"$topformflat $arg" < $cfile > $outfile};
+	my $cmd = qq{"$topformflat" $arg < $cfile > $outfile};
 	print $cmd if $DEBUG;
 	runit ($cmd);
 
