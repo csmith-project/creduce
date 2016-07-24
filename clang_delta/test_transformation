@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 ##
-## Copyright (c) 2012, 2013 The University of Utah
+## Copyright (c) 2012, 2013, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -12,6 +12,13 @@ use warnings;
 
 my $keep_temp = 0;
 my $invoke_compiler = 0;
+my $run_output = 0;
+my $do_replacement = 0;
+my $replacement = "";
+my $check_reference = 0;
+my $reference_value = "";
+my $golden_output = "";
+my $incremental = 0;
 my $verbose = 0;
 my @all_test_files = ();
 my $SRC_FILE = "";
@@ -51,10 +58,10 @@ sub die_on_fail($) {
     die "Failed to execute: $cmd!\n" if ($res);
 }
 
-sub get_instance_num($) {
-    my ($trans) = @_;
+sub get_instance_num($$) {
+    my ($trans, $input) = @_;
 
-    my $clang_delta_cmd = "$CLANG_DELTA --query-instances=$trans $SRC_FILE";
+    my $clang_delta_cmd = "$CLANG_DELTA --query-instances=$trans $input";
 
     print_msg("Query the number of available instances for $trans\n");
     print_msg("$clang_delta_cmd\n");
@@ -62,11 +69,11 @@ sub get_instance_num($) {
     die "Cannot query the number of instances for $trans!" 
         if ($? >> 8);
 
-    die "Failed to query the number of instances for $trans on $SRC_FILE" 
-      if (!defined($out[0]));
+    die "Failed to query the number of instances for $trans on $input" 
+        if (!defined($out[0]));
     my $num;
     if ($out[0] =~ m/Available transformation instances:[\s\t]*([0-9]+)/) {
-       $num = $1; 
+         $num = $1; 
     }
     else {
         die "Bad output from clang_delta: $out[0]!";
@@ -76,12 +83,17 @@ sub get_instance_num($) {
     return $num;
 }
 
-sub do_one_transformation($$) {
-    my ($trans, $counter) = @_;
+sub do_one_transformation($$$$) {
+    my ($trans, $counter, $input, $output) = @_;
 
-    my $output = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.$FILE_EXT";
-
-    my $clang_delta_cmd = "$CLANG_DELTA --transformation=$trans --counter=$counter --output=$output $SRC_FILE";
+    my $extra_opt = "";
+    if ($do_replacement) {
+        $extra_opt = "--replacement=\"$replacement\"";
+    }
+    if ($check_reference) {
+        $extra_opt .= " --check-reference=\"$reference_value\"";
+    }
+    my $clang_delta_cmd = "$CLANG_DELTA --transformation=$trans --counter=$counter $extra_opt --output=$output $input";
     print_msg("$clang_delta_cmd\n");
 
     print("  increasing counter[$counter] ...");
@@ -96,13 +108,22 @@ sub do_one_transformation($$) {
     return $res;
 }
 
-sub verify_one_output($$) {
-    my ($trans, $counter) = @_;
+sub verify_one_output($$$) {
+    my ($trans, $cfile, $counter) = @_;
 
-    my $cfile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.$FILE_EXT";
-    my $ofile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.o";
+    #my $cfile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.$FILE_EXT";
     my $out = "$WORKING_DIR/$trans/$trans" . "_$counter.compiler_out";
-    my $compiler_cmd = "$COMPILER -c $cfile -o $ofile > $out 2>&1";
+    my $ofile;
+    my $flags = "";
+    if ($run_output) {
+       $ofile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.exe";
+    }
+    else {
+       $flags = "-c";
+       $ofile = "$WORKING_DIR/$trans/$trans" . "_" . "$counter.o";
+    }
+    my $compiler_cmd = "$COMPILER $flags $cfile -o $ofile > $out 2>&1";
+
     print_msg("Invoking $COMPILER on $cfile ...\n");
     print_msg("$compiler_cmd\n");
 
@@ -111,6 +132,51 @@ sub verify_one_output($$) {
 
     if ($res) {
         print("[FAIL]\n");
+    }
+    elsif ($run_output) {
+        open INF1, "$out" or die "can't open $out";
+        while (my $line = <INF1>) {
+          chomp $line;
+          if ($line =~ m/unknown conversion type character/) {
+            die "bad printf!";
+          }
+        }
+        close INF1;
+
+        my $exec_out = "$WORKING_DIR/$trans/$trans" . "_$counter.exec_out";
+        print "Running $ofile...\n";
+        $res = runit("$ofile > $exec_out 2>&1");
+        if ($res) {
+          print("[FAIL to run]\n");
+        }
+        else {
+          if ($golden_output ne "") {
+            my $good = 0;
+            open INF, "$exec_out" or die "can't open $exec_out";
+            while (my $line = <INF>) {
+              chomp $line;
+              if ($line =~ m/$golden_output/) {
+                $good = 1;
+                last;
+              }
+              elsif ($line =~ m/creduce_value\(%\)/) {
+                print("[FAIL: invalid creduce_value!\n");
+                die;
+              }
+            }
+            close INF;
+            if ($good) {
+              print("[SUCCESS]\n");
+            }
+            else {
+              print("[FAIL: can't find golden output!\n");
+              $res = -1;
+            }
+          }
+          else {
+            print("[SUCCESS]\n");
+          }
+        }
     }
     else {
         print("[SUCCESS]\n");
@@ -148,34 +214,51 @@ sub do_one_test($) {
       die "Unknown transformation: $trans!";
     }
 
-    print "\nTesting $trans on $SRC_FILE ...\n";
+    my $input = $SRC_FILE;
+    print "\nTesting $trans on $input ...\n";
     my $test_dir = "$WORKING_DIR/$trans";
     print_msg("Making dir $test_dir ...\n");
     mkdir $test_dir or die;
 
-    my $instance_num = get_instance_num($trans);
+    my $instance_num = get_instance_num($trans, $input);
 
     my @results = ();
     my @veri_results = ();
 
-    print("Running transformation[$trans] on $SRC_FILE ...\n");
-    for(my $i = 1; $i <= $instance_num; $i++) {
+    print("Running transformation[$trans] on $input ...\n");
+    my $i = 1;
+    while (1) {
         my $orig_backup = "$WORKING_DIR/$trans/$trans" . "_0.$FILE_EXT";
+        my $output = "$WORKING_DIR/$trans/$trans" . "_" . "$i.$FILE_EXT";
   
         print_msg("Copying original file...\n");
-        die_on_fail("cp $SRC_FILE $orig_backup");
+        die_on_fail("cp $input $orig_backup");
 
-        my $result = do_one_transformation($trans, $i);
+        my $result = do_one_transformation($trans, $i, $input, $output);
         push @results, $result;
 
         if ($invoke_compiler) {
             if (!$result) {
-                my $verified_result = verify_one_output($trans, $i);
+                my $verified_result = verify_one_output($trans, $output, $i);
                 push @veri_results, $verified_result;
             }
             else {
                 push @veri_results, 1;
             }
+        }
+        if ($incremental) {
+            my $new_instance_num = get_instance_num($trans, $output);
+            if ($new_instance_num >= $instance_num) {
+                print "[FAIL: generated output has more instances [$new_instance_num] than old one [$instance_num]\n";
+                die;
+            }
+            $instance_num = $new_instance_num;
+            $input = $output;
+            last if ($new_instance_num == 0);
+        }
+        else {
+            $i++;
+            last if ($i > $instance_num);
         }
     }
     $transformation_results{$trans} = \@results;
@@ -336,6 +419,14 @@ test_transformation.pl [-transformation=<name>] [-keep] [-verify-output] [-verbo
                 (we are not allowed to pass source.c if this option is given)
   -iterations: testing iterations with Csmith
   -dir=[dir_name]: test all files in the dir_name
+  -run-output: generate and run the executable for the transformed output
+  -incremental: incrementally transform the output from the last transformation
+  -golden-output=<str>: check if the output of running the executable contains str
+                        (only useful if -run-output is passed)
+  -replacement=<str>: replace the candidate with the str (only works with
+                      --expression-detector)
+  -check-reference=<str>: add reference-checking code for the candidate (only
+                          works with --expression-detector)
   -verbose: output detailed testing process
   source.c: file under test
 
@@ -360,6 +451,17 @@ sub main() {
             elsif ($1 eq "dir") {
                 $tests_dir = $2;
             }
+            elsif ($1 eq "golden-output") {
+                $golden_output = $2;
+            }
+            elsif ($1 eq "replacement") {
+                $replacement = $2;
+                $do_replacement = 1;
+            }
+            elsif ($1 eq "check-reference") {
+                $reference_value = $2;
+                $check_reference = 1;
+            }
             else {
                 die "unknown option: $opt";
             }
@@ -370,6 +472,12 @@ sub main() {
             }
             elsif ($1 eq "verify-output") {
                 $invoke_compiler = 1;
+            }
+            elsif ($1 eq "run-output") {
+                $run_output = 1;
+            }
+            elsif ($1 eq "incremental") {
+                $incremental = 1;
             }
             elsif ($1 eq "verbose") {
                 $verbose = 1;

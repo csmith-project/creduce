@@ -328,19 +328,13 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-clex_CPPFLAGS = \
-	$(GIT_FLAG)
-
+clex_CPPFLAGS = 
 clex_SOURCES = \
 	clex.l \
 	defs.h \
 	driver.c
 
-strlex_CPPFLAGS = \
-	$(GIT_FLAG)
-
+strlex_CPPFLAGS = 
 strlex_SOURCES = \
 	strlex.l \
 	defs.h \

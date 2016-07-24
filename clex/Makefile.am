@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2013, 2015 The University of Utah
+## Copyright (c) 2013, 2015, 2016 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -10,19 +10,14 @@
 
 libexec_PROGRAMS = clex strlex
 
-GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-
-clex_CPPFLAGS = \
-	$(GIT_FLAG)
+clex_CPPFLAGS =
 
 clex_SOURCES = \
 	clex.l \
 	defs.h \
 	driver.c
 
-strlex_CPPFLAGS = \
-	$(GIT_FLAG)
+strlex_CPPFLAGS =
 
 strlex_SOURCES = \
 	strlex.l \

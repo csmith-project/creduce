@@ -10,11 +10,7 @@
 
 libexec_PROGRAMS = topformflat
 
-GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-
-topformflat_CPPFLAGS = \
-	$(GIT_FLAG)
+topformflat_CPPFLAGS =
 
 topformflat_SOURCES = \
 	topformflat.l
@@ -32,6 +28,7 @@ am__skiplex :=
 #
 EXTRA_DIST = \
 	Build.mk \
+	CMakeLists.txt \
 	License.txt \
 	Readme \
 	Test.mk \

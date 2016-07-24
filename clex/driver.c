@@ -23,12 +23,12 @@ struct tok_t {
   int id;
 };
 
-struct tok_t *tok_list;
-int toks;
-int max_toks;
-const int initial_length = 1;
+static struct tok_t *tok_list;
+static int toks;
+static int max_toks;
+static const int initial_length = 1;
 
-int add_tok(char *str, enum tok_kind kind) {
+static int add_tok(char *str, enum tok_kind kind) {
   assert(str);
   if (toks >= max_toks) {
     max_toks *= 2;
@@ -59,13 +59,12 @@ enum mode_t {
   MODE_COLLAPSE_TOKS,
   MODE_SHORTEN_STRING,
   MODE_X_STRING,
-  MODE_SHORTEN_INT,
   MODE_REMOVE_ASM_COMMENT,
   MODE_REMOVE_ASM_LINE,
   MODE_NONE,
 };
 
-void print_toks(void) {
+static void print_toks(void) {
   int i;
   for (i = 0; i < toks; i++) {
     printf("%s", tok_list[i].str);
@@ -73,7 +72,8 @@ void print_toks(void) {
   exit(OK);
 }
 
-void number_tokens(int ignore_renamed, int *max_id_seen_p, int *max_tok_p) {
+static void number_tokens(int ignore_renamed, int *max_id_seen_p,
+			  int *max_tok_p) {
   int next_id = 0;
   int max_id_seen = -1;
   int i;
@@ -112,7 +112,7 @@ void number_tokens(int ignore_renamed, int *max_id_seen_p, int *max_tok_p) {
     *max_tok_p = next_id;
 }
 
-void collapse_toks(int tok_index) {
+static void collapse_toks(int tok_index) {
   assert(tok_index >= 0);
   int max_tok_id;
   number_tokens(0, NULL, &max_tok_id);
@@ -152,9 +152,7 @@ void collapse_toks(int tok_index) {
   exit(STOP);
 }
 
-// FIXME: have a C++ mode that avoids trying to rename C++ keywords?
-
-void rename_toks(int tok_index) {
+static void rename_toks(int tok_index) {
   assert(tok_index >= 0);
   int unused;
   number_tokens(1, &unused, NULL);
@@ -182,21 +180,21 @@ void rename_toks(int tok_index) {
   }
 }
 
-void string_rm_chars(char *s, int i) {
+static void string_rm_chars(char *s, int i) {
   int j;
   for (j = 0; j < (strlen(s) - i + 1); j++) {
     s[j] = s[j + i];
   }
 }
 
-void delete_asm_comment(char *s) {
+static void delete_asm_comment(char *s) {
   int i;
   for (i = 0; s[i] != '\\'; i++) {
   }
   string_rm_chars(s, i);
 }
 
-void remove_asm_comment(int idx) {
+static void remove_asm_comment(int idx) {
   int i;
   int matched = 0;
   int which = 0;
@@ -225,7 +223,7 @@ void remove_asm_comment(int idx) {
   }
 }
 
-int remove_line(char *s, int idx, int *numlines) {
+static int remove_line(char *s, int idx, int *numlines) {
   int line = 0;
   int lastpos = 1;
   int ret = 0;
@@ -251,7 +249,7 @@ int remove_line(char *s, int idx, int *numlines) {
   return ret;
 }
 
-void remove_asm_line(int idx) {
+static void remove_asm_line(int idx) {
   int i;
   int matched = 0;
   for (i = 0; i < toks; i++) {
@@ -274,7 +272,7 @@ void remove_asm_line(int idx) {
   }
 }
 
-void shorten_string(int idx) {
+static void shorten_string(int idx) {
   int i;
   int matched = 0;
   int which = 0;
@@ -299,7 +297,7 @@ void shorten_string(int idx) {
   }
 }
 
-void x_string(int idx) {
+static void x_string(int idx) {
   int i;
   int matched = 0;
   int which = 0;
@@ -326,40 +324,7 @@ void x_string(int idx) {
   }
 }
 
-int nonzero_digit(char c) { return (c >= '1' && c <= '9'); }
-
-int count_nonzero(char *s) {
-  int c = 0;
-  while (*s != 0) {
-    if (nonzero_digit(*s))
-      c++;
-    s++;
-  }
-  return c;
-}
-
-void shorten_int(int idx) {
-  int i;
-  int matched = 0;
-  for (i = 0; i < toks; i++) {
-    if (!matched && tok_list[i].kind == TOK_NUMBER) {
-      char *s = tok_list[i].str;
-      int l = count_nonzero(s);
-      if (idx > l) {
-        idx -= l;
-      } else {
-      }
-    }
-    printf("%s", tok_list[i].str);
-  }
-  if (matched) {
-    exit(OK);
-  } else {
-    exit(STOP);
-  }
-}
-
-void delete_string(int idx) {
+static void delete_string(int idx) {
   int i;
   int matched = 0;
   int which = 0;
@@ -384,9 +349,9 @@ void delete_string(int idx) {
   }
 }
 
-int n_toks;
+static int n_toks;
 
-void reverse_toks(int idx) {
+static void reverse_toks(int idx) {
   const int N = 128;
   int matched = 0;
   int which = 0;
@@ -428,7 +393,7 @@ void reverse_toks(int idx) {
   }
 }
 
-void rm_toks(int idx) {
+static void rm_toks(int idx) {
   int i;
   int matched = 0;
   int which = 0;
@@ -451,7 +416,7 @@ void rm_toks(int idx) {
   }
 }
 
-void print_pattern(unsigned char c) {
+static void print_pattern(unsigned char c) {
   int z;
   for (z = 0; z < 8; z++) {
     printf("%d", (c & 128) ? 1 : 0);
@@ -460,7 +425,7 @@ void print_pattern(unsigned char c) {
   printf("\n");
 }
 
-void rm_tok_pattern(int idx) {
+static void rm_tok_pattern(int idx) {
   int i;
   int n_patterns = 1 << (n_toks - 1);
 
@@ -547,8 +512,6 @@ int main(int argc, char *argv[]) {
     mode = MODE_SHORTEN_STRING;
   } else if (strcmp(cmd, "x-string") == 0) {
     mode = MODE_X_STRING;
-  } else if (strcmp(cmd, "shorten-int") == 0) {
-    mode = MODE_SHORTEN_INT;
   } else if (strcmp(cmd, "remove-asm-comment") == 0) {
     mode = MODE_REMOVE_ASM_COMMENT;
   } else if (strcmp(cmd, "remove-asm-line") == 0) {
@@ -605,9 +568,6 @@ int main(int argc, char *argv[]) {
     assert(0);
   case MODE_X_STRING:
     x_string(tok_index);
-    assert(0);
-  case MODE_SHORTEN_INT:
-    shorten_int(tok_index);
     assert(0);
   case MODE_REMOVE_ASM_COMMENT:
     remove_asm_comment(tok_index);

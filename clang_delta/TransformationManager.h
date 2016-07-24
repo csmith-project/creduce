@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -20,6 +20,7 @@
 class Transformation;
 namespace clang {
   class CompilerInstance;
+  class Preprocessor;
 }
 
 class TransformationManager {
@@ -38,6 +39,8 @@ public:
   static bool isCLangOpt();
 
   static bool isOpenCLLangOpt();
+
+  static clang::Preprocessor &getPreprocessor();
 
   static int ErrorInvalidCounter;
 
@@ -70,6 +73,16 @@ public:
 
   void setOutputFileName(const std::string &FileName) {
     OutputFileName = FileName;
+  }
+
+  void setReplacement(const std::string &Str) {
+    Replacement = Str;
+    DoReplacement = true;
+  }
+
+  void setReferenceValue(const std::string &Str) {
+    ReferenceValue = Str;
+    CheckReference = true;
   }
 
   void setQueryInstanceFlag(bool Flag) {
@@ -119,6 +132,14 @@ private:
   clang::CompilerInstance *ClangInstance;
 
   bool QueryInstanceOnly;
+
+  bool DoReplacement;
+
+  std::string Replacement;
+
+  bool CheckReference;
+
+  std::string ReferenceValue;
 
   // Unimplemented
   TransformationManager(const TransformationManager &);

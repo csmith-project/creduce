@@ -11,7 +11,21 @@
 libexec_PROGRAMS = clang_delta
 
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
+
+DUMMY1 := $(shell echo "$(GIT_HASH)" > git_version.txt.tmp)
+DUMMY2 := $(shell cmp -s git_version.txt.tmp git_version.txt || \
+		  cp git_version.txt.tmp git_version.txt)
+DUMMY3 := $(shell rm -f git_version.txt.tmp)
+
+git_version_edit = sed \
+	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g'
+
+git_version.cpp: git_version.cpp.in git_version.txt
+	rm -f $@ $@.tmp
+	srcdir=''; \
+	  test -f ./$@.in || srcdir=$(srcdir)/; \
+	  $(git_version_edit) $${srcdir}$@.in > $@.tmp
+	mv $@.tmp $@
 
 # When setting `LLVMCXXFLAGS', we weed out command-line options that might be
 # troublesome (e.g., -W/-f options that are not supported by `CXX', or -W
@@ -66,7 +80,6 @@ LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs) \
 		   $(shell "$(LLVM_CONFIG)" \--system-libs)
 
 clang_delta_CPPFLAGS = \
-	$(GIT_FLAG) \
 	-I"$(LLVMINCLUDEDIR)/clang"
 
 clang_delta_CXXFLAGS = \
@@ -129,6 +142,8 @@ clang_delta_SOURCES = \
 	CopyPropagation.h \
 	EmptyStructToInt.cpp \
 	EmptyStructToInt.h \
+	ExpressionDetector.cpp \
+	ExpressionDetector.h \
 	InstantiateTemplateParam.cpp \
 	InstantiateTemplateParam.h \
 	InstantiateTemplateTypeParamToInt.cpp \
@@ -250,11 +265,22 @@ clang_delta_SOURCES = \
 	UnifyFunctionDecl.cpp \
 	UnifyFunctionDecl.h \
 	UnionToStruct.cpp \
-	UnionToStruct.h
+	UnionToStruct.h \
+	git_version.h
+
+nodist_clang_delta_SOURCES = \
+	git_version.cpp
+
+CLEANFILES = \
+	git_version.txt \
+	git_version.txt.tmp \
+	git_version.cpp \
+	git_version.cpp.tmp
 
 EXTRA_DIST = \
 	CMakeLists.txt \
 	README.txt \
+	git_version.cpp.in \
 	test_transformation
 
 ###############################################################################

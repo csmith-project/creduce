@@ -315,15 +315,14 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
-GIT_FLAG = -DGIT_VERSION=\"$(GIT_HASH)\"
-unifdef_CPPFLAGS = \
-	$(GIT_FLAG)
-
+unifdef_CPPFLAGS = 
 unifdef_SOURCES = \
 	unifdef.c \
 	unifdef.h \
 	version.h
+
+EXTRA_DIST = \
+	CMakeLists.txt
 
 all: all-am
 

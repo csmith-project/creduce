@@ -664,6 +664,9 @@ const CXXRecordDecl *Transformation::getBaseDeclFromTemplateSpecializationType(
   TemplateName TplName = TSTy->getTemplateName();
   TemplateDecl *TplD = TplName.getAsTemplateDecl();
   TransAssert(TplD && "Invalid TemplateDecl!");
+  if (dyn_cast<TemplateTemplateParmDecl>(TplD)) {
+    return NULL;
+  }
   NamedDecl *ND = TplD->getTemplatedDecl();
   TransAssert(ND && "Invalid NamedDecl!");
 
@@ -771,6 +774,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::FunctionNoProto:
   case Type::SubstTemplateTypeParmPack:
   case Type::PackExpansion:
+  case Type::Vector:
   case Type::Builtin: // fall-through
     return NULL;
 
@@ -780,6 +784,16 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     if (!AT)
       return NULL;
     return getBaseDeclFromType(AT);
+  }
+
+  case Type::TypeOfExpr: {
+    const Expr *E = dyn_cast<TypeOfExprType>(Ty)->getUnderlyingExpr();
+    return getBaseDeclFromType(E->getType().getTypePtr());
+  }
+
+  case Type::TypeOf: {
+    return getBaseDeclFromType(
+      dyn_cast<TypeOfType>(Ty)->getUnderlyingType().getTypePtr());
   }
 
   default:

@@ -45,6 +45,11 @@ EXTRA_DIST = \
 
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 
+DUMMY1 := $(shell echo "$(GIT_HASH)" > git_version.txt.tmp)
+DUMMY2 := $(shell cmp -s git_version.txt.tmp git_version.txt || \
+		  cp git_version.txt.tmp git_version.txt)
+DUMMY3 := $(shell rm -f git_version.txt.tmp)
+
 # Follow the recipe described in the Autoconf manual for inserting Autoconf
 # variables into scripts.  Notably, do *not* use AC_CONFIG_FILES in the root
 # `configure.ac' file to do the substitution.  See the Autoconf manual section
@@ -84,7 +89,7 @@ creduce_config_edit = sed \
 	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g' \
 	-e 's|@INDENT[@]|$(INDENT)|g'
 
-creduce_config.pm: Makefile
+creduce_config.pm: Makefile git_version.txt
 	rm -f $@ $@.tmp
 	srcdir=''; \
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
@@ -95,7 +100,9 @@ creduce_config.pm: creduce_config.pm.in
 
 CLEANFILES = \
 	creduce \
-	creduce_config.pm
+	creduce_config.pm \
+	git_version.txt \
+	git_version.txt.tmp
 
 ###
 

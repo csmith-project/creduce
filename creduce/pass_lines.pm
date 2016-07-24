@@ -81,10 +81,22 @@ sub transform ($$$) {
     if (defined($sh{"start"})) {
 	print "***TRANSFORM START***\n" if $DEBUG;
 	delete $sh{"start"};
-	my $tmpfile = File::Temp::tmpnam();
-	my $cmd = "$topformflat $arg < $cfile | grep -v '^\\s*\$' > $tmpfile";
+	my $outfile = File::Temp::tmpnam();
+	my $cmd = qq{"$topformflat $arg" < $cfile > $outfile};
 	print $cmd if $DEBUG;
 	runit ($cmd);
+
+	my $tmpfile = File::Temp::tmpnam();
+	open INF_BLANK, "<$outfile" or die;
+	open OUTF_BLANK, ">$tmpfile" or die;
+	while (my $line = <INF_BLANK>) {
+		if($line !~ /^\s*$/) {
+			print OUTF_BLANK $line;
+		}
+	}
+	close INF_BLANK;
+	close OUTF_BLANK;
+
 	if (compare($cfile, $tmpfile) == 0) {
 	    # this is a gross hack to avoid tripping the
 	    # pass-didn't-modify-file check in the C-Reduce core, in

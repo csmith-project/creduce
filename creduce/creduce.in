@@ -31,6 +31,8 @@ use Regexp::Common;
 use File::Spec;
 use File::Temp;
 use File::Copy;
+use Carp;
+$SIG{ __DIE__ } = sub { Carp::confess( @_ ) };
 
 # Load and use the Term::ReadKey module if available, don't complain otherwise
 my $SKIP_KEY_OFF = 0;
@@ -57,6 +59,7 @@ my $SAVE_TEMPS;
 my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
+my $ABS_TIMING = 0;
 my $TIMEOUT_IN_SECONDS = 300; # 5 minutes.
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
@@ -64,7 +67,6 @@ my $SILENT_PASS_BUGS = 0;
 my $TIDY = 0;
 my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
-my $NOSETPGRP = 0;
 my $MAX_WIN;
 my $NO_CACHE = 0;
 
@@ -78,12 +80,12 @@ my @options = (
     ["--also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
     ["--no-kill",             "const",   1, \$NOKILL,          "Wait for parallel instances to terminate on their own instead of killing them (only useful for debugging)"],
-    ["--no-setpgrp",          "const",   1, \$NOSETPGRP,       "Don't create a new process group for each invocation of the interestingness test"],
     ["--no-give-up",          "const",   0, \$GIVEUP_CONSTANT, "Don't give up on a pass that hasn't made progress for ${GIVEUP_CONSTANT} iterations"],
     ["--print-diff",          "const",   1, \$PRINT_DIFF,      "Show changes made by transformations, for debugging"],
     ["--save-temps",          "const",   1, \$SAVE_TEMPS,      "Don't delete /tmp/creduce-xxxxxx directories on termination"],
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
+    ["--abs-timing",          "const",   1, \$ABS_TIMING,      "Print timestamps about reduction progress using absolute time"],
     ["--no-cache",            "const",   1, \$NO_CACHE,        "Don't cache behavior of passes"],
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
@@ -95,7 +97,7 @@ my @options = (
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
 
 my $PKG = creduce_config::PACKAGE_STRING;
-my $COMMIT = creduce_config::GIT_HASH;
+my $COMMIT = creduce_config::GIT_VERSION;
 my $help = <<HELP;
 $PKG ($COMMIT) -- a C and C++ program reducer
 
@@ -114,16 +116,34 @@ using a relative path to the current working directory. On the other
 hand, when the interestingness test refers to any file that is not
 being reduced, this should be done using an absolute path.
 
-The interestingness test should not expect any command line arguments.
-It should be deterministic and might want to enforce resource limits
-on sub-commands that it invokes (e.g. using ulimit). In particular,
-C-Reduce is known to sometimes introduce an infinite loop into the
-program being reduced. Therefore, if the interestingness test runs the
-compiled program. The default timeout is 5 minutes.
+The interestingness test should be deterministic and should not expect
+any command line arguments.
 
-As a quick example, if you consider a file to be interesting if GCC's
-vectorizer fires while compiling it, you might use this
-interestingness test:
+C-Reduce can and does introduce infinite loops during
+reduction. Therefore, if your interestingness test runs the compiled
+program, this should be done under a timeout. You can implement the
+timeout yourself, for example using the UNIX "timeout" command, or
+alternatively you can give C-Reduce a timeout (which is on by default,
+but is set very long: 5 minutes). An advantage of using C-Reduce's
+timeout is that when a test is killed due to timing out, a message
+will be printed. If you do implement a timeout yourself, we recommend
+that your interestingness test returns exit code 124 when a subcommand
+times out. This will not affect the reduction but it will cause
+C-Reduce to print a message stating the the interestingness test
+reported a timeout. It is important to ensure that timeouts are not
+occurring too often (especially during C-Reduce's initial passes) or
+else C-Reduce will work poorly.
+
+There is a particularly subtle issue regarding timeouts, which is that
+the interestingness test may slow down due to resource contention when
+C-Reduce runs multiple copies of it on different cores. We have
+observed slowdowns of up to 50% due to (we suspect) cache
+thrashing. You must take this slowdown into account when choosing a
+timeout or else timeouts might occur very frequently.
+
+As a quick example of an interestingness test, if you consider a file
+to be interesting if GCC's vectorizer fires while compiling it, you
+might write this shell script:
 
   gcc -w -O3 foo.c -S &&
   grep xmm foo.s
@@ -140,13 +160,6 @@ commands:
 This should result in "0" being echoed to the terminal. If this does
 not happen, the interestingness test is flawed and C-Reduce won't be
 able to make use of it.
-
-By default, C-Reduce invokes the interestingness test in a new process
-group. In rare cases, such as when the interestingness test invokes
-GDB, this can be a problem. If so, you may use the --no-setpgrp
-command line option to suppress the use of process groups. Be aware
-that this will interfere with C-Reduce's ability to kill off
-subprocesses of an interestingness test.
 
 If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
@@ -269,7 +282,7 @@ sub create_extra_dir() {
 sub delta_test () {
     my $res;
     eval {
-        local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required.
+        local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
         alarm($TIMEOUT_IN_SECONDS);
         if ($DEBUG) {
             $res = runit ("$test");
@@ -280,22 +293,21 @@ sub delta_test () {
                 $res = runit ("$test > /dev/null 2>&1");
             }
         }
+	print "(Interestingness test reported a timeout.)\n" if $res == 124;
         create_extra_dir() if ($ALSO_INTERESTING != -1 && $res == $ALSO_INTERESTING);
         alarm(0);
     };
     if ($@) {
-        print "Killed due to a timeout. Interestingness test ran $TIMEOUT_IN_SECONDS" if $DEBUG;
-        killem();
-        # Maybe we need to remove the temp dirs
-        remove_tmpdirs();
-        $res = 1;
+        print "(Interestingness test killed by timeout at ${TIMEOUT_IN_SECONDS} seconds.)\n";
+	kill ('TERM', 0); # take out the whole process group
+	die("bug -- should not have reached this line");
     }
     return ($res == 0);
 }
 
 sub copy_files_here() {
     foreach my $f (@toreduce) {
-	File::Copy::copy($f,$fileonly{$f}) or die;
+	File::Copy::copy($f,$fileonly{$f}) or die "cannot copy '$f'";
     }
 }
 
@@ -448,7 +460,7 @@ sub fork_helper($) {
             # put this process (the child) into a process group named by
             # its pid so that we'll be able to kill its entire subtree
             # later
-            setpgrp() unless $NOSETPGRP;
+            setpgrp();
 	    # flip the T/F flag back into a 0/1
             my $res = delta_test();
 	    print "delta_test() returned $res\n" if $DEBUG;
@@ -470,7 +482,7 @@ sub wait_helper() {
 
             my $exit_code;
             if ($proc->GetExitCode($exit_code) != Win32::Process::STILL_ACTIVE()) {
-                $? = ($exit_code == 0) ? 1 << 8 : 0;
+                $? = $exit_code << 8;
                 return $proc->GetProcessID();
             }
             push @procs, $proc;
@@ -560,6 +572,7 @@ my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
 my %cache = ();
+my $start_time = time();
 
 # invariant: parallel execution does not escape this function
 #
@@ -697,8 +710,10 @@ sub delta_pass ($) {
 		$method_worked{$passname}++;
 		print "delta test success " if $DEBUG;
 		print_pct();
-		print "timestamp ".time()." size ".(-s $fn)."\n"
+		print "timestamp " . (time()-$start_time) . " size ".(-s $fn)."\n"
 		    if $TIMING;
+		print "timestamp " . time() . " size ".(-s $fn)."\n"
+		    if $ABS_TIMING;
 	    } else {
 		print "delta test failure\n" if $DEBUG;
 		$since_success++;
@@ -747,29 +762,20 @@ my @all_methods = (
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" =>  3, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
-    { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  21, },
-    #{ "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  22, },
-    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  23, },
-    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  24, },
-    #{ "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  25, },
-    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  27, },
-    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  28, },
-    #{ "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  29, },
-    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 413,  "first_pass_pri" =>  30, },
-    { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  31, },
-    #{ "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  32, },
+    { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
+    { "name" => "pass_lines",    "arg" => "2",                      "pri" => 412,  "first_pass_pri" =>  22, },
+    { "name" => "pass_lines",    "arg" => "3",                      "pri" => 413,  "first_pass_pri" =>  23, },
+    { "name" => "pass_lines",    "arg" => "4",                      "pri" => 414,  "first_pass_pri" =>  24, },
+    { "name" => "pass_lines",    "arg" => "6",                      "pri" => 415,  "first_pass_pri" =>  25, },
+    { "name" => "pass_lines",    "arg" => "8",                      "pri" => 416,  "first_pass_pri" =>  26, },
+    { "name" => "pass_lines",    "arg" => "10",                     "pri" => 417,  "first_pass_pri" =>  27, },
 
     { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" => 33, },
     { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" => 34, },
 
-    { "name" => "pass_lines",    "arg" => "0",                                     "first_pass_pri" =>  35, },
-    { "name" => "pass_lines",    "arg" => "1",                                     "first_pass_pri" =>  36, },
-    { "name" => "pass_lines",    "arg" => "2",                                     "first_pass_pri" =>  37, },
-    { "name" => "pass_lines",    "arg" => "10",                                    "first_pass_pri" =>  38, },
-
-    { "name" => "pass_special",      "arg" => "a",                                 "first_pass_pri" => 110, },
-    { "name" => "pass_special",      "arg" => "b",                  "pri" => 555,  "first_pass_pri" => 110, },
-    { "name" => "pass_special",      "arg" => "c",                  "pri" => 555,  "first_pass_pri" => 110, },
+    { "name" => "pass_special",  "arg" => "a",                                     "first_pass_pri" => 110, },
+    { "name" => "pass_special",  "arg" => "b",                      "pri" => 555,  "first_pass_pri" => 110, },
+    { "name" => "pass_special",  "arg" => "c",                      "pri" => 555,  "first_pass_pri" => 110, },
     { "name" => "pass_ternary",  "arg" => "b",                      "pri" => 104,  },
     { "name" => "pass_ternary",  "arg" => "c",                      "pri" => 105,  },
 
@@ -784,14 +790,15 @@ my @all_methods = (
     { "name" => "pass_balanced", "arg" => "angles-inside",          "pri" => 152,  },
     { "name" => "pass_balanced", "arg" => "square-inside",          "pri" => 153,  },
     { "name" => "pass_balanced", "arg" => "curly-only",             "pri" => 160,  },
-    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 161,  },
+    { "name" => "pass_balanced", "arg" => "parens-only",            "pri" => 9700,  }, # sometimes *real* slow
     { "name" => "pass_balanced", "arg" => "angles-only",            "pri" => 162,  },
     { "name" => "pass_balanced", "arg" => "square-only",            "pri" => 163,  },
+    { "name" => "pass_balanced", "arg" => "parens-to-zero",         "pri" => 9000,  "first_pass_pri" => 44 },
 
     { "name" => "pass_clang",    "arg" => "remove-namespace",       "pri" => 200,  },
     { "name" => "pass_clang",    "arg" => "aggregate-to-scalar",    "pri" => 201,  },
    #{ "name" => "pass_clang",    "arg" => "binop-simplification",   "pri" => 201,  },
-    { "name" => "pass_clang",    "arg" => "local-to-global",        "pri" => 202,  },
+    { "name" => "pass_clang",    "arg" => "local-to-global",        "pri" => 9500,  },
     { "name" => "pass_clang",    "arg" => "param-to-global",        "pri" => 203,  },
     { "name" => "pass_clang",    "arg" => "param-to-local",         "pri" => 204,  },
     { "name" => "pass_clang",    "arg" => "remove-nested-function", "pri" => 205,  },
@@ -853,37 +860,38 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, },
     { "name" => "pass_clang",    "arg" => "move-global-var",                       "last_pass_pri" => 993, },
     { "name" => "pass_clang",    "arg" => "unify-function-decl",                   "last_pass_pri" => 994, },
-    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 500,  },
-    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 600,  },
-    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 601,  },
-    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 602,  },
-    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 603,  },
-    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 603,  },
+    { "name" => "pass_peep",     "arg" => "a",                      "pri" => 9500,  },
+    { "name" => "pass_peep",     "arg" => "c",                      "pri" => 9500,  },
+    { "name" => "pass_ints",     "arg" => "a",                      "pri" => 9600,  },
+    { "name" => "pass_ints",     "arg" => "b",                      "pri" => 9601,  },
+    { "name" => "pass_ints",     "arg" => "c",                      "pri" => 9602,  },
+    { "name" => "pass_ints",     "arg" => "d",                      "pri" => 9603,  },
+    { "name" => "pass_ints",     "arg" => "e",                      "pri" => 9603,  },
     { "name" => "pass_indent",   "arg" => "regular",                "pri" => 1000, },
     { "name" => "pass_clex",     "arg" => "delete-string",                         "last_pass_pri" => 1001, },
     { "name" => "pass_indent",   "arg" => "final",                                 "last_pass_pri" => 9999, },
-    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9031, },
-    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9030, },
-    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9029, },
-    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9028, },
-    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9027, },
-    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9026, },
-    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9025, },
-    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9024, },
-    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9023, },
-    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9022, },
-    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9021, },
-    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9020, },
-    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9019, },
-    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9018, },
-    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9017, },
-    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9016, },
+    { "name" => "pass_clex", "arg" => "rm-toks-1",              "pri" => 9016, },
+    { "name" => "pass_clex", "arg" => "rm-toks-2",              "pri" => 9017, },
+    { "name" => "pass_clex", "arg" => "rm-toks-3",              "pri" => 9018, },
+    { "name" => "pass_clex", "arg" => "rm-toks-4",              "pri" => 9019, },
+    { "name" => "pass_clex", "arg" => "rm-toks-5",              "pri" => 9020, },
+    { "name" => "pass_clex", "arg" => "rm-toks-6",              "pri" => 9021, },
+    { "name" => "pass_clex", "arg" => "rm-toks-7",              "pri" => 9022, },
+    { "name" => "pass_clex", "arg" => "rm-toks-8",              "pri" => 9023, },
+    { "name" => "pass_clex", "arg" => "rm-toks-9",              "pri" => 9024, },
+    { "name" => "pass_clex", "arg" => "rm-toks-10",             "pri" => 9025, },
+    { "name" => "pass_clex", "arg" => "rm-toks-11",             "pri" => 9026, },
+    { "name" => "pass_clex", "arg" => "rm-toks-12",             "pri" => 9027, },
+    { "name" => "pass_clex", "arg" => "rm-toks-13",             "pri" => 9028, },
+    { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9029, },
+    { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9030, },
+    { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9031, },
 
     );
 
 if ($SANITIZE) {
     push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rename-toks",            "last_pass_pri" => 1000, },
+	{ "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 1000, "last_pass_pri" => 1000, },
         { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 1001, },
         { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
         { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
@@ -1003,7 +1011,16 @@ foreach my $mref (@all_methods) {
     my %method = %{$mref};
     my $mname = $method{"name"};
     die unless defined ($mname);
+
+    # a tiny bit of typo protection
+    foreach my $k (keys %method) {
+	die "didn't expect '$k'"
+	  unless ($k eq "name" || $k eq "first_pass_pri" ||
+		  $k eq "pri" || $k eq "last_pass_pri" || $k eq "arg");
+    }
+
     next if defined ($prereqs_checked{$mname});
+
     # FIXME supposedly we can just require $mname; (without the eval)
     # here but that doesn't work...
     eval "require $mname";
@@ -1017,10 +1034,15 @@ $test = File::Spec->rel2abs(shift @ARGV);
 usage() unless defined($test);
 check_file_attributes("test script", $test, "efrx");
 
-while (@ARGV) {
+{
+  my %files_seen;
+  while (@ARGV) {
     my $f = File::Spec->rel2abs(shift @ARGV);
+    die "oops-- shouldn't try to reduce '$f' more than once" if ($files_seen{$f});
+    $files_seen{$f} = 1;
     push @toreduce, $f;
     check_file_attributes("file", $f, "efrw");
+  }
 }
 
 sub bysize {

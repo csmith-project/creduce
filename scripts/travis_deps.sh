@@ -27,13 +27,14 @@ apt-get install -y -qq \
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.8 main'
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key | apt-key add -
+    'deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main'
+wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
 # Install LLVM 3.8.  See file "INSTALL".
 # ENE, Apr 7 2016: Use --force-yes for now because current 3.8 stuff can't be
 #  authenticated, even though we installed the prescribed key, above.
+# ENE, Jun 29 2016: Above comment is still true.
 apt-get install -y --force-yes -qq \
     llvm-3.8 \
     llvm-3.8-dev \

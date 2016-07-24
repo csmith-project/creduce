@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013 The University of Utah
+// Copyright (c) 2012, 2013, 2016 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -18,6 +18,7 @@
 
 #include "llvm/Support/raw_ostream.h"
 #include "TransformationManager.h"
+#include "git_version.h"
 
 static TransformationManager *TransMgr;
 static int ErrorCode = -1;
@@ -25,9 +26,7 @@ static int ErrorCode = -1;
 static void PrintVersion()
 {
   llvm::outs() << "clang_delta " << PACKAGE_VERSION << "\n";
-#ifdef GIT_VERSION
-  llvm::outs() << "Git version: " << GIT_VERSION << "\n";
-#endif
+  llvm::outs() << "Git version: " << git_version << "\n";
   // XXX print copyright, contact info, etc.?
 }
 
@@ -72,6 +71,18 @@ static void PrintHelpMessage()
   llvm::outs() << "rewrite multiple instances [counter,to-counter] ";
   llvm::outs() << "simultaneously. Note that currently only ";
   llvm::outs() << "replace-function-def-with-decl supports this feature.)\n";
+
+  llvm::outs() << "  --replacement=<string>: ";
+  llvm::outs() << "instead of performing normal rewriting, the candidate ";
+  llvm::outs() << "pointed by the counter will be replaced by the passed ";
+  llvm::outs() << "\"string\". Currently, this option works only with ";
+  llvm::outs() << "transformation expression-detector.\n";
+
+  llvm::outs() << "  --check-reference=<value>: ";
+  llvm::outs() << "insert code to check if the candidate designated by the ";
+  llvm::outs() << "counter equals to the reference value or not. Currently, ";
+  llvm::outs() << "this option works only with transformation ";
+  llvm::outs() << "expression-detector.\n";
 
   llvm::outs() << "  --output=<filename>: ";
   llvm::outs() << "specify where to output the transformed source code ";
@@ -142,6 +153,12 @@ static void HandleOneArgValue(const std::string &ArgValueStr, size_t SepPos)
   }
   else if (!ArgName.compare("output")) {
     TransMgr->setOutputFileName(ArgValue);
+  }
+  else if (!ArgName.compare("replacement")) {
+    TransMgr->setReplacement(ArgValue);
+  }
+  else if (!ArgName.compare("check-reference")) {
+    TransMgr->setReferenceValue(ArgValue);
   }
   else {
     DieOnBadCmdArg("--" + ArgValueStr);

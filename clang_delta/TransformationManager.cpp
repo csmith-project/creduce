@@ -46,6 +46,11 @@ TransformationManager *TransformationManager::GetInstance()
   return TransformationManager::Instance;
 }
 
+Preprocessor &TransformationManager::getPreprocessor()
+{
+  return GetInstance()->ClangInstance->getPreprocessor();
+}
+
 bool TransformationManager::isCXXLangOpt()
 {
   TransAssert(TransformationManager::Instance && "Invalid Instance!");
@@ -165,6 +170,15 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   DgClient.BeginSourceFile(ClangInstance->getLangOpts(),
                            &ClangInstance->getPreprocessor());
   ClangInstance->createASTContext();
+
+  // It's not elegant to initialize these two here... Ideally, we 
+  // would put them in doTransformation, but we need these two
+  // flags being set before Transformation::Initialize, which
+  // is invoked through ClangInstance->setASTConsumer.
+  if (DoReplacement)
+    CurrentTransformationImpl->setReplacement(Replacement);
+  if (CheckReference)
+    CurrentTransformationImpl->setReferenceValue(ReferenceValue);
 
   assert(CurrentTransformationImpl && "Bad transformation instance!");
   ClangInstance->setASTConsumer(
@@ -351,7 +365,11 @@ TransformationManager::TransformationManager()
     OutputFileName(""),
     CurrentTransName(""),
     ClangInstance(NULL),
-    QueryInstanceOnly(false)
+    QueryInstanceOnly(false),
+    DoReplacement(false),
+    Replacement(""),
+    CheckReference(false),
+    ReferenceValue("")
 {
   // Nothing to do
 }
