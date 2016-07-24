@@ -482,7 +482,7 @@ sub wait_helper() {
 
             my $exit_code;
             if ($proc->GetExitCode($exit_code) != Win32::Process::STILL_ACTIVE()) {
-                $? = ($exit_code == 0) ? 1 << 8 : 0;
+                $? = $exit_code << 8;
                 return $proc->GetProcessID();
             }
             push @procs, $proc;
@@ -819,7 +819,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "remove-unused-function", "pri" => 220,  "first_pass_pri" => 40, },
     { "name" => "pass_clang",    "arg" => "remove-unused-enum-member", "pri" => 221, "first_pass_pri" => 51, },
     { "name" => "pass_clang",    "arg" => "remove-enum-member-value", "pri" => 222, "first_pass_pri" => 52, },
-    { "name" => "pass_clang_binsrch", "arg" => "remove-unused-var", "pri" => 223,  "first_pass_pri" => 53, },
+    { "name" => "pass_clang",    "arg" => "remove-unused-var",      "pri" => 223,  "first_pass_pri" => 53, },
     { "name" => "pass_clang",    "arg" => "simplify-if",            "pri" => 224,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-dim",       "pri" => 225,  },
     { "name" => "pass_clang",    "arg" => "reduce-array-size",      "pri" => 226,  },
