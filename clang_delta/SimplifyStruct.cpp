@@ -171,9 +171,8 @@ bool SimplifyStructRewriteVisitor::VisitRecordDecl(RecordDecl *RD)
   if (!RD->isThisDeclarationADefinition())
     return true;
 
-  SourceLocation LBLoc =
-    ConsumerInstance->RewriteHelper->getLocationUntil(RD->getLocation(), '{');
-  SourceLocation RBLoc = RD->getRBraceLoc();
+  SourceLocation LBLoc = RD->getBraceRange().getBegin();
+  SourceLocation RBLoc = RD->getBraceRange().getEnd();
   ConsumerInstance->TheRewriter.RemoveText(SourceRange(LBLoc, RBLoc));
   return true;
 }

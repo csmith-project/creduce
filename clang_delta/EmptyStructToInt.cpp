@@ -351,7 +351,7 @@ void EmptyStructToInt::removeRecordDecls(void)
     if (SemiLoc.isInvalid()) {
       if (!RD->isThisDeclarationADefinition())
         return;
-      SourceLocation RBLoc = RD->getRBraceLoc();
+      SourceLocation RBLoc = RD->getBraceRange().getEnd();
       if (RBLoc.isInvalid())
         return;
       RewriteHelper->removeTextFromLeftAt(SourceRange(RBLoc, RBLoc),
