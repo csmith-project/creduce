@@ -65,6 +65,10 @@ bool RemoveUnusedVarAnalysisVisitor::VisitVarDecl(VarDecl *VD)
     return true;
 
   ConsumerInstance->ValidInstanceNum++;
+  if (ConsumerInstance->ToCounter > 0) {
+    ConsumerInstance->AllValidVarDecls.push_back(VD);
+    return true;
+  }
   if (ConsumerInstance->ValidInstanceNum == 
       ConsumerInstance->TransformationCounter) {
     ConsumerInstance->TheVarDecl = VD;
@@ -121,16 +125,39 @@ void RemoveUnusedVar::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransMaxInstanceError;
     return;
   }
+  if (ToCounter > ValidInstanceNum) {
+    TransError = TransToCounterTooBigError;
+    return;
+  }
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
-  TransAssert(TheVarDecl && "NULL TheFunctionDecl!");
-
-  removeVarDecl();
+  doRewriting();
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+void RemoveUnusedVar::doRewriting()
+{
+  if (ToCounter <= 0) {
+    TransAssert(TheVarDecl && "NULL TheVarDecl!");
+    removeVarDecl(TheVarDecl);
+    return;
+  }
+
+  TransAssert((TransformationCounter <=
+               static_cast<int>(AllValidVarDecls.size())) &&
+              "TransformationCounter is larger than the number of decls!");
+  TransAssert((ToCounter <= static_cast<int>(AllValidVarDecls.size())) &&
+              "ToCounter is larger than the number of decls!");
+  for (int I = ToCounter; I >= TransformationCounter; --I) {
+    TransAssert((I >= 1) && "Invalid Index!");
+    const VarDecl *VD = AllValidVarDecls[I-1];
+    TransAssert(VD && "NULL FunctionDecl!");
+    removeVarDecl(VD);
+  }
 }
 
 void RemoveUnusedVar::removeVarDeclFromLinkageSpecDecl(
@@ -154,28 +181,28 @@ void RemoveUnusedVar::removeVarDeclFromLinkageSpecDecl(
   }
 }
 
-void RemoveUnusedVar::removeVarDecl(void)
+void RemoveUnusedVar::removeVarDecl(const VarDecl *VD)
 {
-  const DeclContext *Ctx = TheVarDecl->getDeclContext();
+  const DeclContext *Ctx = VD->getDeclContext();
   if (const LinkageSpecDecl *LinkageDecl = dyn_cast<LinkageSpecDecl>(Ctx)) {
-    removeVarDeclFromLinkageSpecDecl(LinkageDecl, TheVarDecl);
+    removeVarDeclFromLinkageSpecDecl(LinkageDecl, VD);
     return;
   }
   else if (dyn_cast<NamespaceDecl>(Ctx)) {
     // if a var is declared inside a namespace, we don't know
     // which declaration group it belongs to. 
-    RewriteHelper->removeVarDecl(TheVarDecl);
+    RewriteHelper->removeVarDecl(VD);
     return;
   }
 
   llvm::DenseMap<const VarDecl *, DeclGroupRef>::iterator DI = 
-    VarToDeclGroup.find(TheVarDecl);
+    VarToDeclGroup.find(VD);
   if (DI == VarToDeclGroup.end()) {
     // We don't know the decl group that the var decl belongs to.
-    RewriteHelper->removeVarDecl(TheVarDecl);
+    RewriteHelper->removeVarDecl(VD);
   }
   else {
-    RewriteHelper->removeVarDecl(TheVarDecl, (*DI).second);
+    RewriteHelper->removeVarDecl(VD, (*DI).second);
   }
 }
 
