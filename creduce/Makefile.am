@@ -24,6 +24,7 @@ dist_perllib_DATA = \
 	pass_clang_binsrch.pm \
 	pass_clex.pm \
 	pass_comments.pm \
+	pass_defines.pm \
 	pass_include_includes.pm \
 	pass_includes.pm \
 	pass_indent.pm \
@@ -87,6 +88,7 @@ creduce_config_edit = sed \
 	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g' \
 	-e 's|@ASTYLE[@]|$(ASTYLE)|g' \
 	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g' \
+	-e 's|@CLANG[@]|$(CLANG)|g' \
 	-e 's|@INDENT[@]|$(INDENT)|g'
 
 creduce_config.pm: Makefile git_version.txt

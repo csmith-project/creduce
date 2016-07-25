@@ -33,6 +33,7 @@ use constant {
     #
     ASTYLE		=> q{@ASTYLE@},
     CLANG_FORMAT	=> q{@CLANG_FORMAT@},
+    CLANG		=> q{@CLANG@},
     INDENT		=> q{@INDENT@},
 };
 
@@ -49,6 +50,7 @@ our @EXPORT_OK = qw(
     GIT_VERSION
     ASTYLE
     CLANG_FORMAT
+    CLANG
     INDENT
     );
 our %EXPORT_TAGS = qw();
