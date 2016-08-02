@@ -53,7 +53,6 @@ my $MAX_CRASH_DIRS = 10;
 my $MAX_EXTRA_DIRS = 25000;
 my $GIVEUP_CONSTANT = 50000;
 my $PRINT_DIFF = 0;
-my $SANITIZE = 0;
 my $SKIP_FIRST;
 my $SAVE_TEMPS;
 my $SLLOOWW = 0;
@@ -75,7 +74,6 @@ my @options = (
     ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
     ["--die-on-pass-bug",     "const",   1, \$DIE_ON_PASS_BUG, "Terminate C-Reduce if a pass encounters an otherwise non-fatal problem"],
-    ["--sanitize",            "const",   1, \$SANITIZE,        "Attempt to obscure details from the original source file"],
     ["--sllooww",             "const",   1, \$SLLOOWW,         "Try harder to reduce, but perhaps take a long time to do so"],
     ["--also-interesting",    "integer", 1, \$ALSO_INTERESTING, "A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant", "<exitcode>"],
     ["--debug",               "const",   1, \$DEBUG,           "Print debug information"],
@@ -887,21 +885,14 @@ my @all_methods = (
     { "name" => "pass_clex", "arg" => "rm-toks-14",             "pri" => 9029, },
     { "name" => "pass_clex", "arg" => "rm-toks-15",             "pri" => 9030, },
     { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9031, },
+    { "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 9800, "last_pass_pri" => 1000, },
+    { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 9801, },
+    { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 9802, },
+    { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 9803, },
+    { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 9804, },
+    { "name" => "pass_clex", "arg" => "x-string",               "pri" => 9805, },
 
     );
-
-if ($SANITIZE) {
-    push @all_methods, (
-	{ "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 1000, "last_pass_pri" => 1000, },
-        { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 1001, },
-        { "name" => "pass_clex", "arg" => "remove-asm-line",        "pri" => 1002, },
-        { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 1003, },
-        { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 1010, },
-        { "name" => "pass_clex", "arg" => "x-string",               "pri" => 1011, },
-	# not helpful
-	# { "name" => "pass_clex", "arg" => "collapse-toks",          "pri" => 5000, },
-    );
-}
 
 if ($SLLOOWW) {
     push @all_methods, (
