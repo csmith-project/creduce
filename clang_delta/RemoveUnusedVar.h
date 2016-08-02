@@ -31,7 +31,7 @@ friend class RemoveUnusedVarAnalysisVisitor;
 public:
 
   RemoveUnusedVar(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc),
+    : Transformation(TransName, Desc, /*MultipleRewrites*/true),
       AnalysisVisitor(NULL),
       TheVarDecl(NULL)
   { }
@@ -39,14 +39,15 @@ public:
   ~RemoveUnusedVar(void);
 
 private:
-  
   virtual void Initialize(clang::ASTContext &context);
 
   virtual bool HandleTopLevelDecl(clang::DeclGroupRef D);
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  void removeVarDecl(void);
+  void doRewriting();
+
+  void removeVarDecl(const clang::VarDecl *VD);
 
   void removeVarDeclFromLinkageSpecDecl(const clang::LinkageSpecDecl *LinkageD,
                                         const clang::VarDecl *VD);
@@ -54,6 +55,8 @@ private:
   llvm::DenseMap<const clang::VarDecl *, clang::DeclGroupRef> VarToDeclGroup;
 
   llvm::SmallPtrSet<const clang::VarDecl *, 10> SkippedVars;
+
+  llvm::SmallVector<const clang::VarDecl *, 500> AllValidVarDecls;
 
   RemoveUnusedVarAnalysisVisitor *AnalysisVisitor;
 
