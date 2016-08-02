@@ -71,8 +71,7 @@ static void print_toks(void) {
   exit(OK);
 }
 
-static void number_tokens(int ignore_renamed, int *max_id_seen_p,
-                          int *max_tok_p) {
+static void number_tokens(int *max_id_seen_p, int *max_tok_p) {
   int next_id = 0;
   int max_id_seen = -1;
   int i;
@@ -82,11 +81,9 @@ static void number_tokens(int ignore_renamed, int *max_id_seen_p,
     int id;
     int res = sscanf(tok_list[i].str, "x%d", &id);
     if (res == 1) {
-      if (id > max_id_seen) {
+      if (id > max_id_seen)
         max_id_seen = id;
-      }
-      if (ignore_renamed)
-        continue;
+      continue;
     }
     int j;
     int matched = 0;
@@ -114,7 +111,7 @@ static void number_tokens(int ignore_renamed, int *max_id_seen_p,
 static void rename_toks(int tok_index) {
   assert(tok_index >= 0);
   int unused;
-  number_tokens(1, &unused, NULL);
+  number_tokens(&unused, NULL);
   char newname[255];
   sprintf(newname, "x%d", unused + 1);
   int matched = 0;
