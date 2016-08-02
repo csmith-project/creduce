@@ -891,8 +891,6 @@ my @all_methods = (
     { "name" => "pass_clex", "arg" => "remove-asm-comment",     "pri" => 9803, },
     { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 9804, },
     { "name" => "pass_clex", "arg" => "x-string",               "pri" => 9805, },
-    # not helpful
-    # { "name" => "pass_clex", "arg" => "collapse-toks",          "pri" => 5000, },
 
     );
 

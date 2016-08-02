@@ -56,7 +56,6 @@ enum mode_t {
   MODE_REVERSE_TOKS,
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
-  MODE_COLLAPSE_TOKS,
   MODE_SHORTEN_STRING,
   MODE_X_STRING,
   MODE_REMOVE_ASM_COMMENT,
@@ -73,7 +72,7 @@ static void print_toks(void) {
 }
 
 static void number_tokens(int ignore_renamed, int *max_id_seen_p,
-			  int *max_tok_p) {
+                          int *max_tok_p) {
   int next_id = 0;
   int max_id_seen = -1;
   int i;
@@ -110,46 +109,6 @@ static void number_tokens(int ignore_renamed, int *max_id_seen_p,
     *max_id_seen_p = max_id_seen;
   if (max_tok_p)
     *max_tok_p = next_id;
-}
-
-static void collapse_toks(int tok_index) {
-  assert(tok_index >= 0);
-  int max_tok_id;
-  number_tokens(0, NULL, &max_tok_id);
-  // fprintf (stderr, "tok_index = %d, number of tokens = %d, max_tok_id =
-  // %d\n", tok_index, toks, max_tok_id);
-  int counter = -1;
-  int i;
-  for (i = 0; i < max_tok_id; i++) {
-    int j;
-    for (j = 0; j < max_tok_id; j++) {
-      if (i == j)
-        continue;
-      counter++;
-      if (counter == tok_index) {
-        // rename i to have the same name as j
-        int k;
-        char *new_name = NULL;
-        for (k = 0; k < toks; k++) {
-          if (tok_list[k].id == j) {
-            new_name = tok_list[k].str;
-          }
-        }
-        assert(new_name);
-        for (k = 0; k < toks; k++) {
-          if (tok_list[k].id == i) {
-            // fprintf (stderr, "renaming '%s' to '%s'\n", tok_list[i].str,
-            // new_name);
-            printf("%s", new_name);
-          } else {
-            printf("%s", tok_list[k].str);
-          }
-        }
-        exit(OK);
-      }
-    }
-  }
-  exit(STOP);
 }
 
 static void rename_toks(int tok_index) {
@@ -516,8 +475,6 @@ int main(int argc, char *argv[]) {
     mode = MODE_REMOVE_ASM_COMMENT;
   } else if (strcmp(cmd, "remove-asm-line") == 0) {
     mode = MODE_REMOVE_ASM_LINE;
-  } else if (strcmp(cmd, "collapse-toks") == 0) {
-    mode = MODE_COLLAPSE_TOKS;
   } else if (strncmp(cmd, "reverse-", 8) == 0) {
     mode = MODE_REVERSE_TOKS;
     int res = sscanf(&cmd[8], "%d", &n_toks);
@@ -574,9 +531,6 @@ int main(int argc, char *argv[]) {
     assert(0);
   case MODE_REMOVE_ASM_LINE:
     remove_asm_line(tok_index);
-    assert(0);
-  case MODE_COLLAPSE_TOKS:
-    collapse_toks(tok_index);
     assert(0);
   case MODE_RM_TOKS:
     rm_toks(tok_index);
