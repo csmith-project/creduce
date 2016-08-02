@@ -71,49 +71,51 @@ static void print_toks(void) {
   exit(OK);
 }
 
-static void number_tokens(int *max_id_seen_p, int *max_tok_p) {
-  int next_id = 0;
-  int max_id_seen = -1;
+static int next_char(char *c) {
+  if (*c == 'z') {
+    *c = 'a';
+    return 1;
+  }
+  *c = 1 + *c;
+  return 0;
+}
+
+static void next_name(char *name) {
+  int pos = strlen(name) - 1;
+  while (1) {
+    int wrapped = next_char(&name[pos]);
+    if (!wrapped)
+      return;
+    if (pos == 0) {
+      // there's no next string at this length so prepend a character
+      int i;
+      int len = strlen(name);
+      for (i = len; i >= 0; i--)
+	name[i + 1] = name[i];
+      name[0] = 'a';
+      return;
+    }
+    pos--;
+  }
+}
+
+static void find_unused_name(char *name) {
+  strcpy(name, "a");
+ AGAIN: ;
   int i;
   for (i = 0; i < toks; i++) {
-    if (tok_list[i].kind != TOK_IDENT)
-      continue;
-    int id;
-    int res = sscanf(tok_list[i].str, "x%d", &id);
-    if (res == 1) {
-      if (id > max_id_seen)
-        max_id_seen = id;
-      continue;
-    }
-    int j;
-    int matched = 0;
-    for (j = 0; j < i; j++) {
-      if (tok_list[j].kind != TOK_IDENT)
-        continue;
-      if (strcmp(tok_list[j].str, tok_list[i].str) == 0) {
-        matched = 1;
-        tok_list[i].id = tok_list[j].id;
-        assert(tok_list[j].id != -1);
-      }
-    }
-    if (!matched) {
-      tok_list[i].id = next_id;
-      next_id++;
+    if (tok_list[i].kind == TOK_IDENT &&
+	strcmp(tok_list[i].str, name) == 0) {
+      next_name(name);
+      goto AGAIN;
     }
   }
-  // FIXME find first unused instead of max_id_seen?
-  if (max_id_seen_p)
-    *max_id_seen_p = max_id_seen;
-  if (max_tok_p)
-    *max_tok_p = next_id;
 }
 
 static void rename_toks(int tok_index) {
   assert(tok_index >= 0);
-  int unused;
-  number_tokens(&unused, NULL);
   char newname[255];
-  sprintf(newname, "x%d", unused + 1);
+  find_unused_name(newname);
   int matched = 0;
   char *oldname = NULL;
   int i;
