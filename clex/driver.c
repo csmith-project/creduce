@@ -101,40 +101,86 @@ static void next_name(char *name) {
 
 static void find_unused_name(char *name) {
   strcpy(name, "a");
- AGAIN: ;
+  int clash;
+  do {
+    clash = 0;
+    int i;
+    for (i = 0; i < toks; i++) {
+      if (strcmp(tok_list[i].str, name) == 0) {
+	next_name(name);
+	clash = 1;
+	break;
+      }
+    }
+  } while (clash);
+}
+
+static int should_be_renamed(char *name, char *newname) {
+  int i;
+  for (i=0; i < strlen(name); i++) {
+    if (name[i] < 'a' || name[i] > 'z')
+      return 1;
+  }
+  if (strlen(newname) > strlen(name))
+    return 0;
+  return strcmp(newname, name) < 0;
+}
+
+static void index_toks(char ***index_ptr, int *index_size_ptr, char *newname) {
+  char **index = 0;
+  int index_size = 0;
   int i;
   for (i = 0; i < toks; i++) {
-    if (tok_list[i].kind == TOK_IDENT &&
-	strcmp(tok_list[i].str, name) == 0) {
-      next_name(name);
-      goto AGAIN;
+    if (tok_list[i].kind != TOK_IDENT)
+      continue;
+    if (!should_be_renamed(tok_list[i].str, newname))
+      continue;
+    int matched = 0;
+    int j;
+    for (j = 0; j < index_size; j++) {
+      if (strcmp(index[j], tok_list[i].str) == 0) {
+	matched = 1;
+	tok_list[i].id = j;
+	break;
+      }
     }
+    if (!matched) {
+      tok_list[i].id = index_size;
+      index = realloc(index, (1 + index_size) * sizeof(char *));
+      index[index_size] = tok_list[i].str;
+      index_size++;
+    }
+  }
+  *index_ptr = index;
+  *index_size_ptr = index_size;
+}
+
+static void print_renamed(int tok_index, char *newname) {
+  int i;
+  for (i = 0; i < toks; i++) {
+    if (tok_list[i].id == tok_index)
+      printf("%s", newname);
+    else
+      printf("%s", tok_list[i].str);
   }
 }
 
 static void rename_toks(int tok_index) {
-  assert(tok_index >= 0);
   char newname[255];
   find_unused_name(newname);
-  int matched = 0;
-  char *oldname = NULL;
-  int i;
-  // dump the renamed token stream
-  for (i = 0; i < toks; i++) {
-    if (tok_list[i].id == tok_index) {
-      assert(!oldname || strcmp(oldname, tok_list[i].str) == 0);
-      oldname = tok_list[i].str;
-      matched = 1;
-      printf("%s", newname);
-    } else {
-      printf("%s", tok_list[i].str);
-    }
-  }
-  if (matched) {
-    // printf ("/* we renamed '%s' to '%s' */\n", oldname, newname);
-    exit(OK);
-  } else {
+  assert(tok_index >= 0);
+  char **index;
+  int index_size;
+  index_toks(&index, &index_size, newname);
+  //fprintf(stderr, "tok_index = %d, index size = %d\n", tok_index, index_size);
+  if (tok_index >= index_size) {
+    //fprintf(stderr, "rename_toks stop\n");
     exit(STOP);
+  } else {
+    //fprintf(stderr, "rename_toks with index %d, source '%s', target '%s'\n",
+    // tok_index, index[tok_index], newname);
+    print_renamed(tok_index, newname);
+    exit(OK);
   }
 }
 
