@@ -94,10 +94,6 @@
     {"pass": "special", "arg": "b"},
     {"pass": "special", "arg": "c"},
     {"pass": "indent", "arg": "regular"},
-    {"pass": "clex", "arg": "rename-toks", "include": ["sanitize"]},
-    {"pass": "clex", "arg": "delete-string", "include": ["sanitize"]},
-    {"pass": "clex", "arg": "shorten-string", "include": ["sanitize"]},
-    {"pass": "clex", "arg": "x-string", "include": ["sanitize"]},
     {"pass": "balanced", "arg": "parens-to-zero"},
     {"pass": "clex", "arg": "rm-toks-32", "include": ["slow"]},
     {"pass": "clex", "arg": "rm-toks-31", "include": ["slow"]},
@@ -142,6 +138,10 @@
     {"pass": "ints", "arg": "d"},
     {"pass": "ints", "arg": "e"},
     {"pass": "balanced", "arg": "parens-only"}
+    {"pass": "clex", "arg": "rename-toks"},
+    {"pass": "clex", "arg": "delete-string"},
+    {"pass": "clex", "arg": "shorten-string"},
+    {"pass": "clex", "arg": "x-string"},
  ],
  "last": [
     {"pass": "clang", "arg": "rename-fun"},
@@ -151,7 +151,7 @@
     {"pass": "clang", "arg": "simplify-struct-union-decl"},
     {"pass": "clang", "arg": "unify-function-decl"},
     {"pass": "lines", "arg": "0"},
-    {"pass": "clex", "arg": "rename-toks", "include": ["sanitize"]},
+    {"pass": "clex", "arg": "rename-toks"},
     {"pass": "clex", "arg": "delete-string"},
     {"pass": "indent", "arg": "final"}
  ]

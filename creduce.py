@@ -60,7 +60,6 @@ if __name__ == "__main__":
     parser.add_argument("--tidy", action="store_true", default=False, help="Do not make a backup copy of each file to reduce as file.orig")
     parser.add_argument("--shaddap", action="store_true", default=False, help="Suppress output about non-fatal internal errors")
     parser.add_argument("--die-on-pass-bug", action="store_true", default=False, help="Terminate C-Reduce if a pass encounters an otherwise non-fatal problem")
-    parser.add_argument("--sanitize", action="store_true", default=False, help="Attempt to obscure details from the original source file")
     parser.add_argument("--sllooww", action="store_true", default=False, help="Try harder to reduce, but perhaps take a long time to do so")
     parser.add_argument("--also-interesting", metavar="EXIT_CODE", type=int, help="A process exit code (somewhere in the range 64-113 would be usual) that, when returned by the interestingness test, will cause C-Reduce to save a copy of the variant")
     parser.add_argument("--debug", action="store_true", default=False, help="Print debug information")
@@ -108,9 +107,6 @@ if __name__ == "__main__":
 
     if sys.platform == "win32":
         pass_options.add(AbstractPass.Option.windows)
-
-    if args.sanitize:
-        pass_options.add(AbstractPass.Option.sanitize)
 
     if args.sllooww:
         pass_options.add(AbstractPass.Option.slow)

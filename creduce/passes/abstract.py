@@ -12,7 +12,6 @@ class AbstractPass:
 
     @enum.unique
     class Option(enum.Enum):
-        sanitize = "sanitize"
         slow = "slow"
         windows = "windows"
 
