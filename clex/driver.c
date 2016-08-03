@@ -58,8 +58,6 @@ enum mode_t {
   MODE_RM_TOK_PATTERN,
   MODE_SHORTEN_STRING,
   MODE_X_STRING,
-  MODE_REMOVE_ASM_COMMENT,
-  MODE_REMOVE_ASM_LINE,
   MODE_NONE,
 };
 
@@ -191,42 +189,6 @@ static void string_rm_chars(char *s, int i) {
   }
 }
 
-static void delete_asm_comment(char *s) {
-  int i;
-  for (i = 0; s[i] != '\\'; i++) {
-  }
-  string_rm_chars(s, i);
-}
-
-static void remove_asm_comment(int idx) {
-  int i;
-  int matched = 0;
-  int which = 0;
-  for (i = 0; i < toks; i++) {
-    if (tok_list[i].kind == TOK_STRING) {
-      int j = 0;
-      char *s = tok_list[i].str;
-      while (s[j] != 0) {
-        if (s[j] == '#') {
-          if (idx == which) {
-            matched = 1;
-            delete_asm_comment(&s[j]);
-            break;
-          }
-          which++;
-        }
-        j++;
-      }
-    }
-    printf("%s", tok_list[i].str);
-  }
-  if (matched) {
-    exit(OK);
-  } else {
-    exit(STOP);
-  }
-}
-
 static int remove_line(char *s, int idx, int *numlines) {
   int line = 0;
   int lastpos = 1;
@@ -251,29 +213,6 @@ static int remove_line(char *s, int idx, int *numlines) {
   }
   *numlines = line;
   return ret;
-}
-
-static void remove_asm_line(int idx) {
-  int i;
-  int matched = 0;
-  for (i = 0; i < toks; i++) {
-    if (!matched && tok_list[i].kind == TOK_STRING) {
-      char *s = tok_list[i].str;
-      int numlines;
-      int res = remove_line(s, idx, &numlines);
-      if (res) {
-        matched = 1;
-      } else {
-        idx -= numlines;
-      }
-    }
-    printf("%s", tok_list[i].str);
-  }
-  if (matched) {
-    exit(OK);
-  } else {
-    exit(STOP);
-  }
 }
 
 static void shorten_string(int idx) {
@@ -516,10 +455,6 @@ int main(int argc, char *argv[]) {
     mode = MODE_SHORTEN_STRING;
   } else if (strcmp(cmd, "x-string") == 0) {
     mode = MODE_X_STRING;
-  } else if (strcmp(cmd, "remove-asm-comment") == 0) {
-    mode = MODE_REMOVE_ASM_COMMENT;
-  } else if (strcmp(cmd, "remove-asm-line") == 0) {
-    mode = MODE_REMOVE_ASM_LINE;
   } else if (strncmp(cmd, "reverse-", 8) == 0) {
     mode = MODE_REVERSE_TOKS;
     int res = sscanf(&cmd[8], "%d", &n_toks);
@@ -570,12 +505,6 @@ int main(int argc, char *argv[]) {
     assert(0);
   case MODE_X_STRING:
     x_string(tok_index);
-    assert(0);
-  case MODE_REMOVE_ASM_COMMENT:
-    remove_asm_comment(tok_index);
-    assert(0);
-  case MODE_REMOVE_ASM_LINE:
-    remove_asm_line(tok_index);
     assert(0);
   case MODE_RM_TOKS:
     rm_toks(tok_index);

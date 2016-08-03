@@ -226,8 +226,9 @@ sub do_one_test($) {
     my @veri_results = ();
 
     print("Running transformation[$trans] on $input ...\n");
-    my $i = 1;
-    while (1) {
+    if ($instance_num >= 1) {
+      my $i = 1;
+      while (1) {
         my $orig_backup = "$WORKING_DIR/$trans/$trans" . "_0.$FILE_EXT";
         my $output = "$WORKING_DIR/$trans/$trans" . "_" . "$i.$FILE_EXT";
   
@@ -260,6 +261,7 @@ sub do_one_test($) {
             $i++;
             last if ($i > $instance_num);
         }
+      }
     }
     $transformation_results{$trans} = \@results;
     $verified_results{$trans} = \@veri_results;
