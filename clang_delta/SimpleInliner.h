@@ -108,6 +108,8 @@ private:
       (std::vector< std::pair<clang::ReturnStmt *, int> > &SortedReturnStmts,
        clang::ReturnStmt *RS, int Off);
 
+  bool hasNameClash(const std::string &ParmName, const clang::Expr *E);
+
   FunctionDeclToNumCallsMap FunctionDeclNumCalls;
 
   FunctionDeclToNumStmtsMap FunctionDeclNumStmts;
@@ -119,6 +121,8 @@ private:
   llvm::SmallSet<clang::FunctionDecl *, 10> ValidFunctionDecls;
 
   llvm::SmallVector<std::string, 10> ParmStrings;
+
+  llvm::SmallVector<std::string, 4> ParmsWithNameClash;
 
   ReturnStmtsVector ReturnStmts;
 

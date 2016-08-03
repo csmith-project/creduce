@@ -407,6 +407,15 @@ void SimpleInliner::createReturnVar(void)
   RewriteHelper->addLocalVarToFunc(VarStr, TheCaller);
 }
 
+bool SimpleInliner::hasNameClash(const std::string &ParmName, const Expr *E)
+{
+  E = E->IgnoreParenCasts();
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+  if (!DRE)
+    return false;
+  return ParmName == DRE->getDecl()->getNameAsString();
+}
+
 void SimpleInliner::generateParamStrings(void)
 {
   unsigned int ArgNum = TheCallExpr->getNumArgs();
@@ -416,14 +425,27 @@ void SimpleInliner::generateParamStrings(void)
   for(Idx = 0; Idx < FD->getNumParams(); ++Idx) {
     const ParmVarDecl *PD = FD->getParamDecl(Idx);
     std::string ParmStr = PD->getNameAsString();
-    PD->getType().getAsStringInternal(ParmStr,
-                                      Context->getPrintingPolicy());
     if (Idx < ArgNum) {
       const Expr *Arg = TheCallExpr->getArg(Idx);
-      ParmStr += " = ";
-      std::string ArgStr("");
+      std::string ArgStr;
       RewriteHelper->getExprString(Arg, ArgStr);
-      ParmStr += ArgStr;
+
+      // create a new tmp for parms with name clash
+      if (hasNameClash(ParmStr, Arg)) {
+        std::string TmpName = getNewTmpName();
+        std::string NewParmStr = TmpName;
+        PD->getType().getAsStringInternal(NewParmStr,
+                                          Context->getPrintingPolicy());
+        ParmsWithNameClash.push_back(NewParmStr + " = " + ArgStr + ";\n");
+        ArgStr = TmpName;
+      }
+      PD->getType().getAsStringInternal(ParmStr,
+                                        Context->getPrintingPolicy());
+      ParmStr += " = " + ArgStr;
+    }
+    else {
+      PD->getType().getAsStringInternal(ParmStr,
+                                        Context->getPrintingPolicy());
     }
     ParmStr += ";\n";
     ParmStrings.push_back(ParmStr);
@@ -516,6 +538,14 @@ void SimpleInliner::copyFunctionBody(void)
     Delta -= ReturnSZ;
   }
 
+  if (ParmsWithNameClash.size()) {
+    std::string ExtraStr;
+    for (auto Parm : ParmsWithNameClash) {
+      ExtraStr += Parm;
+    }
+    FuncBodyStr = "{\n" + ExtraStr + FuncBodyStr + "}\n"; 
+  }
+
   RewriteHelper->addStringBeforeStmt(TheStmt, FuncBodyStr, NeedParen);
 }
 
@@ -547,6 +577,8 @@ void SimpleInliner::replaceCallExpr(void)
 {
   // Create a new tmp var for return value
   createReturnVar();
+  // reset ParmsWithNameClash
+  ParmsWithNameClash.clear();
   generateParamStrings();
   copyFunctionBody();
   RewriteHelper->replaceExprNotInclude(TheCallExpr, TmpVarName);
