@@ -122,6 +122,7 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
 "|"			{ process_token(TOK_OP); }
 "?"			{ process_token(TOK_OP); }
 "#"                     { process_token(TOK_OTHER); }
+"\\"[ \t]*"\n"          { }
 "\\"                    { process_token(TOK_OTHER); }
 
 "/*"        {
@@ -130,7 +131,7 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
                          while ( (c = input()) != '*' &&
                                   c != EOF )
                              ;    /* eat up text of comment */
-     
+
                          if ( c == '*' )
                              {
                              while ( (c = input()) == '*' )
@@ -138,7 +139,7 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
                              if ( c == '/' )
                                  break;    /* found the end */
                              }
-     
+
                          if ( c == EOF )
                              {
                                  exit(STOP);
@@ -146,7 +147,9 @@ L?\"(\\.|[^\\"])*\"	{ process_token(TOK_STRING); }
                     }
            }
 
-[ \t\v\n\f]		{ process_token(TOK_WS); }
+[ \t\v\f]		{ process_token(TOK_WS); }
+
+[\n]		        { process_token(TOK_NEWLINE); }
 
 .			{ process_token(TOK_UNKNOWN); }
 
