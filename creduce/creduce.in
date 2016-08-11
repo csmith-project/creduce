@@ -887,6 +887,7 @@ my @all_methods = (
     { "name" => "pass_clex", "arg" => "rm-toks-16",             "pri" => 9031, },
     { "name" => "pass_clex", "arg" => "rename-toks",            "pri" => 9800, "last_pass_pri" => 1000, },
     { "name" => "pass_clex", "arg" => "delete-string",          "pri" => 9801, },
+    { "name" => "pass_clex", "arg" => "define",                 "pri" => 9802, },
     # { "name" => "pass_clex", "arg" => "shorten-string",         "pri" => 9804, },
     # { "name" => "pass_clex", "arg" => "x-string",               "pri" => 9805, },
 

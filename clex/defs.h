@@ -29,6 +29,7 @@ enum tok_kind {
   TOK_OTHER,
   TOK_NUMBER,
   TOK_WS,
+  TOK_NEWLINE,
   TOK_STRING,
   TOK_UNKNOWN,
 };

@@ -53,11 +53,11 @@ enum mode_t {
   MODE_RENAME = 1111,
   MODE_PRINT,
   MODE_DELETE_STRING,
-  MODE_REVERSE_TOKS,
   MODE_RM_TOKS,
   MODE_RM_TOK_PATTERN,
   MODE_SHORTEN_STRING,
   MODE_X_STRING,
+  MODE_DEFINE,
   MODE_NONE,
 };
 
@@ -294,55 +294,14 @@ static void delete_string(int idx) {
 
 static int n_toks;
 
-static void reverse_toks(int idx) {
-  const int N = 128;
-  int matched = 0;
-  int which = 0;
-  int i;
-
-#ifdef _MSC_VER
-  int *saved = calloc(N, sizeof(int));
-#else
-  int saved[N];
-#endif
-
-  int nsaved = 0;
-  for (i = 0; i < toks; i++) {
-    if (which >= idx && which < idx + n_toks) {
-      saved[nsaved] = i;
-      nsaved++;
-    } else {
-      printf("%s", tok_list[i].str);
-    }
-    if (which == idx + n_toks) {
-      int x;
-      for (x = nsaved - 1; x >= 0; x--) {
-        printf("%s", tok_list[saved[x]].str);
-      }
-    }
-    if (tok_list[i].kind != TOK_WS) {
-      which++;
-    }
-  }
-
-#ifdef _MSC_VER
-  free(saved);
-#endif
-
-  if (matched) {
-    exit(OK);
-  } else {
-    exit(STOP);
-  }
-}
-
 static void rm_toks(int idx) {
   int i;
   int matched = 0;
   int which = 0;
   int started = 0;
   for (i = 0; i < toks; i++) {
-    if (tok_list[i].kind != TOK_WS) {
+    if (tok_list[i].kind != TOK_WS &&
+        tok_list[i].kind != TOK_NEWLINE) {
       if (which == idx) {
         started = 1;
         matched = 1;
@@ -401,7 +360,8 @@ static void rm_tok_pattern(int idx) {
   int matched = 0;
   int deleted = 0;
   for (i = 0; i < toks; i++) {
-    if (tok_list[i].kind != TOK_WS) {
+    if (tok_list[i].kind != TOK_WS &&
+        tok_list[i].kind != TOK_NEWLINE) {
       if (which == idx) {
         matched = 1;
         started = 1;
@@ -412,7 +372,8 @@ static void rm_tok_pattern(int idx) {
     }
     int print = 0;
     int pattern_idx = which - idx;
-    if (tok_list[i].kind == TOK_WS) {
+    if (tok_list[i].kind == TOK_WS ||
+        tok_list[i].kind == TOK_NEWLINE) {
       print = 1;
     } else {
       if (!started) {
@@ -437,6 +398,65 @@ static void rm_tok_pattern(int idx) {
   }
 }
 
+// handle simple #defines
+// todo: handle macro arguments
+// todo: handle undefinition, redefinition, and other cases
+// fixme: this is just extremely hacky-- partial preprocessing should be done by
+// a separate tool that resembles unifdef
+void replace_macro(int i) {
+  int initial = i;
+  char *macro = tok_list[i].str;
+  // printf("replacing macro '%s'\n", macro);
+  i++;
+  while (tok_list[i].kind == TOK_WS)
+    i++;
+  int end = i;
+  while (tok_list[end].kind != TOK_NEWLINE)
+    end++;
+  int x;
+  for (x = 0; x < toks; ++x) {
+    if (x != initial &&
+        strcmp(tok_list[x].str, macro) == 0) {
+      int y;
+      for (y = i; y < end; ++y)
+        printf("%s", tok_list[y].str);
+    } else {
+      printf("%s", tok_list[x].str);
+    }
+  }
+}
+
+void define(int tok_index) {
+  int i;
+  int found = 0;
+  for (i = 0; i < toks; ++i) {
+    if (strcmp(tok_list[i].str, "#") == 0) {
+      i++;
+      while (tok_list[i].kind == TOK_WS)
+        i++;
+      if (strcmp(tok_list[i].str, "define") != 0)
+        continue;
+      i++;
+      while (tok_list[i].kind == TOK_WS)
+        i++;
+      int j;
+      int used = 0;
+      for (j = 0; j < toks; ++j)
+        if (j != i &&
+            strcmp(tok_list[j].str, tok_list[i].str) == 0)
+          used = 1;
+      if (!used)
+        continue;
+      if (found == tok_index) {
+        replace_macro(i);
+        exit(OK);
+      }
+      found++;
+    }
+  }
+  exit(STOP);
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 4) {
     printf("USAGE: %s command index file\n", argv[0]);
@@ -455,11 +475,6 @@ int main(int argc, char *argv[]) {
     mode = MODE_SHORTEN_STRING;
   } else if (strcmp(cmd, "x-string") == 0) {
     mode = MODE_X_STRING;
-  } else if (strncmp(cmd, "reverse-", 8) == 0) {
-    mode = MODE_REVERSE_TOKS;
-    int res = sscanf(&cmd[8], "%d", &n_toks);
-    assert(res == 1);
-    assert(n_toks > 0 && n_toks <= 1000);
   } else if (strncmp(cmd, "rm-toks-", 8) == 0) {
     mode = MODE_RM_TOKS;
     int res = sscanf(&cmd[8], "%d", &n_toks);
@@ -470,6 +485,8 @@ int main(int argc, char *argv[]) {
     int res = sscanf(&cmd[15], "%d", &n_toks);
     assert(res == 1);
     assert(n_toks > 1 && n_toks <= 8);
+  } else if (strcmp(cmd, "define") == 0) {
+    mode = MODE_DEFINE;
   } else {
     printf("error: unknown mode '%s'\n", cmd);
     assert(0);
@@ -509,11 +526,11 @@ int main(int argc, char *argv[]) {
   case MODE_RM_TOKS:
     rm_toks(tok_index);
     assert(0);
-  case MODE_REVERSE_TOKS:
-    reverse_toks(tok_index);
-    assert(0);
   case MODE_RM_TOK_PATTERN:
     rm_tok_pattern(tok_index);
+    assert(0);
+  case MODE_DEFINE:
+    define(tok_index);
     assert(0);
   default:
     assert(0);
