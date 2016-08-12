@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 
 from . import AbstractPass
+from ..utils import compat
 
 class UnIfDefPass(AbstractPass):
     def check_prerequisites(self):
@@ -21,7 +22,7 @@ class UnIfDefPass(AbstractPass):
 
     def transform(self, test_case, state):
         try:
-            proc = subprocess.run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
+            proc = compat.subprocess_run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
             return (self.Result.error, state)
 
@@ -45,7 +46,7 @@ class UnIfDefPass(AbstractPass):
                 def_ = deflist[n_index]
 
                 try:
-                    proc = subprocess.run(["unifdef", "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case], universal_newlines=True)
+                    proc = compat.subprocess_run(["unifdef", "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case], universal_newlines=True)
                 except subprocess.SubprocessError:
                     return (self.Result.error, state)
 

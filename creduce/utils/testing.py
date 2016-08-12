@@ -19,6 +19,7 @@ import weakref
 
 from ..passes import AbstractPass
 
+from . import compat
 from .error import InsaneTestCaseError
 from .error import InvalidInterestingnessTestError
 from .error import InvalidTestCaseError
@@ -32,7 +33,7 @@ def _run_test(module_spec, test_dir, test_cases):
 
     os.chdir(test_dir)
 
-    module = importlib.util.module_from_spec(module_spec)
+    module = compat.importlib_module_from_spec(module_spec)
     module_spec.loader.exec_module(module)
     module.run(test_cases)
 
@@ -323,7 +324,7 @@ class AbstractTestRunner:
 
     @classmethod
     def _kill_win32(pid):
-        subprocess.run(["TASKKILL", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        compat.subprocess_run(["TASKKILL", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def kill(self, environments):
         for test_env in environments:
@@ -384,7 +385,7 @@ class PythonTestRunner(AbstractTestRunner):
             if module_spec is None:
                 return False
 
-            module = importlib.util.module_from_spec(module_spec)
+            module = compat.importlib_module_from_spec(module_spec)
             module_spec.loader.exec_module(module)
         except FileNotFoundError:
             return False

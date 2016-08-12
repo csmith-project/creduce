@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 
 from . import AbstractPass
+from ..utils import compat
 
 class LinesPass(AbstractPass):
     def check_prerequisites(self):
@@ -35,7 +36,7 @@ class LinesPass(AbstractPass):
             with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 with open(test_case, "r") as in_file:
                     try:
-                        proc = subprocess.run(["topformflat", self.arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
+                        proc = compat.subprocess_run(["topformflat", self.arg], stdin=in_file, stdout=subprocess.PIPE, universal_newlines=True)
                     except subprocess.SubprocessError:
                         return (self.Result.error, new_state)
 

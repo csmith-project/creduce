@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 
 from . import AbstractPass
+from ..utils import compat
 
 class ClangBinarySearchPass(AbstractPass):
     def check_prerequisites(self):
@@ -30,7 +31,7 @@ class ClangBinarySearchPass(AbstractPass):
 
     def __count_instances(self, test_case):
         try:
-            proc = subprocess.run(["clang_delta", "--query-instances={}".format(self.arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
+            proc = compat.subprocess_run(["clang_delta", "--query-instances={}".format(self.arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
             return 0
 
@@ -78,7 +79,7 @@ class ClangBinarySearchPass(AbstractPass):
                     logging.debug(" ".join(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
 
                     try:
-                        proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
+                        proc = compat.subprocess_run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
                     except subprocess.SubprocessError:
                         return (self.Result.error, new_state)
 

@@ -4,6 +4,7 @@ import shutil
 import tempfile
 
 from . import AbstractPass
+from ..utils import compat
 
 class ClangPass(AbstractPass):
     def check_prerequisites(self):
@@ -21,7 +22,7 @@ class ClangPass(AbstractPass):
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             try:
-                proc = subprocess.run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
+                proc = compat.subprocess_run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
                 return (self.Result.error, state)
 

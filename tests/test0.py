@@ -3,6 +3,8 @@
 import subprocess
 import sys
 
+from creduce.utils import compat
+
 def run(test_cases):
     result = check(test_cases)
 
@@ -15,7 +17,7 @@ def check(test_cases):
     test_case = test_cases[0]
 
     try:
-        proc = subprocess.run(["clang", "-pedantic", "-Wall", "-O0", test_case], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+        proc = compat.subprocess_run(["clang", "-pedantic", "-Wall", "-O0", test_case], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
         if ("incompatible redeclaration" in proc.stdout or
                 "ordered comparison between pointer" in proc.stdout or
@@ -33,7 +35,7 @@ def check(test_cases):
                 "type specifier missing" in proc.stdout):
             return False
 
-        proc = subprocess.run(["gcc", "-c", "-Wextra", "-Wall", "-O", test_case], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
+        proc = compat.subprocess_run(["gcc", "-c", "-Wextra", "-Wall", "-O", test_case], universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, check=True)
 
         if ("uninitialized" in proc.stdout or
                 "control reaches end" in proc.stdout or

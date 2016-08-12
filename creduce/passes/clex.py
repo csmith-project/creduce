@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 
 from . import AbstractPass
+from ..utils import compat
 
 class ClexPass(AbstractPass):
     def check_prerequisites(self):
@@ -21,7 +22,7 @@ class ClexPass(AbstractPass):
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             try:
-                proc = subprocess.run(["clex", str(self.arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
+                proc = compat.subprocess_run(["clex", str(self.arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
                 return (self.Result.error, state)
 

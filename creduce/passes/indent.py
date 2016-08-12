@@ -2,6 +2,7 @@ import shutil
 import subprocess
 
 from . import AbstractPass
+from ..utils import compat
 
 class IndentPass(AbstractPass):
     def check_prerequisites(self):
@@ -46,7 +47,7 @@ class IndentPass(AbstractPass):
                     return (self.Result.stop, state)
 
             try:
-                subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                compat.subprocess_run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             except subprocess.SubprocessError:
                 return (self.Result.error, state)
 
