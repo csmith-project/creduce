@@ -380,7 +380,7 @@ void ReduceClassTemplateParameter::removeOneParameterByArgExpression(
 
   const Expr *E = Arg.getAsExpr();
   TransAssert(E && "Bad Expression!");
-  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E);
+  const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E->IgnoreParenCasts());
   TransAssert(DRE && "Bad DeclRefExpr!");
   const NonTypeTemplateParmDecl *ParmD = 
     dyn_cast<NonTypeTemplateParmDecl>(DRE->getDecl());
