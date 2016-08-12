@@ -156,11 +156,11 @@
     {"pass": "ints", "arg": "c"},
     {"pass": "ints", "arg": "d"},
     {"pass": "ints", "arg": "e"},
-    {"pass": "balanced", "arg": "parens-only"}
+    {"pass": "balanced", "arg": "parens-only"},
     {"pass": "clex", "arg": "rename-toks"},
     {"pass": "clex", "arg": "delete-string"},
     {"pass": "clex", "arg": "shorten-string"},
-    {"pass": "clex", "arg": "x-string"},
+    {"pass": "clex", "arg": "x-string"}
  ],
  "last": [
     {"pass": "clang", "arg": "rename-fun"},

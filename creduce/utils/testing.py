@@ -58,7 +58,10 @@ class AbstractTestEnvironment:
 
     @classmethod
     def _cleanup(cls, name):
-        shutil.rmtree(name)
+        try:
+            shutil.rmtree(name)
+        except FileNotFoundError:
+            pass
 
     def cleanup(self):
         if self._finalizer.detach():
