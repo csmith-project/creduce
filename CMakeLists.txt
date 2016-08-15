@@ -68,7 +68,7 @@ endif()
 
 # Generate the "config.h" file.
 #
-set(ENABLE_TRANS_ASSERT OFF CACHE BOOL
+set(ENABLE_TRANS_ASSERT ON CACHE BOOL
   "Use assert() in clang_delta transformations.")
 
 check_include_file("dlfcn.h"		HAVE_DLFCN_H)

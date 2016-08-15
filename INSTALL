@@ -128,9 +128,10 @@ script where to find LLVM/Clang:
   # Use the LLVM/Clang tree rooted at /opt/llvm
   configure --with-llvm=/opt/llvm
 
-Note that assertions are disabled by default. To enable assertions:
+Note that assertions are enabled by default (which is probably what
+you want). To disable assertions:
 
-  configure --enable-trans-assert
+  configure --disable-trans-assert
 
 The generated Makefiles require GNU Make. BSD Make will not work.
 If you see weird make-time errors, please check that you are using
@@ -150,9 +151,10 @@ find LLVM/Clang:
   # Use the LLVM/Clang tree rooted at /opt/llvm
   cmake [source-dir] -DCMAKE_PREFIX_PATH=/opt/llvm
 
-Note that assertions are disabled by default. To enable assertions:
+Note that assertions are enabled by default (which is probably what
+you want). To disable assertions:
 
-  cmake ... -DENABLE_TRANS_ASSERT=ON
+  cmake ... -DENABLE_TRANS_ASSERT=OFF
 
 --------------------------------------------------------------------
 Regarding LLVM versions:
