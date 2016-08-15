@@ -16,7 +16,7 @@
 #include "clang/AST/NestedNameSpecifier.h"
 
 #ifndef ENABLE_TRANS_ASSERT
-  #define TransAssert(x) {if (!(x)) exit(0);}
+  #define TransAssert(x) {if (!(x)) exit(-1);}
 #else
   #define TransAssert(x) assert(x)
 #endif
