@@ -196,7 +196,7 @@ bool RenameParam::getPostfixValue(const std::string &Name,
 void RenameParam::validateParam(ParmVarDecl *PD)
 {
   unsigned int Value;
-  if (!getPostfixValue(PD->getNameAsString(), Value))
+  if (PD->isReferenced() && !getPostfixValue(PD->getNameAsString(), Value))
     HasValidParams = true;
 }
 
