@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import shutil
@@ -21,8 +22,12 @@ class ClangPass(AbstractPass):
 
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            cmd = ["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case]
+
+            logging.debug(" ".join(cmd))
+
             try:
-                proc = compat.subprocess_run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case], universal_newlines=True, stdout=tmp_file)
+                proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
                 return (self.Result.error, state)
 

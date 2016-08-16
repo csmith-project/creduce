@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import re
 import shutil
@@ -47,7 +48,10 @@ class ClangBinarySearchPass(AbstractPass):
         if state["chunk"] < 10:
             return False
 
-        state["chunk"] = round(float(state["chunk"]) / 2.0)
+        def round_to_inf(num):
+            return math.floor(num + 0.5)
+
+        state["chunk"] = round_to_inf(state["chunk"] / 2)
         state["index"] = 1
 
         logging.debug("granularity = {}".format(state["chunk"]))
@@ -66,7 +70,7 @@ class ClangBinarySearchPass(AbstractPass):
             new_state["instances"] = instances
             new_state["index"] = 1
 
-            logging.debug("intial granularity = {}".format(instances))
+            logging.debug("initial granularity = {}".format(instances))
 
         while True:
             logging.debug("TRANSFORM: index = {}, chunk = {}, instances = {}".format(new_state["index"], new_state["chunk"], new_state["instances"]))

@@ -19,6 +19,7 @@
     {"pass": "balanced", "arg": "curly"},
     {"pass": "balanced", "arg": "curly2"},
     {"pass": "balanced", "arg": "curly3"},
+    {"pass": "balanced", "arg": "parens-to-zero"},
     {"pass": "clang", "arg": "callexpr-to-value"},
     {"pass": "clang", "arg": "replace-callexpr"},
     {"pass": "clang", "arg": "simplify-callexpr"},
