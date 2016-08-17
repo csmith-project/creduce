@@ -100,6 +100,7 @@
     {"pass": "clang", "arg": "replace-array-access-with-index"},
     {"pass": "clang", "arg": "replace-dependent-name"},
     {"pass": "clang", "arg": "simplify-recursive-template-instantiation"},
+    {"pass": "clang", "arg": "vector-to-array"},
     {"pass": "lines", "arg": "0"},
     {"pass": "lines", "arg": "1"},
     {"pass": "lines", "arg": "2"},
