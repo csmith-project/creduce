@@ -35,13 +35,15 @@ class IndentPass(AbstractPass):
                 if state != 0:
                     return (self.Result.stop, state)
                 else:
-                    cmd = ["clang-format", "-i", test_case]
+                    cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
             elif self.arg == "final":
                 if state == 0:
                     cmd = ["indent", "-nbad", "-nbap", "-nbbb", "-cs", "-pcs", "-prs", "-saf", "-sai", "-saw", "-sob", "-ss", test_case]
                 elif state == 1:
                     cmd = ["astyle", test_case]
                 elif state == 2:
+                    cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
+                elif state == 3:
                     cmd = ["clang-format", "-i", test_case]
                 else:
                     return (self.Result.stop, state)

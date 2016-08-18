@@ -141,8 +141,7 @@
     {"pass": "balanced", "arg": "parens-only"},
     {"pass": "clex", "arg": "rename-toks"},
     {"pass": "clex", "arg": "delete-string"},
-    {"pass": "clex", "arg": "shorten-string"},
-    {"pass": "clex", "arg": "x-string"}
+    {"pass": "clex", "arg": "define"}
  ],
  "last": [
     {"pass": "clang", "arg": "rename-fun"},
