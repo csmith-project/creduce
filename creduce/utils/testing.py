@@ -595,6 +595,7 @@ class AbstractTestManager:
 
                     if (pass_key in self._cache and
                         test_case_before_pass in self._cache[pass_key]):
+                        tmp_file.seek(0)
                         tmp_file.truncate(0)
                         tmp_file.write(self._cache[pass_key][test_case_before_pass])
                         logging.info("cache hit for {}".format(test_case))
