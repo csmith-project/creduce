@@ -133,7 +133,7 @@ void RemovePointer::HandleTranslationUnit(ASTContext &Ctx)
 
 void RemovePointer::doAnalysis(void)
 {
-  for (VarDeclSet::iterator I = AllPointerVarDecls.begin(),
+  for (VarDeclSetVector::iterator I = AllPointerVarDecls.begin(),
        E = AllPointerVarDecls.end(); I != E; ++I) {
     const VarDecl *VD = (*I);
     if (AllInvalidPointerVarDecls.count(VD))

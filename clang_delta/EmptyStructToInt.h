@@ -11,6 +11,7 @@
 #ifndef EMPTY_STRUCT_TO_INT_H
 #define EMPTY_STRUCT_TO_INT_H
 
+#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
@@ -44,7 +45,7 @@ private:
   typedef llvm::DenseMap<const clang::RecordDecl *, IndexVector *>
     RecordDeclToFieldIdxVectorMap;
 
-  typedef llvm::SmallPtrSet<const clang::RecordDecl *, 5> RecordDeclSet;
+  typedef llvm::SetVector<const clang::RecordDecl *> RecordDeclSet;
 
   typedef llvm::SmallPtrSet<const clang::CXXRecordDecl *, 20> CXXRecordDeclSet;
 

@@ -11,6 +11,7 @@
 #ifndef REMOVE_UNUSED_OUTER_CLASS_H
 #define REMOVE_UNUSED_OUTER_CLASS_H
 
+#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "Transformation.h"
 
@@ -36,6 +37,7 @@ public:
 
 private:
   typedef llvm::SmallPtrSet<const clang::CXXRecordDecl *, 10> CXXRecordDeclSet;
+  typedef llvm::SetVector<const clang::CXXRecordDecl *> CXXRecordDeclSetVector;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -47,7 +49,7 @@ private:
 
   CXXRecordDeclSet UsedCXXRDSet;
 
-  CXXRecordDeclSet CXXRDDefSet;
+  CXXRecordDeclSetVector CXXRDDefSet;
 
   RemoveUnusedOuterClassVisitor *CollectionVisitor;
 

@@ -109,7 +109,7 @@ void RemoveUnusedOuterClass::HandleTranslationUnit(ASTContext &Ctx)
 
 void RemoveUnusedOuterClass::analyzeCXXRDSet()
 {
-  for (CXXRecordDeclSet::iterator I = CXXRDDefSet.begin(), 
+  for (CXXRecordDeclSetVector::iterator I = CXXRDDefSet.begin(), 
        E = CXXRDDefSet.end(); I != E; ++I) {
     const CXXRecordDecl *Def = (*I);
     if (UsedCXXRDSet.count(Def->getCanonicalDecl()))

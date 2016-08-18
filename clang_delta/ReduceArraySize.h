@@ -13,7 +13,7 @@
 
 #include <string>
 #include <utility>
-#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/SmallVector.h"
 #include "Transformation.h"
 
@@ -46,7 +46,7 @@ private:
   
   typedef llvm::SmallVector<int, 10> DimValueVector;
 
-  typedef llvm::DenseMap<const clang::VarDecl *, DimValueVector *> 
+  typedef llvm::MapVector<const clang::VarDecl *, DimValueVector *> 
             VarDeclToDimMap;
 
   typedef std::pair<clang::SourceLocation, clang::SourceLocation>
