@@ -12,8 +12,8 @@
 #define REPLACE_UNDEFINED_FUNCTION_H
 
 #include <string>
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/MapVector.h"
+#include "llvm/ADT/SetVector.h"
 #include "Transformation.h"
 
 namespace clang {
@@ -43,10 +43,10 @@ public:
 
 private:
   
-  typedef llvm::SmallPtrSet<const clang::FunctionDecl *, 10>
+  typedef llvm::SetVector<const clang::FunctionDecl *>
             FunctionDeclSet;
 
-  typedef llvm::DenseMap<const clang::FunctionDecl *, FunctionDeclSet *>
+  typedef llvm::MapVector<const clang::FunctionDecl *, FunctionDeclSet *>
             FunctionSetMap;
 
   virtual void Initialize(clang::ASTContext &context);

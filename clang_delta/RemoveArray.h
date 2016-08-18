@@ -13,8 +13,8 @@
 
 #include <utility>
 #include "Transformation.h"
+#include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/DenseMap.h"
 
 namespace clang {
   class DeclGroupRef;
@@ -46,7 +46,7 @@ private:
   typedef llvm::SmallVector<clang::ArraySubscriptExpr *, 10> 
     ArraySubscriptExprVector;
 
-  typedef llvm::DenseMap<const clang::VarDecl *, ArraySubscriptExprVector *> 
+  typedef llvm::MapVector<const clang::VarDecl *, ArraySubscriptExprVector *> 
     VarDeclToArraySubscriptExprMap;
 
   typedef std::pair<clang::SourceLocation, clang::SourceLocation>
