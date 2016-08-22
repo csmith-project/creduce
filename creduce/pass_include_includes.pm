@@ -14,9 +14,10 @@ use strict;
 use warnings;
 
 use File::Copy;
+use File::Spec;
 use creduce_utils;
 
-my $MAX_INC_SIZE = 300;
+my $MAX_C_SIZE = 100000;
 
 sub check_prereqs () {
     return 1;
@@ -41,22 +42,36 @@ sub advance_on_success ($$$) {
 
 sub do_transform($$) {
     my ($cfile, $index) = @_;
-
+    if ((-s $cfile) > $MAX_C_SIZE) {
+        return 0;
+    }
     open INF, "<$cfile" or die;
     my $tmpfile = File::Temp::tmpnam();
     open OUTF, ">$tmpfile" or die;
-
     my $includes = 0;
     my $matched;
     while (my $line = <INF>) {
-	# N.B. not chasing down system includes!
-        if ($line =~ /^\s*#\s*include\s*\"(.*?)\"/) {
-	    my $incfile = $1;
-	    print "found include file '$incfile'\n" if $DEBUG;
+        if ((not $matched) && ($line =~ /^\s*#\s*include\s*(\"|\<)(.*?)(\"|\>)/)) {
+	    my $incfile = $2;
+	    print "found include file '$incfile' (included by $cfile) \n" if $DEBUG;
             $includes++;
             if ($includes == $index) {
+                if (!-r $incfile) {
+                    # Repect the include paths if present:
+                    my @creduce_inc_paths = split(/:/, $ENV{CREDUCE_INCLUDE_PATH});
+                    foreach my $incdir (@creduce_inc_paths) {
+                        print "INCDIR $incdir \n" if $DEBUG;
+                        $incdir = File::Spec->rel2abs($incdir);
+                        next if !-d $incdir;
+                        my $base_name = File::Basename::basename($incfile);
+                        if (-r File::Spec->catfile($incdir,$incfile)) {
+                            $incfile = File::Spec->catfile($incdir,$incfile);
+                            print "INCFILE2 $incfile \n" if $DEBUG;
+                            last;
+                        }
+                    }
+                }
 		if ((-r $incfile) &&
-		    ((-s $incfile) < $MAX_INC_SIZE) &&
 		    (open INC, "<$incfile")) {
 		    print "  including it\n" if $DEBUG;
 		    $matched = 1;
