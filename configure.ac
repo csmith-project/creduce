@@ -127,6 +127,10 @@ AC_ARG_VAR([CLANG_FORMAT], [`clang-format' (LLVM/Clang) program])
 AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no], [$LLVM_BINDIR:$PATH])
 AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 #
+AC_ARG_VAR([CLANG], [`clang' (LLVM/Clang) program])
+AC_PATH_PROG([CLANG], [clang], [no], [$LLVM_BINDIR:$PATH])
+AS_IF([test "x$CLANG" = "xno"], [missing_required_runtime_prereq=yes])
+#
 AC_ARG_VAR([INDENT], [`indent' program])
 AC_PATH_PROGS([INDENT], [gindent indent], [no])
 AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
@@ -162,6 +166,11 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"],
   [
     AC_MSG_WARN([You must install `clang-format' before running C-Reduce.])
     CLANG_FORMAT=clang-format
+  ])
+AS_IF([test "x$CLANG" = "xno"],
+  [
+    AC_MSG_WARN([You must install `clang' before running C-Reduce.])
+    CLANG=clang
   ])
 
 AS_IF([test "$missing_required_runtime_prereq" = "yes"],

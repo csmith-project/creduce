@@ -51,6 +51,15 @@ if(NOT CLANG_FORMAT)
   set(missing_required_runtime_prereq "yes")
 endif()
 
+find_program(CLANG
+  "clang${CMAKE_EXECUTABLE_SUFFIX}"
+  PATHS "${LLVM_TOOLS_BINARY_DIR}"
+  )
+if(NOT CLANG)
+  message(STATUS "`clang${CMAKE_EXECUTABLE_SUFFIX}' was not found")
+  set(missing_required_runtime_prereq "yes")
+endif()
+
 find_program(INDENT
   NAMES
     "gindent${CMAKE_EXECUTABLE_SUFFIX}"
@@ -143,6 +152,11 @@ if(NOT CLANG_FORMAT)
   set(CLANG_FORMAT "clang-format")
 endif()
 
+if(NOT CLANG)
+  message("You must install `clang' before running C-Reduce.")
+  set(CLANG "clang")
+endif()
+
 if(missing_required_runtime_prereq STREQUAL "yes")
   message("Read the INSTALL file for info about C-Reduce dependencies.")
 endif()
@@ -224,6 +238,8 @@ string(REPLACE "\@ASTYLE@" "${ASTYLE}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "\@CLANG_FORMAT@" "${CLANG_FORMAT}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
+string(REPLACE "\@CLANG@" "${CLANG}"
+  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "\@INDENT@" "${INDENT}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 file(WRITE
@@ -262,6 +278,9 @@ add_custom_target(Modules ALL
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_comments.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_defines.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_include_includes.pm

@@ -638,6 +638,7 @@ LTLIBOBJS
 LIBOBJS
 INDENT
 CLANG_FORMAT
+CLANG
 ASTYLE
 PERL_VERSION
 PERL
@@ -807,6 +808,7 @@ CXXCPP
 PERL
 ASTYLE
 CLANG_FORMAT
+CLANG
 INDENT'
 
 
@@ -1475,6 +1477,7 @@ Some influential environment variables:
   ASTYLE      `astyle' (Artistic Style) program
   CLANG_FORMAT
               `clang-format' (LLVM/Clang) program
+  CLANG       `clang` program
   INDENT      `indent' program
 
 Use these variables to override the choices made by `configure' or to help
@@ -16603,6 +16606,53 @@ if test "x$CLANG_FORMAT" = "xno"; then :
 fi
 #
 
+# Extract the first word of "clang", so it can be a program name with args.
+set dummy clang; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_CLANG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $CLANG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CLANG="$CLANG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$LLVM_BINDIR:$PATH"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CLANG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_CLANG" && ac_cv_path_CLANG="no"
+  ;;
+esac
+fi
+CLANG=$ac_cv_path_CLANG
+if test -n "$CLANG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $CLANG" >&5
+$as_echo "$CLANG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "x$CLANG" = "xno"; then :
+  missing_required_runtime_prereq=yes
+fi
+#
+
 for ac_prog in gindent indent
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
@@ -19205,6 +19255,13 @@ if test "x$CLANG_FORMAT" = "xno"; then :
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install \`clang-format' before running C-Reduce." >&5
 $as_echo "$as_me: WARNING: You must install \`clang-format' before running C-Reduce." >&2;}
     CLANG_FORMAT=clang-format
+
+fi
+if test "x$CLANG" = "xno"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You must install \`clang' before running C-Reduce." >&5
+$as_echo "$as_me: WARNING: You must install \`clang' before running C-Reduce." >&2;}
+    CLANG=clang
 
 fi
 
