@@ -68,6 +68,7 @@ my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
 my $MAX_WIN;
 my $NO_CACHE = 0;
+my $NO_FILE_PRINT = 0;
 
 my @options = (
     ["--n",                   "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
@@ -90,6 +91,7 @@ my @options = (
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
     ["--max-improvement",     "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
+    ["--no-file-print",       "const",   1, \$NO_FILE_PRINT,   "Do not print the reduced files when done"]
 );
 
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
@@ -1114,13 +1116,15 @@ foreach my $m (sort { $method_worked{$a} <=> $method_worked{$b} }
     print "  method $m worked $w times and failed $f times\n";
 }
 
-foreach my $fn (sort byrsize @toreduce) {
-    print "\n          ******** $fn ********\n\n";
-    open INF, "<$fn" or die;
-    while (<INF>) {
-	print;
+if (!$NO_FILE_PRINT) {
+    foreach my $fn (sort byrsize @toreduce) {
+        print "\n          ******** $fn ********\n\n";
+        open INF, "<$fn" or die;
+        while (<INF>) {
+            print;
+        }
+        close INF;
     }
-    close INF;
 }
 
 ######################################################################
