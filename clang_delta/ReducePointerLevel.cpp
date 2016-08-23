@@ -198,7 +198,8 @@ bool PointerLevelCollectionVisitor::VisitBinaryOperator(BinaryOperator *BO)
       dyn_cast<UnaryOperator>(Rhs) ||
       dyn_cast<ArraySubscriptExpr>(Rhs) ||
       dyn_cast<MemberExpr>(Rhs) ||
-      dyn_cast<IntegerLiteral>(Rhs))
+      dyn_cast<IntegerLiteral>(Rhs) ||
+      dyn_cast<CXXNewExpr>(Rhs))
     return true;
 
   const DeclaratorDecl *DD = ConsumerInstance->getRefDecl(Lhs);
