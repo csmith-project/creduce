@@ -208,6 +208,14 @@ bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD,
 
   GlobalVarStr += ";\n";
 
+  auto& TheRewriter = ConsumerInstance->TheRewriter;
+  for (DeclContext* DC = FD; DC; DC = DC->getParent()) {
+    if (DC->getParent() && DC->getParent()->isTranslationUnit()) {
+      TheRewriter.InsertTextBefore(cast<Decl>(DC)->getLocStart(), GlobalVarStr);
+      return true;
+    }
+  }
+
   return ConsumerInstance->RewriteHelper->
            insertStringBeforeFunc(FD, GlobalVarStr);
 }
