@@ -140,7 +140,7 @@ void RemoveUnusedOuterClass::removeOuterClass()
     TheRewriter.RemoveText(AS->getSourceRange());
   }
   
-  LocStart = TheCXXRDDef->getRBraceLoc();
+  LocStart = TheCXXRDDef->getBraceRange().getEnd();
   LocEnd = RewriteHelper->getLocationUntil(LocStart, ';');
   if (LocStart.isInvalid() || LocEnd.isInvalid())
     return;

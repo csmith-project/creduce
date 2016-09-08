@@ -140,7 +140,7 @@ void SimplifyNestedClass::removeOuterClass()
   LocEnd = LocEnd.getLocWithOffset(-1);
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 
-  LocStart = TheBaseCXXRD->getRBraceLoc();
+  LocStart = TheBaseCXXRD->getBraceRange().getEnd();
   LocEnd = RewriteHelper->getLocationUntil(LocStart, ';');
   if (LocStart.isInvalid() || LocEnd.isInvalid())
     return;
