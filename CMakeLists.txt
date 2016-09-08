@@ -26,8 +26,8 @@ project(creduce)
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.8")
-  message(FATAL_ERROR "C-Reduce requires LLVM 3.8 or later")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.9")
+  message(FATAL_ERROR "C-Reduce requires LLVM 3.9 or later")
 endif()
 
 # Locate Perl and check its version.
