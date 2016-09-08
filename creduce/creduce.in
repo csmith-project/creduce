@@ -371,13 +371,6 @@ sub call_advance ($$$$) {
     return &${str}($fn,$arg,$state);
 }
 
-sub call_advance_on_success ($$$$) {
-    (my $method,my $fn,my $arg,my $state) = @_;
-    my $str = $method."::advance_on_success";
-    no strict "refs";
-    return &${str}($fn,$arg,$state);
-}
-
 sub call_transform ($$$$) {
     (my $method,my $fn,my $arg,my $state) = @_;
     my $str = $method."::transform";
@@ -698,8 +691,8 @@ sub delta_pass ($) {
 
 		# here is where we actually accept the new result: we
 		# need to grab both the file and the pass state
-		$state = call_advance_on_success ($delta_method, $variant, $delta_arg, $newsh);
 		File::Copy::copy ($variant, $fn) or die;
+                $state = $newsh;
 
 		# we don't want to be stopped by a speculative transformation
 		$stopped = 0;

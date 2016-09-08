@@ -32,11 +32,6 @@ sub advance ($$$) {
     return \$index;
 }
 
-sub advance_on_success ($$$) {
-    (my $cfile, my $arg, my $state) = @_;
-    return $state;
-}
-
 sub junk ($) {
     (my $list) = @_;
     my @stuff = split /,/, $list;

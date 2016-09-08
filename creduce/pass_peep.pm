@@ -78,11 +78,6 @@ sub advance ($$$) {
     return \%sh;
 }
 
-sub advance_on_success ($$$) {
-    (my $cfile, my $which, my $state) = @_;
-    return $state;
-}
-
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my %sh = %{$state};

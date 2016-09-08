@@ -33,11 +33,6 @@ sub advance ($$$) {
     return \$index;
 }
 
-sub advance_on_success ($$$) {
-    (my $cfile, my $arg, my $state) = @_;
-    return $state;
-}
-
 sub transform ($$$) {
     (my $cfile, my $which, my $state) = @_;
     my $index = ${$state};
@@ -47,7 +42,7 @@ sub transform ($$$) {
 
     $replace_cont = -1;
     $matched = 0;
-    
+
     # need some abstraction over the number patterns...
 
     if (0) {

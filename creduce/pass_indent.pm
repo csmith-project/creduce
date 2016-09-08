@@ -36,13 +36,6 @@ sub advance ($$$) {
     return \$index;
 }
 
-sub advance_on_success ($$$) {
-    (my $cfile, my $arg, my $state) = @_;
-    my $index = ${$state};
-    $index++;
-    return \$index;
-}
-
 sub invoke_clang_format ($$) {
     (my $cfile, my $arg) = @_;
     if ($^O eq "MSWin32") {
@@ -62,8 +55,10 @@ sub transform ($$$) {
     return ($STOP, \$index) unless ($index == 0);
     if ($arg eq "regular") {
 	invoke_clang_format($cfile, $spaces);
-    } else ($arg eq "final") {
+    } elsif ($arg eq "final") {
         invoke_clang_format($cfile, "");
+    } else {
+        die;
     }
     my $new = read_file($cfile);
     if ($old eq $new) {
