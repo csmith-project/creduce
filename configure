@@ -636,9 +636,7 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-INDENT
 CLANG_FORMAT
-ASTYLE
 PERL_VERSION
 PERL
 LEXLIB
@@ -805,9 +803,7 @@ LT_SYS_LIBRARY_PATH
 CPP
 CXXCPP
 PERL
-ASTYLE
-CLANG_FORMAT
-INDENT'
+CLANG_FORMAT'
 
 
 # Initialize some variables set by options.
@@ -1472,10 +1468,8 @@ Some influential environment variables:
   CPP         C preprocessor
   CXXCPP      C++ preprocessor
   PERL        Perl interpreter
-  ASTYLE      `astyle' (Artistic Style) program
   CLANG_FORMAT
               `clang-format' (LLVM/Clang) program
-  INDENT      `indent' program
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -16509,52 +16503,6 @@ fi
 # creduce/pass_indent.pm
 #
 
-# Extract the first word of "astyle", so it can be a program name with args.
-set dummy astyle; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_ASTYLE+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $ASTYLE in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ASTYLE="$ASTYLE" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ASTYLE="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_ASTYLE" && ac_cv_path_ASTYLE="no"
-  ;;
-esac
-fi
-ASTYLE=$ac_cv_path_ASTYLE
-if test -n "$ASTYLE"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ASTYLE" >&5
-$as_echo "$ASTYLE" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-if test "x$ASTYLE" = "xno"; then :
-  missing_optional_runtime_prereq=yes
-fi
-#
-
 # Extract the first word of "clang-format", so it can be a program name with args.
 set dummy clang-format; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -16599,57 +16547,6 @@ fi
 
 if test "x$CLANG_FORMAT" = "xno"; then :
   missing_required_runtime_prereq=yes
-fi
-#
-
-for ac_prog in gindent indent
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_INDENT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $INDENT in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_INDENT="$INDENT" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_INDENT="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-INDENT=$ac_cv_path_INDENT
-if test -n "$INDENT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $INDENT" >&5
-$as_echo "$INDENT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$INDENT" && break
-done
-test -n "$INDENT" || INDENT="no"
-
-if test "x$INDENT" = "xno"; then :
-  missing_optional_runtime_prereq=yes
 fi
 
 ###############################################################################
@@ -19224,20 +19121,6 @@ if test "$OPTIONAL_PERL_MODULES" = "no"; then :
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: One or more useful Perl modules were not found." >&5
 $as_echo "$as_me: One or more useful Perl modules were not found." >&6;}
-
-fi
-if test "x$ASTYLE" = "xno"; then :
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: Artistic Style (\`astyle') was not found." >&5
-$as_echo "$as_me: Artistic Style (\`astyle') was not found." >&6;}
-    ASTYLE=astyle
-
-fi
-if test "x$INDENT" = "xno"; then :
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: GNU Indent (\`indent') was not found." >&5
-$as_echo "$as_me: GNU Indent (\`indent') was not found." >&6;}
-    INDENT=indent
 
 fi
 

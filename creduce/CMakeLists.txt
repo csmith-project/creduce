@@ -34,14 +34,6 @@ set(missing_optional_runtime_prereq "no")
 set(required_perl_modules "yes")
 set(optional_perl_modules "yes")
 
-find_program(ASTYLE
-  "astyle${CMAKE_EXECUTABLE_SUFFIX}"
-  )
-if(NOT ASTYLE)
-  message(STATUS "`astyle${CMAKE_EXECUTABLE_SUFFIX}' was not found")
-  set(missing_optional_runtime_prereq "yes")
-endif()
-
 find_program(CLANG_FORMAT
   "clang-format${CMAKE_EXECUTABLE_SUFFIX}"
   PATHS "${LLVM_TOOLS_BINARY_DIR}"
@@ -49,16 +41,6 @@ find_program(CLANG_FORMAT
 if(NOT CLANG_FORMAT)
   message(STATUS "`clang-format${CMAKE_EXECUTABLE_SUFFIX}' was not found")
   set(missing_required_runtime_prereq "yes")
-endif()
-
-find_program(INDENT
-  NAMES
-    "gindent${CMAKE_EXECUTABLE_SUFFIX}"
-    "indent${CMAKE_EXECUTABLE_SUFFIX}"
-  )
-if(NOT INDENT)
-  message(STATUS "`indent${CMAKE_EXECUTABLE_SUFFIX}' was not found")
-  set(missing_optional_runtime_prereq "yes")
 endif()
 
 ###
@@ -156,14 +138,6 @@ endif()
 if(optional_perl_modules STREQUAL "no")
   message("One or more useful Perl modules were not found.")
 endif()
-if(NOT ASTYLE)
-  message("Artistic Style (`astyle') was not found.")
-  set(ASTYLE "astyle")
-endif()
-if(NOT INDENT)
-  message("GNU Indent (`indent') was not found.")
-  set(INDENT "indent")
-endif()
 
 if(missing_optional_runtime_prereq STREQUAL "yes")
   message("C-Reduce will use these tools if you install them in the future.")
@@ -220,11 +194,7 @@ string(REPLACE "@VERSION@" "${creduce_VERSION}"
 # match strings.
 string(REPLACE "\@GIT_HASH@" "${GIT_HASH}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "\@ASTYLE@" "${ASTYLE}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 string(REPLACE "\@CLANG_FORMAT@" "${CLANG_FORMAT}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "\@INDENT@" "${INDENT}"
   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
 file(WRITE
   "${PROJECT_BINARY_DIR}/creduce_config.pm"

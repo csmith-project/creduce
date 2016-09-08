@@ -119,17 +119,9 @@ AX_PROG_PERL_MODULES(
 #
 # creduce/pass_indent.pm
 #
-AC_ARG_VAR([ASTYLE], [`astyle' (Artistic Style) program])
-AC_PATH_PROG([ASTYLE], [astyle], [no])
-AS_IF([test "x$ASTYLE" = "xno"], [missing_optional_runtime_prereq=yes])
-#
 AC_ARG_VAR([CLANG_FORMAT], [`clang-format' (LLVM/Clang) program])
 AC_PATH_PROG([CLANG_FORMAT], [clang-format], [no], [$LLVM_BINDIR:$PATH])
 AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
-#
-AC_ARG_VAR([INDENT], [`indent' program])
-AC_PATH_PROGS([INDENT], [gindent indent], [no])
-AS_IF([test "x$INDENT" = "xno"], [missing_optional_runtime_prereq=yes])
 
 ###############################################################################
 
@@ -175,16 +167,6 @@ AS_IF([test "$missing_optional_runtime_prereq" = "yes"],
 AS_IF([test "$OPTIONAL_PERL_MODULES" = "no"],
   [
     AC_MSG_NOTICE([One or more useful Perl modules were not found.])
-  ])
-AS_IF([test "x$ASTYLE" = "xno"],
-  [
-    AC_MSG_NOTICE([Artistic Style (`astyle') was not found.])
-    ASTYLE=astyle
-  ])
-AS_IF([test "x$INDENT" = "xno"],
-  [
-    AC_MSG_NOTICE([GNU Indent (`indent') was not found.])
-    INDENT=indent
   ])
 
 AS_IF([test "$missing_optional_runtime_prereq" = "yes"],

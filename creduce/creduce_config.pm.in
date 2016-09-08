@@ -31,9 +31,7 @@ use constant {
 
     # External programs invoked.
     #
-    ASTYLE		=> q{@ASTYLE@},
     CLANG_FORMAT	=> q{@CLANG_FORMAT@},
-    INDENT		=> q{@INDENT@},
 };
 
 our @EXPORT = qw();
@@ -47,9 +45,7 @@ our @EXPORT_OK = qw(
     PACKAGE_VERSION
     VERSION
     GIT_VERSION
-    ASTYLE
     CLANG_FORMAT
-    INDENT
     );
 our %EXPORT_TAGS = qw();
 

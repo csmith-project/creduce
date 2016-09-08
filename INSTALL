@@ -73,8 +73,8 @@ zlib:
 --------------------------------------------------------------------
 Optional prereqs:
 
-GNU Indent, astyle, Term::ReadKey, and Sys::CPU are optional; C-Reduce
-will use whichever of them are installed.
+Term::ReadKey, and Sys::CPU are optional; C-Reduce will use whichever of them
+are installed.
 
 In particular, we recommend installing Sys::CPU; without this module
 C-Reduce will not use multiple cores unless explicitly requested to do
@@ -82,26 +82,19 @@ so with the -n command line option.
 
 On Ubuntu:
 
-  sudo apt-get install indent astyle libterm-readkey-perl libsys-cpu-perl
+  sudo apt-get install libterm-readkey-perl libsys-cpu-perl
 
 On OS X (with Homebrew + Perlbrew installed):
 
-  brew install gnu-indent astyle
   cpan -i 'Term::ReadKey'
   cpan -i 'Sys::CPU'
 
 On FreeBSD 10.2:
 
-  sudo pkg install gindent astyle gindent p5-Term-ReadKey p5-Sys-CPU
+  sudo pkg install p5-Term-ReadKey p5-Sys-CPU
 
 Otherwise, install the packages either manually or using the package
-manager:
-
-astyle:
-  http://astyle.sourceforge.net/
-
-GNU Indent:
-  http://www.gnu.org/software/indent/
+manager.
 
 --------------------------------------------------------------------
 Building and installing C-Reduce:

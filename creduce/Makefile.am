@@ -85,9 +85,7 @@ creduce_config_edit = sed \
 	-e 's|@PACKAGE_VERSION[@]|$(PACKAGE_VERSION)|g' \
 	-e 's|@VERSION[@]|$(VERSION)|g' \
 	-e 's|@GIT_HASH[@]|$(GIT_HASH)|g' \
-	-e 's|@ASTYLE[@]|$(ASTYLE)|g' \
-	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g' \
-	-e 's|@INDENT[@]|$(INDENT)|g'
+	-e 's|@CLANG_FORMAT[@]|$(CLANG_FORMAT)|g'
 
 creduce_config.pm: Makefile git_version.txt
 	rm -f $@ $@.tmp
