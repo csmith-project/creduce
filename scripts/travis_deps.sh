@@ -32,7 +32,7 @@ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
 # Install LLVM 3.9.  See file "INSTALL".
-apt-get install -y --force-yes -qq \
+apt-get install -y -qq \
     llvm-3.9 \
     llvm-3.9-dev \
     clang-3.9 \
