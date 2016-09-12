@@ -42,8 +42,6 @@ apt-get install -y --force-yes -qq \
 
 # Install other C-Reduce dependencies.  See file "INSTALL".
 apt-get install -y -qq \
-    indent \
-    astyle \
     libexporter-lite-perl \
     libfile-which-perl \
     libgetopt-tabular-perl \
