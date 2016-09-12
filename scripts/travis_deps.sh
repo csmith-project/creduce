@@ -16,6 +16,13 @@ set -eux
 
 apt-get update -qq
 
+# The Travis-CI Ubuntu 14.04 ("trusty") build environment has LLVM and Clang
+# preinstalled.  They interfere with our installations of these packages.
+apt-get remove -y -qq \
+    clang \
+    llvm \
+    llvm-runtime
+
 # Install programs "add-apt-repository" and "wget", needed below.
 apt-get install -y -qq \
     software-properties-common \
