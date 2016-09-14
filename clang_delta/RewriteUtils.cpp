@@ -587,12 +587,20 @@ bool RewriteUtils::getExprString(const Expr *E,
                                  std::string &ES)
 {
   SourceRange ExprRange = E->getSourceRange();
-   
-  int RangeSize = TheRewriter->getRangeSize(ExprRange);
-  if (RangeSize == -1)
-    return false;
-
   SourceLocation StartLoc = ExprRange.getBegin();
+
+  int RangeSize = TheRewriter->getRangeSize(ExprRange);
+  if (RangeSize == -1) {
+    if (StartLoc.isMacroID()) {
+      StartLoc = SrcManager->getFileLoc(StartLoc);
+      SourceLocation EndLoc = SrcManager->getFileLoc(ExprRange.getEnd());
+      RangeSize = TheRewriter->getRangeSize(SourceRange(StartLoc, EndLoc));
+    }
+    else {
+      return false;
+    }
+  }
+
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
   ES.assign(StartBuf, RangeSize);
@@ -759,6 +767,9 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
   }
 
   SourceLocation StmtLocStart = BeforeStmt->getLocStart();
+  if (StmtLocStart.isMacroID()) {
+    StmtLocStart = SrcManager->getFileLoc(StmtLocStart);
+  }
 
   std::string ExprStr;
   RewriteUtils::getExprString(RHS, ExprStr);
