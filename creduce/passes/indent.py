@@ -3,16 +3,11 @@ import subprocess
 
 from . import AbstractPass
 from ..utils import compat
+from ..utils.error import UnknownArgumentError
 
 class IndentPass(AbstractPass):
     def check_prerequisites(self):
         if shutil.which("clang-format") is None:
-            return False
-
-        if shutil.which("indent") is None:
-            return False
-
-        if shutil.which("astyle") is None:
             return False
 
         return True
@@ -30,35 +25,25 @@ class IndentPass(AbstractPass):
         with open(test_case, "r") as in_file:
             old = in_file.read()
 
-        while True:
-            if self.arg == "regular":
-                if state != 0:
-                    return (self.Result.stop, state)
-                else:
-                    cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
-            elif self.arg == "final":
-                if state == 0:
-                    cmd = ["indent", "-nbad", "-nbap", "-nbbb", "-cs", "-pcs", "-prs", "-saf", "-sai", "-saw", "-sob", "-ss", test_case]
-                elif state == 1:
-                    cmd = ["astyle", test_case]
-                elif state == 2:
-                    cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
-                elif state == 3:
-                    cmd = ["clang-format", "-i", test_case]
-                else:
-                    return (self.Result.stop, state)
+        if state != 0:
+            return (self.Result.stop, state)
 
-            try:
-                compat.subprocess_run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except subprocess.SubprocessError:
-                return (self.Result.error, state)
+        if self.arg == "regular":
+            cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
+        elif self.arg == "final":
+            cmd = ["clang-format", "-i", test_case]
+        else:
+            raise UnknownArgumentError()
 
-            with open(test_case, "r") as in_file:
-                new = in_file.read()
+        try:
+            compat.subprocess_run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.SubprocessError:
+            return (self.Result.error, state)
 
-            if old == new:
-                state += 1
-            else:
-                break
+        with open(test_case, "r") as in_file:
+            new = in_file.read()
 
-        return (self.Result.ok, state)
+        if old == new:
+            return (self.Result.stop, state)
+        else:
+            return (self.Result.ok, state)
