@@ -26,6 +26,8 @@ from .error import InvalidTestCaseError
 from .error import PassBugError
 from .error import ZeroSizeError
 
+from . import readkey
+
 def _run_test(module_spec, test_dir, test_cases):
     if sys.platform != "win32":
         pid = os.getpid()
@@ -404,12 +406,13 @@ class AbstractTestManager:
     MAX_EXTRA_DIRS = 25000
     GIVEUP_CONSTANT = 50000
 
-    def __init__(self, test_runner, pass_statistic, test_cases, parallel_tests, no_cache, silent_pass_bug, die_on_pass_bug, print_diff, max_improvement, no_give_up, also_interesting):
+    def __init__(self, test_runner, pass_statistic, test_cases, parallel_tests, no_cache, skip_key_off, silent_pass_bug, die_on_pass_bug, print_diff, max_improvement, no_give_up, also_interesting):
         self.test_runner = test_runner
         self.pass_statistic = pass_statistic
         self.test_cases = set()
         self.parallel_tests = parallel_tests
         self.no_cache = no_cache
+        self.skip_key_off = skip_key_off
         self.silent_pass_bug = silent_pass_bug
         self.die_on_pass_bug = die_on_pass_bug
         self.print_diff = print_diff
@@ -535,7 +538,7 @@ class AbstractTestManager:
     def can_create_test_env(self):
         # Create new variants and launch tests as long as:
         # (a) there has been no error and the transformation space is not exhausted,
-        if self._stopped:
+        if self._stopped or self._skip:
             return False
 
         # (b) there are not already to many variants (FIXME: can potentionally be removed later),
@@ -608,9 +611,19 @@ class AbstractTestManager:
             #logging.debug("Base state initial: {}".format(self._base_test_env.state))
 
             self._stopped = False
+            self._skip = False
             self._since_success = 0
 
+            if not self.skip_key_off:
+                logger = readkey.KeyLogger()
+
             while True:
+                # Ignore more key presses after skip has been detected
+                if not self.skip_key_off and not self._skip:
+                    if logger.pressed_key() == "s":
+                        self._skip = True
+                        logging.info("****** skipping the rest of this pass ******")
+
                 while self.can_create_test_env():
                     (test_env, result) = self.create_test_env()
                     #logging.debug("Base state create: {}".format(self._base_test_env.state))
@@ -658,7 +671,7 @@ class AbstractTestManager:
                     # start same pass with next test case
                     break
 
-                if self._stopped and not self._environments:
+                if (self._stopped or self._skip) and not self._environments:
                     # Cache result of this pass
                     if not self.no_cache:
                         with open(test_case, mode="r") as tmp_file:
