@@ -72,3 +72,7 @@ ipch/
 
 # Python cache files
 __pycache__
+*.pyc
+
+# pyenv files
+.python-version
