@@ -175,11 +175,13 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
         self.__process = subprocess.Popen(cmd, cwd=self.path, preexec_fn=preexec_fn, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         if self.timeout is not None:
-            def timeout(pid):
-                logging.debug("Test {} timed out!".format(pid))
-                AbstractTestRunner.killpg(pid)
+            def timeout(process):
+                # Only kill process if it is still running
+                if process.poll() is None:
+                    logging.debug("Test {} timed out!".format(process.pid))
+                    AbstractTestRunner.killpg(process.pid)
 
-            self.__timer = threading.Timer(self.timeout, timeout, [self.process_pid])
+            self.__timer = threading.Timer(self.timeout, timeout, [self.__process])
             self.__timer.start()
 
     def has_result(self):
@@ -207,6 +209,10 @@ class PythonTestEnvironment(AbstractTestEnvironment):
         self.module_spec = module_spec
         self.__exitcode = None
         self.__process = None
+
+    def __del__(self):
+        if self.__timer is not None:
+            self.__timer.cancel()
 
     @property
     def process_handle(self):
@@ -245,11 +251,13 @@ class PythonTestEnvironment(AbstractTestEnvironment):
         self.__process.start()
 
         if self.timeout is not None:
-            def timeout(pid):
-                logging.debug("Test {} timed out!".format(pid))
-                AbstractTestRunner.killpg(pid)
+            def timeout(process):
+                # Only kill process if it is still running
+                if process.poll() is None:
+                    logging.debug("Test {} timed out!".format(process.pid))
+                    AbstractTestRunner.killpg(process.pid)
 
-            self.__timer = threading.Timer(self.timeout, timeout, [self.process_pid])
+            self.__timer = threading.Timer(self.timeout, timeout, [self.__process])
             self.__timer.start()
 
     def has_result(self):
@@ -288,11 +296,15 @@ class AbstractTestRunner:
 
     @classmethod
     def _wait_posix(cls, environments):
-        (pid, rtn) = os.wait()
+        (pid, status) = os.wait()
 
         for test_env in environments:
             if test_env.process_pid == pid:
-                test_env._exitcode = (rtn >> 8)
+                if os.WIFSIGNALED(status):
+                    test_env._exitcode = -os.WTERMSIG(status)
+                elif os.WIFEXITED(status):
+                    test_env._exitcode = os.WEXITSTATUS(status)
+
                 break
 
     @classmethod
