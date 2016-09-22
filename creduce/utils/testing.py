@@ -622,14 +622,14 @@ class AbstractTestManager:
             self._base_test_env.state = self._pass.new(self._base_test_env.test_case_path)
             #logging.debug("Base state initial: {}".format(self._base_test_env.state))
 
-            self._stopped = False
+            self._stopped = (self._base_test_env.state is None)
             self._skip = False
             self._since_success = 0
 
             if not self.skip_key_off:
                 logger = readkey.KeyLogger()
 
-            while True:
+            while self._environments or not (self._stopped or self._skip):
                 # Ignore more key presses after skip has been detected
                 if not self.skip_key_off and not self._skip:
                     if logger.pressed_key() == "s":
@@ -683,18 +683,13 @@ class AbstractTestManager:
                     # start same pass with next test case
                     break
 
-                if (self._stopped or self._skip) and not self._environments:
-                    # Cache result of this pass
-                    if not self.no_cache:
-                        with open(test_case, mode="r") as tmp_file:
-                            if pass_key not in self._cache:
-                                self._cache[pass_key] = {}
+            # Cache result of this pass
+            if not self.no_cache:
+                with open(test_case, mode="r") as tmp_file:
+                    if pass_key not in self._cache:
+                        self._cache[pass_key] = {}
 
-                            self._cache[pass_key][test_case_before_pass] = tmp_file.read()
-
-                    # Abort pass for this test case and
-                    # start same pass with next test case
-                    break
+                    self._cache[pass_key][test_case_before_pass] = tmp_file.read()
 
     def wait_for_results(self):
         logging.debug("Wait for results")
