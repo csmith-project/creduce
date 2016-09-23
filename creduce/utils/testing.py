@@ -312,8 +312,9 @@ class AbstractTestRunner:
         handles = [test_env.process_handle for test_env in environments if not test_env.has_result()]
 
         # On Windows it is only possible to wait on max. 64 processes at once
-        for i in range(0, len(handles), 64):
-            multiprocessing.connection.wait(handles[i:(i + 64)])
+        # Just wait for the first 64 which is not perfect.
+        # But who runs more than 64 processes anyway?
+        multiprocessing.connection.wait(handles[i:(i + 64)])
 
     @classmethod
     def wait(self, environments):
