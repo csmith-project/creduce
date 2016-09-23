@@ -154,7 +154,7 @@ if __name__ == "__main__":
     print("pass statistics:")
 
     for item in pass_statistic.sorted_results:
-        print("method {pass} :: {arg} worked {worked} times and failed {failed} times".format(**item))
+        print("method {pass} worked {worked} times and failed {failed} times".format(**item))
 
     for test_case in test_manager.sorted_test_cases:
         with open(test_case, mode="r") as test_case_file:

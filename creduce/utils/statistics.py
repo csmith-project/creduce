@@ -7,7 +7,6 @@ class PassStatistic:
 
         if key not in self.stats:
             self.stats[key] = {"pass" : pass_,
-                               "arg" : pass_.arg,
                                "worked" : 0,
                                "failed" : 0}
 
@@ -19,6 +18,6 @@ class PassStatistic:
     @property
     def sorted_results(self):
         def sort_statistics(item):
-            return (-item["worked"], str(item["pass"]), item["arg"])
+            return (-item["worked"], str(item["pass"]))
 
         return sorted(self.stats.values(), key=sort_statistics)
