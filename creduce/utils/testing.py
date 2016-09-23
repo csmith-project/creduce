@@ -620,7 +620,6 @@ class AbstractTestManager:
             self._base_test_env = self.test_runner.create_environment()
             self._base_test_env.copy_files(test_case, self.test_cases ^ {test_case})
             self._base_test_env.state = self._pass.new(self._base_test_env.test_case_path)
-            #logging.debug("Base state initial: {}".format(self._base_test_env.state))
 
             self._stopped = (self._base_test_env.state is None)
             self._skip = False
@@ -638,12 +637,13 @@ class AbstractTestManager:
 
                 while self.can_create_test_env():
                     (test_env, result) = self.create_test_env()
-                    #logging.debug("Base state create: {}".format(self._base_test_env.state))
 
                     if result != self._pass.Result.ok and result != self._pass.Result.stop:
                         if not self.silent_pass_bug:
                             self._report_pass_bug(test_env, str(test_env.state) if result == self._pass.Result.error else "unknown return code")
 
+                    #TODO: Do we really want to stop when the transformation fails?
+                    # Why not try the next one?
                     if result == self._pass.Result.stop or result == self._pass.Result.error:
                         self._stopped = True
                     else:
@@ -663,8 +663,12 @@ class AbstractTestManager:
                             self._environments.append(test_env)
 
                             #TODO: Needs to be moved to create_test_env
-                            self._base_test_env.state = self._pass.advance(self._base_test_env.test_case_path, self._base_test_env.state)
-                            #logging.debug("Base state advance: {}".format(self._base_test_env.state))
+                            state = self._pass.advance(self._base_test_env.test_case_path, self._base_test_env.state)
+
+                            if state is not None:
+                                self._base_test_env.state = state
+
+                            self._stopped = (state is None)
 
                 self.wait_for_results()
                 self.process_results()
@@ -725,10 +729,13 @@ class AbstractTestManager:
                 #FIXME: Need to move to create_env
                 self._base_test_env = test_env
                 shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-                self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
-                #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
+                state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
 
-                self._stopped = False
+                if state is not None:
+                    self._base_test_env.state = state
+                    #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
+
+                self._stopped = (state is None)
                 self._since_success = 0
                 self.pass_statistic.update(self._pass, success=True)
 
@@ -786,8 +793,12 @@ class FastConservativeTestManager(ConservativeTestManager):
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
-            #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
+            state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
+
+            if state is not None:
+                self._base_test_env.state = state
+
+            self._stopped = (state is None)
 
 class NonDeterministicTestManager(AbstractTestManager):
     def can_create_test_env(self):
@@ -858,10 +869,12 @@ class NonDeterministicTestManager(AbstractTestManager):
             #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
-            self._base_test_env.state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
-            #logging.debug("Base state advance success: {}".format(self._base_test_env.state))
+            state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
 
-            self._stopped = False
+            if state is not None:
+                self._base_test_env.state = state
+
+            self._stopped = (state is None)
             self._since_success = 0
             self.pass_statistic.update(self._pass, success=True)
 
