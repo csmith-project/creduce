@@ -1,5 +1,6 @@
 #TODO: Kill process implicitly if test env is deleted
 
+import asyncio
 import difflib
 import filecmp
 import importlib.util
@@ -181,8 +182,10 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
                     logging.debug("Test {} timed out!".format(process.pid))
                     AbstractTestRunner.killpg(process.pid)
 
-            self.__timer = threading.Timer(self.timeout, timeout, [self.__process])
-            self.__timer.start()
+            #self.__timer = threading.Timer(self.timeout, timeout, [self.__process])
+            #self.__timer.start()
+
+            self.__timer = asyncio.get_event_loop().call_later(self.timeout, timeout, self.__process)
 
     def has_result(self):
         if self.__process is None:
