@@ -120,7 +120,7 @@ void ReplaceFunctionDefWithDecl::removeCtorInitializers(
   // namespace NS { struct A {}; }
   // struct B : NS::A { B() : NS::A() {} };
   SourceLocation Loc = RewriteHelper->getLocationFromLeftUntil(LocStart, ':');
-  Loc = RewriteHelper->getLocationFromLeftUntil(LocStart, ')');
+  Loc = RewriteHelper->getLocationFromLeftUntil(Loc, ')');
   TheRewriter.RemoveText(SourceRange(Loc.getLocWithOffset(1), 
                                      LocStart.getLocWithOffset(-1)));
   CXXConstructorDecl::init_const_iterator E = Ctor->init_end();
