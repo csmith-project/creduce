@@ -21,16 +21,17 @@ class CommentsPass(AbstractPass):
             prog2 = prog
 
         while True:
-            if state > -1:
-                return (self.Result.stop, state)
-            elif state == -2:
+            #TODO: remove only the nth comment
+            if state == -2:
                 # Remove all multiline comments
                 # Replace /* any number of * if not followed by / or anything but * */
-                # FIXME: What about the rest of the original regex?
+                #FIXME: What about the rest of the original regex?
                 prog2 = re.sub(r"/\*(?:\*(?!/)|[^*])*\*/", "", prog2, flags=re.DOTALL)
             elif state == -1:
                 # Remove all single line comments
                 prog2 = re.sub(r"//.*$", "", prog2, flags=re.MULTILINE)
+            else:
+                return (self.Result.stop, state)
 
             if prog != prog2:
                 with open(test_case, "w") as out_file:
