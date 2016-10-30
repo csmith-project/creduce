@@ -35,6 +35,7 @@ llvm_map_components_to_libnames(LLVM_LIBS
   mcparser
   option
   profiledata
+  support
 )
 
 set(CLANG_LIBS
