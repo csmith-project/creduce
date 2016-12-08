@@ -21,8 +21,10 @@ class ClexPass(AbstractPass):
 
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
+            cmd = ["clex", str(self.arg), str(state), test_case]
+
             try:
-                proc = compat.subprocess_run(["clex", str(self.arg), str(state), test_case], universal_newlines=True, stdout=tmp_file)
+                proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=tmp_file)
             except subprocess.SubprocessError:
                 return (self.Result.error, state)
 
@@ -31,8 +33,4 @@ class ClexPass(AbstractPass):
             return (self.Result.ok, state)
         else:
             os.unlink(tmp_file.name)
-
-            if proc.returncode == 71:
-                return (self.Result.stop, state)
-            else:
-                return (self.Result.error, state)
+            return (self.Result.stop if proc.returncode == 71 else self.Result.error, state)
