@@ -51,6 +51,7 @@ class LinesPass(AbstractPass):
 
             new_state["index"] = len(data)
             new_state["chunk"] = len(data)
+
             return (self.Result.ok, new_state)
         else:
             logging.debug("***TRANSFORM REGULAR chunk {} at {}***".format(new_state["chunk"], new_state["index"]));
@@ -63,9 +64,8 @@ class LinesPass(AbstractPass):
 
                 if new_state["index"] >= 0 and len(data) > 0 and new_state["chunk"] > 0:
                     start = max(0, new_state["index"] - new_state["chunk"])
-                    chunk = new_state["chunk"]
                     old_len = len(data)
-                    data = data[0:start] + data[start + chunk:]
+                    data = data[0:start] + data[start + new_state["chunk"]:]
 
                     logging.debug("went from {} lines to {} with chunk {}".format(old_len, len(data), new_state["chunk"]))
 
@@ -73,7 +73,8 @@ class LinesPass(AbstractPass):
                         tmp_file.writelines(data)
 
                     shutil.move(tmp_file.name, test_case)
-                    break
+
+                    return (self.Result.ok, new_state)
                 else:
                     if new_state["chunk"] <= 1:
                         return (self.Result.stop, new_state)
@@ -82,5 +83,3 @@ class LinesPass(AbstractPass):
                     new_state["index"] = len(data)
 
                     logging.debug("granularity reduced to {}".format(new_state["chunk"]))
-
-            return (self.Result.ok, new_state)
