@@ -18,6 +18,7 @@ before_install:
 
 script: >
   CXX=/usr/lib/llvm-3.9/bin/clang++
+  CC=/usr/lib/llvm-3.9/bin/clang
   ./configure --with-llvm=/usr/lib/llvm-3.9 &&
   make -j2 &&
   make check
