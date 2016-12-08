@@ -19,10 +19,6 @@ class IncludeIncludesPass(AbstractPass):
         return state
 
     def transform(self, test_case, state):
-        success = self.__transform(test_case, state)
-        return (self.Result.ok if success else self.Result.stop, state)
-
-    def __transform(self, test_case, state):
         with open(test_case, "r") as in_file:
             with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
                 includes = 0
@@ -39,15 +35,18 @@ class IncludeIncludesPass(AbstractPass):
                                 with open(include_match.group(1), "r") as inc_file:
                                     matched = True
                                     tmp_file.write(inc_file.read())
+                                    # Go to next include
+                                    # Don't write original line back to file
                                     continue
                             except FileNotFoundError:
+                                # Do nothing. The original line will be written back
                                 pass
 
                     tmp_file.write(line)
 
         if matched:
             shutil.move(tmp_file.name, test_case)
+            return (self.Result.ok, state)
         else:
             os.unlink(tmp_file.name)
-
-        return matched
+            return (self.Result.stop, state)
