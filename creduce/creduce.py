@@ -80,10 +80,8 @@ class CReduce:
                 except KeyValueError:
                     raise CReduceError("Unkown pass {}".format(pass_dict["pass"]))
 
-                if "arg" not in pass_dict:
-                    raise CReduceError("Missing arg for pass {}".format(pass_dict["pass"]))
-
-                pass_group[category].append(pass_class(pass_dict["arg"]))
+                pass_instance = pass_class(arg=pass_dict.get("arg"))
+                pass_group[category].append(pass_instance)
 
         return pass_group
 

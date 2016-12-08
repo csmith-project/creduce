@@ -1,5 +1,3 @@
-#TODO: Make argument optional
-
 import re
 import enum
 
@@ -15,11 +13,14 @@ class AbstractPass:
         slow = "slow"
         windows = "windows"
 
-    def __init__(self, arg):
+    def __init__(self, arg=None):
         self.arg = arg
 
     def __repr__(self):
-        return "{}::{}".format(type(self).__name__, self.arg)
+        if self.arg is not None:
+            return "{}::{}".format(type(self).__name__, self.arg)
+        else:
+            return "{}".format(type(self).__name__)
 
     def check_prerequisites(self):
         raise NotImplementedError("Class {} has not implemented 'check_prerequisites'!".format(type(self).__name__))

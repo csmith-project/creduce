@@ -1,8 +1,8 @@
 {"first": [
-    {"pass": "includes", "arg": "0"},
-    {"pass": "unifdef", "arg": "0", "exclude": ["windows"]},
-    {"pass": "comments", "arg": "0"},
-    {"pass": "blank", "arg": "0"},
+    {"pass": "includes"},
+    {"pass": "unifdef", "exclude": ["windows"]},
+    {"pass": "comments"},
+    {"pass": "blank"},
     {"pass": "clangbinarysearch", "arg": "replace-function-def-with-decl"},
     {"pass": "clangbinarysearch", "arg": "remove-unused-function"},
     {"pass": "lines", "arg": "0"},
@@ -31,7 +31,7 @@
     {"pass": "special", "arg": "c"}
  ],
  "main": [
-    {"pass": "includeincludes", "arg": "0"},
+    {"pass": "includeincludes"},
     {"pass": "ternary", "arg": "b"},
     {"pass": "ternary", "arg": "c"},
     {"pass": "balanced", "arg": "curly"},
@@ -109,8 +109,8 @@
     {"pass": "lines", "arg": "6"},
     {"pass": "lines", "arg": "8"},
     {"pass": "lines", "arg": "10"},
-    {"pass": "unifdef", "arg": "0", "exclude": ["windows"]},
-    {"pass": "comments", "arg": "0"},
+    {"pass": "unifdef", "exclude": ["windows"]},
+    {"pass": "comments"},
     {"pass": "special", "arg": "b"},
     {"pass": "special", "arg": "c"},
     {"pass": "indent", "arg": "regular"},
