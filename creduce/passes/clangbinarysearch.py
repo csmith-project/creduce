@@ -14,25 +14,28 @@ class ClangBinarySearchPass(AbstractPass):
         return shutil.which("clang_delta") is not None
 
     def new(self, test_case):
-        return {"start": 1}
+        instances = self.__count_instances(test_case)
+
+        logging.debug("initial granularity = {}".format(instances))
+
+        return {"chunk": instances, "instances": instances, "index": 1}
 
     def advance(self, test_case, state):
-        if "start" in state:
-            return state
-        else:
-            new_state = state.copy()
-            new_state["index"] = state["index"] + state["chunk"]
+        new_state = state.copy()
+        new_state["index"] = state["index"] + state["chunk"]
 
-            logging.debug("ADVANCE: index = {}, chunk = {}".format(new_state["index"], new_state["chunk"]))
+        logging.debug("ADVANCE: index = {}, chunk = {}".format(new_state["index"], new_state["chunk"]))
 
-            return new_state
+        return new_state
 
     def advance_on_success(self, test_case, state):
-        return state
+        return state.copy()
 
     def __count_instances(self, test_case):
+        cmd = ["clang_delta", "--query-instances={}".format(self.arg), test_case]
+
         try:
-            proc = compat.subprocess_run(["clang_delta", "--query-instances={}".format(self.arg), test_case], universal_newlines=True, stdout=subprocess.PIPE)
+            proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
             return 0
 
@@ -51,7 +54,7 @@ class ClangBinarySearchPass(AbstractPass):
         def round_to_inf(num):
             return math.floor(num + 0.5)
 
-        state["chunk"] = round_to_inf(state["chunk"] / 2)
+        state["chunk"] = round_to_inf(state["chunk"] / 2.0)
         state["index"] = 1
 
         logging.debug("granularity = {}".format(state["chunk"]))
@@ -61,57 +64,38 @@ class ClangBinarySearchPass(AbstractPass):
     def transform(self, test_case, state):
         new_state = state.copy()
 
-        if "start" in new_state:
-            del new_state["start"]
+        if new_state["index"] > new_state["instances"] and not self.__rechunk(new_state):
+            return (self.Result.stop, new_state)
 
-            instances = self.__count_instances(test_case)
-
-            new_state["chunk"] = instances
-            new_state["instances"] = instances
-            new_state["index"] = 1
-
-            logging.debug("initial granularity = {}".format(instances))
-
+        # Only loops if we need to rechunk
         while True:
             logging.debug("TRANSFORM: index = {}, chunk = {}, instances = {}".format(new_state["index"], new_state["chunk"], new_state["instances"]))
 
-            if new_state["index"] <= new_state["instances"]:
-                end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
-                dec = end - new_state["index"] + 1
+            end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
 
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    logging.debug(" ".join(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]))
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                cmd = ["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]
 
-                    try:
-                        proc = compat.subprocess_run(["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case], universal_newlines=True, stdout=tmp_file)
-                    except subprocess.SubprocessError:
-                        return (self.Result.error, new_state)
+                logging.debug(" ".join(cmd))
 
-                if proc.returncode == 0:
-                    shutil.move(tmp_file.name, test_case)
-                    return (self.Result.ok, new_state)
-                else:
-                    if proc.returncode == 255:
-                        #TODO: Do something?
-                        pass
-                    elif proc.returncode == 1:
-                        os.unlink(tmp_file.name)
+                try:
+                    proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=tmp_file)
+                except subprocess.SubprocessError:
+                    return (self.Result.error, new_state)
 
-                        logging.debug("out of instances!")
-
-                        if not self.__rechunk(new_state):
-                            return (self.Result.stop, new_state)
-
-                        continue
-                    else:
-                        os.unlink(tmp_file.name)
-                        return (self.Result.error, new_state)
-
-                #TODO: Why does this return OK?
+            if proc.returncode == 0:
                 shutil.move(tmp_file.name, test_case)
                 return (self.Result.ok, new_state)
-            else:
+            elif proc.returncode == 1:
+                os.unlink(tmp_file.name)
+
+                logging.debug("out of instances!")
+
                 if not self.__rechunk(new_state):
                     return (self.Result.stop, new_state)
-
-        return (self.Result.ok, new_state)
+                else:
+                    # Try again with new chunk size
+                    continue
+            else:
+                os.unlink(tmp_file.name)
+                return (self.Result.stop if proc.returncode == 255 else self.Result.error, new_state)
