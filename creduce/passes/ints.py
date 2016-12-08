@@ -22,14 +22,12 @@ class IntsPass(AbstractPass):
             config["search"] = r"(?P<pref>" + self.border_or_space + r"[+-]?(?:0|(?:0[xX]))?)[0-9a-fA-F](?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*" + self.border_or_space + r")"
         elif self.arg == "b":
             # Delete prefix
-            # FIXME: Made 0x mandatory
             def replace_fn(m):
                 return m.group("del") + m.group("numpart") + m.group("suf")
 
             config["search"] = r"(?P<del>" + self.border_or_space + r")(?P<pref>[+-]?(?:0|(?:0[xX])))(?P<numpart>[0-9a-fA-F]+)(?P<suf>[ULul]*" + self.border_or_space + r")"
         elif self.arg == "c":
             # Delete suffix
-            #FIXME: Changed star to plus for suffix
             def replace_fn(m):
                 return m.group("pref") + m.group("numpart") + m.group("del")
 
@@ -79,8 +77,6 @@ class IntsPass(AbstractPass):
 
         config = self.__get_config()
 
-        #FIXME: Changed: Only stop if no match is found. Not if no change is made
-        #FIXME: Could potentially match variable names
         while True:
             if state is None:
                 return (self.Result.stop, state)
