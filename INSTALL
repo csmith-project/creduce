@@ -73,8 +73,8 @@ zlib:
 --------------------------------------------------------------------
 Optional prereqs:
 
-Term::ReadKey, and Sys::CPU are optional; C-Reduce will use whichever of them
-are installed.
+Term::ReadKey, and Sys::CPU are optional; C-Reduce will use whichever
+of them are installed.
 
 In particular, we recommend installing Sys::CPU; without this module
 C-Reduce will not use multiple cores unless explicitly requested to do
@@ -101,6 +101,22 @@ Building and installing C-Reduce:
 
 You can configure, build, and install C-Reduce with the provided
 `configure' script or with CMake.
+
+* Preface: If in Doubt, Compile With `clang++'
+
+If you encounter weird C++ link-time errors while trying to compile
+C-Reduce (in particular, while compiling its internal `clang_delta'
+tool), please try compiling with `clang++'.
+
+We have encountered link-time problems while trying to compile
+C-Reduce with GCC 5.* and the precompiled LLVM binaries available
+from <http://llvm.org/releases/download.html>.  If you encounter
+similar problems, we strongly suggest that you use Clang instead of
+GCC to compile C-Reduce and its internal tools.
+
+If you are curious, for some discussion of this issue, see:
+<https://github.com/csmith-project/creduce/issues/101>
+<https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html>
 
 * The `configure' Way
 
