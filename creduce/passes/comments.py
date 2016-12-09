@@ -25,7 +25,6 @@ class CommentsPass(AbstractPass):
             if state == -2:
                 # Remove all multiline comments
                 # Replace /* any number of * if not followed by / or anything but * */
-                #FIXME: What about the rest of the original regex?
                 prog2 = re.sub(r"/\*(?:\*(?!/)|[^*])*\*/", "", prog2, flags=re.DOTALL)
             elif state == -1:
                 # Remove all single line comments

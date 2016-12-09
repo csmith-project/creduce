@@ -137,7 +137,7 @@
     {"pass": "ints", "arg": "b"},
     {"pass": "ints", "arg": "c"},
     {"pass": "ints", "arg": "d"},
-    {"pass": "ints", "arg": "e"},
+    {"pass": "ints", "arg": "c"},
     {"pass": "balanced", "arg": "parens-only"},
     {"pass": "clex", "arg": "rename-toks"},
     {"pass": "clex", "arg": "delete-string"},

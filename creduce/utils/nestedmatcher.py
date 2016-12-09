@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import enum
 import re
 
@@ -14,7 +12,6 @@ class Pattern:
     pass
 
 class RegExPattern(Pattern):
-    #TODO: Compile pattern here? If not already compiled
     def __init__(self, expr):
         self.expr = expr
 

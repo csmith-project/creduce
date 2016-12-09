@@ -38,12 +38,6 @@ class IntsPass(AbstractPass):
                 return m.group("pref") + str(int(m.group("numpart"), 16)) + m.group("suf")
 
             config["search"] = r"(?P<pref>" + self.border_or_space + r")(?P<numpart>0[Xx][0-9a-fA-F]+)(?P<suf>[ULul]*" + self.border_or_space + r")"
-        elif self.arg == "e":
-            #FIXME: Same as c?!
-            def replace_fn(m):
-                return m.group("pref") + m.group("numpart") + m.group("del")
-
-            config["search"] = r"(?P<pref>" + self.border_or_space + r"[+-]?(?:0|(?:0[xX]))?)(?P<numpart>[0-9a-fA-F]+)[ULul]+(?P<del>" + self.border_or_space + r")"
         else:
             raise UnknownArgumentError()
 

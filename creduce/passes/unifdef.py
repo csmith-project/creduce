@@ -39,7 +39,6 @@ class UnIfDefPass(AbstractPass):
                 n_index = state / 2
 
                 if n_index >= len(deflist):
-                    #FIXME: Changed: No unlink in Perl script
                     os.unlink(tmp_file.name)
                     return (self.Result.stop, state)
 

@@ -68,6 +68,10 @@ this to be interesting."""
 class PassOptionError(CReduceError):
     pass
 
+class MissingPassGroupsError(CReduceError):
+    def __str__(self):
+        return "Could not find a directory with definitions for pass groups!"
+
 class PassBugError(CReduceError):
     MSG = """***************************************************
 

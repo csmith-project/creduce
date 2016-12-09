@@ -26,8 +26,7 @@ def get_available_pass_groups():
     if os.path.isdir(os.path.join(script_path, "./creduce/pass_groups")):
         pass_group_dir = os.path.join(script_path, "./creduce/pass_groups")
     else:
-        #TODO: More specific error
-        raise CReduceError()
+        raise MissingPassGroupsError()
 
     group_names = []
 
@@ -40,8 +39,7 @@ def get_available_pass_groups():
         try:
             pass_group_dict = CReduce.load_pass_group_file(path)
             CReduce.parse_pass_group_dict(pass_group_dict, set())
-        except CReduceError:
-            #TODO: Add more specific error
+        except MissingPassGroupsError:
             logging.warning("Skipping file {}. Not valid pass group.".format(path))
         else:
             (name, _) = os.path.splitext(entry)
@@ -66,8 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--log-level", type=str, choices=["INFO", "DEBUG", "WARNING", "ERROR"], default="INFO", help="Define the verbosity of the logged events")
     parser.add_argument("--log-file", type=str, help="Log events into LOG_FILE instead of stderr. New events are appended to the end of the file")
     parser.add_argument("--no-kill", action="store_true", default=False, help="Wait for testing instances to terminate on their own instead of killing them (only useful for debugging)")
-    #TODO: Don't use fixed manager here
-    parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(testing.ConservativeTestManager.GIVEUP_CONSTANT))
+    parser.add_argument("--no-give-up", action="store_true", default=False, help="Don't give up on a pass that hasn't made progress for {} iterations".format(testing.AbstractTestManager.GIVEUP_CONSTANT))
     parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
     parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")

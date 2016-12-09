@@ -1,5 +1,3 @@
-#TODO: Kill process implicitly if test env is deleted
-
 import asyncio
 import difflib
 import filecmp
@@ -28,6 +26,7 @@ from .error import PassBugError
 from .error import ZeroSizeError
 
 from . import readkey
+from .info import Info
 
 def _run_test(module_spec, test_dir, test_cases):
     if sys.platform != "win32":
@@ -167,6 +166,8 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
         cmd.extend(self.additional_files_paths)
 
         if sys.platform != "win32":
+            # Create process group to kill the whole process tree
+            # Windows does not have this concept
             def preexec_fn():
                 pid = os.getpid()
                 os.setpgid(pid, pid)
@@ -182,10 +183,12 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
                     logging.debug("Test {} timed out!".format(process.pid))
                     AbstractTestRunner.killpg(process.pid)
 
-            #self.__timer = threading.Timer(self.timeout, timeout, [self.__process])
-            #self.__timer.start()
-
+            #TODO: Eventually the call to timeout should be canceled if the test gets killed otherwise or finishes
+            # But currently there does not seem to be a way of doing it
+            # So we just make sure that the timeout call checks if the process is still alive
             self.__timer = asyncio.get_event_loop().call_later(self.timeout, timeout, self.__process)
+
+        return " ".join(cmd)
 
     def has_result(self):
         if self.__process is None:
@@ -414,9 +417,6 @@ class PythonTestRunner(AbstractTestRunner):
         return PythonTestEnvironment(self.module_spec, self.timeout, self.save_temps)
 
 class AbstractTestManager:
-    #TODO: How can we get this information?
-    PACKAGE = "TODO"
-    COMMIT = "TODO"
     GIVEUP_CONSTANT = 50000
     MAX_CRASH_DIRS = 10
     MAX_EXTRA_DIRS = 25000
@@ -490,7 +490,6 @@ class AbstractTestManager:
 
         return extra_dir
 
-    #TODO: Move to error module
     def _report_pass_bug(self, test_env, problem):
         if not self.die_on_pass_bug:
             logging.warning("{} has encountered a non fatal bug: {}".format(self._pass, problem))
@@ -507,8 +506,8 @@ class AbstractTestManager:
             logging.debug("Please consider tarring up {} and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.".format(crash_dir))
 
         with open(os.path.join(crash_dir, "PASS_BUG_INFO.TXT"), mode="w") as info_file:
-            info_file.write("{}\n".format(self.PACKAGE))
-            info_file.write("{}\n".format(self.COMMIT))
+            info_file.write("{}\n".format(Info.PACKAGE))
+            info_file.write("{}\n".format(Info.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
             info_file.write(PassBugError.MSG.format(self._pass, problem, crash_dir))
 
@@ -536,14 +535,13 @@ class AbstractTestManager:
 
         test_env.copy_files(None, self.test_cases)
 
-        test_env.start_test()
+        cmd = test_env.start_test()
         test_env.wait_for_result()
 
         if test_env.check_result(0):
             logging.debug("sanity check successful")
         else:
-            #FIXME: Pass test invocation to exception
-            raise InsaneTestCaseError(self.test_cases, "TODO")
+            raise InsaneTestCaseError(self.test_cases, cmd)
 
     def _get_active_tests(self):
         return [env for env in self._environments if not env.has_result()]
@@ -576,7 +574,6 @@ class AbstractTestManager:
         return True
 
     def create_test_env(self):
-        #TODO: Create a clone function for test envs
         test_env = self.test_runner.create_environment()
         # Copy files from base env
         test_env.copy_files(self._base_test_env.test_case_path, self._base_test_env.additional_files_paths)
@@ -586,6 +583,7 @@ class AbstractTestManager:
         (result, test_env.state) = self._pass.transform(test_env.test_case_path, test_env.state)
 
         #TODO: Can the state be altered if the transform fails?
+        # If not this would need to be checked here
         # Transform can alter the state. This has to be reflected in the base test env
         self._base_test_env.state = test_env.state
 
@@ -653,8 +651,7 @@ class AbstractTestManager:
                     else:
                         if self.print_diff:
                             diff_str = self._diff_files(self._base_test_env.test_case_path, test_env.test_case_path)
-                            #TODO: Can we print somehow different?
-                            print(diff_str)
+                            logging.info(diff_str)
 
                         # Report bug if transform did not change the file
                         if filecmp.cmp(self._base_test_env.test_case_path, test_env.test_case_path):
@@ -666,7 +663,6 @@ class AbstractTestManager:
                             test_env.start_test()
                             self._environments.append(test_env)
 
-                            #TODO: Needs to be moved to create_test_env
                             state = self._pass.advance(self._base_test_env.test_case_path, self._base_test_env.state)
 
                             if state is not None:
@@ -730,7 +726,6 @@ class AbstractTestManager:
                 self.test_runner.kill(self._environments)
                 self._environments = []
 
-                #FIXME: Need to move to create_env
                 self._base_test_env = test_env
                 shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
                 state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
@@ -794,7 +789,6 @@ class FastConservativeTestManager(ConservativeTestManager):
             self.test_runner.kill(self._environments[(i + 1):])
             self._environments[(i + 1):] = []
 
-            #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
             state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)
@@ -826,7 +820,6 @@ class NonDeterministicTestManager(AbstractTestManager):
         return True
 
     def create_test_env(self):
-        #TODO: Create a clone function for test envs
         test_env = self.test_runner.create_environment()
         # Copy files from base env
         test_env.copy_files(self._base_test_env.test_case_path, self._base_test_env.additional_files_paths)
@@ -870,7 +863,6 @@ class NonDeterministicTestManager(AbstractTestManager):
             self.test_runner.kill(self._environments)
             self._environments = []
 
-            #FIXME: Need to move to create_env
             self._base_test_env = test_env
             shutil.copy(self._base_test_env.test_case_path, self._current_test_case)
             state = self._pass.advance_on_success(test_env.test_case_path, self._base_test_env.state)

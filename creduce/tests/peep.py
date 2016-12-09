@@ -183,18 +183,25 @@ class PeepBTestCase(unittest.TestCase):
         self.assertEqual(iteration, 36)
 
     def test_infinite_loop(self):
-        #FIXME: Why is this test failing?
         with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
             tmp_file.write(",0,")
 
         state = self.pass_.new(tmp_file.name)
-        (_, state) = self.pass_.transform(tmp_file.name, state)
+        (result, state) = self.pass_.transform(tmp_file.name, state)
+
+        iteration = 0
+
+        while result == self.pass_.Result.ok and iteration < 4:
+            state = self.pass_.advance(tmp_file.name, state)
+            (result, state) = self.pass_.transform(tmp_file.name, state)
+            iteration += 1
 
         with open(tmp_file.name, mode="r") as variant_file:
             variant = variant_file.read()
 
         os.unlink(tmp_file.name)
 
+        self.assertEqual(iteration, 2)
         self.assertEqual(variant, ",,")
 
 class PeepCTestCase(unittest.TestCase):
