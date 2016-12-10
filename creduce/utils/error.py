@@ -72,6 +72,13 @@ class MissingPassGroupsError(CReduceError):
     def __str__(self):
         return "Could not find a directory with definitions for pass groups!"
 
+class MissingExternalProgramError(CReduceError):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return "Could not find {} executable!".format(self.name)
+
 class PassBugError(CReduceError):
     MSG = """***************************************************
 

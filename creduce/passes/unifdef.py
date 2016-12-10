@@ -9,7 +9,7 @@ from ..utils import compat
 
 class UnIfDefPass(AbstractPass):
     def check_prerequisites(self):
-        return shutil.which("unifdef") is not None
+        return shutil.which(self.external_programs["unifdef"]) is not None
 
     def new(self, test_case):
         return 0
@@ -22,7 +22,8 @@ class UnIfDefPass(AbstractPass):
 
     def transform(self, test_case, state):
         try:
-            proc = compat.subprocess_run(["unifdef", "-s", test_case], universal_newlines=True, stdout=subprocess.PIPE)
+            cmd = [self.external_programs["unifdef"], "-s", test_case]
+            proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
         except subprocess.SubprocessError:
             return (self.Result.error, state)
 
@@ -45,7 +46,8 @@ class UnIfDefPass(AbstractPass):
                 def_ = deflist[n_index]
 
                 try:
-                    proc = compat.subprocess_run(["unifdef", "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case], universal_newlines=True)
+                    cmd = [self.external_programs.unifdef, "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case]
+                    proc = compat.subprocess_run(cmd, universal_newlines=True)
                 except subprocess.SubprocessError:
                     return (self.Result.error, state)
 

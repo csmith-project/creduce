@@ -16,17 +16,16 @@ import tempfile
 import threading
 import weakref
 
+from .. import CReduce
 from ..passes import AbstractPass
 
 from . import compat
+from . import readkey
 from .error import InsaneTestCaseError
 from .error import InvalidInterestingnessTestError
 from .error import InvalidTestCaseError
 from .error import PassBugError
 from .error import ZeroSizeError
-
-from . import readkey
-from .info import Info
 
 def _run_test(module_spec, test_dir, test_cases):
     if sys.platform != "win32":
@@ -506,8 +505,8 @@ class AbstractTestManager:
             logging.debug("Please consider tarring up {} and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.".format(crash_dir))
 
         with open(os.path.join(crash_dir, "PASS_BUG_INFO.TXT"), mode="w") as info_file:
-            info_file.write("{}\n".format(Info.PACKAGE))
-            info_file.write("{}\n".format(Info.COMMIT))
+            info_file.write("{}\n".format(CReduce.Info.PACKAGE))
+            info_file.write("{}\n".format(CReduce.Info.COMMIT))
             info_file.write("{}\n".format(platform.uname()))
             info_file.write(PassBugError.MSG.format(self._pass, problem, crash_dir))
 

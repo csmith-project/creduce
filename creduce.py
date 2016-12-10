@@ -5,27 +5,58 @@ import logging
 import multiprocessing
 import os
 import os.path
+import shutil
 import sys
 import time
 
 from creduce import CReduce
 from creduce.passes import AbstractPass
 from creduce.utils.error import CReduceError
+from creduce.utils.error import MissingExternalProgramError
+from creduce.utils.error import MissingPassGroupsError
+from creduce.utils.info import ExternalPrograms
 from creduce.utils import testing
 from creduce.utils import statistics
 
-def get_pass_group_path(name):
+def get_creduce_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
-    return os.path.join(script_path, "creduce", "pass_groups", name + ".json")
+
+    # Test all known locations for the creduce directory
+    creduce_dirs = [
+            os.path.join(script_path, "..", "share", "creduce"),
+            os.path.join(script_path, "creduce")
+            ]
+
+    for d in creduce_dirs:
+        if os.path.isdir(d):
+            return d
+
+    raise CReduceError("Cannot find creduce directory!")
+
+def find_external_programs():
+    programs = ExternalPrograms()
+    creduce_dir = get_creduce_dir()
+
+    for prog in ExternalPrograms.programs:
+        path = shutil.which(programs[prog])
+
+        if path is None:
+            path = shutil.which(os.path.join(creduce_dir, prog))
+
+        if path is None:
+            raise MissingExternalProgramError(prog)
+
+        programs[prog] = path
+
+    return programs
+
+def get_pass_group_path(name):
+    return os.path.join(get_creduce_dir(), "pass_groups", name + ".json")
 
 def get_available_pass_groups():
-    # Check for relative path
-    #TODO: Check also for absolute install path, maybe /usr/local/share?
-    script_path = os.path.dirname(os.path.realpath(__file__))
+    pass_group_dir = os.path.join(get_creduce_dir(), "pass_groups")
 
-    if os.path.isdir(os.path.join(script_path, "./creduce/pass_groups")):
-        pass_group_dir = os.path.join(script_path, "./creduce/pass_groups")
-    else:
+    if not os.path.isdir(pass_group_dir):
         raise MissingPassGroupsError()
 
     group_names = []
@@ -38,7 +69,7 @@ def get_available_pass_groups():
 
         try:
             pass_group_dict = CReduce.load_pass_group_file(path)
-            CReduce.parse_pass_group_dict(pass_group_dict, set())
+            CReduce.parse_pass_group_dict(pass_group_dict, set(), None)
         except MissingPassGroupsError:
             logging.warning("Skipping file {}. Not valid pass group.".format(path))
         else:
@@ -115,8 +146,10 @@ if __name__ == "__main__":
     else:
         pass_group_file = get_pass_group_path("all")
 
+    external_programs = find_external_programs()
+
     pass_group_dict = CReduce.load_pass_group_file(pass_group_file)
-    pass_group = CReduce.parse_pass_group_dict(pass_group_dict, pass_options)
+    pass_group = CReduce.parse_pass_group_dict(pass_group_dict, pass_options, external_programs)
 
     if (not args.no_fast_test and
         testing.PythonTestRunner.is_valid_test(args.interestingness_test)):

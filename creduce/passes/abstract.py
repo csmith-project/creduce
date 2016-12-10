@@ -13,7 +13,8 @@ class AbstractPass:
         slow = "slow"
         windows = "windows"
 
-    def __init__(self, arg=None):
+    def __init__(self, external_programs=None, arg=None):
+        self.external_programs = external_programs
         self.arg = arg
 
     def __repr__(self):

@@ -9,7 +9,7 @@ from ..utils import compat
 
 class ClangPass(AbstractPass):
     def check_prerequisites(self):
-        return shutil.which("clang_delta") is not None
+        return shutil.which(self.external_programs["clang_delta"]) is not None
 
     def new(self, test_case):
         return 1
@@ -22,7 +22,7 @@ class ClangPass(AbstractPass):
 
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
-            cmd = ["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(state), test_case]
+            cmd = [self.external_programs["clang_delta"], "--transformation={}".format(self.arg), "--counter={}".format(state), test_case]
 
             logging.debug(" ".join(cmd))
 

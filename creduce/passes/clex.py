@@ -8,7 +8,7 @@ from ..utils import compat
 
 class ClexPass(AbstractPass):
     def check_prerequisites(self):
-        return shutil.which("clex") is not None
+        return shutil.which(self.external_programs["clex"]) is not None
 
     def new(self, test_case):
         return 0
@@ -21,7 +21,7 @@ class ClexPass(AbstractPass):
 
     def transform(self, test_case, state):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
-            cmd = ["clex", str(self.arg), str(state), test_case]
+            cmd = [self.external_programs["clex"], str(self.arg), str(state), test_case]
 
             try:
                 proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=tmp_file)

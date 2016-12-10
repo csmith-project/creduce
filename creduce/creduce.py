@@ -11,6 +11,11 @@ from .utils.error import PassOptionError
 from .utils.error import PrerequisitesNotFoundError
 
 class CReduce:
+#FIXME: Write this file in cmake
+    class Info:
+        PACKAGE = "%PACKAGE%"
+        COMMIT = "%COMMIT%"
+
     pass_name_mapping = {
         "balanced": passes.BalancedPass,
         "blank": passes.BlankPass,
@@ -44,7 +49,7 @@ class CReduce:
         return pass_group_dict
 
     @classmethod
-    def parse_pass_group_dict(cls, pass_group_dict, pass_options):
+    def parse_pass_group_dict(cls, pass_group_dict, pass_options, external_programs):
         pass_group = {}
 
         def parse_options(options):
@@ -80,7 +85,7 @@ class CReduce:
                 except KeyValueError:
                     raise CReduceError("Unkown pass {}".format(pass_dict["pass"]))
 
-                pass_instance = pass_class(arg=pass_dict.get("arg"))
+                pass_instance = pass_class(external_programs, pass_dict.get("arg"))
                 pass_group[category].append(pass_instance)
 
         return pass_group

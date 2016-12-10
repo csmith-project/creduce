@@ -7,10 +7,7 @@ from ..utils.error import UnknownArgumentError
 
 class IndentPass(AbstractPass):
     def check_prerequisites(self):
-        if shutil.which("clang-format") is None:
-            return False
-
-        return True
+        return shutil.which(self.external_programs["clang-format"]) is not None
 
     def new(self, test_case):
         return 0
@@ -28,10 +25,12 @@ class IndentPass(AbstractPass):
         if state != 0:
             return (self.Result.stop, state)
 
+        cmd = [self.external_programs["clang-format"], "-i"]
+
         if self.arg == "regular":
-            cmd = ["clang-format", "-i", "-style", "{SpacesInAngles: true}", test_case]
+            cmd.extend(["-style", "{SpacesInAngles: true}", test_case])
         elif self.arg == "final":
-            cmd = ["clang-format", "-i", test_case]
+            cmd.append(test_case)
         else:
             raise UnknownArgumentError()
 

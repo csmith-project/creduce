@@ -11,7 +11,7 @@ from ..utils import compat
 
 class ClangBinarySearchPass(AbstractPass):
     def check_prerequisites(self):
-        return shutil.which("clang_delta") is not None
+        return shutil.which(self.external_programs["clang_delta"]) is not None
 
     def new(self, test_case):
         instances = self.__count_instances(test_case)
@@ -32,7 +32,7 @@ class ClangBinarySearchPass(AbstractPass):
         return state.copy()
 
     def __count_instances(self, test_case):
-        cmd = ["clang_delta", "--query-instances={}".format(self.arg), test_case]
+        cmd = [self.external_programs["clang_delta"], "--query-instances={}".format(self.arg), test_case]
 
         try:
             proc = compat.subprocess_run(cmd, universal_newlines=True, stdout=subprocess.PIPE)
@@ -74,7 +74,7 @@ class ClangBinarySearchPass(AbstractPass):
             end = min(new_state["instances"], new_state["index"] + new_state["chunk"])
 
             with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                cmd = ["clang_delta", "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]
+                cmd = [self.external_programs["clang_delta"], "--transformation={}".format(self.arg), "--counter={}".format(new_state["index"]), "--to-counter={}".format(end), test_case]
 
                 logging.debug(" ".join(cmd))
 
