@@ -33,10 +33,10 @@ Perl modules installed:
 
   http://perlbrew.pl/
 
-On FreeBSD 10.2, the prerequisites other than LLVM can be installed
-like this:
+On FreeBSD 10.2, the prerequisites can be installed like this:
 
   sudo pkg install \
+    llvm39 \
     p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common \
     flex
 
