@@ -111,6 +111,7 @@ clang_delta_LDADD = \
 	-lclangFrontendTool -lclangFrontend -lclangDriver -lclangSerialization \
 	-lclangCodeGen -lclangParse -lclangSema -lclangAnalysis \
 	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
+	-lclangARCMigrate \
 	$(LLVMLIBS) \
 	$(LLVMLDFLAGS)
 
