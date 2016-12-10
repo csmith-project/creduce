@@ -59,6 +59,7 @@ set(CLANG_LIBS
   clangBasic
   clangEdit
   clangLex
+  clangARCMigrate
 )
 
 add_executable(clang_delta
