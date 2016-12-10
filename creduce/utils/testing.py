@@ -505,8 +505,8 @@ class AbstractTestManager:
             logging.debug("Please consider tarring up {} and mailing it to creduce-bugs@flux.utah.edu and we will try to fix the bug.".format(crash_dir))
 
         with open(os.path.join(crash_dir, "PASS_BUG_INFO.TXT"), mode="w") as info_file:
-            info_file.write("{}\n".format(CReduce.Info.PACKAGE))
-            info_file.write("{}\n".format(CReduce.Info.COMMIT))
+            info_file.write("{}\n".format(CReduce.Info.PACKAGE_STRING))
+            info_file.write("{}\n".format(CReduce.Info.GIT_VERSION))
             info_file.write("{}\n".format(platform.uname()))
             info_file.write(PassBugError.MSG.format(self._pass, problem, crash_dir))
 

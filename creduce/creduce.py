@@ -11,10 +11,16 @@ from .utils.error import PassOptionError
 from .utils.error import PrerequisitesNotFoundError
 
 class CReduce:
-#FIXME: Write this file in cmake
     class Info:
-        PACKAGE = "%PACKAGE%"
-        COMMIT = "%COMMIT%"
+        PACKAGE_BUGREPORT = "%PACKAGE_BUGREPORT%"
+        PACKAGE_NAME = "%PACKAGE_NAME%"
+        PACKAGE_STRING = "%PACKAGE_STRING%"
+        PACKAGE_URL = "%PACKAGE_URL%"
+        PACKAGE_VERSION = "%PACKAGE_VERSION%"
+
+        VERSION = "%VERSION%"
+
+        GIT_VERSION = "%GIT_HASH%"
 
     pass_name_mapping = {
         "balanced": passes.BalancedPass,

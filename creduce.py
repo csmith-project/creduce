@@ -18,30 +18,46 @@ from creduce.utils.info import ExternalPrograms
 from creduce.utils import testing
 from creduce.utils import statistics
 
-def get_creduce_dir():
+def get_share_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
 
     # Test all known locations for the creduce directory
-    creduce_dirs = [
+    share_dirs = [
             os.path.join(script_path, "..", "share", "creduce"),
             os.path.join(script_path, "creduce")
             ]
 
-    for d in creduce_dirs:
+    for d in share_dirs:
         if os.path.isdir(d):
             return d
 
-    raise CReduceError("Cannot find creduce directory!")
+    raise CReduceError("Cannot find creduce module directory!")
+
+def get_libexec_dir():
+    script_path = os.path.dirname(os.path.realpath(__file__))
+
+    # Test all known locations for the creduce directory
+    libexec_dirs = [
+            os.path.join(script_path, "..", "libexec"),
+            #FIXME: The programs are in sub directories
+            os.path.join(script_path)
+            ]
+
+    for d in libexec_dirs:
+        if os.path.isdir(d):
+            return d
+
+    raise CReduceError("Cannot find libexec directory!")
 
 def find_external_programs():
     programs = ExternalPrograms()
-    creduce_dir = get_creduce_dir()
+    libexec_dir = get_libexec_dir()
 
     for prog in ExternalPrograms.programs:
         path = shutil.which(programs[prog])
 
         if path is None:
-            path = shutil.which(os.path.join(creduce_dir, prog))
+            path = shutil.which(os.path.join(libexec_dir, prog))
 
         if path is None:
             raise MissingExternalProgramError(prog)
@@ -51,10 +67,10 @@ def find_external_programs():
     return programs
 
 def get_pass_group_path(name):
-    return os.path.join(get_creduce_dir(), "pass_groups", name + ".json")
+    return os.path.join(get_share_dir(), "pass_groups", name + ".json")
 
 def get_available_pass_groups():
-    pass_group_dir = os.path.join(get_creduce_dir(), "pass_groups")
+    pass_group_dir = os.path.join(get_share_dir(), "pass_groups")
 
     if not os.path.isdir(pass_group_dir):
         raise MissingPassGroupsError()

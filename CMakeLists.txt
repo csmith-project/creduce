@@ -37,15 +37,12 @@ message(STATUS "Using ClangConfig.cmake in ${Clang_DIR}")
 
 # Locate Perl and check its version.
 #
-include(FindPerl)
-if(${PERL_VERSION_STRING} VERSION_LESS "5.10.0")
-  message(FATAL_ERROR "C-Reduce requires Perl 5.10.0 or later")
-endif()
+find_package(PythonInterp 3.4 REQUIRED)
 
 # Locate flex.  Do this here because we need the package definitions in the
 # "CMakeLists.txt" files for multiple subdirs.
 #
-find_package(FLEX)
+find_package(FLEX REQUIRED)
 
 ###############################################################################
 
@@ -129,6 +126,7 @@ add_subdirectory(clang_delta)
 add_subdirectory(clex)
 add_subdirectory(creduce)
 add_subdirectory(delta)
+
 # `unifdef' requires a Unix-y platform.
 if(UNIX)
   add_subdirectory(unifdef)
@@ -136,6 +134,19 @@ else()
   message(WARNING
     "Internal tool `unifdef${CMAKE_EXECUTABLE_SUFFIX}' cannot be compiled on this OS; skipping.")
 endif()
+
+file(COPY "${PROJECT_SOURCE_DIR}/creduce.py"
+  DESTINATION "${PROJECT_BINARY_DIR}"
+  FILE_PERMISSIONS
+  OWNER_READ OWNER_WRITE OWNER_EXECUTE
+  GROUP_READ GROUP_EXECUTE
+  WORLD_READ WORLD_EXECUTE
+)
+
+install(PROGRAMS "${PROJECT_BINARY_DIR}/creduce.py"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+  RENAME "creduce"
+)
 
 ###############################################################################
 
