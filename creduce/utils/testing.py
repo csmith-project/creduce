@@ -8,6 +8,7 @@ import multiprocessing
 import os
 import os.path
 import platform
+import resource
 import shutil
 import signal
 import subprocess
