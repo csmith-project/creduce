@@ -217,6 +217,10 @@ add_executable(clang_delta
 
 target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
 
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+    target_link_libraries(clang_delta Version)
+endif()
+
 install(TARGETS clang_delta
   RUNTIME DESTINATION "libexec"
 )
