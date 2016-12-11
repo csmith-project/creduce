@@ -554,8 +554,9 @@ class AbstractTestManager:
         if self._stopped or self._skip:
             return False
 
-        # (b) there are not already to many variants (FIXME: can potentionally be removed later),
-        if len(self._environments) > 200:
+        # (b) there are not already to many open files
+        # We're nice here and only open up to half of the allowed number of files
+        if len(self._environments) >= (resource.getrlimit(resource.RLIMIT_NOFILE)[0] / 2):
             return False
 
         # (c) the test for the first variant in the list is still running,
@@ -804,8 +805,9 @@ class NonDeterministicTestManager(AbstractTestManager):
         if self._stopped:
             return False
 
-        # (b) there are not already to many variants (FIXME: can potentionally be removed later),
-        if len(self._environments) > 200:
+        # (b) there are not already to many open files
+        # We're nice here and only open up to half of the allowed number of files
+        if len(self._environments) >= (resource.getrlimit(resource.RLIMIT_NOFILE)[0] / 2):
             return False
 
         # (c) no test has a positive result

@@ -9,6 +9,14 @@ import shutil
 import sys
 import time
 
+import importlib.util
+
+# If the creduce modules cannot be found
+# add the known install location to the path
+if importlib.util.find_spec("creduce") is None:
+    script_path = os.path.dirname(os.path.realpath(__file__))
+    sys.path.append(os.path.join(script_path, "..", "share"))
+
 from creduce import CReduce
 from creduce.passes import AbstractPass
 from creduce.utils.error import CReduceError
