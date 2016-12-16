@@ -25,7 +25,8 @@ my $topformflat;
 
 sub check_prereqs () {
     my $path;
-    if ($FindBin::RealBin eq abs_path(bindir)) {
+    my $abs_bindir = abs_path(bindir);
+    if ((defined $abs_bindir) && ($FindBin::RealBin eq $abs_bindir)) {
 	# This script is in the installation directory.
 	# Use the installed `topformflat'.
 	$path = libexecdir . "/topformflat";
