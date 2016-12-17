@@ -8,7 +8,16 @@ import multiprocessing
 import os
 import os.path
 import platform
-import resource
+
+# Currently the resource module is only available on Unix based systems
+try:
+    import resource
+    # We're nice here and only open up to half of the allowed number of files
+    MAX_OPEN_FILES = resource.getrlimit(resource.RLIMIT_NOFILE)[0] / 2
+except ImportError:
+    # Just assume that we might be able to open up to 1024 files
+    MAX_OPEN_FILES = 1024
+
 import shutil
 import signal
 import subprocess
@@ -82,7 +91,7 @@ class AbstractTestEnvironment:
 
     def dump(self, dst):
         if self.test_case is not None:
-            shutil.copy(self.test_case, dst)
+            shutil.copy(self.test_case_path, dst)
 
         for f in self.additional_files:
             shutil.copy(f, dst)
@@ -126,6 +135,10 @@ class GeneralTestEnvironment(AbstractTestEnvironment):
         self.__exitcode = None
         self.__process = None
         self.__timer = None
+
+    def __del__(self):
+        if self.__timer is not None:
+            self.__timer.cancel()
 
     def dump(self, dst):
         super().dump(dst)
@@ -215,6 +228,7 @@ class PythonTestEnvironment(AbstractTestEnvironment):
         self.module_spec = module_spec
         self.__exitcode = None
         self.__process = None
+        self.__timer = None
 
     def __del__(self):
         if self.__timer is not None:
@@ -295,7 +309,7 @@ class AbstractTestRunner:
 
     @classmethod
     def is_valid_test(cls, test):
-        raise NotImplementedError("Missing 'is_valid_test' implementation in class '{}'".format(self.__class__))
+        raise NotImplementedError("Missing 'is_valid_test' implementation in class '{}'".format(cls))
 
     def create_environment(self):
         raise NotImplementedError("Missing 'create_environment' implementation in class '{}'".format(self.__class__))
@@ -320,7 +334,7 @@ class AbstractTestRunner:
         # On Windows it is only possible to wait on max. 64 processes at once
         # Just wait for the first 64 which is not perfect.
         # But who runs more than 64 processes anyway?
-        multiprocessing.connection.wait(handles[i:(i + 64)])
+        multiprocessing.connection.wait(handles[0:64])
 
     @classmethod
     def wait(self, environments):
@@ -344,7 +358,7 @@ class AbstractTestRunner:
             pass
 
     @classmethod
-    def _kill_win32(pid):
+    def _kill_win32(cls, pid):
         compat.subprocess_run(["TASKKILL", "/T", "/PID", str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
     def kill(self, environments):
@@ -556,8 +570,7 @@ class AbstractTestManager:
             return False
 
         # (b) there are not already to many open files
-        # We're nice here and only open up to half of the allowed number of files
-        if len(self._environments) >= (resource.getrlimit(resource.RLIMIT_NOFILE)[0] / 2):
+        if len(self._environments) >= MAX_OPEN_FILES:
             return False
 
         # (c) the test for the first variant in the list is still running,
@@ -807,8 +820,7 @@ class NonDeterministicTestManager(AbstractTestManager):
             return False
 
         # (b) there are not already to many open files
-        # We're nice here and only open up to half of the allowed number of files
-        if len(self._environments) >= (resource.getrlimit(resource.RLIMIT_NOFILE)[0] / 2):
+        if len(self._environments) >= MAX_OPEN_FILES:
             return False
 
         # (c) no test has a positive result

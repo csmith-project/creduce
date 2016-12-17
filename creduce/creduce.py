@@ -12,15 +12,15 @@ from .utils.error import PrerequisitesNotFoundError
 
 class CReduce:
     class Info:
-        PACKAGE_BUGREPORT = "%PACKAGE_BUGREPORT%"
-        PACKAGE_NAME = "%PACKAGE_NAME%"
-        PACKAGE_STRING = "%PACKAGE_STRING%"
-        PACKAGE_URL = "%PACKAGE_URL%"
-        PACKAGE_VERSION = "%PACKAGE_VERSION%"
+        PACKAGE_BUGREPORT = "@creduce_PACKAGE_BUGREPORT@"
+        PACKAGE_NAME = "@creduce_PACKAGE_NAME@"
+        PACKAGE_STRING = "@creduce_PACKAGE_STRING@"
+        PACKAGE_URL = "@creduce_PACKAGE_URL@"
+        PACKAGE_VERSION = "@creduce_PACKAGE_VERSION@"
 
-        VERSION = "%VERSION%"
+        VERSION = "@creduce_VERSION@"
 
-        GIT_VERSION = "%GIT_HASH%"
+        GIT_VERSION = "@GIT_HASH@"
 
     pass_name_mapping = {
         "balanced": passes.BalancedPass,

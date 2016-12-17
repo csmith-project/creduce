@@ -135,16 +135,15 @@ else()
     "Internal tool `unifdef${CMAKE_EXECUTABLE_SUFFIX}' cannot be compiled on this OS; skipping.")
 endif()
 
-file(COPY "${PROJECT_SOURCE_DIR}/creduce.py"
-  DESTINATION "${PROJECT_BINARY_DIR}"
-  FILE_PERMISSIONS
-  OWNER_READ OWNER_WRITE OWNER_EXECUTE
-  GROUP_READ GROUP_EXECUTE
-  WORLD_READ WORLD_EXECUTE
+# Copy top-level creduce script
+configure_file(
+  "${PROJECT_SOURCE_DIR}/creduce.py"
+  "${PROJECT_BINARY_DIR}/creduce.py"
+  COPYONLY
 )
 
 install(PROGRAMS "${PROJECT_BINARY_DIR}/creduce.py"
-  DESTINATION "${CMAKE_INSTALL_PREFIX}/bin"
+  DESTINATION "bin"
   RENAME "creduce"
 )
 

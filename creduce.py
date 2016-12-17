@@ -20,7 +20,6 @@ if importlib.util.find_spec("creduce") is None:
 from creduce import CReduce
 from creduce.passes import AbstractPass
 from creduce.utils.error import CReduceError
-from creduce.utils.error import MissingExternalProgramError
 from creduce.utils.error import MissingPassGroupsError
 from creduce.utils.info import ExternalPrograms
 from creduce.utils import testing
@@ -61,16 +60,16 @@ def find_external_programs():
     programs = ExternalPrograms()
     libexec_dir = get_libexec_dir()
 
-    for prog in ExternalPrograms.programs:
-        path = shutil.which(programs[prog])
+    for prog_key in ExternalPrograms.programs:
+        prog = programs[prog_key]
+
+        path = shutil.which(prog)
 
         if path is None:
-            path = shutil.which(os.path.join(libexec_dir, prog))
+            path = shutil.which(prog, path=libexec_dir)
 
-        if path is None:
-            raise MissingExternalProgramError(prog)
-
-        programs[prog] = path
+        if path is not None:
+            programs[prog_key] = path
 
     return programs
 

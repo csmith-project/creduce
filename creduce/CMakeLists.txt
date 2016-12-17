@@ -42,47 +42,193 @@ endif()
 
 # Generate file "creduce.py".
 #
-file(READ "${creduce_python_SOURCE_DIR}/creduce.py"
-  CREDUCE_CONTENT
-)
-
-string(REPLACE "%PACKAGE_BUGREPORT%" "${creduce_PACKAGE_BUGREPORT}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%PACKAGE_NAME%" "${creduce_PACKAGE_NAME}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%PACKAGE_STRING%" "${creduce_PACKAGE_STRING}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%PACKAGE_URL%" "${creduce_PACKAGE_URL}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%PACKAGE_VERSION%" "${creduce_PACKAGE_VERSION}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%VERSION%" "${creduce_VERSION}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-string(REPLACE "%GIT_HASH%" "${GIT_HASH}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}"
-)
-
-file(WRITE "${creduce_python_BINARY_DIR}/creduce.py"
-  "${CREDUCE_CONTENT}"
+configure_file("${creduce_python_SOURCE_DIR}/creduce.py"
+  "${creduce_python_BINARY_DIR}/creduce.py"
 )
 
 ###############################################################################
 
 # Copy the Python modules into the build tree so that we can run C-Reduce there.
 #
-file(COPY "${creduce_python_SOURCE_DIR}/"
-  DESTINATION "${creduce_python_BINARY_DIR}"
-  FILES_MATCHING
-  PATTERN "*.py"
-  PATTERN "*.json"
-  PATTERN "__pycache__" EXCLUDE
-  PATTERN "creduce.py" EXCLUDE
+configure_file(
+  "${creduce_python_SOURCE_DIR}/__init__.py"
+  "${creduce_python_BINARY_DIR}/__init__.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/pass_groups/all.json"
+  "${creduce_python_BINARY_DIR}/pass_groups/all.json"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/pass_groups/opencl-120.json"
+  "${creduce_python_BINARY_DIR}/pass_groups/opencl-120.json"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/__init__.py"
+  "${creduce_python_BINARY_DIR}/passes/__init__.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/abstract.py"
+  "${creduce_python_BINARY_DIR}/passes/abstract.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/balanced.py"
+  "${creduce_python_BINARY_DIR}/passes/balanced.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/blank.py"
+  "${creduce_python_BINARY_DIR}/passes/blank.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/clang.py"
+  "${creduce_python_BINARY_DIR}/passes/clang.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/clangbinarysearch.py"
+  "${creduce_python_BINARY_DIR}/passes/clangbinarysearch.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/clex.py"
+  "${creduce_python_BINARY_DIR}/passes/clex.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/comments.py"
+  "${creduce_python_BINARY_DIR}/passes/comments.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/includeincludes.py"
+  "${creduce_python_BINARY_DIR}/passes/includeincludes.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/includes.py"
+  "${creduce_python_BINARY_DIR}/passes/includes.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/indent.py"
+  "${creduce_python_BINARY_DIR}/passes/indent.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/ints.py"
+  "${creduce_python_BINARY_DIR}/passes/ints.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/lines.py"
+  "${creduce_python_BINARY_DIR}/passes/lines.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/peep.py"
+  "${creduce_python_BINARY_DIR}/passes/peep.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/special.py"
+  "${creduce_python_BINARY_DIR}/passes/special.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/ternary.py"
+  "${creduce_python_BINARY_DIR}/passes/ternary.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/unifdef.py"
+  "${creduce_python_BINARY_DIR}/passes/unifdef.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/__init__.py"
+  "${creduce_python_BINARY_DIR}/tests/__init__.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/balanced.py"
+  "${creduce_python_BINARY_DIR}/tests/balanced.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/comments.py"
+  "${creduce_python_BINARY_DIR}/tests/comments.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/ints.py"
+  "${creduce_python_BINARY_DIR}/tests/ints.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/nestedmatcher.py"
+  "${creduce_python_BINARY_DIR}/tests/nestedmatcher.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/peep.py"
+  "${creduce_python_BINARY_DIR}/tests/peep.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/special.py"
+  "${creduce_python_BINARY_DIR}/tests/special.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/ternary.py"
+  "${creduce_python_BINARY_DIR}/tests/ternary.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/__init__.py"
+  "${creduce_python_BINARY_DIR}/utils/__init__.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/compat.py"
+  "${creduce_python_BINARY_DIR}/utils/compat.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/error.py"
+  "${creduce_python_BINARY_DIR}/utils/error.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/info.py"
+  "${creduce_python_BINARY_DIR}/utils/info.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/nestedmatcher.py"
+  "${creduce_python_BINARY_DIR}/utils/nestedmatcher.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/readkey.py"
+  "${creduce_python_BINARY_DIR}/utils/readkey.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/statistics.py"
+  "${creduce_python_BINARY_DIR}/utils/statistics.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/utils/testing.py"
+  "${creduce_python_BINARY_DIR}/utils/testing.py"
+  COPYONLY
 )
 
 ###############################################################################
