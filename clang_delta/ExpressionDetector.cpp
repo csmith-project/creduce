@@ -452,8 +452,8 @@ bool ExpressionDetector::isIdenticalExpr(const Expr *E1, const Expr *E2)
   }
 
   case Stmt::StringLiteralClass: {
-    const StringLiteral *Lit1 = cast<StringLiteral>(E1);
-    const StringLiteral *Lit2 = cast<StringLiteral>(E2);
+    const clang::StringLiteral *Lit1 = cast<clang::StringLiteral>(E1);
+    const clang::StringLiteral *Lit2 = cast<clang::StringLiteral>(E2);
     return Lit1->getBytes() == Lit2->getBytes();
   }
 
