@@ -7,7 +7,7 @@
  */
 
 #if HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif
 
 #include <assert.h>
@@ -308,7 +308,7 @@ static void rm_toks(int idx) {
       }
       which++;
     }
-    if (!started || (started && which > (idx + n_toks)))
+    if (!started || (which > (idx + n_toks)))
       printf("%s", tok_list[i].str);
   }
   if (matched) {
