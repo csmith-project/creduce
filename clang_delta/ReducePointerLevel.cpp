@@ -598,7 +598,8 @@ ReducePointerLevel::getCanonicalDeclaratorDecl(const Expr *E)
   if (const DeclRefExpr *DRE = dyn_cast<DeclRefExpr>(E)) {
     const ValueDecl *ValueD = DRE->getDecl();
     DD = dyn_cast<DeclaratorDecl>(ValueD);
-    TransAssert(DD && "Bad Declarator!");
+    if (!DD)
+      return NULL;
   }
   else if (const MemberExpr *ME = dyn_cast<MemberExpr>(E)) {
     ValueDecl *OrigDecl = ME->getMemberDecl();
