@@ -14,8 +14,9 @@
 #include <string>
 #include <map>
 #include <set>
-#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SmallPtrSet.h"
+#include "llvm/ADT/SmallSet.h"
 #include "Transformation.h"
 #include "clang/Basic/SourceLocation.h"
 
@@ -97,6 +98,8 @@ private:
             InlinedSystemFunctionsMap;
 
   typedef std::set<std::string> SystemFunctionsSet;
+
+  typedef llvm::SmallSet<clang::SourceLocation, 5> LocSet;
 
   virtual void Initialize(clang::ASTContext &context);
 
@@ -187,6 +190,8 @@ private:
   InlinedSystemFunctionsMap InlinedSystemFunctions;
 
   SystemFunctionsSet ExistingSystemFunctions;
+
+  LocSet VisitedLocations;
 
   FunctionDeclVector AllValidFunctionDecls;
 

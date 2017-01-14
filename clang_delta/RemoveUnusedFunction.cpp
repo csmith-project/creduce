@@ -388,6 +388,8 @@ SourceLocation RemoveUnusedFunction::getFunctionOuterLocStart(
                  const FunctionDecl *FD)
 {
   SourceLocation LocStart = FD->getLocStart();
+  bool RecordLoc = false;
+
   // check if FD is from a function template
   if (FunctionTemplateDecl *FTD = FD->getDescribedFunctionTemplate()) {
     // get FTD->getLocStart() only if it is less than FD->getLocStart,
@@ -396,8 +398,10 @@ SourceLocation RemoveUnusedFunction::getFunctionOuterLocStart(
     //   template<typename T> template<typename T1> void S<T>::foo() { }
     // where
     //   FTD->getLocStart() points to the begining of "template<typename T1>"
-    if (hasValidOuterLocStart(FTD, FD))
+    if (hasValidOuterLocStart(FTD, FD)) {
       LocStart = FTD->getLocStart();
+      RecordLoc = true;
+    }
   }
 
   if (LocStart.isMacroID())
@@ -406,6 +410,17 @@ SourceLocation RemoveUnusedFunction::getFunctionOuterLocStart(
   // this is ugly, but how do we get the location of __extension__? e.g.:
   // __extension__ void foo();
   LocStart = getExtensionLocStart(LocStart);
+
+  // In some cases where the given input is not well-formed, we may
+  // end up with duplicate locations for the FunctionTemplateDecl
+  // case. In such cases, we simply return an invalid SourceLocation,
+  // which will ben skipped by the caller of getFunctionOuterLocStart.
+  if (RecordLoc) {
+    if (VisitedLocations.count(LocStart))
+      return SourceLocation();
+    VisitedLocations.insert(LocStart);
+  }
+
   return LocStart;
 }
 
@@ -468,6 +483,8 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
     LocEnd = SrcManager->getExpansionLoc(LocEnd);
   if (!FD->isInExternCContext() && !FD->isInExternCXXContext()) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
+    if (FuncLocStart.isInvalid())
+      return;
     LocEnd = getFunctionLocEnd(FuncLocStart, LocEnd, FD);
     if (SrcManager->isWrittenInMainFile(FuncLocStart) &&
         SrcManager->isWrittenInMainFile(LocEnd))
@@ -479,6 +496,8 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
   const LinkageSpecDecl *Linkage = dyn_cast<LinkageSpecDecl>(Ctx);
   if (!Linkage) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
+    if (FuncLocStart.isInvalid())
+      return;
     LocEnd = getFunctionLocEnd(FuncLocStart, LocEnd, FD);
     TheRewriter.RemoveText(SourceRange(FuncLocStart, LocEnd));
     return;
@@ -488,6 +507,8 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
   // namespace { using ::foo; }
   if (Linkage->hasBraces()) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
+    if (FuncLocStart.isInvalid())
+      return;
     TheRewriter.RemoveText(SourceRange(FuncLocStart, LocEnd));
     return;
   }
