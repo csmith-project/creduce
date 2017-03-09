@@ -41,15 +41,11 @@ remove zero-length files at the end of reduction?
 in localize_headers, correctly deal with the case where the
   original C/C++ file is in the current dir
 
-specify passes using a config file?
-
 maybe implement passes to:
   ensure that identifiers first appear in sorted order
   identifiers are dense
   reduce the non-header-file part first, and use PCHs
   merge adjacent strings
-
-consider re-implementing caching
 
 maybe add a format string reduction pass that eliminates a format
   specifier and also the corresponding argument

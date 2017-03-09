@@ -20,27 +20,21 @@ project(creduce)
 
 ###############################################################################
 
-# Locate LLVM and check its version.  Do this here because we need the LLVM
+# Locate LLVM. Do this here because we need the LLVM
 # package definitions in the "CMakeLists.txt" files for multiple subdirs.
 #
-find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
+find_package(LLVM 3.9 REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "3.9")
-  message(FATAL_ERROR "C-Reduce requires LLVM 3.9 or later")
-endif()
 
 # Locate Perl and check its version.
 #
-include(FindPerl)
-if(${PERL_VERSION_STRING} VERSION_LESS "5.10.0")
-  message(FATAL_ERROR "C-Reduce requires Perl 5.10.0 or later")
-endif()
+find_package(PythonInterp 3.4 REQUIRED)
 
 # Locate flex.  Do this here because we need the package definitions in the
 # "CMakeLists.txt" files for multiple subdirs.
 #
-find_package(FLEX)
+find_package(FLEX REQUIRED)
 
 ###############################################################################
 
@@ -124,6 +118,7 @@ add_subdirectory(clang_delta)
 add_subdirectory(clex)
 add_subdirectory(creduce)
 add_subdirectory(delta)
+
 # `unifdef' requires a Unix-y platform.
 if(UNIX)
   add_subdirectory(unifdef)
@@ -131,6 +126,18 @@ else()
   message(WARNING
     "Internal tool `unifdef${CMAKE_EXECUTABLE_SUFFIX}' cannot be compiled on this OS; skipping.")
 endif()
+
+# Copy top-level creduce script
+configure_file(
+  "${PROJECT_SOURCE_DIR}/creduce.py"
+  "${PROJECT_BINARY_DIR}/creduce.py"
+  COPYONLY
+)
+
+install(PROGRAMS "${PROJECT_BINARY_DIR}/creduce.py"
+  DESTINATION "bin"
+  RENAME "creduce"
+)
 
 ###############################################################################
 

@@ -69,3 +69,10 @@ ipch/
 
 # Visual Studio 6 workspace options file
 *.opt
+
+# Python cache files
+__pycache__
+*.pyc
+
+# pyenv files
+.python-version
