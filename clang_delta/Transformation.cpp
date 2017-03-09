@@ -340,13 +340,7 @@ unsigned int Transformation::getArrayDimensionAndTypes(
 
 const Type *Transformation::getArrayBaseElemType(const ArrayType *ArrayTy)
 {
-  const Type *ArrayElemTy = ArrayTy->getElementType().getTypePtr();
-  while (ArrayElemTy->isArrayType()) {
-    const ArrayType *AT = dyn_cast<ArrayType>(ArrayElemTy);
-    ArrayElemTy = AT->getElementType().getTypePtr();
-  }
-  TransAssert(ArrayElemTy && "Bad Array Element Type!");
-  return ArrayElemTy;
+  return ArrayTy->getBaseElementTypeUnsafe();
 }
 
 unsigned int Transformation::getConstArraySize(
