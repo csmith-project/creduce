@@ -29,7 +29,7 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR}) # needed for gen'ed .cpp files
 include_directories(${LLVM_INCLUDE_DIRS})
-include_directories(${CLANG_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS}) # only works for LLVM post-4.0
 
 link_directories(${LLVM_LIBRARY_DIRS})
 
