@@ -14,6 +14,7 @@ project(clang_delta)
 ###############################################################################
 
 # find_package(LLVM) is done by the topmost "CMakeLists.txt" file.
+find_package(Clang REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 
 # Generate file "git_version.cpp".
 #
@@ -28,6 +29,8 @@ set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
 include_directories(${CMAKE_BINARY_DIR})
 include_directories(${PROJECT_SOURCE_DIR}) # needed for gen'ed .cpp files
 include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${CLANG_INCLUDE_DIRS})
+
 link_directories(${LLVM_LIBRARY_DIRS})
 
 llvm_map_components_to_libnames(LLVM_LIBS
