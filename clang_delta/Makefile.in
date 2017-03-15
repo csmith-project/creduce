@@ -94,7 +94,8 @@ target_triplet = @target@
 libexec_PROGRAMS = clang_delta$(EXEEXT)
 subdir = clang_delta
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_clang.m4 \
+	$(top_srcdir)/m4/ax_compare_version.m4 \
 	$(top_srcdir)/m4/ax_llvm.m4 \
 	$(top_srcdir)/m4/ax_prog_perl_modules.m4 \
 	$(top_srcdir)/m4/ax_prog_perl_version.m4 \
@@ -186,6 +187,7 @@ am_clang_delta_OBJECTS = clang_delta-AggregateToScalar.$(OBJEXT) \
 nodist_clang_delta_OBJECTS = clang_delta-git_version.$(OBJEXT)
 clang_delta_OBJECTS = $(am_clang_delta_OBJECTS) \
 	$(nodist_clang_delta_OBJECTS)
+am__DEPENDENCIES_1 =
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -284,7 +286,9 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CLANG_CPPFLAGS = @CLANG_CPPFLAGS@
 CLANG_FORMAT = @CLANG_FORMAT@
+CLANG_LDFLAGS = @CLANG_LDFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
@@ -470,6 +474,7 @@ LLVMLIBS := $(shell "$(LLVM_CONFIG)" \--libs) \
 		   $(shell "$(LLVM_CONFIG)" \--system-libs)
 
 clang_delta_CPPFLAGS = \
+	$(CLANG_CPPFLAGS) \
 	-I"$(LLVMINCLUDEDIR)/clang"
 
 clang_delta_CXXFLAGS = \
@@ -504,6 +509,7 @@ clang_delta_LDADD = \
 	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
 	-lclangARCMigrate \
 	$(LLVMLIBS) \
+	$(CLANG_LDFLAGS) \
 	$(LLVMLDFLAGS)
 
 

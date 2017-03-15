@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -80,6 +80,7 @@ LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs) \
 		   $(shell "$(LLVM_CONFIG)" \--system-libs)
 
 clang_delta_CPPFLAGS = \
+	$(CLANG_CPPFLAGS) \
 	-I"$(LLVMINCLUDEDIR)/clang"
 
 clang_delta_CXXFLAGS = \
@@ -113,6 +114,7 @@ clang_delta_LDADD = \
 	-lclangRewriteFrontend -lclangRewrite -lclangAST -lclangBasic -lclangEdit -lclangLex \
 	-lclangARCMigrate \
 	$(LLVMLIBS) \
+	$(CLANG_LDFLAGS) \
 	$(LLVMLDFLAGS)
 
 # Automake doesn't grok our use of $(shell) in `clang_delta_LDADD', so it puts

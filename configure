@@ -642,6 +642,8 @@ PERL
 LEXLIB
 LEX_OUTPUT_ROOT
 LEX
+CLANG_LDFLAGS
+CLANG_CPPFLAGS
 LLVM_BINDIR
 LLVM_CONFIG
 CXXCPP
@@ -786,6 +788,7 @@ with_gnu_ld
 with_sysroot
 enable_libtool_lock
 with_llvm
+with_clang
 enable_trans_assert
 '
       ac_precious_vars='build_alias
@@ -1452,6 +1455,9 @@ Optional Packages:
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
   --with-llvm[=DIR]       use LLVM located in DIR
+  --with-clang[=DIR]      use Clang development tree located in DIR [advanced
+                          option; default is to find Clang libraries and
+                          headers in LLVM tree]
 
 Some influential environment variables:
   CC          C compiler command
@@ -16001,6 +16007,59 @@ $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "cannot compile and link test program with selected LLVM
 See \`config.log' for more details" "$LINENO" 5; }
   fi
+
+
+
+
+# Check whether --with-clang was given.
+if test "${with_clang+set}" = set; then :
+  withval=$with_clang; with_clang="$withval"
+else
+  with_clang=yes
+fi
+
+
+  CLANG_CPPFLAGS=''
+  CLANG_LDFLAGS=''
+
+  if test "x$with_clang" = "xno"; then
+    true # Do nothing.
+  elif test "x$with_clang" = "xyes"; then
+    as_fn_error $? "--with-clang requires an argument (a Clang development tree)" "$LINENO" 5
+  else
+
+    clang_dir="$with_clang"
+    clang_cmake_file="$clang_dir/lib/cmake/clang/ClangConfig.cmake"
+    as_ac_File=`$as_echo "ac_cv_file_$clang_cmake_file" | $as_tr_sh`
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $clang_cmake_file" >&5
+$as_echo_n "checking for $clang_cmake_file... " >&6; }
+if eval \${$as_ac_File+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  test "$cross_compiling" = yes &&
+  as_fn_error $? "cannot check for file existence when cross compiling" "$LINENO" 5
+if test -r "$clang_cmake_file"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+eval ac_res=\$$as_ac_File
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+if eval test \"x\$"$as_ac_File"\" = x"yes"; then :
+
+else
+
+        as_fn_error $? "argument to --with-clang is not a Clang development tree" "$LINENO" 5
+
+fi
+
+
+    CLANG_CPPFLAGS=`      sed -n -E         -e 's/^set\(CLANG_INCLUDE_DIRS [^"]*"([^"]+)"\)$/\1/p'         "$clang_cmake_file" |       sed -E         -e 's/([^;]+)/-I\1/g'         -e 's/;/ /g'`
+    CLANG_LDFLAGS="-L$clang_dir/lib"
+  fi
+
 
 
 

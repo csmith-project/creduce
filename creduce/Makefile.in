@@ -94,7 +94,8 @@ host_triplet = @host@
 target_triplet = @target@
 subdir = creduce
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_compare_version.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/m4/ax_clang.m4 \
+	$(top_srcdir)/m4/ax_compare_version.m4 \
 	$(top_srcdir)/m4/ax_llvm.m4 \
 	$(top_srcdir)/m4/ax_prog_perl_modules.m4 \
 	$(top_srcdir)/m4/ax_prog_perl_version.m4 \
@@ -174,7 +175,9 @@ AWK = @AWK@
 CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
+CLANG_CPPFLAGS = @CLANG_CPPFLAGS@
 CLANG_FORMAT = @CLANG_FORMAT@
+CLANG_LDFLAGS = @CLANG_LDFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
