@@ -161,12 +161,19 @@ find LLVM/Clang:
   cmake [source-dir] -DCMAKE_PREFIX_PATH=/opt/llvm
 
 Alternatively, if you choose to build LLVM and Clang yourself, you can
-set `LLVM_DIR` and/or `Clang_DIR` to paths where Cmake can find the
-`LLVMConfig.cmake` and/or `ClangConfig.cmake`. This is usually
-`./lib/cmake/{llvm,clang}` relative to the build or install directory.
-Note that it is required to actually build LLVM and Clang before
-building C-Reduce. Just configuring LLVM and Clang via CMake does not
-generate all files required.
+set the LLVM_DIR and/or Clang_DIR variables to paths where CMake can
+find the `LLVMConfig.cmake' and/or `ClangConfig.cmake' files.  The
+value of LLVM_DIR is usually "./lib/cmake/llvm", relative to your LLVM
+build or install directory.  Similarly, the value of Clang_DIR is
+usually "./lib/cmake/clang", relative to your Clang build or install
+directory.  For example:
+
+  cmake [source-dir] -DLLVM_DIR=/work/my-llvm/lib/cmake/llvm \
+    -DClang_DIR=/work/my-clang/lib/cmake/clang
+
+Note that you need to actually build LLVM and Clang before building
+C-Reduce.  Just configuring LLVM and Clang via CMake does not generate
+all the files required.
 
 Note that assertions are enabled by default (which is probably what
 you want).  To disable assertions:
