@@ -29,6 +29,11 @@ message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
 if (${LLVM_PACKAGE_VERSION} VERSION_LESS "4.0")
   message(FATAL_ERROR "C-Reduce requires LLVM 4.0 or later")
 endif()
+#
+# Do this here, too, just to keep it with the LLVM check above.
+#
+find_package(Clang REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
+message(STATUS "Using ClangConfig.cmake in ${Clang_DIR}")
 
 # Locate Perl and check its version.
 #
