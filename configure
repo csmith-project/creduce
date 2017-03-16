@@ -16015,7 +16015,7 @@ See \`config.log' for more details" "$LINENO" 5; }
 if test "${with_clang+set}" = set; then :
   withval=$with_clang; with_clang="$withval"
 else
-  with_clang=yes
+  with_clang=no
 fi
 
 

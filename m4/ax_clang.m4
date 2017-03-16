@@ -25,7 +25,7 @@ AC_DEFUN([AX_CLANG],
        [advanced option;
        default is to find Clang libraries and headers in LLVM tree]]),
     [with_clang="$withval"],
-    [with_clang=yes])
+    [with_clang=no])
 
   CLANG_CPPFLAGS=''
   CLANG_LDFLAGS=''
