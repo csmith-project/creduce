@@ -33,10 +33,10 @@ Perl modules installed:
 
   http://perlbrew.pl/
 
-On FreeBSD 10.2, the prerequisites can be installed like this:
+On FreeBSD 10.3, the prerequisites can be installed like this:
 
   sudo pkg install \
-    llvm39 \
+    llvm40 \
     p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common \
     flex
 
@@ -89,7 +89,7 @@ On OS X (with Homebrew + Perlbrew installed):
   cpan -i 'Term::ReadKey'
   cpan -i 'Sys::CPU'
 
-On FreeBSD 10.2:
+On FreeBSD 10.3:
 
   sudo pkg install p5-Term-ReadKey p5-Sys-CPU
 
@@ -137,6 +137,18 @@ script where to find LLVM/Clang:
   # Use the LLVM/Clang tree rooted at /opt/llvm
   configure --with-llvm=/opt/llvm
 
+If you choose to build LLVM and Clang yourself, *and* if you choose to
+keep your LLVM and Clang build trees separate, you can tell the
+`configure' script where to find your separate Clang tree:
+
+  # Use separate LLVM and Clang build trees, /work/my-{llvm,clang}
+  configure --with-llvm=/work/my-llvm \
+    --with-clang=/work/my-clang
+
+You do *not* need to specify `--with-clang' if you build Clang within
+your LLVM tree.  Also note that you must actually *build* LLVM and
+Clang before building C-Reduce.
+
 Note that assertions are enabled by default (which is probably what
 you want).  To disable assertions:
 
@@ -168,12 +180,13 @@ build or install directory.  Similarly, the value of Clang_DIR is
 usually "./lib/cmake/clang", relative to your Clang build or install
 directory.  For example:
 
+  # Use separate LLVM and Clang build trees, /work/my-{llvm,clang}
   cmake [source-dir] -DLLVM_DIR=/work/my-llvm/lib/cmake/llvm \
     -DClang_DIR=/work/my-clang/lib/cmake/clang
 
-Note that you need to actually build LLVM and Clang before building
-C-Reduce.  Just configuring LLVM and Clang via CMake does not generate
-all the files required.
+You do *not* need to set Clang_DIR if you build Clang within your LLVM
+tree.  Also, note that you must actually *build* LLVM and Clang before
+building C-Reduce.
 
 Note that assertions are enabled by default (which is probably what
 you want).  To disable assertions:
