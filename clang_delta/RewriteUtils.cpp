@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -588,6 +588,10 @@ bool RewriteUtils::getExprString(const Expr *E,
 {
   SourceRange ExprRange = E->getSourceRange();
   SourceLocation StartLoc = ExprRange.getBegin();
+  if (StartLoc.isInvalid() && !StartLoc.isMacroID()) {
+    ES = "<invalid-expr>";
+    return false;
+  }
 
   int RangeSize = TheRewriter->getRangeSize(ExprRange);
   if (RangeSize == -1) {
@@ -597,6 +601,7 @@ bool RewriteUtils::getExprString(const Expr *E,
       RangeSize = TheRewriter->getRangeSize(SourceRange(StartLoc, EndLoc));
     }
     else {
+      ES = "<invalid-expr>";
       return false;
     }
   }
