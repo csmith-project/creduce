@@ -430,7 +430,7 @@ bool RenameCXXMethod::isValidName(const StringRef &Name)
   if (!NamePrefix.equals(MethodNamePrefix))
     return false;
   llvm::APInt Num;
-  return Name.drop_front(PrefixLen).getAsInteger(10, Num);
+  return !Name.drop_front(PrefixLen).getAsInteger(10, Num);
 }
 
 void RenameCXXMethod::addOneMethodName(const CXXMethodDecl *MD,
