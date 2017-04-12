@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-libexec_PROGRAMS = clex strlex
+bin_PROGRAMS = clex strlex
 
 clex_CPPFLAGS =
 

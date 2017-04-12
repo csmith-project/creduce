@@ -8,7 +8,7 @@
 
 ###############################################################################
 
-libexec_PROGRAMS = clang_delta
+bin_PROGRAMS = clang_delta
 
 GIT_HASH := $(shell "$(top_srcdir)/git-hash.sh" "$(top_srcdir)" || echo error)
 
