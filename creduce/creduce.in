@@ -446,6 +446,8 @@ sub fork_helper($) {
         return $proc->GetProcessID();
     } else {
         my $pid = fork();
+        die "fork() failed! please try this reduction again with less parallelism."
+          unless defined $pid;
         die unless ($pid >= 0);
         if ($pid == 0) {
             # put this process (the child) into a process group named by
