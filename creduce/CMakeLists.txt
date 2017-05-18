@@ -234,6 +234,9 @@ add_custom_target(Modules ALL
     ${PROJECT_SOURCE_DIR}/pass_comments.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_defines.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_include_includes.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different

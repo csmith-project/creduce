@@ -24,6 +24,7 @@ dist_perllib_DATA = \
 	pass_clang_binsrch.pm \
 	pass_clex.pm \
 	pass_comments.pm \
+	pass_defines.pm \
 	pass_include_includes.pm \
 	pass_includes.pm \
 	pass_indent.pm \
