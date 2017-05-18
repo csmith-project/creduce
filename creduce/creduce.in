@@ -277,12 +277,13 @@ sub create_extra_dir() {
 }
 
 # returns true if interesting, false otherwise
-sub delta_test () {
+sub delta_test ($) {
+    (my $show_output) = @_;
     my $res;
     eval {
         local $SIG{ALRM} = sub { die "TIMEOUT\n"; };
         alarm($TIMEOUT_IN_SECONDS);
-        if ($DEBUG) {
+        if ($DEBUG || $show_output) {
             $res = runit ("$test");
         } else {
             if($^O eq "MSWin32") {
@@ -315,7 +316,7 @@ sub sanity_check () {
     print "tmpdir = $tmpdir\n" if ($DEBUG);
     chdir $tmpdir or die;
     copy_files_here();
-    if (!delta_test()) {
+    if (!delta_test(1)) {
 	chdir $orig_dir;
 	my $stuff = "";
 	foreach my $f (sort keys %fileonly) {
@@ -455,7 +456,7 @@ sub fork_helper($) {
             # later
             setpgrp();
 	    # flip the T/F flag back into a 0/1
-            my $res = delta_test();
+            my $res = delta_test(0);
 	    print "delta_test() returned $res\n" if $DEBUG;
             my $exitcode = $res ? 0 : 1;
 	    print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG_SMP;
