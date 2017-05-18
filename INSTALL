@@ -137,17 +137,8 @@ script where to find LLVM/Clang:
   # Use the LLVM/Clang tree rooted at /opt/llvm
   configure --with-llvm=/opt/llvm
 
-If you choose to build LLVM and Clang yourself, *and* if you choose to
-keep your LLVM and Clang build trees separate, you can tell the
-`configure' script where to find your separate Clang tree:
-
-  # Use separate LLVM and Clang build trees, /work/my-{llvm,clang}
-  configure --with-llvm=/work/my-llvm \
-    --with-clang=/work/my-clang
-
-You do *not* need to specify `--with-clang' if you build Clang within
-your LLVM tree.  Also note that you must actually *build* LLVM and
-Clang before building C-Reduce.
+Note that you must actually *build* LLVM and Clang before building
+C-Reduce.
 
 Note that assertions are enabled by default (which is probably what
 you want).  To disable assertions:
@@ -172,21 +163,8 @@ find LLVM/Clang:
   # Use the LLVM/Clang tree rooted at /opt/llvm
   cmake [source-dir] -DCMAKE_PREFIX_PATH=/opt/llvm
 
-Alternatively, if you choose to build LLVM and Clang yourself, you can
-set the LLVM_DIR and/or Clang_DIR variables to paths where CMake can
-find the `LLVMConfig.cmake' and/or `ClangConfig.cmake' files.  The
-value of LLVM_DIR is usually "./lib/cmake/llvm", relative to your LLVM
-build or install directory.  Similarly, the value of Clang_DIR is
-usually "./lib/cmake/clang", relative to your Clang build or install
-directory.  For example:
-
-  # Use separate LLVM and Clang build trees, /work/my-{llvm,clang}
-  cmake [source-dir] -DLLVM_DIR=/work/my-llvm/lib/cmake/llvm \
-    -DClang_DIR=/work/my-clang/lib/cmake/clang
-
-You do *not* need to set Clang_DIR if you build Clang within your LLVM
-tree.  Also, note that you must actually *build* LLVM and Clang before
-building C-Reduce.
+Note that you must actually *build* LLVM and Clang before building
+C-Reduce.
 
 Note that assertions are enabled by default (which is probably what
 you want).  To disable assertions:
