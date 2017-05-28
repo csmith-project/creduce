@@ -1580,6 +1580,9 @@ bool RewriteUtils::replaceRecordType(RecordTypeLoc &RTLoc,
                                      const std::string &Name)
 {
   const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
+  if (!TypeId)
+    return true;
+
   SourceLocation LocStart = RTLoc.getLocStart();
 
   // Loc could be invalid, for example:
