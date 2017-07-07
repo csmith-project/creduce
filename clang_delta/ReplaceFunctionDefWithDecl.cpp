@@ -52,6 +52,7 @@ bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
     return true;
 
   if (FD->isThisDeclarationADefinition() && 
+      FD->hasBody() &&
       !FD->isDeleted() &&
       !FD->isDefaulted() &&
       !ConsumerInstance->isMacroExpansion(FD))
