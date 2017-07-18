@@ -1119,3 +1119,7 @@ foreach my $fn (sort byrsize @toreduce) {
 }
 
 ######################################################################
+
+## Local Variables:
+## indent-tabs-mode: nil
+## End:
