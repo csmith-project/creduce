@@ -336,6 +336,8 @@ private:
 
   clang::SourceLocation getMacroExpansionLoc(clang::SourceLocation Loc);
 
+  clang::SourceRange getFileLocSourceRange(clang::SourceRange LocRange);
+
   // Unimplemented
   RewriteUtils(const RewriteUtils &);
 

@@ -1532,9 +1532,21 @@ bool RewriteUtils::replaceCXXDtorCallExpr(const CXXMemberCallExpr *CE,
   return !(TheRewriter->ReplaceText(StartLoc, OldDtorName.size(), Name));
 }
 
+SourceRange RewriteUtils::getFileLocSourceRange(SourceRange LocRange)
+{
+  SourceLocation StartLoc = LocRange.getBegin();
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getSpellingLoc(StartLoc);
+    SourceLocation EndLoc = LocRange.getEnd();
+    TransAssert(EndLoc.isMacroID() && "EndLoc is not from a macro!");
+    LocRange = SourceRange(StartLoc, SrcManager->getSpellingLoc(EndLoc));
+  }
+  return LocRange;
+}
+
 bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
 {
-  SourceRange LocRange = Loc.getLocalSourceRange();
+  SourceRange LocRange = getFileLocSourceRange(Loc.getLocalSourceRange());
   TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
               "Bad NestedNameSpecifierLoc Range!");
   return !(TheRewriter->RemoveText(LocRange));
@@ -1543,7 +1555,7 @@ bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
 bool RewriteUtils::replaceSpecifier(NestedNameSpecifierLoc Loc,
                                     const std::string &Name)
 {
-  SourceRange LocRange = Loc.getLocalSourceRange();
+  SourceRange LocRange = getFileLocSourceRange(Loc.getLocalSourceRange());
   TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
               "Bad NestedNameSpecifierLoc Range!");
   return !(TheRewriter->ReplaceText(LocRange, Name + "::"));
