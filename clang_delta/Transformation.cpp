@@ -288,11 +288,12 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
 bool Transformation::isCXXMemberExpr(const MemberExpr *ME)
 {
   const ValueDecl *VD = ME->getMemberDecl();
-  if (dyn_cast<CXXMethodDecl>(VD))
-    return true;
 
   const FieldDecl *FD = dyn_cast<FieldDecl>(VD);
-  TransAssert(FD && "Bad FieldDecl!");
+  // VD can be either CXXMethodDecl, EnumConstantDecl or
+  // VarDecl (static data member)
+  if (!FD)
+    return true;
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(FD->getParent());
   if (!CXXRD)
     return false;
