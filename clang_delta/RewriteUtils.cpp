@@ -26,7 +26,6 @@
 #include "clang/AST/ExprCXX.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DefaultIndentStr = "    ";
 
@@ -266,7 +265,9 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   }
 
   TransAssert(StartBuf && "Invalid start buffer!");
-  while (*StartBuf != ',') {
+  // FIXME: This isn't really correct for processing old-style function
+  // declarations, but just let's live with it for now.
+  while (*StartBuf != ',' && *StartBuf != ';') {
     StartBuf++;
     NewRangeSize++;
   }
