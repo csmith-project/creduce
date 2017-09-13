@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Change an array var to a corresponding non-array one. \

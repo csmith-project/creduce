@@ -22,7 +22,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass tries to simplify nested classes by replacing the \

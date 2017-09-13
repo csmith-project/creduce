@@ -20,7 +20,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass tries to remove a base specifier if we cannot \

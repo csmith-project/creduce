@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Simplify a call expression to a comma expression. \

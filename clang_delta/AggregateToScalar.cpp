@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Replace accesses to an aggregate member with \

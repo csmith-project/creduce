@@ -22,7 +22,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass handles a special case where we have recursive template \

@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass tries to remove an initializer from a Ctor. \n";

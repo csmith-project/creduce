@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Replace a CallExpr with a return expression from \
@@ -318,7 +317,7 @@ void ReplaceCallExpr::HandleTranslationUnit(ASTContext &Ctx)
 
 void ReplaceCallExpr::addOneReturnStmt(ReturnStmt *RS)
 {
-  DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
+  llvm::DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
     FuncToReturnStmts.find(CurrentFD);
   ReturnStmtsVector *V;
   if (I == FuncToReturnStmts.end()) {
@@ -338,7 +337,7 @@ void ReplaceCallExpr::addOneReturnStmt(ReturnStmt *RS)
 void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
 {
   TransAssert(RS && "NULL ReturnStmt!");
-  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
+  llvm::DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
     ReturnStmtToParmRefs.find(RS);
   ParmRefsVector *V;
   if (I == ReturnStmtToParmRefs.end()) {
@@ -358,7 +357,7 @@ void ReplaceCallExpr::addOneParmRef(ReturnStmt *RS, const DeclRefExpr *DE)
 void ReplaceCallExpr::getParmPosVector(ParameterPosVector &PosVector,
                                        ReturnStmt *RS, CallExpr *CE)
 {
-  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator RI =
+  llvm::DenseMap<ReturnStmt *, ParmRefsVector *>::iterator RI =
     ReturnStmtToParmRefs.find(RS);
   if (RI == ReturnStmtToParmRefs.end())
     return;
@@ -443,7 +442,7 @@ void ReplaceCallExpr::doAnalysis(void)
     FunctionDecl *CalleeDecl = (*CI)->getDirectCallee();
     TransAssert(CalleeDecl && "Bad CalleeDecl!");
 
-    DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
+    llvm::DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator I =
       FuncToReturnStmts.find(CalleeDecl);
     if (I == FuncToReturnStmts.end())
       continue;
@@ -532,10 +531,10 @@ void ReplaceCallExpr::insertParmRef
 }
 
 void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
-       DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap,
+       llvm::DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap,
        std::vector< std::pair<const DeclRefExpr *, int> > &SortedParmRefs)
 {
-  for(DenseMap<const DeclRefExpr *, std::string>::iterator
+  for(llvm::DenseMap<const DeclRefExpr *, std::string>::iterator
       I = ParmRefToStrMap.begin(), E = ParmRefToStrMap.end(); I != E; ++I) {
 
     const DeclRefExpr *ParmRef = (*I).first;
@@ -550,7 +549,7 @@ void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
 }
 
 void ReplaceCallExpr::replaceParmRefs(std::string &RetStr, const Expr *RetE,
-       DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap)
+       llvm::DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap)
 {
   SourceLocation StartLoc = RetE->getLocStart();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
@@ -579,9 +578,9 @@ void ReplaceCallExpr::replaceCallExpr(void)
   Expr *RetE = TheReturnStmt->getRetValue();
   TransAssert(RetE && "Bad Return Value!");
 
-  DenseMap<const DeclRefExpr *, std::string> ParmRefToStrMap;
+  llvm::DenseMap<const DeclRefExpr *, std::string> ParmRefToStrMap;
 
-  DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
+  llvm::DenseMap<ReturnStmt *, ParmRefsVector *>::iterator I =
     ReturnStmtToParmRefs.find(TheReturnStmt);
 
   if (I != ReturnStmtToParmRefs.end()) {
@@ -607,13 +606,13 @@ ReplaceCallExpr::~ReplaceCallExpr(void)
 {
   delete CollectionVisitor;
 
-  for (DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator
+  for (llvm::DenseMap<FunctionDecl *, ReturnStmtsVector *>::iterator
        I = FuncToReturnStmts.begin(), E = FuncToReturnStmts.end();
        I != E; ++I) {
     delete (*I).second;
   }
 
-  for (DenseMap<ReturnStmt *, ParmRefsVector *>::iterator
+  for (llvm::DenseMap<ReturnStmt *, ParmRefsVector *>::iterator
        I = ReturnStmtToParmRefs.begin(), E = ReturnStmtToParmRefs.end();
        I != E; ++I) {
     delete (*I).second;

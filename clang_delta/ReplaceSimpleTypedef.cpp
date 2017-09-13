@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "This pass replaces typedef names with the underlying type if the \

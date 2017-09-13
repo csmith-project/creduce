@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Replace a call expression with a value or variable which \

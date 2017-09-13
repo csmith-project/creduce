@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Combine local variable declarations with the same type. \
@@ -103,7 +102,7 @@ bool CombLocalVarCollectionVisitor::VisitCompoundStmt(CompoundStmt *CS)
 
     const Type *CanonicalT = 
       ConsumerInstance->Context->getCanonicalType(T);
-    DenseMap<const Type *, DeclStmt *>::iterator TI = 
+    llvm::DenseMap<const Type *, DeclStmt *>::iterator TI = 
       ConsumerInstance->DeclStmts.find(CanonicalT);
     if (TI == ConsumerInstance->DeclStmts.end()) {
       ConsumerInstance->DeclStmts[CanonicalT] = DS;

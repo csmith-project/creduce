@@ -24,7 +24,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Replace an empty struct with type of int. A struct is defined to be empty if \

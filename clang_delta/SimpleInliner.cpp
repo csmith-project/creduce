@@ -24,7 +24,6 @@
 #include "CommonStatementVisitor.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "A really simple inliner. \

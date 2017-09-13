@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 // TODO: probably need to handle more cases where this transformation
 // generates invalid code, e.g.:
