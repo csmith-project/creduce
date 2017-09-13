@@ -22,7 +22,6 @@
 #include "CommonTemplateArgumentVisitor.h"
 
 using namespace clang;
-using namespace llvm;
 using namespace clang_delta_common_visitor;
 
 static const char *DescriptionMsg = 

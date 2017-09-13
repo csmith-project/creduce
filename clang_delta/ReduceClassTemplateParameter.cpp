@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "This pass tries to remove one unused parameter from a class template \
@@ -53,7 +52,7 @@ private:
 
 namespace {
 
-typedef SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
+typedef llvm::SmallPtrSet<const NamedDecl *, 8> TemplateParameterSet;
 
 class TemplateParameterVisitor : public 
   RecursiveASTVisitor<TemplateParameterVisitor> {

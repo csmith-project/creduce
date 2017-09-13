@@ -21,7 +21,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg = 
 "Change a class template to a class if this class template: \n\
@@ -68,9 +67,9 @@ class TemplateParameterTypeVisitor : public
   RecursiveASTVisitor<TemplateParameterTypeVisitor> {
 
 public:
-  typedef SmallPtrSet<TemplateTypeParmDecl *, 8> TypeParmDeclSet;
+  typedef llvm::SmallPtrSet<TemplateTypeParmDecl *, 8> TypeParmDeclSet;
 
-  typedef SmallPtrSet<TemplateName *, 8> TemplateNameSet;
+  typedef llvm::SmallPtrSet<TemplateName *, 8> TemplateNameSet;
 
   ~TemplateParameterTypeVisitor(void) {
     for (TemplateNameSet::iterator I = TmplNames.begin(), E = TmplNames.end();
@@ -301,7 +300,7 @@ bool ClassTemplateToClass::hasUsedNameDecl(
   if (!PartialD->isCompleteDefinition())
     return false;
 
-  SmallPtrSet<NamedDecl *, 8> Params;
+  llvm::SmallPtrSet<NamedDecl *, 8> Params;
   TemplateParameterList *PartialTPList = PartialD->getTemplateParameters();
   for (unsigned PI = 0; PI < PartialTPList->size(); ++PI) {
     NamedDecl *ND = PartialTPList->getParam(PI);
@@ -324,7 +323,7 @@ bool ClassTemplateToClass::hasUsedNameDecl(
     ParamVisitor.TraverseDecl(*DI);
   }
 
-  for (SmallPtrSet<NamedDecl *, 8>::iterator I = Params.begin(), 
+  for (llvm::SmallPtrSet<NamedDecl *, 8>::iterator I = Params.begin(), 
        E = Params.end(); I != E; ++I) {
     if (ParamVisitor.isAUsedParameter(*I))
       return true;

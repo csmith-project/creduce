@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Another pass to increase readability of reduced code. \
@@ -62,7 +61,7 @@ private:
 
   RenameParam *ConsumerInstance;
 
-  DenseMap<ParmVarDecl *, std::string> ParamNameMap;
+  llvm::DenseMap<ParmVarDecl *, std::string> ParamNameMap;
 
 };
 
@@ -221,7 +220,7 @@ void RenameParam::addLocalVar(VarDecl *VD)
   FunctionDecl *CanonicalFD = FD->getCanonicalDecl();
 
   ExistingNumberSet *CurrSet;
-  DenseMap<FunctionDecl *, ExistingNumberSet *>::iterator I =
+  llvm::DenseMap<FunctionDecl *, ExistingNumberSet *>::iterator I =
     FunExistingVarsMap.find(CanonicalFD);
 
   if (I == FunExistingVarsMap.end()) {
@@ -278,7 +277,7 @@ RenameParam::~RenameParam(void)
   if (RenameVisitor)
     delete RenameVisitor;
 
-  for (DenseMap<FunctionDecl *, ExistingNumberSet *>::iterator 
+  for (llvm::DenseMap<FunctionDecl *, ExistingNumberSet *>::iterator 
         I = FunExistingVarsMap.begin(), E = FunExistingVarsMap.end();
         I != E; ++I) {
     delete (*I).second;

@@ -23,7 +23,6 @@
 #include <iostream>
 
 using namespace clang;
-using namespace llvm;
 
 
 static const char *Description =

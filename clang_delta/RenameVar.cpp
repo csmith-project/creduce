@@ -24,7 +24,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "To increase readability, rename global and local variables \

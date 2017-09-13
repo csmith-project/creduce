@@ -23,7 +23,6 @@
 #include "TransformationManager.h"
 
 using namespace clang;
-using namespace llvm;
 
 static const char *DescriptionMsg =
 "Insert a printf statement to print out the value of an expression. \
@@ -126,7 +125,7 @@ bool LocalTmpVarCollector::VisitDeclRefExpr(DeclRefExpr *DRE)
 // (2) the LHS of a binary operator;
 class LocalUOBOVisitor : public RecursiveASTVisitor<LocalUOBOVisitor> {
 public:
-  explicit LocalUOBOVisitor(SmallPtrSet<const Expr *, 10> &ES)
+  explicit LocalUOBOVisitor(llvm::SmallPtrSet<const Expr *, 10> &ES)
     : InvalidExprs(ES)
   { }
 
@@ -135,7 +134,7 @@ public:
   bool VisitBinaryOperator(BinaryOperator *BO);
 
 private:
-  SmallPtrSet<const Expr *, 10> &InvalidExprs;
+  llvm::SmallPtrSet<const Expr *, 10> &InvalidExprs;
 };
 
 bool LocalUOBOVisitor::VisitUnaryOperator(UnaryOperator *UO)
@@ -575,7 +574,7 @@ bool ExpressionDetector::isValidExpr(Stmt *S, const Expr *E)
   // statement many times. Gain a log of performance improvement.
   auto EI = InvalidExprsInUOBO.find(S);
   if (EI == InvalidExprsInUOBO.end()) {
-    SmallPtrSet<const Expr *, 10> InvalidExprs;
+    llvm::SmallPtrSet<const Expr *, 10> InvalidExprs;
     LocalUOBOVisitor UOBOVisitor(InvalidExprs);
     UOBOVisitor.TraverseStmt(S);
     InvalidExprsInUOBO[S] = InvalidExprs;
