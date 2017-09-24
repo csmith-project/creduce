@@ -225,6 +225,9 @@ bool SimplifyStructRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
     "Unmatched Replacing RD!");
 
   SourceLocation LocEnd = ME->getLocEnd();
+  if (LocEnd.isMacroID()) {
+    LocEnd = ConsumerInstance->SrcManager->getSpellingLoc(LocEnd);
+  }
   SourceLocation ArrowPos = 
       Lexer::findLocationAfterToken(LocEnd,
                                     tok::arrow,
