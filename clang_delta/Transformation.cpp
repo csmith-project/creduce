@@ -269,7 +269,8 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
   while (ME) {
     ValueDecl *VD = ME->getMemberDecl();
     FieldDecl *FD = dyn_cast<FieldDecl>(VD);
-    TransAssert(FD && "Bad FD!\n");
+    if (!FD)
+      return NULL;
     unsigned int Idx = FD->getFieldIndex();
     Idxs.push_back(Idx);
 
@@ -308,6 +309,8 @@ const Expr *Transformation::getMemberExprElem(const MemberExpr *ME)
 
   IndexVector Idxs;
   const Expr *BaseE = getMemberExprBaseExprAndIdxs(ME, Idxs);
+  if (!BaseE)
+    return NULL;
   return getInitExprFromBase(BaseE, Idxs);
 }
 
@@ -770,6 +773,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::SubstTemplateTypeParmPack:
   case Type::PackExpansion:
   case Type::Vector:
+  case Type::ExtVector:
   case Type::Builtin: // fall-through
     return NULL;
 
