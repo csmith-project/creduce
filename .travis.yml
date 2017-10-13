@@ -16,12 +16,18 @@ language: cpp
 before_install:
   - sudo scripts/travis_deps.sh
 
-script: >
-  CXX=/usr/lib/llvm-4.0/bin/clang++
-  CC=/usr/lib/llvm-4.0/bin/clang
-  ./configure --with-llvm=/usr/lib/llvm-4.0 &&
-  make -j2 &&
-  make check
+script:
+  - |
+    if grep -q '	' ./creduce/creduce.in; then
+        echo "No tabs allowed"
+        exit 1
+    fi
+  - |
+    CXX=/usr/lib/llvm-4.0/bin/clang++
+    CC=/usr/lib/llvm-4.0/bin/clang
+    ./configure --with-llvm=/usr/lib/llvm-4.0 &&
+    make -j2 &&
+    make check
 
 ###############################################################################
 
