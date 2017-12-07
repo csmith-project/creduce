@@ -738,6 +738,12 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return getBaseDeclFromType(PT);
   }
 
+  case Type::Pointer: {
+    const PointerType *PT = dyn_cast<PointerType>(Ty);
+    const Type *PTy = PT->getPointeeType().getTypePtr();
+    return getBaseDeclFromType(PTy);
+  }
+
   case Type::SubstTemplateTypeParm: {
     const SubstTemplateTypeParmType *TP =
       dyn_cast<SubstTemplateTypeParmType>(Ty);
