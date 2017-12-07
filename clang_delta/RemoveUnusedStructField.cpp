@@ -233,14 +233,15 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
 {
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (ArrayTy) {
-    const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
-    TransAssert(ILE && "Invalid array initializer!");
-    unsigned int NumInits = ILE->getNumInits();
-    Ty = ArrayTy->getElementType().getTypePtr();
+    if (const InitListExpr *ILE = dyn_cast<InitListExpr>(E)) {
+      TransAssert(ILE && "Invalid array initializer!");
+      unsigned int NumInits = ILE->getNumInits();
+      Ty = ArrayTy->getElementType().getTypePtr();
     
-    for (unsigned I = 0; I < NumInits; ++I) {
-      const Expr *Init = ILE->getInit(I);
-      getInitExprs(Ty, Init, IdxVec, InitExprs);
+      for (unsigned I = 0; I < NumInits; ++I) {
+        const Expr *Init = ILE->getInit(I);
+        getInitExprs(Ty, Init, IdxVec, InitExprs);
+      }
     }
     return;
   }
