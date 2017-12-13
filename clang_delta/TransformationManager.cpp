@@ -101,16 +101,16 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   CompilerInvocation &Invocation = ClangInstance->getInvocation();
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
-  if ((IK == IK_C) || (IK == IK_PreprocessedC)) {
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_C, T, PPOpts);
+  if (IK.getLanguage() == InputKind::C) {
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), InputKind::C, T, PPOpts);
   }
-  else if ((IK == IK_CXX) || (IK == IK_PreprocessedCXX)) {
+  else if (IK.getLanguage() == InputKind::CXX) {
     // ISSUE: it might cause some problems when building AST
-    // for a function which has a non-declared callee, e.g., 
-    // It results an empty AST for the caller. 
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), IK_CXX, T, PPOpts);
+    // for a function which has a non-declared callee, e.g.,
+    // It results an empty AST for the caller.
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), InputKind::CXX, T, PPOpts);
   }
-  else if(IK == IK_OpenCL) {
+  else if(IK.getLanguage() == InputKind::OpenCL) {
     //Commandline parameters
     std::vector<const char*> Args;
     Args.push_back("-x");
@@ -135,7 +135,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
                                        &Args[0], &Args[0] + Args.size(),
                                        ClangInstance->getDiagnostics());
     Invocation.setLangDefaults(ClangInstance->getLangOpts(),
-                               IK_OpenCL, T, PPOpts);
+                               InputKind::OpenCL, T, PPOpts);
   }
   else {
     ErrorMsg = "Unsupported file type!";
