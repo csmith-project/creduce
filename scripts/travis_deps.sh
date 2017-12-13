@@ -16,7 +16,7 @@ set -eux
 
 apt-get update -qq
 
-# The Travis-CI Ubuntu 14.04 ("trusty") build environment has LLVM and Clang
+# The Travis-CI Ubuntu 16.04 ("xenial") build environment has LLVM and Clang
 # preinstalled.  They interfere with our installations of these packages.
 apt-get remove -y -qq \
     clang \
@@ -34,7 +34,7 @@ apt-get install -y -qq \
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
+    'deb http://apt.llvm.org/xenial/ llvm-toolchain-trusty-5.0 main'
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 

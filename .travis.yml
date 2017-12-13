@@ -10,7 +10,7 @@
 ###############################################################################
 
 sudo: required
-dist: trusty
+dist: xenial
 language: cpp
 
 before_install:
