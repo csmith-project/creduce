@@ -1324,22 +1324,21 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
   }
 
-  const VarDecl *PrevVD = FirstVD;
+  const Decl *PrevDecl = FirstVD;
   const VarDecl *CurrVD = NULL;
   ++I;
   DeclGroupRef::const_iterator E = DGR.end();
   for (; I != E; ++I) {
     CurrVD = dyn_cast<VarDecl>(*I);
-    TransAssert(CurrVD && "Not a valid VarDecl!");
-    if (VD == CurrVD)
+    if (CurrVD && VD == CurrVD)
       break;
-    PrevVD = CurrVD;
+    PrevDecl = *I;
   }
 
   TransAssert((VD == CurrVD) && "Cannot find VD!");
 
   SourceLocation VarEndLoc = VarRange.getEnd();
-  SourceRange PrevDeclRange = PrevVD->getSourceRange();
+  SourceRange PrevDeclRange = PrevDecl->getSourceRange();
 
   SourceLocation PrevDeclEndLoc = 
     getEndLocationUntil(PrevDeclRange, ',');
