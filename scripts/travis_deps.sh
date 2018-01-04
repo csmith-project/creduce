@@ -34,7 +34,7 @@ apt-get install -y -qq \
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://apt.llvm.org/xenial/ llvm-toolchain-trusty-5.0 main'
+    'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-5.0 main'
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
