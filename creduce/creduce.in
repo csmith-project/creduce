@@ -68,6 +68,7 @@ my $ALSO_INTERESTING = -1;
 my $NOKILL = 0;
 my $MAX_WIN;
 my $NO_CACHE = 0;
+my $CHECK_DETERMINISM = 0;
 
 my @options = (
     ["--n",                   "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
@@ -87,6 +88,7 @@ my @options = (
     ["--no-cache",            "const",   1, \$NO_CACHE,        "Don't cache behavior of passes"],
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
+    ["--check-determinism",   "const",   0, \$CHECK_DETERMINISM, "Run the interestingness test repeatedly to make sure it is deterministic"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
     ["--max-improvement",     "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
@@ -456,7 +458,16 @@ sub fork_helper($) {
             setpgrp();
             # flip the T/F flag back into a 0/1
             my $res = delta_test();
-            print "delta_test() returned $res\n" if $DEBUG;
+            print "interestingness test returned $res\n" if $DEBUG;
+            if ($CHECK_DETERMINISM) {
+                for (my $i=0; $i<2; ++$i) {
+                    my $res2 = delta_test();
+                    if ($res2 != $res) {
+                        print "interestingness test appears to be non-deterministic!\m";
+                        break;
+                    }
+                }
+            }
             my $exitcode = $res ? 0 : 1;
             print "forked child exiting with $exitcode (1 == uninteresting, 0 == interesting)\n" if $DEBUG_SMP;
             exit($exitcode);
