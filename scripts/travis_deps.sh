@@ -28,23 +28,23 @@ apt-get install -y -qq \
     software-properties-common \
     wget
 
-# Set up for installing LLVM 4.0.
+# Set up for installing LLVM 5.0.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main'
+    'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 4.0.  See file "INSTALL".
+# Install LLVM 5.0.  See file "INSTALL".
 apt-get install -y -qq \
-    llvm-4.0 \
-    llvm-4.0-dev \
-    clang-4.0 \
-    libclang-4.0-dev \
-    clang-format-4.0 \
+    llvm-5.0 \
+    llvm-5.0-dev \
+    clang-5.0 \
+    libclang-5.0-dev \
+    clang-format-5.0 \
     libedit-dev
 
 # Install other C-Reduce dependencies.  See file "INSTALL".
