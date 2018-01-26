@@ -20,6 +20,30 @@ project(clang_delta)
 #
 configure_file("git_version.cpp.in" "git_version.cpp" @ONLY)
 
+# set values for replacing variables in lit.site.cfg.in
+#
+set(LLVM_BINDIR ${LLVM_TOOLS_BINARY_DIR})
+set(abs_builddir ${CMAKE_CURRENT_BINARY_DIR})
+set(clang_delta_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Generate file "lit.site.cfg".
+#
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/lit.site.cfg.in
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/lit.site.cfg @ONLY)
+
+# Generate file "remove_lit_checks.pl", which is necessary for removing
+# "lit-functioning" lines such as "CHECK:" and "RUN:" from test output.
+#
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/remove_lit_checks.in
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/remove_lit_checks @ONLY)
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/remove_lit_checks
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests
+  FILE_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
+
+
 # Add flags for compiling against LLVM.
 #
 add_definitions(${LLVM_DEFINITIONS})
@@ -219,6 +243,13 @@ add_executable(clang_delta
 )
 
 target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
+
+# Custom target for running clang_delta tests
+#
+add_custom_target(check-clang-delta
+  COMMAND ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
+          -sv ${CMAKE_CURRENT_BINARY_DIR}/tests
+  DEPENDS clang_delta)
 
 # On Windows, we also need to link with "Version.dll" system library.
 # See <https://github.com/csmith-project/creduce/pull/126>.
