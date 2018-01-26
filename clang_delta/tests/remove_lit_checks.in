@@ -1,0 +1,15 @@
+#!@PERL_EXECUTABLE@
+
+use strict;
+use warnings;
+
+while (my $line = <>) {
+  chomp $line;
+  if ($line =~ m/^[\s\t]*\/\/[\s\t]*CHECK[:-]/ ||
+      $line =~ m/^[\s\t]*\/\/[\s\t]*RUN:/) {
+    #skip
+  }
+  else {
+    print "$line\n";
+  }
+}

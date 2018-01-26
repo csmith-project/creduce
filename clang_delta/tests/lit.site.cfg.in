@@ -1,0 +1,4 @@
+config.builddir = "@abs_builddir@"
+config.llvm_bindir = "@LLVM_BINDIR@"
+
+lit_config.load_config(config, "@clang_delta_srcdir@/tests/lit.cfg")
