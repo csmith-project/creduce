@@ -25,6 +25,7 @@ $ make check-clang-delta
 If you use cmake:
 $ /creduce/top/dir
 $ mkdir build
+$ cd build
 $ cmake ..
 $ make
 $ make check-clang-delta
