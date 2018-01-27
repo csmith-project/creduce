@@ -398,6 +398,7 @@ pdfdir = @pdfdir@
 prefix = @prefix@
 program_transform_name = @program_transform_name@
 psdir = @psdir@
+runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 srcdir = @srcdir@
@@ -671,18 +672,6 @@ clang_delta_SOURCES = \
 nodist_clang_delta_SOURCES = \
 	git_version.cpp
 
-# Force `all' to be the first target.
-default: all
-
-CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
-clean-local:
-	list='$(CLEAN_TESTDIRS)'; \
-	for dir in $$list; do \
-	  if test -d "$$dir"; then \
-	    rm -rf $$dir; \
-	  fi; \
-	done
-
 CLEANFILES = \
 	git_version.txt \
 	git_version.txt.tmp \
@@ -699,6 +688,7 @@ EXTRA_DIST = \
 	tests/lit.site.cfg.in \
 	tests/remove_lit_checks.in
 
+CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
 all: all-am
 
 .SUFFIXES:
@@ -2109,8 +2099,8 @@ uninstall-am: uninstall-libexecPROGRAMS
 .MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libexecPROGRAMS clean-libtool clean-local cscopelist-am ctags \
-	ctags-am distclean distclean-compile distclean-generic \
+	clean-libexecPROGRAMS clean-libtool clean-local cscopelist-am \
+	ctags ctags-am distclean distclean-compile distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am html \
 	html-am info info-am install install-am install-data \
 	install-data-am install-dvi install-dvi-am install-exec \
@@ -2153,6 +2143,14 @@ remove_lit_checks: tests/remove_lit_checks.in
 	@ sed -f remove_lit_checks.tmp tests/remove_lit_checks.in > tests/$@
 	@ chmod +x tests/$@
 	@ rm -f remove_lit_checks.tmp
+
+clean-local:
+	list='$(CLEAN_TESTDIRS)'; \
+	for dir in $$list; do \
+	  if test -d "$$dir"; then \
+	    rm -rf $$dir; \
+	  fi; \
+	done
 
 ###############################################################################
 

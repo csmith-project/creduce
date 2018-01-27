@@ -297,18 +297,6 @@ clang_delta_SOURCES = \
 nodist_clang_delta_SOURCES = \
 	git_version.cpp
 
-# Force `all' to be the first target.
-default: all
-
-CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
-clean-local:
-	list='$(CLEAN_TESTDIRS)'; \
-	for dir in $$list; do \
-	  if test -d "$$dir"; then \
-	    rm -rf $$dir; \
-	  fi; \
-	done
-
 CLEANFILES = \
 	git_version.txt \
 	git_version.txt.tmp \
@@ -324,6 +312,16 @@ EXTRA_DIST = \
 	test_transformation \
 	tests/lit.site.cfg.in \
 	tests/remove_lit_checks.in
+
+CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
+
+clean-local:
+	list='$(CLEAN_TESTDIRS)'; \
+	for dir in $$list; do \
+	  if test -d "$$dir"; then \
+	    rm -rf $$dir; \
+	  fi; \
+	done
 
 ###############################################################################
 
