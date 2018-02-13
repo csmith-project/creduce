@@ -11,9 +11,6 @@ C-Reduce pre-release list:
 
 C-Reduce TODO list:
 
-CMake:
-  make creduce from creduce.in at build time, not configure time
-
 turn
   if (foo) goto bar; baz; bar:
 into
