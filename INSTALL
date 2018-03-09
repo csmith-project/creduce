@@ -36,7 +36,7 @@ Perl modules installed:
 On FreeBSD 10.3, the prerequisites can be installed like this:
 
   sudo pkg install \
-    llvm40 \
+    llvm60 \
     p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common \
     flex
 
@@ -46,8 +46,8 @@ manager:
 Flex:
   http://flex.sourceforge.net/
 
-LLVM/Clang 5.0.0:
-  http://llvm.org/releases/download.html#5.0.0
+LLVM/Clang 6.0.0:
+  http://llvm.org/releases/download.html#6.0.0
   (No need to compile it: the appropriate "Clang binaries" package is
   all you need.  If you use one of the binary packages, you may need to
   install additional packages that the binary package depends on.  For
