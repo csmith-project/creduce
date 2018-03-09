@@ -28,7 +28,7 @@ apt-get install -y -qq \
     software-properties-common \
     wget
 
-# Set up for installing LLVM 5.0.
+# Set up for installing LLVM 6.0.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
@@ -38,7 +38,7 @@ add-apt-repository -y \
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 5.0.  See file "INSTALL".
+# Install LLVM 6.0.  See file "INSTALL".
 apt-get install -y -qq \
     llvm-6.0 \
     llvm-6.0-dev \
