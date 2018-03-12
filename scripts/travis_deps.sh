@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 ##
-## Copyright (c) 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2015, 2016, 2017, 2018 The University of Utah
 ## Copyright (c) 2015 Tamir Duberstein
 ## All rights reserved.
 ##
