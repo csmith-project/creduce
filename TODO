@@ -19,6 +19,8 @@ turn
 into
   if (!foo) baz
 
+reduce try-catch
+
 it would be nice to have a way to glue multiple C/C++ files into a
 single compilation unit, as an alternative to multi-file reduction
 - CIL can do this but it's pretty invasive
