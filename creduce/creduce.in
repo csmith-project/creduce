@@ -851,6 +851,7 @@ my @all_methods = (
     { "name" => "pass_clang",    "arg" => "replace-dependent-name", "pri" => 257, "C" => 1,  },
     { "name" => "pass_clang",    "arg" => "simplify-recursive-template-instantiation",       "pri" => 258, "C" => 1, },
     { "name" => "pass_clang",    "arg" => "vector-to-array",        "pri" => 259, "C" => 1,   },
+    { "name" => "pass_clang",    "arg" => "remove-try-catch",        "pri" => 260, "C" => 1,   },
     { "name" => "pass_clang",    "arg" => "combine-global-var",                    "last_pass_pri" => 990, "C" => 1, },
     { "name" => "pass_clang",    "arg" => "combine-local-var",                     "last_pass_pri" => 991, "C" => 1, },
     { "name" => "pass_clang",    "arg" => "simplify-struct-union-decl",            "last_pass_pri" => 992, "C" => 1, },
