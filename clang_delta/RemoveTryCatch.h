@@ -30,6 +30,7 @@ public:
   RemoveTryCatch(const char *TransName, const char *Desc)
     : Transformation(TransName, Desc),
       AnalysisVisitor(0),
+      RewriteTryStmt(0),
       TheTryCatchStmt(0)
   { }
 
@@ -45,6 +46,7 @@ private:
 
   RemoveTryCatchAnalysisVisitor *AnalysisVisitor;
 
+  clang::Stmt *RewriteTryStmt;
   clang::Stmt *TheTryCatchStmt;
 
   // Unimplemented

@@ -55,28 +55,37 @@ bool RemoveTryCatchAnalysisVisitor::VisitCXXTryStmt(
   // Count try block
   ++ConsumerInstance->ValidInstanceNum;
 
-  if (ConsumerInstance->TransformationCounter <
+  if (ConsumerInstance->TransformationCounter ==
       ConsumerInstance->ValidInstanceNum) {
-    return true;
+    ConsumerInstance->TheTryCatchStmt = CTS;
   }
+
+  int TmpInstanceNum = ConsumerInstance->ValidInstanceNum;
 
   // Count all catch blocks
   ConsumerInstance->ValidInstanceNum += CTS->getNumHandlers();
 
+  // Early exit if the transformation counter is less than the index of any
+  // catch block
+  if (ConsumerInstance->TransformationCounter <= TmpInstanceNum) {
+    return true;
+  }
+
+  // Early exit if the transformation counter is higher than the index of any
+  // catch block
   if (ConsumerInstance->TransformationCounter >
       ConsumerInstance->ValidInstanceNum) {
     return true;
   }
 
-  // If no catch blocks are left remove the try
-  // else delete the specified catch block
-  if (ConsumerInstance->TransformationCounter ==
-      ConsumerInstance->ValidInstanceNum) {
-    ConsumerInstance->TheTryCatchStmt = CTS;
-  } else {
-    int CatchIdx = ConsumerInstance->ValidInstanceNum -
-      ConsumerInstance->TransformationCounter - 1;
-    ConsumerInstance->TheTryCatchStmt = CTS->getHandler(CatchIdx);
+  TransAssert(ConsumerInstance->TransformationCounter > TmpInstanceNum);
+
+  int CatchIdx = ConsumerInstance->TransformationCounter - TmpInstanceNum - 1;
+  ConsumerInstance->TheTryCatchStmt = CTS->getHandler(CatchIdx);
+
+  // If the last catch block is removed the "try" has to be removed as well
+  if (CTS->getNumHandlers() == 1) {
+    ConsumerInstance->RewriteTryStmt = CTS;
   }
 
   return true;
@@ -113,9 +122,12 @@ void RemoveTryCatch::HandleTranslationUnit(ASTContext &Ctx)
 
 void RemoveTryCatch::removeStmt()
 {
-  SourceManager &SrcManager = TheRewriter.getSourceMgr();
   SourceRange Range = TheTryCatchStmt->getSourceRange();
   TheRewriter.RemoveText(Range);
+
+  if (RewriteTryStmt != nullptr) {
+    TheRewriter.RemoveText(RewriteTryStmt->getLocStart(), 3);
+  }
 }
 
 RemoveTryCatch::~RemoveTryCatch()
