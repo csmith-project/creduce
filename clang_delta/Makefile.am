@@ -310,8 +310,11 @@ EXTRA_DIST = \
 	README.txt \
 	git_version.cpp.in \
 	test_transformation \
+	tests/lit.cfg \
 	tests/lit.site.cfg.in \
-	tests/remove_lit_checks.in
+	tests/remove-unused-var/unused_var.cpp \
+	tests/remove_lit_checks.in \
+	tests/rename-var/rename-var.c
 
 CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
 
