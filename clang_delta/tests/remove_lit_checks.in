@@ -1,4 +1,13 @@
 #!@PERL_EXECUTABLE@
+## -*- mode: Perl -*-
+##
+## Copyright (c) 2018 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
 
 use strict;
 use warnings;
@@ -13,3 +22,7 @@ while (my $line = <>) {
     print "$line\n";
   }
 }
+
+###############################################################################
+
+## End of file.
