@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -518,7 +518,8 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
                                          const VarDecl *VD,
                                          Decl *PrevDecl,
-                                         bool IsFirstDecl)
+                                         bool IsFirstDecl,
+                                         bool *StmtRemoved)
 {
   SourceRange StmtRange = DS->getSourceRange();
 
@@ -538,8 +539,11 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
       DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
       IsFirstDecl = true;
-      if (!RD->getDefinition() && DGroup.size() == 2)
+      if ((!RD->getDefinition() || RD->getNameAsString() == "") &&
+          DGroup.size() == 2) {
+        *StmtRemoved = true;
         return !(TheRewriter->RemoveText(StmtRange));
+      }
     }
   }
 
