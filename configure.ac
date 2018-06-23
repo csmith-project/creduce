@@ -1,6 +1,6 @@
 ## -*- mode: Autoconf -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -37,7 +37,7 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
-AX_LLVM([4.0],[engine])
+AX_LLVM([6.0],[engine])
 AX_CLANG
 
 # Handle configure-time choice of assertion-checking method.
