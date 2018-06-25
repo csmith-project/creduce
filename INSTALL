@@ -33,7 +33,7 @@ Perl modules installed:
 
   http://perlbrew.pl/
 
-On FreeBSD 10.3, the prerequisites can be installed like this:
+On FreeBSD 10.3 and 11.1, the prerequisites can be installed like this:
 
   sudo pkg install \
     llvm60 \
