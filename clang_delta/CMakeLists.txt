@@ -242,7 +242,11 @@ add_executable(clang_delta
   git_version.h
 )
 
-target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
+# ENE, LLVM 6.0: LLVM_LIBS end up in the link command line anyway.  I'm not
+# quite sure why!  But if you list LLVM_LIBS here, the `clang_delta' binary
+# can end up with dynamic link errors when it runs (multiply defined symbols).
+#
+target_link_libraries(clang_delta ${CLANG_LIBS})
 
 # Custom target for running clang_delta tests
 #
