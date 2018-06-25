@@ -124,9 +124,6 @@ sub ncpus () {
     if ($OS eq "MSWin32") {
 	# TODO
     }
-    # Load and use the Sys::CPU module if available, don't complain otherwise
-    # we try this last since it will count hyperthreads not cores
-    return Sys::CPU::cpu_count() if (eval { require Sys::CPU; });
     return 1;
 }
 
