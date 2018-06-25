@@ -53,7 +53,6 @@ apt-get install -y -qq \
     libfile-which-perl \
     libgetopt-tabular-perl \
     libregexp-common-perl \
-    libsys-cpu-perl \
     libterm-readkey-perl \
     flex \
     build-essential \

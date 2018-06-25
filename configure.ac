@@ -107,7 +107,6 @@ AX_PROG_PERL_MODULES(
   ])
 AX_PROG_PERL_MODULES(
   [
-    Sys::CPU
     Term::ReadKey
   ],
   [

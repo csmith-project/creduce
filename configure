@@ -16494,8 +16494,6 @@ fi
 
 
 
-
-
 # Make sure we have perl
 if test -z "$PERL"; then
 # Extract the first word of "perl", so it can be a program name with args.
@@ -16539,7 +16537,7 @@ fi
 
 if test "x$PERL" != x; then
   ax_perl_modules_failed=0
-  for ax_perl_module in 'Sys::CPU' 'Term::ReadKey' ; do
+  for ax_perl_module in 'Term::ReadKey' ; do
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for perl module $ax_perl_module" >&5
 $as_echo_n "checking for perl module $ax_perl_module... " >&6; }
 
