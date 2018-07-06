@@ -15,7 +15,7 @@ Prereqs:
 
 C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
 you will need a development environment that supports these languages.
-C-Reduce's build system requires GNU Make (*not* BSD Make).
+C-Reduce's build system requires CMake or GNU Make (*not* BSD Make).
 
 Beyond the basic compile/build tools, C-Reduce depends on a set of
 third-party software packages, including LLVM.
