@@ -759,9 +759,24 @@ EXTRA_DIST = \
 	test_transformation \
 	tests/lit.cfg \
 	tests/lit.site.cfg.in \
+	tests/local-to-global/unnamed_1.c \
+	tests/local-to-global/unnamed_2.c \
+	tests/local-to-global/unnamed_3.c \
+	tests/remove-unused-field/designated1.c \
+	tests/remove-unused-field/designated2.c \
+	tests/remove-unused-field/designated3.c \
+	tests/remove-unused-field/designated4.c \
+	tests/remove-unused-field/designated5.c \
+	tests/remove-unused-field/unused_field1.c \
+	tests/remove-unused-field/unused_field2.c \
 	tests/remove-unused-var/unused_var.cpp \
 	tests/remove_lit_checks.in \
-	tests/rename-var/rename-var.c
+	tests/rename-fun/test1.c \
+	tests/rename-fun/test1.h \
+	tests/rename-var/rename-var.c \
+	tests/union-to-struct/union1.c \
+	tests/union-to-struct/union2.c \
+	tests/union-to-struct/union3.c
 
 CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
 all: all-am
