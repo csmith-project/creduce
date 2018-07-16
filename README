@@ -38,7 +38,7 @@ compiler leaves files in /tmp when it is killed, C-Reduce has no way
 to discover and remove the files. You will need to do this manually
 from time to time if temporary file space is limited. The leakage is
 typically pretty slow. If you need to avoid this problem altogether,
-you can run C-Reduce on a single core (using "-n 1") in which case
+you can run C-Reduce on a single core (using "--n 1") in which case
 C-Reduce will never kill a running compiler instance. Alternatively, a
 command line option such as -pipe (supported by gcc) may suppress the
 creation of temporary files altogether. Another possibility is to set
