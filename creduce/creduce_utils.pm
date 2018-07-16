@@ -129,7 +129,7 @@ sub ncpus () {
 
 # here we're pretty conservative about the number of parallel
 # processes to use; if the user has some big iron she can specify a
-# higher number using -n
+# higher number using --n
 sub nprocs () {
     my $cpus = ncpus();
     die unless ($cpus >= 1);
