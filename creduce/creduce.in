@@ -69,8 +69,16 @@ my $NOKILL = 0;
 my $MAX_WIN;
 my $NO_CACHE = 0;
 my $NOTC = 0;
+my $PKG = creduce_config::PACKAGE_STRING;
+my $COMMIT = creduce_config::GIT_VERSION;
+
+sub print_version() {
+    print "$PKG ($COMMIT)\n";
+    exit(0);
+}
 
 my @options = (
+    ["--version",             "call",    0, \&print_version,   "Print the version information"] ,
     ["--n",                   "integer", 1, \$NPROCS,          "Number of cores to use; C-Reduce tries to automatically pick a good setting but its choice may be too low or high for your situation", "<N>"],
     ["--tidy",                "const",   1, \$TIDY,            "Do not make a backup copy of each file to reduce as file.orig"],
     ["--shaddap",             "const",   1, \$SILENT_PASS_BUGS, "Suppress output about non-fatal internal errors"],
@@ -95,9 +103,6 @@ my @options = (
 );
 
 @options = sort { return @{$a}[0] cmp @{$b}[0]; } @options;
-
-my $PKG = creduce_config::PACKAGE_STRING;
-my $COMMIT = creduce_config::GIT_VERSION;
 my $help = <<HELP;
 $PKG ($COMMIT) -- a C and C++ program reducer
 
