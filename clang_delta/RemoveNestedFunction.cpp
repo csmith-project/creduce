@@ -215,6 +215,11 @@ void RemoveNestedFunction::getNewIntTmpVariable(std::string &VarStr)
   VarStr = "int " + VarStr;
 }
 
+void RemoveNestedFunction::getNewAutoTmpVariable(std::string &VarStr)
+{
+  VarStr = "auto " + VarStr;
+}
+
 void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 {
   std::string VarStr;
@@ -435,6 +440,12 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
       // expressions.
       return getNewIntTmpVariable(VarStr);
     }
+  }
+
+  // We can't resolve dependent scoped DeclRefExpr, and just make it
+  // type of int.
+  if (dyn_cast<DependentScopeDeclRefExpr>(E)) {
+    return getNewAutoTmpVariable(VarStr);
   }
 
   const Type *CalleeType = E->getType().getTypePtr();
