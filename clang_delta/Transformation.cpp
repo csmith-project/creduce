@@ -510,6 +510,9 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
         const CXXRecordDecl *CXXRD,
         DeclContextSet &VisitedCtxs)
 {
+  if (!CXXRD->hasDefinition()) {
+    return NULL;
+  }
   for (CXXRecordDecl::base_class_const_iterator I =
        CXXRD->bases_begin(), E = CXXRD->bases_end(); I != E; ++I) {
 
