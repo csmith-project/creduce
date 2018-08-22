@@ -134,7 +134,7 @@ timeout is that when a test is killed due to timing out, a message
 will be printed. If you do implement a timeout yourself, we recommend
 that your interestingness test returns exit code 124 when a subcommand
 times out. This will not affect the reduction but it will cause
-C-Reduce to print a message stating the the interestingness test
+C-Reduce to print a message stating the interestingness test
 reported a timeout. It is important to ensure that timeouts are not
 occurring too often (especially during C-Reduce's initial passes) or
 else C-Reduce will work poorly.
