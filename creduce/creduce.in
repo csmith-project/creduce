@@ -45,7 +45,7 @@ if ($^O eq "MSWin32") {
 use creduce_config qw(PACKAGE_STRING);
 use creduce_utils;
 
-my $NPROCS = nprocs();
+my $NPROCS;
 
 ######################################################################
 
@@ -208,6 +208,7 @@ Getopt::Tabular::SetOptionPatterns qw|(--)([\w-]+) (-)(\w+)|;
 Getopt::Tabular::SetHelpOption("--help");
 GetOptions(\@options, \@ARGV) or exit(1);
 usage() unless (@ARGV >= 2);
+defined $NPROCS or $NPROCS = nprocs();
 
 my @custom_methods;
 
