@@ -449,6 +449,10 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
         if (FD->hasBody() && !FD->isInlined())
           return false;
       }
+      if (const FieldDecl *FieldD = dyn_cast<FieldDecl>(*I)) {
+        if (pointToSelf(FieldD))
+          return false;
+      }
       ++count;
     }
   }
