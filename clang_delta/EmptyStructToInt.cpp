@@ -443,6 +443,12 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
     if (!(*I)->isImplicit()) {
       if ((*I)->isReferenced())
         return false;
+      if (isa<CXXConstructorDecl>(*I) || isa<CXXDestructorDecl>(*I))
+        return false;
+      if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
+        if (FD->hasBody() && !FD->isInlined())
+          return false;
+      }
       ++count;
     }
   }
