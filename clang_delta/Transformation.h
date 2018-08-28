@@ -57,7 +57,16 @@ typedef enum {
   TransToCounterTooBigError
 } TransformationError;
 
+namespace clang_delta_common_visitor {
+
+template<typename T> class CommonRenameClassRewriteVisitor;
+
+}
+
 class Transformation : public clang::ASTConsumer {
+
+template<typename T>
+friend class clang_delta_common_visitor::CommonRenameClassRewriteVisitor;
 
 public:
 
@@ -289,6 +298,8 @@ protected:
   bool isInIncludedFile(const clang::Decl *D) const;
 
   bool isInIncludedFile(const clang::Stmt *S) const;
+
+  bool isDeclaringRecordDecl(const clang::RecordDecl *RD);
 
   const std::string Name;
 

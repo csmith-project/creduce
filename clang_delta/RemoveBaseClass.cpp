@@ -60,16 +60,17 @@ bool RemoveBaseClassBaseVisitor::VisitCXXRecordDecl(
   return true;
 }
 
-class RemoveBaseClassRewriteVisitor : public 
+class RemoveBaseClassRewriteVisitor : public
   CommonRenameClassRewriteVisitor<RemoveBaseClassRewriteVisitor> 
 {
 public:
-  RemoveBaseClassRewriteVisitor(Rewriter *RT, 
-                            RewriteUtils *Helper,
-                            const CXXRecordDecl *CXXRD,
-                            const std::string &Name)
+  RemoveBaseClassRewriteVisitor(Transformation *Instance,
+                                Rewriter *RT,
+                                RewriteUtils *Helper,
+                                const CXXRecordDecl *CXXRD,
+                                const std::string &Name)
     : CommonRenameClassRewriteVisitor<RemoveBaseClassRewriteVisitor>
-      (RT, Helper, CXXRD, Name)
+      (Instance, RT, Helper, CXXRD, Name)
   { }
 };
 
@@ -102,7 +103,7 @@ void RemoveBaseClass::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   RewriteVisitor = 
-    new RemoveBaseClassRewriteVisitor(&TheRewriter, RewriteHelper, 
+    new RemoveBaseClassRewriteVisitor(this, &TheRewriter, RewriteHelper,
                                       TheBaseClass->getCanonicalDecl(),
                                       TheDerivedClass->getNameAsString());
 

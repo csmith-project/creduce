@@ -127,6 +127,9 @@ public:
   bool replaceRecordDeclName(const clang::RecordDecl *RD,
                              const std::string &NameStr);
 
+  bool replaceRecordDeclDef(const clang::RecordDecl *RD,
+                            const std::string &NameStr);
+
   bool replaceVarTypeName(const clang::VarDecl *VD,
                           const std::string &NameStr);
 

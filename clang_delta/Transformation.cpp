@@ -1076,6 +1076,17 @@ bool Transformation::isInIncludedFile(const Stmt *S) const
   return isInIncludedFile(S->getLocStart());
 }
 
+bool Transformation::isDeclaringRecordDecl(const RecordDecl *RD)
+{
+  SourceLocation SemiLoc =
+    Lexer::findLocationAfterToken(RD->getSourceRange().getEnd(),
+                                  tok::semi,
+                                  *SrcManager,
+                                  Context->getLangOpts(),
+                                  /*SkipTrailingWhitespaceAndNewLine=*/true);
+  return SemiLoc.isInvalid();
+}
+
 Transformation::~Transformation(void)
 {
   RewriteUtils::Finalize();

@@ -1026,6 +1026,21 @@ bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,
                                    NameStr);
 }
 
+bool RewriteUtils::replaceRecordDeclDef(const RecordDecl *RD,
+                                        const std::string &NameStr)
+{
+  if (RD->isThisDeclarationADefinition()) {
+    SourceLocation RBLoc = RD->getBraceRange().getEnd();
+    if (RBLoc.isInvalid()) {
+      return !TheRewriter->ReplaceText(RD->getSourceRange(), NameStr);
+    }
+    else {
+      SourceLocation StartLoc = RD->getSourceRange().getBegin();
+      return !TheRewriter->ReplaceText(SourceRange(StartLoc, RBLoc), NameStr);
+    }
+  }
+}
+
 bool RewriteUtils::replaceVarTypeName(const VarDecl *VD,
                                       const std::string &NameStr)
 {
