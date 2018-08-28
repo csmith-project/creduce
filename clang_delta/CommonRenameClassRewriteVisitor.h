@@ -242,6 +242,14 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXDestructorDecl(
       return true;
   }
 
+  SourceLocation StartLoc = DtorDecl->getLocation();
+  // skip '~'
+  StartLoc = StartLoc.getLocWithOffset(1);
+  void *LocPtr = StartLoc.getPtrEncoding();
+  if (VisitedLocs.count(LocPtr))
+    return true;
+  VisitedLocs.insert(LocPtr);
+
   std::string Name;
   if (getNewName(CXXRD, Name)) {
     RewriteHelper->replaceCXXDestructorDeclName(DtorDecl, Name);
