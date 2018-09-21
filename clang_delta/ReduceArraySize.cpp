@@ -120,9 +120,9 @@ void ReduceArraySize::doAnalysis(void)
     unsigned int DimSz = DimVec->size();
     TransAssert((DimSz == OrigDimVec->size()) &&
                 "Two DimValueVectors should have the same size!");
-    for (unsigned int I = 0; I < DimSz; ++I) {
-      int DimV = (*DimVec)[I];
-      int OrigDimV = (*OrigDimVec)[I];
+    for (unsigned int II = 0; II < DimSz; ++II) {
+      int DimV = (*DimVec)[II];
+      int OrigDimV = (*OrigDimVec)[II];
       if ((DimV == -1) || (OrigDimV == 0) || ((DimV+1) == OrigDimV))
         continue;
 
@@ -132,7 +132,7 @@ void ReduceArraySize::doAnalysis(void)
 
       TheVarDecl = VD;
       TheDimValue = DimV;
-      TheDimIdx = I;
+      TheDimIdx = II;
     }
   }
 }
