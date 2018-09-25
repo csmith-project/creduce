@@ -59,7 +59,8 @@ public:
     : SrcManager(M), HeaderName(Name), HasHeader(H), HeaderLoc(Loc)
   { }
 
-  void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
+  virtual void InclusionDirective(SourceLocation HashLoc,
+                          const Token &IncludeTok,
                           StringRef FileName, bool IsAngled,
                           CharSourceRange FilenameRange, const FileEntry *File,
                           StringRef SearchPath, StringRef RelativePath,
