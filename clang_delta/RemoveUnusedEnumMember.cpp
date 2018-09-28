@@ -99,15 +99,15 @@ void RemoveUnusedEnumMember::removeEnumConstantDecl()
 {
   SourceLocation StartLoc = (*TheEnumIterator)->getLocStart();
   if (StartLoc.isMacroID()) {
-    std::pair<SourceLocation, SourceLocation> Locs =
+    CharSourceRange CSRange =
       SrcManager->getExpansionRange(StartLoc);
-    StartLoc = Locs.first;
+    StartLoc = CSRange.getBegin();
   }
   SourceLocation EndLoc = (*TheEnumIterator)->getLocEnd();
   if (EndLoc.isMacroID()) {
-    std::pair<SourceLocation, SourceLocation> Locs =
+    CharSourceRange CSRange =
       SrcManager->getExpansionRange(EndLoc);
-    EndLoc = Locs.second;
+    EndLoc = CSRange.getEnd();
   }
   SourceLocation CommaLoc = Lexer::findLocationAfterToken(
     EndLoc, tok::comma, *SrcManager, Context->getLangOpts(),

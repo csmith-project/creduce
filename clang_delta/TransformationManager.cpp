@@ -223,7 +223,7 @@ llvm::raw_ostream *TransformationManager::getOutStream()
 
   std::error_code EC;
   llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
-      OutputFileName, EC, llvm::sys::fs::F_RW);
+      OutputFileName, EC, llvm::sys::fs::FA_Read | llvm::sys::fs::FA_Write);
   assert(!EC && "Cannot open output file!");
   return Out;
 }
