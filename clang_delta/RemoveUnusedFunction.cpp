@@ -530,6 +530,10 @@ void RemoveUnusedFunction::removeOneExplicitInstantiation(
   const char * const FileStartBuf = SrcManager->getCharacterData(FileStartLoc);
 
   SourceLocation Loc = Spec->getPointOfInstantiation();
+  if (Loc.isInvalid()) {
+    TheRewriter.RemoveText(Spec->getSourceRange());
+    return;
+  }
   const char *OrigStartBuf = SrcManager->getCharacterData(Loc);
   const char *StartBuf = OrigStartBuf;
   int Offset = 0;
