@@ -1039,6 +1039,7 @@ bool RewriteUtils::replaceRecordDeclDef(const RecordDecl *RD,
       return !TheRewriter->ReplaceText(SourceRange(StartLoc, RBLoc), NameStr);
     }
   }
+  return true;
 }
 
 bool RewriteUtils::replaceVarTypeName(const VarDecl *VD,

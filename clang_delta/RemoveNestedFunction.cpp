@@ -106,7 +106,8 @@ bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
       return true;
   }
 
-  if ((std::find(ConsumerInstance->ValidCallExprs.begin(),
+  if (CurrentStmt &&
+      (std::find(ConsumerInstance->ValidCallExprs.begin(),
                  ConsumerInstance->ValidCallExprs.end(), CallE)
           == ConsumerInstance->ValidCallExprs.end()) &&
       !ConsumerInstance->CallExprQueue.empty()) {
