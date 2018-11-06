@@ -303,7 +303,7 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
   // Extract it's syntactic form in such case.
   bool HasDesignatedInit = false;
   if (ILE->isSemanticForm()) {
-    ILE = ILE->getSyntacticForm();
+    ILE = ILE->getSyntacticForm() == nullptr ? ILE : ILE->getSyntacticForm();
     for (unsigned I = 0; I < ILE->getNumInits(); I++) {
       if (isa<DesignatedInitExpr>(ILE->getInit(I))) {
         HasDesignatedInit = true;
