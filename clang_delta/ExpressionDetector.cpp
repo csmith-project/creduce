@@ -64,7 +64,8 @@ public:
                           StringRef FileName, bool IsAngled,
                           CharSourceRange FilenameRange, const FileEntry *File,
                           StringRef SearchPath, StringRef RelativePath,
-                          const Module *Imported) override;
+                          const Module *Imported,
+                          SrcMgr::CharacteristicKind FileType) override;
 
 private:
   SourceManager &SrcManager;
@@ -77,14 +78,15 @@ private:
 };
 
 void IncludesPPCallbacks::InclusionDirective(SourceLocation HashLoc,
-                                            const Token &/*IncludeTok*/,
-                                            StringRef FileName,
-                                            bool /*IsAngled*/,
-                                            CharSourceRange /*FilenameRange*/,
-                                            const FileEntry * /*File*/,
-                                            StringRef /*SearchPath*/,
-                                            StringRef /*RelativePath*/,
-                                            const Module * /*Imported*/)
+                                        const Token &/*IncludeTok*/,
+                                        StringRef FileName,
+                                        bool /*IsAngled*/,
+                                        CharSourceRange /*FilenameRange*/,
+                                        const FileEntry * /*File*/,
+                                        StringRef /*SearchPath*/,
+                                        StringRef /*RelativePath*/,
+                                        const Module * /*Imported*/,
+                                        SrcMgr::CharacteristicKind /*FileType*/)
 {
   if (!SrcManager.isInMainFile(HashLoc))
     return;
