@@ -320,6 +320,7 @@ dist_perllib_DATA = \
 	pass_includes.pm \
 	pass_indent.pm \
 	pass_ints.pm \
+	pass_line_markers.pm \
 	pass_lines.pm \
 	pass_peep.pm \
 	pass_special.pm \

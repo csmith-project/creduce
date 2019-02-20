@@ -236,6 +236,9 @@ add_custom_target(Modules ALL
     ${PROJECT_SOURCE_DIR}/pass_ints.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_line_markers.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_lines.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
