@@ -49,7 +49,7 @@ sub check_prereqs () {
 }
 
 sub new ($$) {
-    my $index = 0;
+    my $index = -1;
     return \$index;
 }
 
@@ -72,6 +72,19 @@ sub transform ($$$) {
     close INF;
     my @deflist = sort keys %defs;
     my $tmpfile = File::Temp::tmpnam();
+
+    # remove constant ifs
+    if ($index == -1) {
+	my $cmd = "$unifdef -k -o $tmpfile $cfile >/dev/null 2>&1";
+	runit ($cmd);
+	$index++;
+	if (compare($cfile, $tmpfile) == 0) {
+	    goto AGAIN;
+        }
+	File::Copy::move($tmpfile, $cfile);
+	return ($OK, \$index);
+    }
+
   AGAIN:
     print "index = $index\n" if $DEBUG;
     my $DU = (($index % 2) == 0) ? "-D" : "-U";
