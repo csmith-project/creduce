@@ -755,12 +755,12 @@ sub line_delta_pass ($) {
 my @all_methods = (
 
     { "name" => "pass_include_includes", "arg" => "0",               "pri" => 100, "C" => 1, },
-    { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  0, "C" => 1, },
     { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,  "first_pass_pri" =>  0, "C" => 1, },
     { "name" => "pass_comments", "arg" => "0",                       "pri" => 451,  "first_pass_pri" =>  0, "C" => 1, },
-    { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  1, },
-    { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>  2, "C" => 1, },
-    { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" =>  3, "C" => 1, },
+    { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  1, "C" => 1, },
+    { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  2, },
+    { "name" => "pass_clang_binsrch",    "arg" => "replace-function-def-with-decl", "first_pass_pri" =>  3, "C" => 1, },
+    { "name" => "pass_clang_binsrch",    "arg" => "remove-unused-function",         "first_pass_pri" =>  4, "C" => 1, },
 
     { "name" => "pass_lines",    "arg" => "0",                      "pri" => 410,  "first_pass_pri" =>  20,   "last_pass_pri" => 999, },
     { "name" => "pass_lines",    "arg" => "1",                      "pri" => 411,  "first_pass_pri" =>  21, },
