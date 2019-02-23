@@ -17,9 +17,9 @@ before_install:
   - sudo scripts/travis_deps.sh
 
 script: >
-  CXX=/usr/lib/llvm-6.0/bin/clang++
-  CC=/usr/lib/llvm-6.0/bin/clang
-  ./configure --with-llvm=/usr/lib/llvm-6.0 &&
+  CXX=/usr/lib/llvm-7/bin/clang++
+  CC=/usr/lib/llvm-7/bin/clang
+  ./configure --with-llvm=/usr/lib/llvm-7 &&
   make -j2 &&
   make check
 

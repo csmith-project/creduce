@@ -37,7 +37,7 @@ AM_PROG_CC_C_O
 AC_PROG_CXX
 AC_PROG_LIBTOOL
 
-AX_LLVM([6.0],[engine])
+AX_LLVM([7.0],[engine])
 AX_CLANG
 
 # Handle configure-time choice of assertion-checking method.
