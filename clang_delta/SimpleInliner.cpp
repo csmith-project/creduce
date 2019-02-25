@@ -69,6 +69,8 @@ public:
 
   bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
 
+  bool TraverseParmVarDecl(ParmVarDecl *PV);
+
   unsigned int getNumStmts(void) {
     return NumStmts;
   }
@@ -182,6 +184,11 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 // Ctor's initializer
 bool SimpleInlinerCollectionVisitor::TraverseConstructorInitializer(
        CXXCtorInitializer *Init)
+{
+  return true;
+}
+
+bool SimpleInlinerCollectionVisitor::TraverseParmVarDecl(ParmVarDecl *PV)
 {
   return true;
 }
