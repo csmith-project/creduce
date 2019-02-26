@@ -249,9 +249,9 @@ unsigned ReduceArrayDim::getArraySize(const ArrayType *ATy)
   if (const DependentSizedArrayType *DepArrayTy =
       dyn_cast<DependentSizedArrayType>(ATy)) {
     const Expr *E = DepArrayTy->getSizeExpr();
-    llvm::APSInt Result;
-    if (E->EvaluateAsInt(Result, *Context)) {
-      return (unsigned)(*Result.getRawData());
+    clang::Expr::EvalResult Result;
+    if (E->EvaluateAsInt(Result, *Context) && Result.Val.isInt()) {
+      return Result.Val.getInt().getZExtValue();
     }
   }
 

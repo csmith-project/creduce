@@ -148,7 +148,7 @@ bool CommonRenameClassRewriteVisitor<T>::
     if (!TyInfo)
       return true;
     TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
   }
@@ -267,7 +267,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitInjectedClassNameTypeLoc(
 
   std::string Name;
   if (getNewName(CXXRD, Name)) {
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
 
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
@@ -313,7 +313,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
 
   // Avoid duplicated rewrites to Decls from the same DeclGroup, e.g.,
   // struct S s1, s2
-  SourceLocation LocStart = RTLoc.getLocStart();
+  SourceLocation LocStart = RTLoc.getBeginLoc();
   void *LocPtr = LocStart.getPtrEncoding();
   if (VisitedLocs.count(LocPtr))
     return true;

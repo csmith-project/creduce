@@ -252,7 +252,7 @@ bool RenameCXXMethodVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
       &QualLoc, MD, NewName);
   }
   else {
-    ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(),
+    ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(),
       MD->getNameAsString().size(), NewName);
   }
 
@@ -534,7 +534,8 @@ bool RenameCXXMethod::isSpecialCXXMethod(const CXXMethodDecl *MD)
       dyn_cast<CXXConversionDecl>(MD))
     return true;
 
-  if (MD->isUsualDeallocationFunction() ||
+  SmallVector<const FunctionDecl*, 1> DeallocPrevented;
+  if (MD->isUsualDeallocationFunction(DeallocPrevented) ||
       MD->isCopyAssignmentOperator() ||
       MD->isMoveAssignmentOperator() ||
       MD->isLambdaStaticInvoker() ||

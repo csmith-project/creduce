@@ -352,7 +352,7 @@ bool RemoveNamespaceRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
       isa<EnumConstantDecl>(OrigDecl)) {
     std::string Name;
     if (ConsumerInstance->getNewName(OrigDecl, Name)) {
-      ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(),
+      ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(),
         OrigDecl->getNameAsString().size(), Name);
     }
   }
@@ -436,7 +436,7 @@ bool RemoveNamespaceRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
     if (!TyInfo)
       return true;
     TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, CXXRD->getNameAsString().size(), Name);
@@ -494,7 +494,7 @@ bool RemoveNamespaceRewriteVisitor::VisitInjectedClassNameTypeLoc(
 
   std::string Name;
   if (ConsumerInstance->getNewName(CXXRD, Name)) {
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
 
     ConsumerInstance->TheRewriter.ReplaceText(
@@ -509,7 +509,7 @@ bool RemoveNamespaceRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc TyLoc)
 
   std::string Name;
   if (ConsumerInstance->getNewName(D, Name)) {
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, D->getNameAsString().size(), Name);
   }
@@ -522,7 +522,7 @@ bool RemoveNamespaceRewriteVisitor::VisitEnumTypeLoc(EnumTypeLoc TyLoc)
 
   std::string Name;
   if (ConsumerInstance->getNewName(D, Name)) {
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, D->getNameAsString().size(), Name);
   }
@@ -1006,7 +1006,7 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
     TheRewriter.RemoveText(StartLoc, 1);
 
   // Then remove name and the left brace
-  StartLoc = ND->getLocStart();
+  StartLoc = ND->getBeginLoc();
   TransAssert(StartLoc.isValid() && "Invalid Namespace LocStart!");
 
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);

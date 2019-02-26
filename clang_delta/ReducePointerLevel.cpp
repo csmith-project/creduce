@@ -947,7 +947,7 @@ void ReducePointerLevel::replaceArrowWithDot(const Expr *E)
 {
   std::string ES;
   RewriteHelper->getExprString(E, ES);
-  SourceLocation LocStart = E->getLocStart();
+  SourceLocation LocStart = E->getBeginLoc();
 
   size_t ArrowPos = ES.find("->");
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");

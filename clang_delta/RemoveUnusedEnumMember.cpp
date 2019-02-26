@@ -97,12 +97,12 @@ void RemoveUnusedEnumMember::HandleTranslationUnit(ASTContext &Ctx)
 
 void RemoveUnusedEnumMember::removeEnumConstantDecl()
 {
-  SourceLocation StartLoc = (*TheEnumIterator)->getLocStart();
+  SourceLocation StartLoc = (*TheEnumIterator)->getBeginLoc();
   if (StartLoc.isMacroID()) {
     CharSourceRange Range = SrcManager->getExpansionRange(StartLoc);
     StartLoc = Range.getBegin();
   }
-  SourceLocation EndLoc = (*TheEnumIterator)->getLocEnd();
+  SourceLocation EndLoc = (*TheEnumIterator)->getEndLoc();
   if (EndLoc.isMacroID()) {
     CharSourceRange Range = SrcManager->getExpansionRange(EndLoc);
     EndLoc = Range.getEnd();

@@ -217,7 +217,7 @@ bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD, VarDecl *VD,
 
   for (DeclContext* DC = FD; DC; DC = DC->getParent()) {
     if (DC->getParent() && DC->getParent()->isTranslationUnit()) {
-      TheRewriter.InsertTextBefore(cast<Decl>(DC)->getLocStart(), GlobalVarStr);
+      TheRewriter.InsertTextBefore(cast<Decl>(DC)->getBeginLoc(), GlobalVarStr);
       return true;
     }
   }

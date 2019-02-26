@@ -672,7 +672,7 @@ static std::string getFormatString(const BuiltinType *BT)
 
 void ExpressionDetector::doRewrite()
 {
-  SourceLocation LocStart = TheStmt->getLocStart();
+  SourceLocation LocStart = TheStmt->getBeginLoc();
   if (shouldAddFunctionDecl(LocStart)) {
     SourceLocation Loc =
       SrcManager->getLocForStartOfFile(SrcManager->getMainFileID());
