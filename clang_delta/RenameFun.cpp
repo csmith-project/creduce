@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -111,10 +111,13 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
 
 bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
-  if (ConsumerInstance->isInIncludedFile(FD) || dyn_cast<CXXMethodDecl>(FD))
-    return true;
-
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
+  if (ConsumerInstance->isInIncludedFile(FD) ||
+      ConsumerInstance->isInIncludedFile(CanonicalDecl) ||
+      dyn_cast<CXXMethodDecl>(FD)) {
+    return true;
+  }
+
   llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
 
@@ -142,7 +145,7 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
               "Cannot find FunctionDecl!");
-  ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(), 
+  ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(), 
     FD->getNameAsString().size(), (*I).second);
   return true;
 }

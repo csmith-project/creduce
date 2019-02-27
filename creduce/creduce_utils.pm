@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+## Copyright (c) 2012, 2013, 2015, 2016, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -124,15 +124,12 @@ sub ncpus () {
     if ($OS eq "MSWin32") {
 	# TODO
     }
-    # Load and use the Sys::CPU module if available, don't complain otherwise
-    # we try this last since it will count hyperthreads not cores
-    return Sys::CPU::cpu_count() if (eval { require Sys::CPU; });
     return 1;
 }
 
 # here we're pretty conservative about the number of parallel
 # processes to use; if the user has some big iron she can specify a
-# higher number using -n
+# higher number using --n
 sub nprocs () {
     my $cpus = ncpus();
     die unless ($cpus >= 1);

@@ -212,10 +212,10 @@ const Expr *Transformation::getArrayBaseExprAndIdxs(
   while (ASE) {
     const Expr *IdxE = ASE->getIdx();
     unsigned int Idx = 0;
-    llvm::APSInt Result;
-    if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
+    clang::Expr::EvalResult Result;
+    if (IdxE && IdxE->EvaluateAsInt(Result, *Context) && Result.Val.isInt()) {
       // this will truncate a possible uint64 value to uint32 value
-      Idx = (unsigned int)(*Result.getRawData());
+      Idx = Result.Val.getInt().getZExtValue();
     }
     BaseE = ASE->getBase()->IgnoreParenCasts();
     ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
@@ -269,7 +269,8 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
   while (ME) {
     ValueDecl *VD = ME->getMemberDecl();
     FieldDecl *FD = dyn_cast<FieldDecl>(VD);
-    TransAssert(FD && "Bad FD!\n");
+    if (!FD)
+      return NULL;
     unsigned int Idx = FD->getFieldIndex();
     Idxs.push_back(Idx);
 
@@ -288,11 +289,12 @@ const Expr *Transformation::getMemberExprBaseExprAndIdxs(
 bool Transformation::isCXXMemberExpr(const MemberExpr *ME)
 {
   const ValueDecl *VD = ME->getMemberDecl();
-  if (dyn_cast<CXXMethodDecl>(VD))
-    return true;
 
   const FieldDecl *FD = dyn_cast<FieldDecl>(VD);
-  TransAssert(FD && "Bad FieldDecl!");
+  // VD can be either CXXMethodDecl, EnumConstantDecl or
+  // VarDecl (static data member)
+  if (!FD)
+    return true;
   const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(FD->getParent());
   if (!CXXRD)
     return false;
@@ -307,6 +309,8 @@ const Expr *Transformation::getMemberExprElem(const MemberExpr *ME)
 
   IndexVector Idxs;
   const Expr *BaseE = getMemberExprBaseExprAndIdxs(ME, Idxs);
+  if (!BaseE)
+    return NULL;
   return getInitExprFromBase(BaseE, Idxs);
 }
 
@@ -385,11 +389,11 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
       const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
       const Expr *IdxE = ASE->getIdx();
       unsigned int Idx = 0;
-      llvm::APSInt Result;
+      clang::Expr::EvalResult Result;
 
       // If we cannot have an integeral index, use 0.
-      if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
-        std::string IntStr = Result.toString(10);
+      if (IdxE && IdxE->EvaluateAsInt(Result, *Context) && Result.Val.isInt()) {
+        std::string IntStr = Result.Val.getInt().toString(10);
         std::stringstream TmpSS(IntStr);
         if (!(TmpSS >> Idx))
           TransAssert(0 && "Non-integer value!");
@@ -430,12 +434,12 @@ const Type *Transformation::getBasePointerElemType(const Type *Ty)
 
 int Transformation::getIndexAsInteger(const Expr *E)
 {
-  llvm::APSInt Result;
+  clang::Expr::EvalResult Result;
   int Idx;
-  if (!E->EvaluateAsInt(Result, *Context))
+  if (!E->EvaluateAsInt(Result, *Context) || !Result.Val.isInt())
     TransAssert(0 && "Failed to Evaluate index!");
 
-  Idx = (int)(*Result.getRawData());
+  Idx = (int)Result.Val.getInt().getSExtValue();
   return Idx;
 }
 
@@ -506,6 +510,9 @@ const FunctionDecl *Transformation::lookupFunctionDeclFromBases(
         const CXXRecordDecl *CXXRD,
         DeclContextSet &VisitedCtxs)
 {
+  if (!CXXRD->hasDefinition()) {
+    return NULL;
+  }
   for (CXXRecordDecl::base_class_const_iterator I =
        CXXRD->bases_begin(), E = CXXRD->bases_end(); I != E; ++I) {
 
@@ -734,6 +741,12 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
     return getBaseDeclFromType(PT);
   }
 
+  case Type::Pointer: {
+    const PointerType *PT = dyn_cast<PointerType>(Ty);
+    const Type *PTy = PT->getPointeeType().getTypePtr();
+    return getBaseDeclFromType(PTy);
+  }
+
   case Type::SubstTemplateTypeParm: {
     const SubstTemplateTypeParmType *TP =
       dyn_cast<SubstTemplateTypeParmType>(Ty);
@@ -769,6 +782,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
   case Type::SubstTemplateTypeParmPack:
   case Type::PackExpansion:
   case Type::Vector:
+  case Type::ExtVector:
   case Type::Builtin: // fall-through
     return NULL;
 
@@ -1059,7 +1073,18 @@ bool Transformation::isInIncludedFile(const Decl *D) const
 
 bool Transformation::isInIncludedFile(const Stmt *S) const
 {
-  return isInIncludedFile(S->getLocStart());
+  return isInIncludedFile(S->getBeginLoc());
+}
+
+bool Transformation::isDeclaringRecordDecl(const RecordDecl *RD)
+{
+  SourceLocation SemiLoc =
+    Lexer::findLocationAfterToken(RD->getSourceRange().getEnd(),
+                                  tok::semi,
+                                  *SrcManager,
+                                  Context->getLangOpts(),
+                                  /*SkipTrailingWhitespaceAndNewLine=*/true);
+  return SemiLoc.isInvalid();
 }
 
 Transformation::~Transformation(void)

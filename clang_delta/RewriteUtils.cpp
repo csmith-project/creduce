@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -455,7 +455,7 @@ SourceLocation RewriteUtils::getVarDeclTypeLocBegin(const VarDecl *VD)
     NextTL = NextTL.getNextTypeLoc();
   }
 
-  return VarTypeLoc.getLocStart();
+  return VarTypeLoc.getBeginLoc();
 }
 
 SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
@@ -518,7 +518,8 @@ SourceLocation RewriteUtils::getVarDeclTypeLocEnd(const VarDecl *VD)
 bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
                                          const VarDecl *VD,
                                          Decl *PrevDecl,
-                                         bool IsFirstDecl)
+                                         bool IsFirstDecl,
+                                         bool *StmtRemoved)
 {
   SourceRange StmtRange = DS->getSourceRange();
 
@@ -538,8 +539,11 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
     if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
       DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
       IsFirstDecl = true;
-      if (!RD->getDefinition() && DGroup.size() == 2)
+      if ((!RD->getDefinition() || RD->getNameAsString() == "") &&
+          DGroup.size() == 2) {
+        *StmtRemoved = true;
         return !(TheRewriter->RemoveText(StmtRange));
+      }
     }
   }
 
@@ -701,7 +705,7 @@ bool RewriteUtils::replaceExprNotInclude(const Expr *E,
 std::string RewriteUtils::getStmtIndentString(Stmt *S,
                                               SourceManager *SrcManager)
 {
-  SourceLocation StmtStartLoc = S->getLocStart();
+  SourceLocation StmtStartLoc = S->getBeginLoc();
 
   if (StmtStartLoc.isMacroID()) {
     StmtStartLoc = SrcManager->getFileLoc(StmtStartLoc);
@@ -744,7 +748,7 @@ bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
     IndentStr = getStmtIndentString((*I), SrcManager);
 
   std::string NewVarStr = "\n" + IndentStr + VarStr;
-  SourceLocation StartLoc = Body->getLocStart();
+  SourceLocation StartLoc = Body->getBeginLoc();
   return !(TheRewriter->InsertTextAfterToken(StartLoc, NewVarStr));
 }
 
@@ -772,7 +776,7 @@ bool RewriteUtils::addNewAssignStmtBefore(Stmt *BeforeStmt,
       return false;
   }
 
-  SourceLocation StmtLocStart = BeforeStmt->getLocStart();
+  SourceLocation StmtLocStart = BeforeStmt->getBeginLoc();
   if (StmtLocStart.isMacroID()) {
     StmtLocStart = SrcManager->getFileLoc(StmtLocStart);
   }
@@ -838,7 +842,7 @@ bool RewriteUtils::addStringBeforeStmtInternal(Stmt *S,
   std::string IndentedStr;
   indentAfterNewLine(NewStr, IndentedStr, IndentStr);
 
-  return !(TheRewriter->InsertText(S->getLocStart(), 
+  return !(TheRewriter->InsertText(S->getBeginLoc(), 
            IndentedStr, /*InsertAfter=*/false));
 }
 
@@ -1022,6 +1026,22 @@ bool RewriteUtils::replaceRecordDeclName(const RecordDecl *RD,
                                    NameStr);
 }
 
+bool RewriteUtils::replaceRecordDeclDef(const RecordDecl *RD,
+                                        const std::string &NameStr)
+{
+  if (RD->isThisDeclarationADefinition()) {
+    SourceLocation RBLoc = RD->getBraceRange().getEnd();
+    if (RBLoc.isInvalid()) {
+      return !TheRewriter->ReplaceText(RD->getSourceRange(), NameStr);
+    }
+    else {
+      SourceLocation StartLoc = RD->getSourceRange().getBegin();
+      return !TheRewriter->ReplaceText(SourceRange(StartLoc, RBLoc), NameStr);
+    }
+  }
+  return true;
+}
+
 bool RewriteUtils::replaceVarTypeName(const VarDecl *VD,
                                       const std::string &NameStr)
 {
@@ -1144,7 +1164,7 @@ bool RewriteUtils::getDeclGroupStrAndRemove(DeclGroupRef DGR,
   SourceLocation LastEndLoc = getEndLocationUntil(LastVarRange, ';');
   getStringBetweenLocs(Str, TypeLocEnd, LastEndLoc);
 
-  SourceLocation StartLoc = FirstVD->getLocStart();
+  SourceLocation StartLoc = FirstVD->getBeginLoc();
   SourceLocation NewLastEndLoc = getLocationAfterSkiping(LastEndLoc, ';');
   return !(TheRewriter->RemoveText(SourceRange(StartLoc, NewLastEndLoc)));
 }
@@ -1324,22 +1344,21 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
     return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
   }
 
-  const VarDecl *PrevVD = FirstVD;
+  const Decl *PrevDecl = FirstVD;
   const VarDecl *CurrVD = NULL;
   ++I;
   DeclGroupRef::const_iterator E = DGR.end();
   for (; I != E; ++I) {
     CurrVD = dyn_cast<VarDecl>(*I);
-    TransAssert(CurrVD && "Not a valid VarDecl!");
-    if (VD == CurrVD)
+    if (CurrVD && VD == CurrVD)
       break;
-    PrevVD = CurrVD;
+    PrevDecl = *I;
   }
 
   TransAssert((VD == CurrVD) && "Cannot find VD!");
 
   SourceLocation VarEndLoc = VarRange.getEnd();
-  SourceRange PrevDeclRange = PrevVD->getSourceRange();
+  SourceRange PrevDeclRange = PrevDecl->getSourceRange();
 
   SourceLocation PrevDeclEndLoc = 
     getEndLocationUntil(PrevDeclRange, ',');
@@ -1402,7 +1421,7 @@ bool RewriteUtils::removeIfAndCond(const IfStmt *IS)
   const Stmt *ThenStmt = IS->getThen();
   TransAssert(ThenStmt && "NULL ThenStmt!");
 
-  SourceLocation ThenLoc = ThenStmt->getLocStart();
+  SourceLocation ThenLoc = ThenStmt->getBeginLoc();
   SourceLocation EndLoc =  ThenLoc.getLocWithOffset(-1);
 
   Rewriter::RewriteOptions Opts;
@@ -1527,15 +1546,27 @@ bool RewriteUtils::replaceCXXDtorCallExpr(const CXXMemberCallExpr *CE,
   if (Pos == 0)
     return true;
 
-  SourceLocation StartLoc = CE->getLocStart();
+  SourceLocation StartLoc = CE->getBeginLoc();
   StartLoc = StartLoc.getLocWithOffset(Pos);
 
   return !(TheRewriter->ReplaceText(StartLoc, OldDtorName.size(), Name));
 }
 
+SourceRange RewriteUtils::getFileLocSourceRange(SourceRange LocRange)
+{
+  SourceLocation StartLoc = LocRange.getBegin();
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getSpellingLoc(StartLoc);
+    SourceLocation EndLoc = LocRange.getEnd();
+    TransAssert(EndLoc.isMacroID() && "EndLoc is not from a macro!");
+    LocRange = SourceRange(StartLoc, SrcManager->getSpellingLoc(EndLoc));
+  }
+  return LocRange;
+}
+
 bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
 {
-  SourceRange LocRange = Loc.getLocalSourceRange();
+  SourceRange LocRange = getFileLocSourceRange(Loc.getLocalSourceRange());
   TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
               "Bad NestedNameSpecifierLoc Range!");
   return !(TheRewriter->RemoveText(LocRange));
@@ -1544,7 +1575,7 @@ bool RewriteUtils::removeSpecifier(NestedNameSpecifierLoc Loc)
 bool RewriteUtils::replaceSpecifier(NestedNameSpecifierLoc Loc,
                                     const std::string &Name)
 {
-  SourceRange LocRange = Loc.getLocalSourceRange();
+  SourceRange LocRange = getFileLocSourceRange(Loc.getLocalSourceRange());
   TransAssert((TheRewriter->getRangeSize(LocRange) != -1) && 
               "Bad NestedNameSpecifierLoc Range!");
   return !(TheRewriter->ReplaceText(LocRange, Name + "::"));
@@ -1581,7 +1612,10 @@ bool RewriteUtils::replaceRecordType(RecordTypeLoc &RTLoc,
                                      const std::string &Name)
 {
   const IdentifierInfo *TypeId = RTLoc.getType().getBaseTypeIdentifier();
-  SourceLocation LocStart = RTLoc.getLocStart();
+  if (!TypeId)
+    return true;
+
+  SourceLocation LocStart = RTLoc.getBeginLoc();
 
   // Loc could be invalid, for example:
   // class AAA { };

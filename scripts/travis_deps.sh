@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 ##
-## Copyright (c) 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2015, 2016, 2017, 2018 The University of Utah
 ## Copyright (c) 2015 Tamir Duberstein
 ## All rights reserved.
 ##
@@ -16,7 +16,7 @@ set -eux
 
 apt-get update -qq
 
-# The Travis-CI Ubuntu 14.04 ("trusty") build environment has LLVM and Clang
+# The Travis-CI Ubuntu 16.04 ("xenial") build environment has LLVM and Clang
 # preinstalled.  They interfere with our installations of these packages.
 apt-get remove -y -qq \
     clang \
@@ -28,23 +28,23 @@ apt-get install -y -qq \
     software-properties-common \
     wget
 
-# Set up for installing LLVM 4.0.
+# Set up for installing LLVM 7.0
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-4.0 main'
+    'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 4.0.  See file "INSTALL".
+# Install LLVM 7.0.  See file "INSTALL".
 apt-get install -y -qq \
-    llvm-4.0 \
-    llvm-4.0-dev \
-    clang-4.0 \
-    libclang-4.0-dev \
-    clang-format-4.0 \
+    llvm-7 \
+    llvm-7-dev \
+    clang-7 \
+    libclang-7-dev \
+    clang-format-7 \
     libedit-dev
 
 # Install other C-Reduce dependencies.  See file "INSTALL".
@@ -53,7 +53,6 @@ apt-get install -y -qq \
     libfile-which-perl \
     libgetopt-tabular-perl \
     libregexp-common-perl \
-    libsys-cpu-perl \
     libterm-readkey-perl \
     flex \
     build-essential \

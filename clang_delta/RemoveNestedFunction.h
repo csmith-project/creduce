@@ -81,6 +81,8 @@ private:
 
   void getNewIntTmpVariable(std::string &VarStr);
 
+  void getNewAutoTmpVariable(std::string &VarStr);
+
   clang::SmallVector<clang::CallExpr *, 5> CallExprQueue;
 
   clang::SmallVector<clang::CallExpr *, 10> ValidCallExprs;

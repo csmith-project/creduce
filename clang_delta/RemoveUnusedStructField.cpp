@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -41,6 +41,8 @@ public:
 
   bool VisitFieldDecl(FieldDecl *FD);
 
+  bool VisitDesignatedInitExpr(DesignatedInitExpr *DIE);
+
 private:
 
   RemoveUnusedStructField *ConsumerInstance;
@@ -80,6 +82,10 @@ bool RemoveUnusedStructFieldVisitor::VisitFieldDecl(FieldDecl *FD)
     ConsumerInstance->setBaseLine(RD, FD);
   }
 
+  return true;
+}
+
+bool RemoveUnusedStructFieldVisitor::VisitDesignatedInitExpr(DesignatedInitExpr *DIE) {
   return true;
 }
 
@@ -226,6 +232,49 @@ const FieldDecl *RemoveUnusedStructField::getFieldDeclByIdx(
   return NULL;
 }
 
+const Expr *RemoveUnusedStructField::getInitExprFromDesignatedInitExpr(
+              const InitListExpr *ILE, int InitListIdx,
+              const FieldDecl *FD) {
+  int NumInits = ILE->getNumInits();
+  llvm::DenseMap<int, const Expr *> LeftInits;
+  int LastFDIdx = -1;
+  for (int I = 0; I < NumInits; ++I) {
+    const Expr *Init = ILE->getInit(I);
+    if (const DesignatedInitExpr *DIE = dyn_cast<DesignatedInitExpr>(Init)) {
+      if (DIE->getNumSubExprs() < 1) {
+        LeftInits[I] = Init;
+        LastFDIdx = I;
+      }
+      else {
+        const DesignatedInitExpr::Designator *DS = DIE->getDesignator(0);
+        const FieldDecl *CurrFD = DS->getField();
+        if ((CurrFD && FD == CurrFD) ||
+            (CurrFD == NULL && DS->getFieldName() == FD->getIdentifier())) {
+          IsFirstField = (I == 0);
+          return Init;
+        }
+        if (CurrFD) {
+          LastFDIdx = CurrFD->getFieldIndex();
+        }
+        else {
+          LastFDIdx = I;
+        }
+      }
+    }
+    else {
+      LastFDIdx++;
+      LeftInits[LastFDIdx] = Init;
+    }
+  }
+  const Expr *Init = LeftInits[++LastFDIdx];
+  if (Init) {
+    IsFirstField = (LastFDIdx == 0);
+    return Init;
+  }
+  IsFirstField = (InitListIdx == 0);
+  return ILE->getInit(InitListIdx);
+}
+
 void RemoveUnusedStructField::getInitExprs(const Type *Ty, 
                                            const Expr *E,
                                            const IndexVector *IdxVec,
@@ -233,14 +282,15 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
 {
   const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty);
   if (ArrayTy) {
-    const InitListExpr *ILE = dyn_cast<InitListExpr>(E);
-    TransAssert(ILE && "Invalid array initializer!");
-    unsigned int NumInits = ILE->getNumInits();
-    Ty = ArrayTy->getElementType().getTypePtr();
+    if (const InitListExpr *ILE = dyn_cast<InitListExpr>(E)) {
+      TransAssert(ILE && "Invalid array initializer!");
+      unsigned int NumInits = ILE->getNumInits();
+      Ty = ArrayTy->getElementType().getTypePtr();
     
-    for (unsigned I = 0; I < NumInits; ++I) {
-      const Expr *Init = ILE->getInit(I);
-      getInitExprs(Ty, Init, IdxVec, InitExprs);
+      for (unsigned I = 0; I < NumInits; ++I) {
+        const Expr *Init = ILE->getInit(I);
+        getInitExprs(Ty, Init, IdxVec, InitExprs);
+      }
     }
     return;
   }
@@ -249,6 +299,18 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
   if (!ILE)
     return;
 
+  // ILE can be a list of DesignatedInitExpr(s).
+  // Extract it's syntactic form in such case.
+  bool HasDesignatedInit = false;
+  if (ILE->isSemanticForm()) {
+    ILE = ILE->getSyntacticForm() == nullptr ? ILE : ILE->getSyntacticForm();
+    for (unsigned I = 0; I < ILE->getNumInits(); I++) {
+      if (isa<DesignatedInitExpr>(ILE->getInit(I))) {
+        HasDesignatedInit = true;
+        break;
+      }
+    }
+  }
   const RecordType *RT = NULL;
   if (Ty->isUnionType()) {
     RT = Ty->getAsUnionType();
@@ -284,6 +346,9 @@ void RemoveUnusedStructField::getInitExprs(const Type *Ty,
     Init = ILE->getInit(InitListIdx);
 
     if (FD == TheFieldDecl) {
+      if (HasDesignatedInit) {
+        Init = getInitExprFromDesignatedInitExpr(ILE, InitListIdx, FD);
+      }
       InitExprs.push_back(Init);
       TransAssert((VecSz == 1) && "Bad IndexVector size!"); (void)VecSz;
     }

@@ -90,7 +90,7 @@ bool ReplaceUndefFuncRewriteVisitor::VisitCallExpr(CallExpr *CE)
     return true;
 
   if (FD->getCanonicalDecl() == ConsumerInstance->ReplacedFunctionDecl) {
-    ConsumerInstance->TheRewriter.ReplaceText(CE->getLocStart(),
+    ConsumerInstance->TheRewriter.ReplaceText(CE->getBeginLoc(),
       ConsumerInstance->ReplacedFunctionDecl->getNameAsString().size(),
       ConsumerInstance->ReplacingFunctionDecl->getNameAsString());
   }

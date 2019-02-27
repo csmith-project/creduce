@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -538,7 +538,7 @@ void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
       I = ParmRefToStrMap.begin(), E = ParmRefToStrMap.end(); I != E; ++I) {
 
     const DeclRefExpr *ParmRef = (*I).first;
-    SourceLocation ParmRefLocStart = ParmRef->getLocStart();
+    SourceLocation ParmRefLocStart = ParmRef->getBeginLoc();
     const char *ParmRefStartBuf =
       SrcManager->getCharacterData(ParmRefLocStart);
 
@@ -551,7 +551,7 @@ void ReplaceCallExpr::sortParmRefsByOffs(const char *StartBuf,
 void ReplaceCallExpr::replaceParmRefs(std::string &RetStr, const Expr *RetE,
        llvm::DenseMap<const DeclRefExpr *, std::string> &ParmRefToStrMap)
 {
-  SourceLocation StartLoc = RetE->getLocStart();
+  SourceLocation StartLoc = RetE->getBeginLoc();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
   std::vector< std::pair<const DeclRefExpr *, int> > SortedParmRefs;

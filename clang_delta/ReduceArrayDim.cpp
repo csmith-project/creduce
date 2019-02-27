@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -239,6 +239,25 @@ void ReduceArrayDim::rewriteInitListExpr(const InitListExpr *ILE,
   }
 }
 
+unsigned ReduceArrayDim::getArraySize(const ArrayType *ATy)
+{
+  if (const ConstantArrayType *CstArrayTy =
+      dyn_cast<ConstantArrayType>(ATy)) {
+    return getConstArraySize(CstArrayTy);
+  }
+
+  if (const DependentSizedArrayType *DepArrayTy =
+      dyn_cast<DependentSizedArrayType>(ATy)) {
+    const Expr *E = DepArrayTy->getSizeExpr();
+    clang::Expr::EvalResult Result;
+    if (E->EvaluateAsInt(Result, *Context) && Result.Val.isInt()) {
+      return Result.Val.getInt().getZExtValue();
+    }
+  }
+
+  return 1;
+}
+
 void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
 {
   const Type *Ty = VD->getType().getTypePtr();
@@ -259,9 +278,7 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
   TransAssert((BPVector.size() > 1) && "Invalid Bracket Pairs!");
   
   ArraySubTypeVector::const_reverse_iterator TyIdx = TyVec.rbegin();
-  const ConstantArrayType *CstArrayTy = dyn_cast<ConstantArrayType>(*TyIdx);
-  TransAssert(CstArrayTy && "Non ConstantArrayType!");
-  unsigned LastSz = getConstArraySize(CstArrayTy);
+  unsigned LastSz = getArraySize(*TyIdx);
 
   ++TyIdx;
   const ArrayType *SecArrayTy = (*TyIdx);
@@ -275,12 +292,8 @@ void ReduceArrayDim::rewriteOneVarDecl(const VarDecl *VD)
   BracketLocPair *SecBracketPair = (*BIdx);
   // We keep incomplete array
   if (!dyn_cast<IncompleteArrayType>(SecArrayTy)) {
-    const ConstantArrayType *SecCstArrayTy = 
-      dyn_cast<ConstantArrayType>(SecArrayTy);
-    TransAssert(SecCstArrayTy && "Non ConstantArrayType!");
-
     // Keep this value, which is needed for rewriting ArraySubscriptExpr
-    ArraySz = getConstArraySize(SecCstArrayTy);
+    ArraySz = getArraySize(SecArrayTy);
 
     std::stringstream TmpSS;
     TmpSS << (LastSz * ArraySz);

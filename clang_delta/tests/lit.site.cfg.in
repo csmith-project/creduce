@@ -1,0 +1,18 @@
+## -*- mode: Python -*-
+##
+## Copyright (c) 2018 The University of Utah
+## All rights reserved.
+##
+## This file is distributed under the University of Illinois Open Source
+## License.  See the file COPYING for details.
+
+###############################################################################
+
+config.builddir = "@abs_builddir@"
+config.llvm_bindir = "@LLVM_BINDIR@"
+
+lit_config.load_config(config, "@clang_delta_srcdir@/tests/lit.cfg")
+
+###############################################################################
+
+## End of file.

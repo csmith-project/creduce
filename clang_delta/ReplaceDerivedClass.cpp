@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -49,12 +49,13 @@ class ReplaceDerivedClassRewriteVisitor : public
   CommonRenameClassRewriteVisitor<ReplaceDerivedClassRewriteVisitor> 
 {
 public:
-  ReplaceDerivedClassRewriteVisitor(Rewriter *RT, 
+  ReplaceDerivedClassRewriteVisitor(Transformation *Instance,
+                                    Rewriter *RT,
                                     RewriteUtils *Helper,
                                     const CXXRecordDecl *CXXRD,
                                     const std::string &Name)
     : CommonRenameClassRewriteVisitor<ReplaceDerivedClassRewriteVisitor>
-      (RT, Helper, CXXRD, Name)
+      (Instance, RT, Helper, CXXRD, Name)
   { }
 };
 
@@ -93,7 +94,7 @@ void ReplaceDerivedClass::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   RewriteVisitor = 
-    new ReplaceDerivedClassRewriteVisitor(&TheRewriter, RewriteHelper, 
+    new ReplaceDerivedClassRewriteVisitor(this, &TheRewriter, RewriteHelper, 
                                           TheDerivedClass->getCanonicalDecl(),
                                           TheBaseClass->getNameAsString());
   TransAssert(RewriteVisitor && "NULL RewriteVisitor!");
@@ -177,7 +178,9 @@ void ReplaceDerivedClass::doRewrite(void)
     RewriteHelper->removeClassTemplateDecls(TmplD);
   }
   else {
-    RewriteHelper->removeClassDecls(TheDerivedClass);
+    if (!isDeclaringRecordDecl(TheDerivedClass)) {
+      RewriteHelper->removeClassDecls(TheDerivedClass);
+    }
   }
 }
 

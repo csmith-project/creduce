@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2016 The University of Utah
+// Copyright (c) 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -59,11 +59,13 @@ public:
     : SrcManager(M), HeaderName(Name), HasHeader(H), HeaderLoc(Loc)
   { }
 
-  void InclusionDirective(SourceLocation HashLoc, const Token &IncludeTok,
+  virtual void InclusionDirective(SourceLocation HashLoc,
+                          const Token &IncludeTok,
                           StringRef FileName, bool IsAngled,
                           CharSourceRange FilenameRange, const FileEntry *File,
                           StringRef SearchPath, StringRef RelativePath,
-                          const Module *Imported) override;
+                          const Module *Imported,
+                          SrcMgr::CharacteristicKind FileType) override;
 
 private:
   SourceManager &SrcManager;
@@ -76,14 +78,15 @@ private:
 };
 
 void IncludesPPCallbacks::InclusionDirective(SourceLocation HashLoc,
-                                            const Token &/*IncludeTok*/,
-                                            StringRef FileName,
+                                             const Token &/*IncludeTok*/,
+                                             StringRef FileName,
                                             bool /*IsAngled*/,
-                                            CharSourceRange /*FilenameRange*/,
-                                            const FileEntry * /*File*/,
-                                            StringRef /*SearchPath*/,
-                                            StringRef /*RelativePath*/,
-                                            const Module * /*Imported*/)
+                                             CharSourceRange /*FilenameRange*/,
+                                             const FileEntry * /*File*/,
+                                             StringRef /*SearchPath*/,
+                                             StringRef /*RelativePath*/,
+                                             const Module * /*Imported*/,
+                                             SrcMgr::CharacteristicKind /*FileType*/)
 {
   if (!SrcManager.isInMainFile(HashLoc))
     return;
@@ -669,7 +672,7 @@ static std::string getFormatString(const BuiltinType *BT)
 
 void ExpressionDetector::doRewrite()
 {
-  SourceLocation LocStart = TheStmt->getLocStart();
+  SourceLocation LocStart = TheStmt->getBeginLoc();
   if (shouldAddFunctionDecl(LocStart)) {
     SourceLocation Loc =
       SrcManager->getLocForStartOfFile(SrcManager->getMainFileID());

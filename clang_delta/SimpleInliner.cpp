@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -68,6 +68,8 @@ public:
   bool VisitCallExpr(CallExpr *CE);
 
   bool TraverseConstructorInitializer(CXXCtorInitializer *Init);
+
+  bool TraverseParmVarDecl(ParmVarDecl *PV);
 
   unsigned int getNumStmts(void) {
     return NumStmts;
@@ -182,6 +184,11 @@ bool SimpleInlinerCollectionVisitor::VisitCallExpr(CallExpr *CE)
 // Ctor's initializer
 bool SimpleInlinerCollectionVisitor::TraverseConstructorInitializer(
        CXXCtorInitializer *Init)
+{
+  return true;
+}
+
+bool SimpleInlinerCollectionVisitor::TraverseParmVarDecl(ParmVarDecl *PV)
 {
   return true;
 }
@@ -480,7 +487,7 @@ void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf,
   for (ReturnStmtsVector::iterator I = ReturnStmts.begin(),
        E = ReturnStmts.end(); I != E; ++I) {
     ReturnStmt *RS = (*I);
-    SourceLocation RSLocStart = RS->getLocStart();
+    SourceLocation RSLocStart = RS->getBeginLoc();
     const char *RSStartBuf = SrcManager->getCharacterData(RSLocStart);
     int Off = RSStartBuf - StartBuf;
     TransAssert((Off >= 0) && "Bad Offset!");
@@ -497,7 +504,7 @@ void SimpleInliner::copyFunctionBody(void)
   RewriteHelper->getStmtString(Body, FuncBodyStr);
   TransAssert(FuncBodyStr[0] == '{');
 
-  SourceLocation StartLoc = Body->getLocStart();
+  SourceLocation StartLoc = Body->getBeginLoc();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
   std::vector< std::pair<ReturnStmt *, int> > SortedReturnStmts;

@@ -21,6 +21,7 @@ namespace clang {
   class ASTContext;
   class VarDecl;
   class ArraySubscriptExpr;
+  class ArrayType;
 }
 
 class ReduceArrayDimCollectionVisitor;
@@ -82,6 +83,8 @@ private:
 
   void rewriteInitListExpr(const clang::InitListExpr *ILE,
                            unsigned int Dim);
+
+  unsigned getArraySize(const clang::ArrayType *ATy);
 
   VarDeclSet VisitedVarDecls;
 

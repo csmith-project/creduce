@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -413,6 +413,15 @@ void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
     dyn_cast<RecordDecl>(RD->getCanonicalDecl());
   TransAssert(CanonicalRD && "NULL CanonicalRD!");
   DeclaratorDeclSet *DDSet = RecordToDeclarator[CanonicalRD];
+  if (CanonicalRD->getNameAsString() == "") {
+    // this is a special case where we declare an unnamed union
+    // along with a function declaration. In this case, the DDSet
+    // for the RecordDecl hasn't been created, so we do it here.
+    // Also, because the routine for rewriting the RecordDecl will replace
+    // the unoin keywork, we don't need to keep DD in the DDSet.
+    addOneRecord(CanonicalRD);
+    return;
+  }
   TransAssert(DDSet && "Cannot find VarDeclSet for a given RecordDecl!");
   DDSet->insert(DD);
 }

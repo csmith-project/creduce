@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -51,15 +51,16 @@ private:
 };
 
 class RenameClassRewriteVisitor : public 
-  CommonRenameClassRewriteVisitor<RenameClassRewriteVisitor> 
+  CommonRenameClassRewriteVisitor<RenameClassRewriteVisitor>
 {
 public:
-  RenameClassRewriteVisitor(Rewriter *RT, 
+  RenameClassRewriteVisitor(Transformation *Instance,
+                            Rewriter *RT,
                             RewriteUtils *Helper,
                             const CXXRecordDecl *CXXRD,
                             const std::string &Name)
     : CommonRenameClassRewriteVisitor<RenameClassRewriteVisitor>
-      (RT, Helper, CXXRD, Name)
+      (Instance, RT, Helper, CXXRD, Name)
   { }
 };
 
@@ -101,7 +102,7 @@ void RenameClass::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   RewriteVisitor = 
-    new RenameClassRewriteVisitor(&TheRewriter, RewriteHelper, 
+    new RenameClassRewriteVisitor(this, &TheRewriter, RewriteHelper,
                                   TheCXXRecordDecl, NewNameStr);
 
   TransAssert(RewriteVisitor && "NULL RewriteVisitor!");

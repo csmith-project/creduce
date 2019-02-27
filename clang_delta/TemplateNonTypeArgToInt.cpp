@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -163,10 +163,10 @@ void TemplateNonTypeArgToInt::handleOneTemplateArgumentLoc(
   ValidInstanceNum++;
   if (ValidInstanceNum == TransformationCounter) {
     TheExpr = ArgLoc.getLocInfo().getAsExpr();
-    llvm::APSInt Result;
+    clang::Expr::EvalResult Result;
     if (!TheExpr->isValueDependent() &&
-        TheExpr->EvaluateAsInt(Result, *Context)) {
-      IntString = Result.toString(10);
+        TheExpr->EvaluateAsInt(Result, *Context) && Result.Val.isInt()) {
+      IntString = Result.Val.getInt().toString(10);
     }
   }
 }

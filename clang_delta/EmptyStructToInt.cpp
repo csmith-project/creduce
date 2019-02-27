@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -113,7 +113,7 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   const RecordDecl *RD = RTLoc.getDecl();
 
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
-    SourceLocation LocStart = RTLoc.getLocStart();
+    SourceLocation LocStart = RTLoc.getBeginLoc();
     void *LocPtr = LocStart.getPtrEncoding();
     if (ConsumerInstance->VisitedLocs.count(LocPtr))
       return true;
@@ -147,11 +147,11 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
     return true;
   }
 
-  SourceLocation StartLoc = Loc.getLocStart();
+  SourceLocation StartLoc = Loc.getBeginLoc();
   if (StartLoc.isInvalid())
     return true;
   TypeLoc TyLoc = Loc.getNamedTypeLoc();
-  SourceLocation EndLoc = TyLoc.getLocStart();
+  SourceLocation EndLoc = TyLoc.getBeginLoc();
   if (EndLoc.isInvalid())
     return true;
   EndLoc = EndLoc.getLocWithOffset(-1);
@@ -443,6 +443,16 @@ bool EmptyStructToInt::isValidRecordDecl(const RecordDecl *RD)
     if (!(*I)->isImplicit()) {
       if ((*I)->isReferenced())
         return false;
+      if (isa<CXXConstructorDecl>(*I) || isa<CXXDestructorDecl>(*I))
+        return false;
+      if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(*I)) {
+        if (FD->hasBody() && !FD->isInlined())
+          return false;
+      }
+      if (const FieldDecl *FieldD = dyn_cast<FieldDecl>(*I)) {
+        if (pointToSelf(FieldD))
+          return false;
+      }
       ++count;
     }
   }

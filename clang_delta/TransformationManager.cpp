@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -223,7 +223,7 @@ llvm::raw_ostream *TransformationManager::getOutStream()
 
   std::error_code EC;
   llvm::raw_fd_ostream *Out = new llvm::raw_fd_ostream(
-      OutputFileName, EC, llvm::sys::fs::F_RW);
+      OutputFileName, EC, llvm::sys::fs::FA_Read | llvm::sys::fs::FA_Write);
   assert(!EC && "Cannot open output file!");
   return Out;
 }

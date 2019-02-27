@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -947,7 +947,7 @@ void ReducePointerLevel::replaceArrowWithDot(const Expr *E)
 {
   std::string ES;
   RewriteHelper->getExprString(E, ES);
-  SourceLocation LocStart = E->getLocStart();
+  SourceLocation LocStart = E->getBeginLoc();
 
   size_t ArrowPos = ES.find("->");
   TransAssert((ArrowPos != std::string::npos) && "Cannot find Arrow!");

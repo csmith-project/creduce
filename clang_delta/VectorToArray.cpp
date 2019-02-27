@@ -129,7 +129,7 @@ public:
     unsigned NameLength = IdInfo->getLength();
     assert(NameLength && "Variable name has no length");
 
-    SourceLocation TypeLocStart = VD->getLocStart();
+    SourceLocation TypeLocStart = VD->getBeginLoc();
     const std::string ElemTypeName = getVectorElemTypeName(VD);
 
     SourceLocation NameLocM1 = NameLoc.getLocWithOffset(-1);

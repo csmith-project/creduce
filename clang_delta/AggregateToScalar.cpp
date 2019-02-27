@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -212,7 +212,7 @@ bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
     return addTmpVar(RefE, VarName, NULL);
 
   std::string InitStr;
-  if (InitE->getLocStart().isInvalid()) {
+  if (InitE->getBeginLoc().isInvalid()) {
     const Type *ET = InitE->getType().getTypePtr();
     if (ET->isIntegerType() || ET->isPointerType())
       InitStr = "0"; 

@@ -387,19 +387,19 @@ bool RemoveUnusedFunction::hasValidOuterLocStart(
 SourceLocation RemoveUnusedFunction::getFunctionOuterLocStart(
                  const FunctionDecl *FD)
 {
-  SourceLocation LocStart = FD->getLocStart();
+  SourceLocation LocStart = FD->getBeginLoc();
   bool RecordLoc = false;
 
   // check if FD is from a function template
   if (FunctionTemplateDecl *FTD = FD->getDescribedFunctionTemplate()) {
-    // get FTD->getLocStart() only if it is less than FD->getLocStart,
+    // get FTD->getBeginLoc() only if it is less than FD->getBeginLoc,
     // for example, in the code below:
     //   template <typename T> struct S {template <typename T1> void foo();};
     //   template<typename T> template<typename T1> void S<T>::foo() { }
     // where
-    //   FTD->getLocStart() points to the begining of "template<typename T1>"
+    //   FTD->getBeginLoc() points to the begining of "template<typename T1>"
     if (hasValidOuterLocStart(FTD, FD)) {
-      LocStart = FTD->getLocStart();
+      LocStart = FTD->getBeginLoc();
       RecordLoc = true;
     }
   }
@@ -530,6 +530,10 @@ void RemoveUnusedFunction::removeOneExplicitInstantiation(
   const char * const FileStartBuf = SrcManager->getCharacterData(FileStartLoc);
 
   SourceLocation Loc = Spec->getPointOfInstantiation();
+  if (Loc.isInvalid()) {
+    TheRewriter.RemoveText(Spec->getSourceRange());
+    return;
+  }
   const char *OrigStartBuf = SrcManager->getCharacterData(Loc);
   const char *StartBuf = OrigStartBuf;
   int Offset = 0;

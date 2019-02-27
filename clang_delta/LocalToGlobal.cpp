@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -85,8 +85,8 @@ private:
 
   LocalToGlobal *ConsumerInstance;
 
-  bool makeLocalAsGlobalVar(FunctionDecl *FD,
-                            VarDecl *VD);
+  bool makeLocalAsGlobalVar(FunctionDecl *FD, VarDecl *VD,
+                            Decl *PrevDecl, bool StmtRemoved);
 
 };
 
@@ -184,33 +184,40 @@ LocalToGlobal::~LocalToGlobal(void)
   delete TransformationASTVisitor;
 }
 
-bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD,
-                                          VarDecl *LV)
+bool LToGASTVisitor::makeLocalAsGlobalVar(FunctionDecl *FD, VarDecl *VD,
+                                          Decl *PrevDecl, bool StmtRemoved)
 {
   std::string GlobalVarStr;
   std::string NewName = ConsumerInstance->getNewName();
+  auto& TheRewriter = ConsumerInstance->TheRewriter;
 
-  QualType T = LV->getType();
-  T.getAsStringInternal(NewName, 
-                        ConsumerInstance->Context->getPrintingPolicy());
-
-  GlobalVarStr = NewName;
-
-  if (LV->hasInit()) {
-    const Expr *InitExpr = LV->getInit();
-    std::string InitStr("");
-    ConsumerInstance->RewriteHelper->getExprString(InitExpr, 
-                                                   InitStr);
-    GlobalVarStr += " = ";
-    GlobalVarStr += InitStr; 
+  if (StmtRemoved) {
+    SourceRange Range = PrevDecl->getSourceRange();
+    ConsumerInstance->RewriteHelper->getStringBetweenLocs(
+      GlobalVarStr, Range.getBegin(), VD->getLocation());
+    GlobalVarStr += NewName;
   }
+  else {
+    QualType T = VD->getType();
+    T.getAsStringInternal(NewName,
+                          ConsumerInstance->Context->getPrintingPolicy());
 
+    GlobalVarStr = NewName;
+
+    if (VD->hasInit()) {
+      const Expr *InitExpr = VD->getInit();
+      std::string InitStr("");
+      ConsumerInstance->RewriteHelper->getExprString(InitExpr,
+                                                   InitStr);
+      GlobalVarStr += " = ";
+      GlobalVarStr += InitStr;
+    }
+  }
   GlobalVarStr += ";\n";
 
-  auto& TheRewriter = ConsumerInstance->TheRewriter;
   for (DeclContext* DC = FD; DC; DC = DC->getParent()) {
     if (DC->getParent() && DC->getParent()->isTranslationUnit()) {
-      TheRewriter.InsertTextBefore(cast<Decl>(DC)->getLocStart(), GlobalVarStr);
+      TheRewriter.InsertTextBefore(cast<Decl>(DC)->getBeginLoc(), GlobalVarStr);
       return true;
     }
   }
@@ -250,10 +257,12 @@ bool LToGASTVisitor::VisitDeclStmt(DeclStmt *DS)
     return true;
 
   bool IsFirstDecl = (!VarPos);
+  bool StmtRemoved = false;
   ConsumerInstance->RewriteHelper->removeVarFromDeclStmt
-    (DS, VD, PrevDecl, IsFirstDecl);
+    (DS, VD, PrevDecl, IsFirstDecl, &StmtRemoved);
 
-  return makeLocalAsGlobalVar(ConsumerInstance->TheFuncDecl, VD);
+  return makeLocalAsGlobalVar(ConsumerInstance->TheFuncDecl, VD,
+                              PrevDecl, StmtRemoved);
 }
 
 bool LToGASTVisitor::VisitDeclRefExpr(DeclRefExpr *VarRefExpr)

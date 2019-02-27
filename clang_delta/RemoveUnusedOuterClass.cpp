@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -122,7 +122,7 @@ void RemoveUnusedOuterClass::analyzeCXXRDSet()
 void RemoveUnusedOuterClass::removeOuterClass()
 {
   TransAssert(TheCXXRDDef && "NULL Base CXXRD!");
-  SourceLocation LocStart = TheCXXRDDef->getLocStart();
+  SourceLocation LocStart = TheCXXRDDef->getBeginLoc();
   SourceLocation LocEnd = 
     RewriteHelper->getEndLocationUntil(LocStart, '{');
   TransAssert(LocEnd.isValid() && "Invalid Location!");

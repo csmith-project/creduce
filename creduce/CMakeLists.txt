@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -83,16 +83,6 @@ if(status)
   message(STATUS "Required Perl module `Regexp::Common' was not found")
   set(required_perl_modules "no")
   set(missing_required_runtime_prereq "yes")
-endif()
-#
-execute_process(COMMAND ${PERL_EXECUTABLE} -MSys::CPU -e ""
-  ERROR_QUIET
-  RESULT_VARIABLE status
-  )
-if(status)
-  message(STATUS "Optional Perl module `Sys::CPU' was not found")
-  set(optional_perl_modules "no")
-  set(missing_optional_runtime_prereq "yes")
 endif()
 #
 execute_process(COMMAND ${PERL_EXECUTABLE} -MTerm::ReadKey -e ""
@@ -244,6 +234,9 @@ add_custom_target(Modules ALL
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_ints.pm
+    ${PROJECT_BINARY_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${PROJECT_SOURCE_DIR}/pass_line_markers.pm
     ${PROJECT_BINARY_DIR}
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${PROJECT_SOURCE_DIR}/pass_lines.pm

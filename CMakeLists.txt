@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -26,8 +26,8 @@ project(creduce)
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "4.0")
-  message(FATAL_ERROR "C-Reduce requires LLVM 4.0 or later")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "6.0")
+  message(FATAL_ERROR "C-Reduce requires LLVM 6.0 or later")
 endif()
 #
 # Do this here, too, just to keep it with the LLVM check above.
@@ -90,11 +90,11 @@ check_include_file("unistd.h"		HAVE_UNISTD_H)
 set(creduce_PACKAGE			"creduce")
 set(creduce_PACKAGE_BUGREPORT		"creduce-bugs@flux.utah.edu")
 set(creduce_PACKAGE_NAME		"creduce")
-set(creduce_PACKAGE_STRING		"creduce 2.7.0")
+set(creduce_PACKAGE_STRING		"creduce 2.9.0")
 set(creduce_PACKAGE_TARNAME		"creduce")
 set(creduce_PACKAGE_URL			"http://embed.cs.utah.edu/creduce/")
-set(creduce_PACKAGE_VERSION		"2.7.0")
-set(creduce_VERSION			"2.7.0")
+set(creduce_PACKAGE_VERSION		"2.9.0")
+set(creduce_VERSION			"2.9.0")
 
 # FIXME: Should be determined automatically.
 set(YYTEXT_POINTER 1)

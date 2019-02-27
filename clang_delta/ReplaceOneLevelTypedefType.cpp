@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -123,7 +123,7 @@ void ReplaceOneLevelTypedefType::handleOneTypedefTypeLoc(TypedefTypeLoc TLoc)
     return;
   const TypedefType *TdefTy = TLoc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
-  if (!TdefD || TdefD->getLocStart().isInvalid())
+  if (!TdefD || TdefD->getBeginLoc().isInvalid())
     return;
   const TypedefDecl *CanonicalD = 
     dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl());

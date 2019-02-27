@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2014, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -60,16 +60,17 @@ bool RemoveBaseClassBaseVisitor::VisitCXXRecordDecl(
   return true;
 }
 
-class RemoveBaseClassRewriteVisitor : public 
+class RemoveBaseClassRewriteVisitor : public
   CommonRenameClassRewriteVisitor<RemoveBaseClassRewriteVisitor> 
 {
 public:
-  RemoveBaseClassRewriteVisitor(Rewriter *RT, 
-                            RewriteUtils *Helper,
-                            const CXXRecordDecl *CXXRD,
-                            const std::string &Name)
+  RemoveBaseClassRewriteVisitor(Transformation *Instance,
+                                Rewriter *RT,
+                                RewriteUtils *Helper,
+                                const CXXRecordDecl *CXXRD,
+                                const std::string &Name)
     : CommonRenameClassRewriteVisitor<RemoveBaseClassRewriteVisitor>
-      (RT, Helper, CXXRD, Name)
+      (Instance, RT, Helper, CXXRD, Name)
   { }
 };
 
@@ -102,7 +103,7 @@ void RemoveBaseClass::HandleTranslationUnit(ASTContext &Ctx)
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
   RewriteVisitor = 
-    new RemoveBaseClassRewriteVisitor(&TheRewriter, RewriteHelper, 
+    new RemoveBaseClassRewriteVisitor(this, &TheRewriter, RewriteHelper,
                                       TheBaseClass->getCanonicalDecl(),
                                       TheDerivedClass->getNameAsString());
 

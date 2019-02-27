@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012 The University of Utah
+// Copyright (c) 2012, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -66,6 +66,9 @@ private:
 
   void setBaseLine(const clang::RecordDecl *RD, const clang::FieldDecl *FD);
 
+  const clang::Expr *getInitExprFromDesignatedInitExpr(
+                       const clang::InitListExpr *ILE, int InitListIdx,
+                       const clang::FieldDecl *FD);
   void getInitExprs(const clang::Type *Ty, const clang::Expr *E, 
                     const IndexVector *IdxVec, ExprVector &InitExprs);
 

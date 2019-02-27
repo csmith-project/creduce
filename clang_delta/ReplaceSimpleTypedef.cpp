@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -85,7 +85,7 @@ bool ReplaceSimpleTypedefRewriteVisitor::VisitTypedefTypeLoc(TypedefTypeLoc Loc)
 
   const TypedefType *TdefTy = Loc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
-  if (!TdefD || TdefD->getLocStart().isInvalid())
+  if (!TdefD || TdefD->getBeginLoc().isInvalid())
     return true;
  
   if (dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl()) == 
@@ -203,10 +203,10 @@ bool ReplaceSimpleTypedef::isValidType(const Type *Ty, const TypedefDecl *D)
 void ReplaceSimpleTypedef::handleOneTypedefDecl(const TypedefDecl *CanonicalD)
 {
   // omit some typedefs injected by Clang
-  if (CanonicalD->getLocStart().isInvalid())
+  if (CanonicalD->getBeginLoc().isInvalid())
     return;
 
-  FullSourceLoc FullLoc = Context->getFullLoc(CanonicalD->getLocStart());
+  FullSourceLoc FullLoc = Context->getFullLoc(CanonicalD->getBeginLoc());
   if (FullLoc.isInSystemHeader())
     return;
 

@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -134,8 +134,8 @@ void SimplifyNestedClass::HandleTranslationUnit(ASTContext &Ctx)
 void SimplifyNestedClass::removeOuterClass()
 {
   TransAssert(TheBaseCXXRD && "NULL Base CXXRD!");
-  SourceLocation LocStart = TheBaseCXXRD->getLocStart();
-  SourceLocation LocEnd = TheInnerDecl->getLocStart();
+  SourceLocation LocStart = TheBaseCXXRD->getBeginLoc();
+  SourceLocation LocEnd = TheInnerDecl->getBeginLoc();
   LocEnd = LocEnd.getLocWithOffset(-1);
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 

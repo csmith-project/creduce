@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -19,6 +19,30 @@ project(clang_delta)
 # Generate file "git_version.cpp".
 #
 configure_file("git_version.cpp.in" "git_version.cpp" @ONLY)
+
+# set values for replacing variables in lit.site.cfg.in
+#
+set(LLVM_BINDIR ${LLVM_TOOLS_BINARY_DIR})
+set(abs_builddir ${CMAKE_CURRENT_BINARY_DIR})
+set(clang_delta_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Generate file "lit.site.cfg".
+#
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/lit.site.cfg.in
+  ${CMAKE_CURRENT_BINARY_DIR}/tests/lit.site.cfg @ONLY)
+
+# Generate file "remove_lit_checks.pl", which is necessary for removing
+# "lit-functioning" lines such as "CHECK:" and "RUN:" from test output.
+#
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/tests/remove_lit_checks.in
+  ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/remove_lit_checks @ONLY)
+file(COPY ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/remove_lit_checks
+  DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tests
+  FILE_PERMISSIONS
+    OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    GROUP_READ GROUP_EXECUTE
+    WORLD_READ WORLD_EXECUTE)
+
 
 # Add flags for compiling against LLVM.
 #
@@ -218,7 +242,18 @@ add_executable(clang_delta
   git_version.h
 )
 
-target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
+# ENE, LLVM 6.0: LLVM_LIBS end up in the link command line anyway.  I'm not
+# quite sure why!  But if you list LLVM_LIBS here, the `clang_delta' binary
+# can end up with dynamic link errors when it runs (multiply defined symbols).
+#
+target_link_libraries(clang_delta ${CLANG_LIBS})
+
+# Custom target for running clang_delta tests
+#
+add_custom_target(check-clang-delta
+  COMMAND ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
+          -sv ${CMAKE_CURRENT_BINARY_DIR}/tests
+  DEPENDS clang_delta)
 
 # On Windows, we also need to link with "Version.dll" system library.
 # See <https://github.com/csmith-project/creduce/pull/126>.

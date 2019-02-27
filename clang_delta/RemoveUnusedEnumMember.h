@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef REMOVE_UNUSED_VAR_H
-#define REMOVE_UNUSED_VAR_H
+#ifndef REMOVE_UNUSED_ENUM_MEMBER_H
+#define REMOVE_UNUSED_ENUM_MEMBER_H
 
 #include <string>
 #include "llvm/ADT/DenseMap.h"

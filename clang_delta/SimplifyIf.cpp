@@ -95,7 +95,7 @@ bool SimplifyIfCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 //     foo(bar())
 bool SimplifyIfStatementVisitor::VisitIfStmt(IfStmt *IS)
 {
-  if (IS->getLocStart().isMacroID()) {
+  if (IS->getBeginLoc().isMacroID()) {
     return false;
   }
 

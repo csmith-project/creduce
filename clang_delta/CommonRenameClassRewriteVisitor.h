@@ -14,6 +14,8 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
+class Transformation;
+
 namespace clang_delta_common_visitor {
 
 using namespace clang;
@@ -21,11 +23,13 @@ using namespace clang;
 template<typename T>
 class CommonRenameClassRewriteVisitor : public RecursiveASTVisitor<T> {
 public:
-  CommonRenameClassRewriteVisitor(Rewriter *RT, 
+  CommonRenameClassRewriteVisitor(Transformation *Instance,
+                                  Rewriter *RT,
                                   RewriteUtils *Helper,
                                   const CXXRecordDecl *CXXRD,
                                   const std::string &Name)
-    : TheRewriter(RT),
+    : ConsumerInstance(Instance),
+      TheRewriter(RT),
       RewriteHelper(Helper),
       TheCXXRecordDecl(CXXRD),
       NewNameStr(Name)
@@ -73,6 +77,8 @@ private:
   bool getNewNameByName(const std::string &Name, std::string &NewName);
 
   LocPtrSet VisitedLocs;
+
+  Transformation *ConsumerInstance;
 
   Rewriter *TheRewriter;
 
@@ -142,7 +148,7 @@ bool CommonRenameClassRewriteVisitor<T>::
     if (!TyInfo)
       return true;
     TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
   }
@@ -177,7 +183,18 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXRecordDecl(
        CXXRecordDecl *CXXRD)
 {
   std::string Name;
-  if (getNewName(CXXRD, Name)) {
+  if (!getNewName(CXXRD, Name))
+    return true;
+
+  void *LocPtr = CXXRD->getLocation().getPtrEncoding();
+  if (VisitedLocs.count(LocPtr))
+    return true;
+  VisitedLocs.insert(LocPtr);
+
+  if (ConsumerInstance->isDeclaringRecordDecl(CXXRD)) {
+    RewriteHelper->replaceRecordDeclDef(CXXRD, Name);
+  }
+  else {
     RewriteHelper->replaceRecordDeclName(CXXRD, Name);
   }
 
@@ -225,6 +242,14 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXDestructorDecl(
       return true;
   }
 
+  SourceLocation StartLoc = DtorDecl->getLocation();
+  // skip '~'
+  StartLoc = StartLoc.getLocWithOffset(1);
+  void *LocPtr = StartLoc.getPtrEncoding();
+  if (VisitedLocs.count(LocPtr))
+    return true;
+  VisitedLocs.insert(LocPtr);
+
   std::string Name;
   if (getNewName(CXXRD, Name)) {
     RewriteHelper->replaceCXXDestructorDeclName(DtorDecl, Name);
@@ -242,7 +267,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitInjectedClassNameTypeLoc(
 
   std::string Name;
   if (getNewName(CXXRD, Name)) {
-    SourceLocation LocStart = TyLoc.getLocStart();
+    SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
 
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
@@ -279,16 +304,21 @@ bool CommonRenameClassRewriteVisitor<T>::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
     return true;
 
   std::string Name;
-  if (getNewName(RD, Name)) {
-    // Avoid duplicated rewrites to Decls from the same DeclGroup, e.g.,
-    // struct S s1, s2
-    SourceLocation LocStart = RTLoc.getLocStart();
-    void *LocPtr = LocStart.getPtrEncoding();
-    if (VisitedLocs.count(LocPtr))
-      return true;
-    VisitedLocs.insert(LocPtr);
-    RewriteHelper->replaceRecordType(RTLoc, Name);
-  }
+  if (!getNewName(RD, Name))
+    return true;
+
+  // Let VisitCXXRecordDecl handle this case.
+  if (ConsumerInstance->isDeclaringRecordDecl(RD))
+    return true;
+
+  // Avoid duplicated rewrites to Decls from the same DeclGroup, e.g.,
+  // struct S s1, s2
+  SourceLocation LocStart = RTLoc.getBeginLoc();
+  void *LocPtr = LocStart.getPtrEncoding();
+  if (VisitedLocs.count(LocPtr))
+    return true;
+  VisitedLocs.insert(LocPtr);
+  RewriteHelper->replaceRecordType(RTLoc, Name);
   return true;
 }
 

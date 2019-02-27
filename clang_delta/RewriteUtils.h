@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017, 2018 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -73,7 +73,8 @@ public:
   bool removeVarFromDeclStmt(clang::DeclStmt *DS,
                                     const clang::VarDecl *VD,
                                     clang::Decl *PrevDecl,
-                                    bool IsFirstDecl);
+                                    bool IsFirstDecl,
+                                    bool *StmtRemoved);
 
   bool getExprString(const clang::Expr *E, 
                             std::string &ES);
@@ -125,6 +126,9 @@ public:
 
   bool replaceRecordDeclName(const clang::RecordDecl *RD,
                              const std::string &NameStr);
+
+  bool replaceRecordDeclDef(const clang::RecordDecl *RD,
+                            const std::string &NameStr);
 
   bool replaceVarTypeName(const clang::VarDecl *VD,
                           const std::string &NameStr);
@@ -335,6 +339,8 @@ private:
   clang::SourceLocation getExpansionEndLoc(clang::SourceLocation EndLoc);
 
   clang::SourceLocation getMacroExpansionLoc(clang::SourceLocation Loc);
+
+  clang::SourceRange getFileLocSourceRange(clang::SourceRange LocRange);
 
   // Unimplemented
   RewriteUtils(const RewriteUtils &);

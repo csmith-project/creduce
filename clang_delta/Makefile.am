@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -26,6 +26,27 @@ git_version.cpp: git_version.cpp.in git_version.txt
 	  test -f ./$@.in || srcdir=$(srcdir)/; \
 	  $(git_version_edit) $${srcdir}$@.in > $@.tmp
 	mv $@.tmp $@
+
+# llvm-lit is not installed into LLVM_BINDIR. To run `make check-clang-delta',
+# we have to manually copy llvm-lit from LLVM's build dir. This is also the
+# reason that I didn't create a check-local rule for running clang_delta tests.
+# It would fail everywhere else llvm-lit does exist, e.g. travis?
+check-clang-delta: tests/lit.site.cfg remove_lit_checks clang_delta
+	@ echo "--- Running tests for clang_delta ---"
+	@ $(LLVM_BINDIR)/llvm-lit -sv tests
+
+tests/lit.site.cfg: tests/lit.site.cfg.in
+	@ echo s=@abs_builddir[@]=$(abs_builddir)=g > lit.site.cfg.tmp
+	@ echo s=@LLVM_BINDIR[@]=$(LLVM_BINDIR)=g >> lit.site.cfg.tmp
+	@ echo s=@clang_delta_srcdir@=$(abs_srcdir)=g >> lit.site.cfg.tmp
+	@ sed -f lit.site.cfg.tmp tests/lit.site.cfg.in > $@
+	@ rm -f lit.site.cfg.tmp
+
+remove_lit_checks: tests/remove_lit_checks.in
+	@ echo s=@PERL_EXECUTABLE[@]=$(PERL)=g > remove_lit_checks.tmp
+	@ sed -f remove_lit_checks.tmp tests/remove_lit_checks.in > tests/$@
+	@ chmod +x tests/$@
+	@ rm -f remove_lit_checks.tmp
 
 # When setting `LLVMCXXFLAGS', we weed out command-line options that might be
 # troublesome (e.g., -W/-f options that are not supported by `CXX', or -W
@@ -280,13 +301,45 @@ CLEANFILES = \
 	git_version.txt \
 	git_version.txt.tmp \
 	git_version.cpp \
-	git_version.cpp.tmp
+	git_version.cpp.tmp \
+	tests/lit.site.cfg \
+	tests/remove_lit_checks
 
 EXTRA_DIST = \
 	CMakeLists.txt \
 	README.txt \
 	git_version.cpp.in \
-	test_transformation
+	test_transformation \
+	tests/lit.cfg \
+	tests/lit.site.cfg.in \
+	tests/local-to-global/unnamed_1.c \
+	tests/local-to-global/unnamed_2.c \
+	tests/local-to-global/unnamed_3.c \
+	tests/remove-unused-field/designated1.c \
+	tests/remove-unused-field/designated2.c \
+	tests/remove-unused-field/designated3.c \
+	tests/remove-unused-field/designated4.c \
+	tests/remove-unused-field/designated5.c \
+	tests/remove-unused-field/unused_field1.c \
+	tests/remove-unused-field/unused_field2.c \
+	tests/remove-unused-var/unused_var.cpp \
+	tests/remove_lit_checks.in \
+	tests/rename-fun/test1.c \
+	tests/rename-fun/test1.h \
+	tests/rename-var/rename-var.c \
+	tests/union-to-struct/union1.c \
+	tests/union-to-struct/union2.c \
+	tests/union-to-struct/union3.c
+
+CLEAN_TESTDIRS = $(sort $(dir $(wildcard tests/*/Output/.)))
+
+clean-local:
+	list='$(CLEAN_TESTDIRS)'; \
+	for dir in $$list; do \
+	  if test -d "$$dir"; then \
+	    rm -rf $$dir; \
+	  fi; \
+	done
 
 ###############################################################################
 

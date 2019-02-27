@@ -106,7 +106,8 @@ bool RNFStatementVisitor::VisitCallExpr(CallExpr *CallE)
       return true;
   }
 
-  if ((std::find(ConsumerInstance->ValidCallExprs.begin(),
+  if (CurrentStmt &&
+      (std::find(ConsumerInstance->ValidCallExprs.begin(),
                  ConsumerInstance->ValidCallExprs.end(), CallE)
           == ConsumerInstance->ValidCallExprs.end()) &&
       !ConsumerInstance->CallExprQueue.empty()) {
@@ -215,6 +216,11 @@ void RemoveNestedFunction::getNewIntTmpVariable(std::string &VarStr)
   VarStr = "int " + VarStr;
 }
 
+void RemoveNestedFunction::getNewAutoTmpVariable(std::string &VarStr)
+{
+  VarStr = "auto " + VarStr;
+}
+
 void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
 {
   std::string VarStr;
@@ -227,7 +233,7 @@ void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     // Otherwise, we would end up with assertion failure, because we
     // modify the same location twice (through addnewAssignStmtBefore
     // and replaceExpr.
-    if (TheStmt->getLocStart() == TheCallExpr->getLocStart()) {
+    if (TheStmt->getBeginLoc() == TheCallExpr->getBeginLoc()) {
       std::string ExprStr;
       RewriteHelper->getExprString(TheCallExpr, ExprStr);
       VarStr += " = " + ExprStr + ";\n" + TmpVarName;
@@ -300,7 +306,7 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
 
   if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
     DeclarationName DName = UM->getMemberName();
-    CXXRecordDecl *CXXRD = UM->getNamingClass();
+    const CXXRecordDecl *CXXRD = UM->getNamingClass();
     DeclContextSet VisitedCtxs;
     const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD, VisitedCtxs);
     // FIXME: try to resolve FD here
@@ -312,14 +318,14 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
-    QT = CXXCtor->getThisType(ASTCtx);
+    QT = CXXCtor->getThisType();
     return getNewTmpVariable(QT, VarStr);
   }
 
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
-    QT = CXXCtor->getThisType(ASTCtx);
+    QT = CXXCtor->getThisType();
     return getNewTmpVariable(QT, VarStr);
   }
 
@@ -435,6 +441,12 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
       // expressions.
       return getNewIntTmpVariable(VarStr);
     }
+  }
+
+  // We can't resolve dependent scoped DeclRefExpr, and just make it
+  // type of int.
+  if (dyn_cast<DependentScopeDeclRefExpr>(E)) {
+    return getNewAutoTmpVariable(VarStr);
   }
 
   const Type *CalleeType = E->getType().getTypePtr();

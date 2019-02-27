@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2017 The University of Utah
 // All rights reserved.
 //
 // This file is distributed under the University of Illinois Open Source
@@ -130,7 +130,7 @@ bool SimplifyStructRewriteVisitor::VisitVarDecl(VarDecl *VD)
   if (RD != ConsumerInstance->TheRecordDecl)
     return true;
 
-  SourceLocation LocStart = VD->getLocStart();
+  SourceLocation LocStart = VD->getBeginLoc();
   void *LocPtr = LocStart.getPtrEncoding();
   if (ConsumerInstance->VisitedVarDeclLocs.count(LocPtr))
     return true;
@@ -187,7 +187,7 @@ bool SimplifyStructRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   if (CanonicalRD != ConsumerInstance->TheRecordDecl)
     return true;
 
-  SourceLocation LocStart = RTLoc.getLocStart();
+  SourceLocation LocStart = RTLoc.getBeginLoc();
   void *LocPtr = LocStart.getPtrEncoding();
   if (ConsumerInstance->VisitedLocs.count(LocPtr))
     return true;
@@ -224,7 +224,10 @@ bool SimplifyStructRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
   TransAssert((ReplacingRD == ConsumerInstance->ReplacingRecordDecl) && 
     "Unmatched Replacing RD!");
 
-  SourceLocation LocEnd = ME->getLocEnd();
+  SourceLocation LocEnd = ME->getEndLoc();
+  if (LocEnd.isMacroID()) {
+    LocEnd = ConsumerInstance->SrcManager->getSpellingLoc(LocEnd);
+  }
   SourceLocation ArrowPos = 
       Lexer::findLocationAfterToken(LocEnd,
                                     tok::arrow,
@@ -243,7 +246,7 @@ bool SimplifyStructRewriteVisitor::VisitMemberExpr(MemberExpr *ME)
 
   // no more MemberExpr upon this ME
   if (ArrowPos.isInvalid() && PeriodPos.isInvalid()) {
-    SourceLocation StartLoc = ME->getLocStart();
+    SourceLocation StartLoc = ME->getBeginLoc();
     size_t Pos;
 
     if (ME->isArrow()) {
