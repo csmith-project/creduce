@@ -756,7 +756,8 @@ my @all_methods = (
 
     { "name" => "pass_include_includes", "arg" => "0",               "pri" => 100, "C" => 1, },
     { "name" => "pass_unifdef",  "arg" => "0",                       "pri" => 450,  "first_pass_pri" =>  0, "C" => 1, },
-    { "name" => "pass_comments", "arg" => "0",                       "pri" => 451,  "first_pass_pri" =>  0, "C" => 1, },
+    { "name" => "pass_comments", "arg" => "0",                       "pri" => 452,  "first_pass_pri" =>  0, "C" => 1, },
+    { "name" => "pass_ifs",  "arg" => "0",                           "pri" => 453,  "first_pass_pri" =>  0, "C" => 1, },
     { "name" => "pass_includes", "arg" => "0",                                      "first_pass_pri" =>  1, "C" => 1, },
     { "name" => "pass_line_markers", "arg" => "0",                                  "first_pass_pri" =>  1, "C" => 1, },
     { "name" => "pass_blank",    "arg" => "0",                                      "first_pass_pri" =>  2, },
