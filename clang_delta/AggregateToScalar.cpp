@@ -212,7 +212,7 @@ bool AggregateToScalar::createNewVar(const Expr *RefE, std::string &VarName)
     return addTmpVar(RefE, VarName, NULL);
 
   std::string InitStr;
-  if (InitE->getLocStart().isInvalid()) {
+  if (InitE->getBeginLoc().isInvalid()) {
     const Type *ET = InitE->getType().getTypePtr();
     if (ET->isIntegerType() || ET->isPointerType())
       InitStr = "0"; 

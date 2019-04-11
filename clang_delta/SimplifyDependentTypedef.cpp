@@ -140,7 +140,7 @@ void SimplifyDependentTypedef::HandleTranslationUnit(ASTContext &Ctx)
 
 void SimplifyDependentTypedef::rewriteTypedefDecl(void)
 {
-  SourceLocation LocStart = TheTypedefDecl->getLocStart();
+  SourceLocation LocStart = TheTypedefDecl->getBeginLoc();
 
   // skip "typedef "
   LocStart = LocStart.getLocWithOffset(8);

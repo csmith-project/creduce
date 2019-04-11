@@ -147,7 +147,7 @@ InstantiateTemplateParamRewriteVisitor::VisitTemplateTypeParmTypeLoc(
   // the "typedef typename T2 ..." is treated as 
   //   typedef typename T2::template T2::C<int>::other type;
   // where the second T2 is injected by Clang
-  void *Ptr = Loc.getLocStart().getPtrEncoding();
+  void *Ptr = Loc.getBeginLoc().getPtrEncoding();
   if (ConsumerInstance->VisitedLocs.count(Ptr))
     return true;
   ConsumerInstance->VisitedLocs.insert(Ptr);

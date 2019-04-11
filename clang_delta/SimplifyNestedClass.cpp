@@ -134,8 +134,8 @@ void SimplifyNestedClass::HandleTranslationUnit(ASTContext &Ctx)
 void SimplifyNestedClass::removeOuterClass()
 {
   TransAssert(TheBaseCXXRD && "NULL Base CXXRD!");
-  SourceLocation LocStart = TheBaseCXXRD->getLocStart();
-  SourceLocation LocEnd = TheInnerDecl->getLocStart();
+  SourceLocation LocStart = TheBaseCXXRD->getBeginLoc();
+  SourceLocation LocEnd = TheInnerDecl->getBeginLoc();
   LocEnd = LocEnd.getLocWithOffset(-1);
   TheRewriter.RemoveText(SourceRange(LocStart, LocEnd));
 

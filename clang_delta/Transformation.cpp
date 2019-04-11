@@ -212,10 +212,11 @@ const Expr *Transformation::getArrayBaseExprAndIdxs(
   while (ASE) {
     const Expr *IdxE = ASE->getIdx();
     unsigned int Idx = 0;
-    llvm::APSInt Result;
+    Expr::EvalResult Result;
     if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
       // this will truncate a possible uint64 value to uint32 value
-      Idx = (unsigned int)(*Result.getRawData());
+      llvm::APSInt IVal = Result.Val.getInt();
+      Idx = (unsigned int)(*IVal.getRawData());
     }
     BaseE = ASE->getBase()->IgnoreParenCasts();
     ASE = dyn_cast<ArraySubscriptExpr>(BaseE);
@@ -389,11 +390,12 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
       const ArraySubscriptExpr *ASE = dyn_cast<ArraySubscriptExpr>(E);
       const Expr *IdxE = ASE->getIdx();
       unsigned int Idx = 0;
-      llvm::APSInt Result;
+      Expr::EvalResult Result;
 
       // If we cannot have an integeral index, use 0.
       if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
-        std::string IntStr = Result.toString(10);
+        llvm::APSInt IVal = Result.Val.getInt();
+        std::string IntStr = IVal.toString(10);
         std::stringstream TmpSS(IntStr);
         if (!(TmpSS >> Idx))
           TransAssert(0 && "Non-integer value!");
@@ -434,12 +436,13 @@ const Type *Transformation::getBasePointerElemType(const Type *Ty)
 
 int Transformation::getIndexAsInteger(const Expr *E)
 {
-  llvm::APSInt Result;
-  int Idx;
+  Expr::EvalResult Result; 
   if (!E->EvaluateAsInt(Result, *Context))
     TransAssert(0 && "Failed to Evaluate index!");
 
-  Idx = (int)(*Result.getRawData());
+  int Idx;
+  llvm::APSInt IVal = Result.Val.getInt();
+  Idx = (int)(*IVal.getRawData());
   return Idx;
 }
 
@@ -1073,7 +1076,7 @@ bool Transformation::isInIncludedFile(const Decl *D) const
 
 bool Transformation::isInIncludedFile(const Stmt *S) const
 {
-  return isInIncludedFile(S->getLocStart());
+  return isInIncludedFile(S->getBeginLoc());
 }
 
 bool Transformation::isDeclaringRecordDecl(const RecordDecl *RD)

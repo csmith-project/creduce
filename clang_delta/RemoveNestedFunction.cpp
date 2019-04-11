@@ -233,7 +233,7 @@ void RemoveNestedFunction::addNewTmpVariable(ASTContext &ASTCtx)
     // Otherwise, we would end up with assertion failure, because we
     // modify the same location twice (through addnewAssignStmtBefore
     // and replaceExpr.
-    if (TheStmt->getLocStart() == TheCallExpr->getLocStart()) {
+    if (TheStmt->getBeginLoc() == TheCallExpr->getBeginLoc()) {
       std::string ExprStr;
       RewriteHelper->getExprString(TheCallExpr, ExprStr);
       VarStr += " = " + ExprStr + ";\n" + TmpVarName;
@@ -306,7 +306,7 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
 
   if (const UnresolvedMemberExpr *UM = dyn_cast<UnresolvedMemberExpr>(E)) {
     DeclarationName DName = UM->getMemberName();
-    CXXRecordDecl *CXXRD = UM->getNamingClass();
+    const CXXRecordDecl *CXXRD = UM->getNamingClass();
     DeclContextSet VisitedCtxs;
     const FunctionDecl *FD = lookupFunctionDecl(DName, CXXRD, VisitedCtxs);
     // FIXME: try to resolve FD here
@@ -318,14 +318,14 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
-    QT = CXXCtor->getThisType(ASTCtx);
+    QT = CXXCtor->getThisType();
     return getNewTmpVariable(QT, VarStr);
   }
 
   if (const CXXTemporaryObjectExpr *CXXTE =
       dyn_cast<CXXTemporaryObjectExpr>(E)) {
     const CXXConstructorDecl *CXXCtor = CXXTE->getConstructor();
-    QT = CXXCtor->getThisType(ASTCtx);
+    QT = CXXCtor->getThisType();
     return getNewTmpVariable(QT, VarStr);
   }
 
