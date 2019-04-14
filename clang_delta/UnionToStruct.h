@@ -64,7 +64,7 @@ private:
 
   void addOneDeclarator(const clang::DeclaratorDecl *VD, const clang::Type *T);
 
-  void addOneRecord(const clang::RecordDecl *RD);
+  DeclaratorDeclSet *addOneRecord(const clang::RecordDecl *RD);
 
   void doAnalysis(void);
 

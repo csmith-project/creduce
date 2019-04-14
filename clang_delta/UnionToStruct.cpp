@@ -412,7 +412,6 @@ void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
   const RecordDecl *CanonicalRD = 
     dyn_cast<RecordDecl>(RD->getCanonicalDecl());
   TransAssert(CanonicalRD && "NULL CanonicalRD!");
-  DeclaratorDeclSet *DDSet = RecordToDeclarator[CanonicalRD];
   if (CanonicalRD->getNameAsString() == "") {
     // this is a special case where we declare an unnamed union
     // along with a function declaration. In this case, the DDSet
@@ -422,21 +421,27 @@ void UnionToStruct::addOneDeclarator(const DeclaratorDecl *DD, const Type *T)
     addOneRecord(CanonicalRD);
     return;
   }
-  TransAssert(DDSet && "Cannot find VarDeclSet for a given RecordDecl!");
+  DeclaratorDeclSet *DDSet = RecordToDeclarator[CanonicalRD];
+  // It's possible that we missed CanonicalRD in malformed code.
+  if (DDSet == nullptr) {
+    DDSet = addOneRecord(CanonicalRD);
+  }
   DDSet->insert(DD);
 }
 
-void UnionToStruct::addOneRecord(const RecordDecl *RD)
+UnionToStruct::DeclaratorDeclSet *UnionToStruct::addOneRecord(const RecordDecl *RD)
 {
   const RecordDecl *CanonicalRD = 
     dyn_cast<RecordDecl>(RD->getCanonicalDecl());
   TransAssert(CanonicalRD && "NULL CanonicalRD!");
-  if (RecordToDeclarator[CanonicalRD])
-    return;
+  DeclaratorDeclSet *DDSet = RecordToDeclarator[CanonicalRD];
+  if (DDSet)
+    return DDSet;
 
-  DeclaratorDeclSet *DDSet = new DeclaratorDeclSet();
+  DDSet = new DeclaratorDeclSet();
   TransAssert(DDSet && "Member allocation failure!");
   RecordToDeclarator[CanonicalRD] = DDSet;
+  return DDSet;
 }
 
 UnionToStruct::~UnionToStruct(void)
