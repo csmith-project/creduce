@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 ##
-## Copyright (c) 2015, 2016, 2017, 2018 The University of Utah
+## Copyright (c) 2015, 2016, 2017, 2018, 2019 The University of Utah
 ## Copyright (c) 2015 Tamir Duberstein
 ## All rights reserved.
 ##
@@ -28,7 +28,7 @@ apt-get install -y -qq \
     software-properties-common \
     wget
 
-# Set up for installing LLVM 7.0
+# Set up for installing LLVM 7.0.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
