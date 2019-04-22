@@ -113,10 +113,10 @@ sub ncpus () {
     }
     if ($OS eq "darwin") {
 	my $cpus;
-	open INF, "sysctl hw |";
+	open INF, "sysctl hw.physicalcpu |";
 	while (my $line = <INF>) {
 	    chomp $line;
-	    $cpus = $1 if ($line =~ /hw.physicalcpu: ([0-9]+)$/);
+	    $cpus = $1 if ($line =~ /hw\.physicalcpu: ([0-9]+)$/);
 	}
 	close INF;
 	return $cpus if defined $cpus;
