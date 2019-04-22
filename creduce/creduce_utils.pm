@@ -1,6 +1,6 @@
 ## -*- mode: Perl -*-
 ##
-## Copyright (c) 2012, 2013, 2015, 2016, 2018 The University of Utah
+## Copyright (c) 2012, 2013, 2015, 2016, 2018, 2019 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -120,6 +120,23 @@ sub ncpus () {
 	}
 	close INF;
 	return $cpus if defined $cpus;
+    }
+    if ($OS eq "freebsd") {
+	my $cpus;
+	my $ht;
+	open INF, "sysctl hw.ncpu machdep.hyperthreading_allowed |";
+	while (my $line = <INF>) {
+	    chomp $line;
+	    $cpus = $1 if ($line =~ /hw\.ncpu: ([0-9]+)$/);
+	    $ht = $1 if ($line =~ /machdep\.hyperthreading_allowed: ([01])$/);
+	}
+	close INF;
+	if (defined $cpus) {
+	    if (defined $ht) {
+		return $ht ? ($cpus/2) : $cpus;
+	    }
+	    return $cpus;
+	}
     }
     if ($OS eq "MSWin32") {
 	# TODO
