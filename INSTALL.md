@@ -33,11 +33,11 @@ sudo apt-get install \
 On OS X, [Perlbrew](http://perlbrew.pl/) provides an easy and flexible
 way to get Perl and Perl modules installed
 
-On FreeBSD 10.3 and 11.1, the prerequisites can be installed like this:
+On FreeBSD 10.4 and 11.2, the prerequisites can be installed like this:
 
 ```
 sudo pkg install \
-  llvm60 flex p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common
+  llvm70 flex p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common
 ```
 
 Otherwise, install these packages either manually or using the package
@@ -78,7 +78,7 @@ On OS X (with Homebrew + Perlbrew installed):
 cpan -i Term::ReadKey
 ```
 
-On FreeBSD 10.3:
+On FreeBSD 10.4 and 11.2:
 
 ```
 sudo pkg install p5-Term-ReadKey
