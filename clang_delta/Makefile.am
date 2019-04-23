@@ -31,7 +31,7 @@ git_version.cpp: git_version.cpp.in git_version.txt
 # we have to manually copy llvm-lit from LLVM's build dir. This is also the
 # reason that I didn't create a check-local rule for running clang_delta tests.
 # It would fail everywhere else llvm-lit does exist, e.g. travis?
-check-clang-delta: tests/lit.site.cfg remove_lit_checks clang_delta
+check-clang-delta: tests/lit.site.cfg tests/remove_lit_checks clang_delta
 	@ echo "--- Running tests for clang_delta ---"
 	@ $(LLVM_BINDIR)/llvm-lit -sv tests
 
@@ -39,13 +39,13 @@ tests/lit.site.cfg: tests/lit.site.cfg.in
 	@ echo s=@abs_builddir[@]=$(abs_builddir)=g > lit.site.cfg.tmp
 	@ echo s=@LLVM_BINDIR[@]=$(LLVM_BINDIR)=g >> lit.site.cfg.tmp
 	@ echo s=@clang_delta_srcdir@=$(abs_srcdir)=g >> lit.site.cfg.tmp
-	@ sed -f lit.site.cfg.tmp tests/lit.site.cfg.in > $@
+	@ sed -f lit.site.cfg.tmp $< > $@
 	@ rm -f lit.site.cfg.tmp
 
-remove_lit_checks: tests/remove_lit_checks.in
+tests/remove_lit_checks: tests/remove_lit_checks.in
 	@ echo s=@PERL_EXECUTABLE[@]=$(PERL)=g > remove_lit_checks.tmp
-	@ sed -f remove_lit_checks.tmp tests/remove_lit_checks.in > tests/$@
-	@ chmod +x tests/$@
+	@ sed -f remove_lit_checks.tmp $< > $@
+	@ chmod +x $@
 	@ rm -f remove_lit_checks.tmp
 
 # When setting `LLVMCXXFLAGS', we weed out command-line options that might be
