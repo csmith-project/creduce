@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -310,11 +310,18 @@ EXTRA_DIST = \
 	README.txt \
 	git_version.cpp.in \
 	test_transformation \
+	tests/empty-struct-to-int/empty-struct.cpp \
+	tests/empty-struct-to-int/empty-struct2.cpp \
+	tests/empty-struct-to-int/empty-struct3.cpp \
+	tests/empty-struct-to-int/empty-struct4.cpp \
+	tests/empty-struct-to-int/empty-struct5.cpp \
 	tests/lit.cfg \
 	tests/lit.site.cfg.in \
 	tests/local-to-global/unnamed_1.c \
 	tests/local-to-global/unnamed_2.c \
 	tests/local-to-global/unnamed_3.c \
+	tests/reduce-array-dim/non-type-temp-arg.cpp \
+	tests/remove-nested-function/remove_nested_func1.cc \
 	tests/remove-unused-field/designated1.c \
 	tests/remove-unused-field/designated2.c \
 	tests/remove-unused-field/designated3.c \
@@ -322,11 +329,17 @@ EXTRA_DIST = \
 	tests/remove-unused-field/designated5.c \
 	tests/remove-unused-field/unused_field1.c \
 	tests/remove-unused-field/unused_field2.c \
+	tests/remove-unused-field/unused_field3.cpp \
 	tests/remove-unused-var/unused_var.cpp \
 	tests/remove_lit_checks.in \
+	tests/rename-class/rename-class1.cpp \
+	tests/rename-class/rename-class2.cpp \
 	tests/rename-fun/test1.c \
 	tests/rename-fun/test1.h \
 	tests/rename-var/rename-var.c \
+	tests/replace-derived-class/replace-derived1.cpp \
+	tests/replace-derived-class/replace-derived2.cpp \
+	tests/replace-derived-class/replace-derived3.cpp \
 	tests/union-to-struct/union1.c \
 	tests/union-to-struct/union2.c \
 	tests/union-to-struct/union3.c
