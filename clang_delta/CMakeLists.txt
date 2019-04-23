@@ -57,16 +57,14 @@ include_directories(${CLANG_INCLUDE_DIRS}) # only works for LLVM post-4.0
 
 link_directories(${LLVM_LIBRARY_DIRS})
 
-llvm_map_components_to_libnames(LLVM_LIBS
-  coverage
-  irreader
-  mcparser
-  objcarcopts
-  option
-  passes
-  profiledata
-  support
-)
+find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
+if (NOT LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
+  execute_process(
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs coverage irreader mcparser objcarcopts option passes profiledata support
+    OUTPUT_VARIABLE LLVM_LIBS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+endif()
 
 set(CLANG_LIBS
   clangStaticAnalyzerFrontend
@@ -242,11 +240,7 @@ add_executable(clang_delta
   git_version.h
 )
 
-# ENE, LLVM 6.0: LLVM_LIBS end up in the link command line anyway.  I'm not
-# quite sure why!  But if you list LLVM_LIBS here, the `clang_delta' binary
-# can end up with dynamic link errors when it runs (multiply defined symbols).
-#
-target_link_libraries(clang_delta ${CLANG_LIBS})
+target_link_libraries(clang_delta ${CLANG_LIBS} ${LLVM_LIBS})
 
 # Custom target for running clang_delta tests
 #
