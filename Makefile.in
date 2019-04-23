@@ -174,11 +174,10 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(top_srcdir)/autoconf/config.sub \
 	$(top_srcdir)/autoconf/install-sh \
 	$(top_srcdir)/autoconf/ltmain.sh \
-	$(top_srcdir)/autoconf/missing AUTHORS COPYING ChangeLog \
-	INSTALL NEWS README TODO autoconf/compile \
-	autoconf/config.guess autoconf/config.sub autoconf/depcomp \
-	autoconf/install-sh autoconf/ltmain.sh autoconf/missing \
-	autoconf/ylwrap
+	$(top_srcdir)/autoconf/missing AUTHORS COPYING ChangeLog NEWS \
+	TODO autoconf/compile autoconf/config.guess \
+	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
+	autoconf/ltmain.sh autoconf/missing autoconf/ylwrap
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -368,6 +367,8 @@ SUBDIRS = \
 
 EXTRA_DIST = \
 	CMakeLists.txt \
+	INSTALL.md \
+	README.md \
 	cmake \
 	cmake_config.h.in \
 	git-hash.sh
@@ -382,15 +383,15 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu'; \
-	      $(am__cd) $(srcdir) && $(AUTOMAKE) --gnu \
+	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign'; \
+	      $(am__cd) $(srcdir) && $(AUTOMAKE) --foreign \
 		&& exit 0; \
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu Makefile
+	  $(AUTOMAKE) --foreign Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
