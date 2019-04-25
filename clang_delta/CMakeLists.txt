@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -57,16 +57,28 @@ include_directories(${CLANG_INCLUDE_DIRS}) # only works for LLVM post-4.0
 
 link_directories(${LLVM_LIBRARY_DIRS})
 
-llvm_map_components_to_libnames(LLVM_LIBS
-  coverage
-  irreader
-  mcparser
-  objcarcopts
-  option
-  passes
-  profiledata
-  support
-)
+# Set LLVM_LIBS by running `llvm-config'.
+#
+find_program(LLVM_CONFIG_EXECUTABLE
+  NAMES "llvm-config${CMAKE_EXECUTABLE_SUFFIX}"
+  PATHS "${LLVM_TOOLS_BINARY_DIR}"
+  NO_DEFAULT_PATH
+  DOC "llvm-config executable")
+if(NOT LLVM_CONFIG_EXECUTABLE)
+  message(FATAL_ERROR
+    "Required `llvm-config${CMAKE_EXECUTABLE_SUFFIX}` tool was not found")
+endif()
+message(STATUS "Found llvm-config: ${LLVM_CONFIG_EXECUTABLE}")
+execute_process(
+  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs
+    coverage irreader mcparser objcarcopts option passes profiledata support
+  OUTPUT_VARIABLE LLVM_LIBS
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  RESULT_VARIABLE status
+  )
+if(status)
+  message(FATAL_ERROR "`${LLVM_CONFIG_EXECUTABLE}` failed")
+endif()
 
 set(CLANG_LIBS
   clangStaticAnalyzerFrontend
