@@ -116,7 +116,7 @@ if(NOT CLANG_FORMAT)
 endif()
 
 if(missing_required_runtime_prereq STREQUAL "yes")
-  message("Read the INSTALL file for info about C-Reduce dependencies.")
+  message("Read the INSTALL.md file for info about C-Reduce dependencies.")
 endif()
 
 # ...and then warn about optional run-time dependencies.
@@ -131,7 +131,7 @@ endif()
 
 if(missing_optional_runtime_prereq STREQUAL "yes")
   message("C-Reduce will use these tools if you install them in the future.")
-  message("Read the INSTALL file for info about C-Reduce dependencies.")
+  message("Read the INSTALL.md file for info about C-Reduce dependencies.")
 endif()
 
 ###############################################################################

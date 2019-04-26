@@ -19177,8 +19177,8 @@ $as_echo "$as_me: WARNING: You must install \`clang-format' before running C-Red
 fi
 
 if test "$missing_required_runtime_prereq" = "yes"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Read the INSTALL file for info about C-Reduce dependencies." >&5
-$as_echo "$as_me: WARNING: Read the INSTALL file for info about C-Reduce dependencies." >&2;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Read the INSTALL.md file for info about C-Reduce dependencies." >&5
+$as_echo "$as_me: WARNING: Read the INSTALL.md file for info about C-Reduce dependencies." >&2;}
 fi
 
 # ...and then warn about optional run-time dependencies.
@@ -19201,8 +19201,8 @@ if test "$missing_optional_runtime_prereq" = "yes"; then :
 $as_echo "$as_me: C-Reduce will use these tools if you install them in the future." >&6;}
 fi
 if test "$missing_optional_runtime_prereq" = "yes"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Read the INSTALL file for info about C-Reduce dependencies." >&5
-$as_echo "$as_me: Read the INSTALL file for info about C-Reduce dependencies." >&6;}
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Read the INSTALL.md file for info about C-Reduce dependencies." >&5
+$as_echo "$as_me: Read the INSTALL.md file for info about C-Reduce dependencies." >&6;}
 fi
 
 ###############################################################################

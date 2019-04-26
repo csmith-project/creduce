@@ -38,7 +38,7 @@ add-apt-repository -y \
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 7.0.  See file "INSTALL".
+# Install LLVM 7.0.  See file "INSTALL.md".
 apt-get install -y -qq \
     llvm-7 \
     llvm-7-dev \
@@ -47,7 +47,7 @@ apt-get install -y -qq \
     clang-format-7 \
     libedit-dev
 
-# Install other C-Reduce dependencies.  See file "INSTALL".
+# Install other C-Reduce dependencies.  See file "INSTALL.md".
 apt-get install -y -qq \
     libexporter-lite-perl \
     libfile-which-perl \

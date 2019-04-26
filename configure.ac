@@ -157,7 +157,7 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"],
   ])
 
 AS_IF([test "$missing_required_runtime_prereq" = "yes"],
-  AC_MSG_WARN([Read the INSTALL file for info about C-Reduce dependencies.]))
+  AC_MSG_WARN([Read the INSTALL.md file for info about C-Reduce dependencies.]))
 
 # ...and then warn about optional run-time dependencies.
 #
@@ -172,7 +172,7 @@ AS_IF([test "$OPTIONAL_PERL_MODULES" = "no"],
 AS_IF([test "$missing_optional_runtime_prereq" = "yes"],
   AC_MSG_NOTICE([C-Reduce will use these tools if you install them in the future.]))
 AS_IF([test "$missing_optional_runtime_prereq" = "yes"],
-  AC_MSG_NOTICE([Read the INSTALL file for info about C-Reduce dependencies.]))
+  AC_MSG_NOTICE([Read the INSTALL.md file for info about C-Reduce dependencies.]))
 
 ###############################################################################
 
