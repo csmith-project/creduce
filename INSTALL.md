@@ -46,12 +46,12 @@ manager:
 * [Flex](http://flex.sourceforge.net/)
 
 * [LLVM/Clang 7.0.0](http://llvm.org/releases/download.html#7.0.0)
-  (No need to compile it: the appropriate "Clang binaries" package is
+  (No need to compile it: the appropriate "pre-built binaries" package is
   all you need.  If you use one of the binary packages, you may need
   to install additional packages that the binary package depends on.
-  For example, the "Clang for x86_64 Ubuntu 14.04" binary package
-  depends on "libtinfo5".  You may need to install this, e.g.: "sudo
-  apt-get install libtinfo-dev".)
+  For example, the "Ubuntu 18.04" binary package depends on "libtinfo5"
+  and "libxml2".  You may need to install these, e.g.:
+  `sudo apt-get install libtinfo-dev libxml2-dev`.)
 
 * Perl modules:
   - Exporter::Lite
