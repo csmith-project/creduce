@@ -18,7 +18,7 @@ page](http://embed.cs.utah.edu/creduce/)
 
 ## Installation
 
-See [INSTALL.md](https://github.com/csmith-project/creduce/blob/master/INSTALL.md)
+See [INSTALL.md](INSTALL.md).
 
 ## Notes
 
