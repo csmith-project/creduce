@@ -57,28 +57,33 @@ include_directories(${CLANG_INCLUDE_DIRS}) # only works for LLVM post-4.0
 
 link_directories(${LLVM_LIBRARY_DIRS})
 
-# Set LLVM_LIBS by running `llvm-config'.
+# ENE: Note that LLVM_LIBS is unused.
 #
-find_program(LLVM_CONFIG_EXECUTABLE
-  NAMES "llvm-config${CMAKE_EXECUTABLE_SUFFIX}"
-  PATHS "${LLVM_TOOLS_BINARY_DIR}"
-  NO_DEFAULT_PATH
-  DOC "llvm-config executable")
-if(NOT LLVM_CONFIG_EXECUTABLE)
-  message(FATAL_ERROR
-    "Required `llvm-config${CMAKE_EXECUTABLE_SUFFIX}` tool was not found")
-endif()
-message(STATUS "Found llvm-config: ${LLVM_CONFIG_EXECUTABLE}")
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs
-    coverage irreader mcparser objcarcopts option passes profiledata support
-  OUTPUT_VARIABLE LLVM_LIBS
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-  RESULT_VARIABLE status
-  )
-if(status)
-  message(FATAL_ERROR "`${LLVM_CONFIG_EXECUTABLE}` failed")
-endif()
+# The CLANG_LIBS defined below depend on various LLVM libraries.  When we do
+# `target_link_libraries(clang_delta ${CLANG_LIBS})`, CMake's automatic library
+# dependency tracking adds ("is expected to add") the necessary LLVM libraries
+# and other libraries to the link set without us doing anything special.
+#
+# There are reports that this automatic tracking does not always work.  If this
+# is the case for you, you can try adding LLVM_LIBS to the invocation of
+# `target_link_libraries()` later in this file.  There are reports that
+# sometimes this doesn't solve the problem, so caveat emptor.
+#
+# There are reports that including LLVM_LIBS in `target_link_libraries()`, when
+# it is not needed, can cause dynamic link errors when `clang_delta` is run
+# (multiply defined symbols).  This is another reason why we don't include
+# LLVM_LIBS in the `target_link_libraries()` call by default.
+#
+llvm_map_components_to_libnames(LLVM_LIBS
+  coverage
+  irreader
+  mcparser
+  objcarcopts
+  option
+  passes
+  profiledata
+  support
+)
 
 set(CLANG_LIBS
   clangStaticAnalyzerFrontend
@@ -254,10 +259,7 @@ add_executable(clang_delta
   git_version.h
 )
 
-# ENE, LLVM 6.0: LLVM_LIBS end up in the link command line anyway.  I'm not
-# quite sure why!  But if you list LLVM_LIBS here, the `clang_delta' binary
-# can end up with dynamic link errors when it runs (multiply defined symbols).
-#
+# ENE: See comment above about why LLVM_LIBS is not included in this call.
 target_link_libraries(clang_delta ${CLANG_LIBS})
 
 # Custom target for running clang_delta tests
