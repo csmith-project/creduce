@@ -262,12 +262,13 @@ add_executable(clang_delta
 # ENE: See comment above about why LLVM_LIBS is not included in this call.
 target_link_libraries(clang_delta ${CLANG_LIBS})
 
-# Custom target for running clang_delta tests
-#
-add_custom_target(check-clang-delta
-  COMMAND ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
-          -sv ${CMAKE_CURRENT_BINARY_DIR}/tests
-  DEPENDS clang_delta)
+# For cases in which the LLVM libraries are shared libraries, remember where
+# the shared libraries are.
+set_target_properties(clang_delta
+  PROPERTIES
+  BUILD_RPATH "${LLVM_LIBRARY_DIRS}"
+  INSTALL_RPATH "${LLVM_LIBRARY_DIRS}"
+)
 
 # On Windows, we also need to link with "Version.dll" system library.
 # See <https://github.com/csmith-project/creduce/pull/126>.
@@ -292,6 +293,15 @@ install(TARGETS clang_delta
 #
 #  PERMISSIONS
 #    OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+
+#####
+
+# Custom target for running clang_delta tests
+#
+add_custom_target(check-clang-delta
+  COMMAND ${LLVM_TOOLS_BINARY_DIR}/llvm-lit
+          -sv ${CMAKE_CURRENT_BINARY_DIR}/tests
+  DEPENDS clang_delta)
 
 ###############################################################################
 
