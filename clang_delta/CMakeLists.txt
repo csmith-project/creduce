@@ -266,7 +266,7 @@ target_link_libraries(clang_delta ${CLANG_LIBS})
 # the shared libraries are.
 set_target_properties(clang_delta
   PROPERTIES
-  BUILD_RPATH "${LLVM_LIBRARY_DIRS}"
+  BUILD_WITH_INSTALL_RPATH "yes"
   INSTALL_RPATH "${LLVM_LIBRARY_DIRS}"
 )
 
