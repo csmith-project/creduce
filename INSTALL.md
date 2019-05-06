@@ -37,7 +37,7 @@ On FreeBSD 10.4 and 11.2, the prerequisites can be installed like this:
 
 ```
 sudo pkg install \
-  llvm70 flex p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common
+  llvm80 flex p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common
 ```
 
 Otherwise, install these packages either manually or using the package
@@ -45,7 +45,7 @@ manager:
 
 * [Flex](http://flex.sourceforge.net/)
 
-* [LLVM/Clang 7.0.0](http://llvm.org/releases/download.html#7.0.0)
+* [LLVM/Clang 8.0.0](http://llvm.org/releases/download.html#8.0.0)
   (No need to compile it: the appropriate "pre-built binaries" package is
   all you need.  If you use one of the binary packages, you may need
   to install additional packages that the binary package depends on.

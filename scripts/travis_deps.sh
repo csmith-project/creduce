@@ -28,23 +28,23 @@ apt-get install -y -qq \
     software-properties-common \
     wget
 
-# Set up for installing LLVM 7.0.
+# Set up for installing LLVM 8.0.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
-    'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
+    'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main'
 wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
-# Install LLVM 7.0.  See file "INSTALL.md".
+# Install LLVM 8.0.  See file "INSTALL.md".
 apt-get install -y -qq \
-    llvm-7 \
-    llvm-7-dev \
-    clang-7 \
-    libclang-7-dev \
-    clang-format-7 \
+    llvm-8 \
+    llvm-8-dev \
+    clang-8 \
+    libclang-8-dev \
+    clang-format-8 \
     libedit-dev
 
 # Install other C-Reduce dependencies.  See file "INSTALL.md".
