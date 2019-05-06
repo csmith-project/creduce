@@ -184,7 +184,7 @@ InstantiateTemplateTypeParamToIntRewriteVisitor::VisitTemplateTypeParmTypeLoc(
   if (D != ConsumerInstance->TheParameter)
     return true;
 
-  void *Ptr = Loc.getLocStart().getPtrEncoding();
+  void *Ptr = Loc.getBeginLoc().getPtrEncoding();
   if (ConsumerInstance->VisitedLocs.count(Ptr))
     return true;
   ConsumerInstance->VisitedLocs.insert(Ptr);

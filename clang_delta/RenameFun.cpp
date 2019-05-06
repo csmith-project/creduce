@@ -145,7 +145,7 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   TransAssert((I != ConsumerInstance->FunToNameMap.end()) &&
               "Cannot find FunctionDecl!");
-  ConsumerInstance->TheRewriter.ReplaceText(DRE->getLocStart(), 
+  ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(), 
     FD->getNameAsString().size(), (*I).second);
   return true;
 }

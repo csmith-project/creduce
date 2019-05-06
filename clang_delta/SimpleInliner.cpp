@@ -487,7 +487,7 @@ void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf,
   for (ReturnStmtsVector::iterator I = ReturnStmts.begin(),
        E = ReturnStmts.end(); I != E; ++I) {
     ReturnStmt *RS = (*I);
-    SourceLocation RSLocStart = RS->getLocStart();
+    SourceLocation RSLocStart = RS->getBeginLoc();
     const char *RSStartBuf = SrcManager->getCharacterData(RSLocStart);
     int Off = RSStartBuf - StartBuf;
     TransAssert((Off >= 0) && "Bad Offset!");
@@ -504,7 +504,7 @@ void SimpleInliner::copyFunctionBody(void)
   RewriteHelper->getStmtString(Body, FuncBodyStr);
   TransAssert(FuncBodyStr[0] == '{');
 
-  SourceLocation StartLoc = Body->getLocStart();
+  SourceLocation StartLoc = Body->getBeginLoc();
   const char *StartBuf = SrcManager->getCharacterData(StartLoc);
 
   std::vector< std::pair<ReturnStmt *, int> > SortedReturnStmts;

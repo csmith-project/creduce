@@ -122,7 +122,7 @@ void RemoveUnusedOuterClass::analyzeCXXRDSet()
 void RemoveUnusedOuterClass::removeOuterClass()
 {
   TransAssert(TheCXXRDDef && "NULL Base CXXRD!");
-  SourceLocation LocStart = TheCXXRDDef->getLocStart();
+  SourceLocation LocStart = TheCXXRDDef->getBeginLoc();
   SourceLocation LocEnd = 
     RewriteHelper->getEndLocationUntil(LocStart, '{');
   TransAssert(LocEnd.isValid() && "Invalid Location!");

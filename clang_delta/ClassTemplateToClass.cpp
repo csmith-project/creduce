@@ -247,7 +247,7 @@ void ClassTemplateToClass::rewriteClassTemplateDecls(void)
          E = TheClassTemplateDecl->redecls_end();
        I != E; ++I) {
     const TemplateParameterList *TPList = (*I)->getTemplateParameters();
-    SourceLocation LocStart = (*I)->getLocStart();
+    SourceLocation LocStart = (*I)->getBeginLoc();
     removeTemplateAndParameter(LocStart, TPList);
   }
 }

@@ -123,7 +123,7 @@ void ReplaceOneLevelTypedefType::handleOneTypedefTypeLoc(TypedefTypeLoc TLoc)
     return;
   const TypedefType *TdefTy = TLoc.getTypePtr();
   const TypedefDecl *TdefD = dyn_cast<TypedefDecl>(TdefTy->getDecl());
-  if (!TdefD || TdefD->getLocStart().isInvalid())
+  if (!TdefD || TdefD->getBeginLoc().isInvalid())
     return;
   const TypedefDecl *CanonicalD = 
     dyn_cast<TypedefDecl>(TdefD->getCanonicalDecl());

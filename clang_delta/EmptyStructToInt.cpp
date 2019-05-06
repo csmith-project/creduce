@@ -113,7 +113,7 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
   const RecordDecl *RD = RTLoc.getDecl();
 
   if (RD->getCanonicalDecl() == ConsumerInstance->TheRecordDecl) {
-    SourceLocation LocStart = RTLoc.getLocStart();
+    SourceLocation LocStart = RTLoc.getBeginLoc();
     void *LocPtr = LocStart.getPtrEncoding();
     if (ConsumerInstance->VisitedLocs.count(LocPtr))
       return true;
@@ -147,11 +147,11 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
     return true;
   }
 
-  SourceLocation StartLoc = Loc.getLocStart();
+  SourceLocation StartLoc = Loc.getBeginLoc();
   if (StartLoc.isInvalid())
     return true;
   TypeLoc TyLoc = Loc.getNamedTypeLoc();
-  SourceLocation EndLoc = TyLoc.getLocStart();
+  SourceLocation EndLoc = TyLoc.getBeginLoc();
   if (EndLoc.isInvalid())
     return true;
   EndLoc = EndLoc.getLocWithOffset(-1);
