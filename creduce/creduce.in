@@ -98,6 +98,7 @@ my @options = (
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
+    ["--ignore-pass",         "call",    0, \&ignore_pass,     "Don't run the specified pass or sub-pass"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
     ["--max-improvement",     "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
@@ -224,6 +225,32 @@ sub add_pass {
     $pass{"pri"} = $pri;
     push @custom_methods, \%pass;
     return 1;
+}
+
+sub ignore_pass {
+    my ($opt, $args, $dest) = @_;
+    my $pass_to_ignore = shift @$args;
+    return 0 unless defined $pass_to_ignore;
+    # first look at passes
+    if (delete $all_methods{$pass_to_ignore}) {
+        print "ignoring pass: ${pass_to_ignore}\n";
+        return 1;
+    }
+    # then sub-passes
+    foreach my $p (keys %all_methods) {
+        my $subpass = $p{"arg"};
+        if (defined $subpass and $pass_to_ignore eq $subpass) {
+            delete $all_methods{$p};
+            print "ignoring sub-pass: ${pass_to_ignore}\n";
+        }
+    }
+    
+    my %method = %{$mref};
+    die unless defined ($mname);
+
+
+    
+    return 0;
 }
 
 ######################################################################
