@@ -873,6 +873,10 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     return;
   }
 
+  case Expr::CXXScalarValueInitExprClass:
+    RewriteHelper->getExprString(E, InitStr);
+    return;
+
   default:
     TransAssert(0 && "Uncaught initializer!");
   }
