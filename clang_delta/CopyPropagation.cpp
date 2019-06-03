@@ -225,6 +225,7 @@ bool CopyPropCollectionVisitor::VisitMemberExpr(MemberExpr *ME)
 
   if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
     BeingIncDec = false;
+    BeingPartial = false;
     return true;
   }
 
@@ -253,6 +254,7 @@ CopyPropCollectionVisitor::VisitArraySubscriptExpr(ArraySubscriptExpr *ASE)
   }
 
   if (!CopyE || (BeingIncDec && ConsumerInstance->isConstantExpr(CopyE))) {
+    BeingPartial = false;
     BeingIncDec = false;
     return true;
   }
