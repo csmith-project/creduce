@@ -294,6 +294,12 @@ void AggregateToScalar::addOneExpr(const Expr *Exp)
     delete Idx;
     return;
   }
+  const Type *VarT = VD->getType().getTypePtr();
+  if (!VarT->isStructureType() && !VarT->isUnionType() &&
+      !VarT->isArrayType() && !VarT->isPointerType()) {
+    delete Idx;
+    return;
+  }
 
   const VarDecl *CanonicalDecl = VD->getCanonicalDecl();
   IdxVectorSet *IdxSet = ValidVars[CanonicalDecl];
