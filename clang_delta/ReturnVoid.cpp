@@ -213,8 +213,10 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
   const char *NameInfoStartBuf =
       ConsumerInstance->SrcManager->getCharacterData(NameInfoStartLoc);
-  if (FuncStartBuf == NameInfoStartBuf)
-    return true;
+  if (FuncStartBuf == NameInfoStartBuf) {
+    ConsumerInstance->Rewritten = true;
+    return !(ConsumerInstance->TheRewriter.InsertText(FuncStartLoc, "void "));
+  }
 
   int Offset = NameInfoStartBuf - FuncStartBuf;
 
