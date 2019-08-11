@@ -134,6 +134,9 @@ void ReturnVoid::keepFuncDefRange(FunctionDecl *FD)
   SourceRange FuncDefRange = FD->getSourceRange();
 
   SourceLocation StartLoc = FuncDefRange.getBegin();
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getExpansionLoc(StartLoc);
+  }
   FuncDefStartPos = 
       SrcManager->getCharacterData(StartLoc);
 
@@ -201,7 +204,11 @@ bool RVASTVisitor::rewriteFuncDecl(FunctionDecl *FD)
 
   SourceRange FuncDefRange = FD->getSourceRange();
   SourceLocation FuncStartLoc = FuncDefRange.getBegin();
-  
+
+  if (FuncStartLoc.isMacroID()) {
+    FuncStartLoc = ConsumerInstance->SrcManager->getExpansionLoc(FuncStartLoc);
+  }
+
   const char *FuncStartBuf =
       ConsumerInstance->SrcManager->getCharacterData(FuncStartLoc);
   const char *NameInfoStartBuf =
