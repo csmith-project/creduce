@@ -104,9 +104,14 @@ void RemoveEnumMemberValue::removeEnumValue()
 {
   SourceManager &SrcManager = TheRewriter.getSourceMgr();
   SourceRange Range = TheEnumConstantDecl->getInitExpr()->getSourceRange();
-  const char *Buf = SrcManager.getCharacterData(Range.getBegin());
+  SourceLocation StartLoc = Range.getBegin();
+  if (StartLoc.isMacroID()) {
+    Range = SrcManager.getExpansionRange(StartLoc).getAsRange();
+    StartLoc = SrcManager.getExpansionLoc(StartLoc);
+  }
+  const char *Buf = SrcManager.getCharacterData(StartLoc);
   int offset = getOffset(Buf, '=');
-  Range.setBegin(Range.getBegin().getLocWithOffset(offset));
+  Range.setBegin(StartLoc.getLocWithOffset(offset));
   TheRewriter.RemoveText(Range);
 }
 
