@@ -110,9 +110,7 @@ bool RenameParamVisitor::VisitFunctionDecl(FunctionDecl *FD)
 
     ConsumerInstance->RewriteHelper->replaceVarDeclName(PD, TmpSS.str());
 
-    if (FD->isThisDeclarationADefinition()) {
-      ParamNameMap[*I] = TmpSS.str();
-    }
+    ParamNameMap[*I] = TmpSS.str();
   }
   return true;
 }
