@@ -1066,8 +1066,7 @@ unsigned Transformation::getNumExplicitDecls(const CXXRecordDecl *CXXRD)
 
 bool Transformation::isInIncludedFile(SourceLocation Loc) const
 {
-  if (Loc.isMacroID())
-    Loc = SrcManager->getExpansionLoc(Loc);
+  Loc = getRealLocation(Loc);
   return SrcManager->getFileID(Loc) != SrcManager->getMainFileID();
 }
 
@@ -1079,6 +1078,13 @@ bool Transformation::isInIncludedFile(const Decl *D) const
 bool Transformation::isInIncludedFile(const Stmt *S) const
 {
   return isInIncludedFile(S->getBeginLoc());
+}
+
+SourceLocation Transformation::getRealLocation(SourceLocation Loc) const
+{
+  if (Loc.isMacroID())
+    return SrcManager->getExpansionLoc(Loc);
+  return Loc;
 }
 
 bool Transformation::isDeclaringRecordDecl(const RecordDecl *RD)

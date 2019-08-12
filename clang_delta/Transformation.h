@@ -301,6 +301,10 @@ protected:
 
   bool isDeclaringRecordDecl(const clang::RecordDecl *RD);
 
+  // If the location is a MacroID, get its expansion location.
+  // Otherwise, just return the location.
+  clang::SourceLocation getRealLocation(clang::SourceLocation Loc) const;
+
   const std::string Name;
 
   int TransformationCounter;
