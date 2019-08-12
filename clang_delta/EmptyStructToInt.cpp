@@ -119,6 +119,11 @@ bool EmptyStructToIntRewriteVisitor::VisitRecordTypeLoc(RecordTypeLoc RTLoc)
       return true;
     ConsumerInstance->VisitedLocs.insert(LocPtr);
 
+    SourceLocation LocEnd = RTLoc.getEndLoc();
+    if (ConsumerInstance->isSourceRangeWithinRecordDecl(
+          SourceRange(LocStart, LocEnd), RD)) {
+      return true;
+    }
     // handle a special case -
     // struct S1 {
     //   struct { } S;
@@ -155,9 +160,16 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   if (EndLoc.isInvalid())
     return true;
   EndLoc = EndLoc.getLocWithOffset(-1);
+  // This ElaboratedTypeLoc has been removed along with the RD
+  if (ConsumerInstance->isSourceRangeWithinRecordDecl(
+        SourceRange(StartLoc, EndLoc), RD)) {
+    return true;
+  }
+
   const char *StartBuf = 
     ConsumerInstance->SrcManager->getCharacterData(StartLoc);
   const char *EndBuf = ConsumerInstance->SrcManager->getCharacterData(EndLoc);
+
   ConsumerInstance->Rewritten = true;
   // It's possible, e.g., 
   // struct S1 {
@@ -556,6 +568,18 @@ const FieldDecl *EmptyStructToInt::getFieldDeclByIdx(
       return (*RI);
   }
   return NULL;
+}
+
+bool EmptyStructToInt::isSourceRangeWithinRecordDecl(SourceRange Range,
+                                                     const RecordDecl *RD) {
+  const char *StartBuf = SrcManager->getCharacterData(Range.getBegin());
+  const char *EndBuf = SrcManager->getCharacterData(Range.getEnd());
+
+  SourceRange RDRange = RD->getBraceRange();
+  const char *RDStartBuf = SrcManager->getCharacterData(RDRange.getBegin());
+  const char *RDEndBuf = SrcManager->getCharacterData(RDRange.getEnd());
+
+  return RDStartBuf < StartBuf && RDEndBuf > EndBuf;
 }
 
 EmptyStructToInt::~EmptyStructToInt(void)

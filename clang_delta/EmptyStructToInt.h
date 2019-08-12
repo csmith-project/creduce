@@ -77,8 +77,11 @@ private:
                     const IndexVector *IdxVec,
                     ExprVector &InitExprs);
 
-  const clang::FieldDecl *getFieldDeclByIdx(const clang::RecordDecl *RD, unsigned int Idx);
+  const clang::FieldDecl *getFieldDeclByIdx(const clang::RecordDecl *RD,
+                                            unsigned int Idx);
 
+  bool isSourceRangeWithinRecordDecl(clang::SourceRange Range,
+                                     const clang::RecordDecl *RD);
   RecordDeclToFieldIdxVectorMap RecordDeclToField;
 
   RecordDeclSet VisitedRecordDecls;
