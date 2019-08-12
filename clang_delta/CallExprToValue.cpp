@@ -101,7 +101,6 @@ void CallExprToValue::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   TransAssert(TheCallExpr && "NULL TheCallExpr!");
-  TransAssert(CurrentFD && "NULL CurrentFD");
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
@@ -132,7 +131,12 @@ void CallExprToValue::replaceCallExpr(void)
     CommaStr = RVStr;
     RVQualType.getAsStringInternal(RVStr, Context->getPrintingPolicy());
     RVStr += ";\n";
-    RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
+    if (CurrentFD) {
+      RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
+    }
+    else {
+      TheRewriter.InsertTextBefore(TheCallExpr->getBeginLoc(), RVStr);
+    }
   }
   else {
     CommaStr = "0";
