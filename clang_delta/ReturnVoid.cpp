@@ -154,7 +154,13 @@ bool ReturnVoid::isInTheFuncDef(ReturnStmt *RS)
   SourceRange RSRange = RS->getSourceRange();
 
   SourceLocation StartLoc = RSRange.getBegin();
+  if (StartLoc.isMacroID()) {
+    StartLoc = SrcManager->getExpansionLoc(StartLoc);
+  }
   SourceLocation EndLoc = RSRange.getEnd();
+  if (EndLoc.isMacroID()) {
+    EndLoc = SrcManager->getExpansionLoc(EndLoc);
+  }
   const char *StartPos =
       SrcManager->getCharacterData(StartLoc);
   const char *EndPos =   
