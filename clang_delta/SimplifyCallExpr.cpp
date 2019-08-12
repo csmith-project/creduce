@@ -103,7 +103,6 @@ void SimplifyCallExpr::HandleTranslationUnit(ASTContext &Ctx)
   }
 
   TransAssert(TheCallExpr && "NULL TheCallExpr!");
-  TransAssert(CurrentFD && "NULL CurrentFD");
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
@@ -130,7 +129,12 @@ void SimplifyCallExpr::handleOneArgStr(const Expr *Arg, std::string &Str)
   std::string TmpVarStr = Str;
   Arg->getType().getAsStringInternal(TmpVarStr, Context->getPrintingPolicy());
   TmpVarStr += ";\n";
-  RewriteHelper->insertStringBeforeFunc(CurrentFD, TmpVarStr);
+  if (CurrentFD) {
+    RewriteHelper->insertStringBeforeFunc(CurrentFD, TmpVarStr);
+  }
+  else {
+    TheRewriter.InsertTextBefore(getRealLocation(TheCallExpr->getBeginLoc()), TmpVarStr);
+  }
 }
 
 void SimplifyCallExpr::replaceCallExpr(void)
@@ -166,7 +170,12 @@ void SimplifyCallExpr::replaceCallExpr(void)
     CommaStr += ("," + RVStr);
     RVQualType.getAsStringInternal(RVStr, Context->getPrintingPolicy());
     RVStr += ";\n";
-    RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
+    if (CurrentFD) {
+      RewriteHelper->insertStringBeforeFunc(CurrentFD, RVStr);
+    }
+    else {
+      TheRewriter.InsertTextBefore(getRealLocation(TheCallExpr->getBeginLoc()), RVStr);
+    }
   }
   else {
     CommaStr += ",0";
