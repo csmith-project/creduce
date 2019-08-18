@@ -180,6 +180,9 @@ void AssignExprStatementVisitor::handleSubExpr(Expr *E)
   if (!E)
     return;
 
+  if (dyn_cast<AttributedStmt>(CurrentStmt))
+    return;
+
   BinaryOperator *BinOp = dyn_cast<BinaryOperator>(E->IgnoreParenCasts());
   if (!BinOp) {
     TraverseStmt(E);
