@@ -49,8 +49,6 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  bool isMacroExpansion(const clang::FunctionDecl *FD);
-
   void addOneFunctionDef(const clang::FunctionDecl *FD);
 
   void rewriteOneFunctionDef(const clang::FunctionDecl *FD);

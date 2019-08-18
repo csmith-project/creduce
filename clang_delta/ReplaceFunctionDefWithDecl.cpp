@@ -54,9 +54,9 @@ bool ReplaceFunctionDefWithDeclCollectionVisitor::VisitFunctionDecl(
   if (FD->isThisDeclarationADefinition() && 
       FD->hasBody() &&
       !FD->isDeleted() &&
-      !FD->isDefaulted() &&
-      !ConsumerInstance->isMacroExpansion(FD))
+      !FD->isDefaulted()) {
     ConsumerInstance->addOneFunctionDef(FD);
+  }
   return true;
 }
 
@@ -316,14 +316,6 @@ void ReplaceFunctionDefWithDecl::doRewriting()
     TransAssert(FD && "NULL FunctionDecl!");
     rewriteOneFunctionDef(FD);
   }
-}
-
-bool ReplaceFunctionDefWithDecl::isMacroExpansion(const FunctionDecl *FD)
-{
-  const Stmt *Body = FD->getBody();
-  if (!Body)
-    return false;
-  return SrcManager->isMacroBodyExpansion(Body->getBeginLoc());
 }
 
 void ReplaceFunctionDefWithDecl::addOneFunctionDef(const FunctionDecl *FD)

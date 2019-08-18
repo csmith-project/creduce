@@ -1495,7 +1495,14 @@ bool RewriteUtils::replaceFunctionDefWithStr(const FunctionDecl *FD,
 {
   const Stmt *Body = FD->getBody();
   TransAssert(Body && "FunctionDecl is not a definition!");
-  return !TheRewriter->ReplaceText(Body->getSourceRange(), Str);
+  SourceRange Range = Body->getSourceRange();
+  SourceLocation StartLoc = Range.getBegin();
+  if (StartLoc.isMacroID())
+    StartLoc = SrcManager->getExpansionLoc(StartLoc);
+  SourceLocation EndLoc = Range.getEnd();
+  if (EndLoc.isMacroID())
+    EndLoc = SrcManager->getExpansionLoc(EndLoc);
+  return !TheRewriter->ReplaceText(SourceRange(StartLoc, EndLoc), Str);
 }
 
 // FIXME: probably we don't need this function, because we could use 
