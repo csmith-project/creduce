@@ -202,7 +202,8 @@ void SimplifyIf::simplifyIfStmt(void)
 
   const Stmt *ElseS = TheIfStmt->getElse();
   if (ElseS) {
-    SourceLocation ElseLoc = TheIfStmt->getElseLoc();
+    SourceLocation ElseLoc =
+      RewriteHelper->getRealLocation(TheIfStmt->getElseLoc());
     std::string ElseStr = "else";
     TheRewriter.RemoveText(ElseLoc, ElseStr.size());
   }

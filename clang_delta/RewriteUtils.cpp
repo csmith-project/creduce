@@ -57,6 +57,19 @@ void RewriteUtils::Finalize(void)
   }
 }
 
+SourceLocation RewriteUtils::getRealLocation(SourceLocation Loc) {
+  if (Loc.isMacroID()) {
+    return SrcManager->getExpansionLoc(Loc);
+  }
+  return Loc;
+}
+
+SourceRange RewriteUtils::getRealSourceRange(SourceRange Range) {
+  SourceLocation StartLoc = Range.getBegin();
+  SourceLocation EndLoc = Range.getEnd();
+  return SourceRange(getRealLocation(StartLoc), getRealLocation(EndLoc));
+}
+
 // copied from Rewriter.cpp
 unsigned RewriteUtils::getLocationOffsetAndFileID(SourceLocation Loc,
                                                   FileID &FID,
@@ -1427,13 +1440,13 @@ bool RewriteUtils::removeIfAndCond(const IfStmt *IS)
   const Stmt *ThenStmt = IS->getThen();
   TransAssert(ThenStmt && "NULL ThenStmt!");
 
-  SourceLocation ThenLoc = ThenStmt->getBeginLoc();
+  SourceLocation ThenLoc = getRealLocation(ThenStmt->getBeginLoc());
   SourceLocation EndLoc =  ThenLoc.getLocWithOffset(-1);
 
   Rewriter::RewriteOptions Opts;
   // We don't want to include the previously inserted string
   Opts.IncludeInsertsAtBeginOfRange = false;
-  return !TheRewriter->RemoveText(SourceRange(IfLoc, EndLoc), Opts);
+  return !TheRewriter->RemoveText(SourceRange(getRealLocation(IfLoc), EndLoc), Opts);
 }
 
 bool RewriteUtils::removeArraySubscriptExpr(const Expr *E)

@@ -270,6 +270,10 @@ public:
          const clang::CXXMethodDecl *MD,
          const std::string &NewName);
 
+  clang::SourceLocation getRealLocation(clang::SourceLocation Loc);
+
+  clang::SourceRange getRealSourceRange(clang::SourceRange Range);
+
 private:
 
   static RewriteUtils *Instance;
