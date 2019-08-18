@@ -667,7 +667,8 @@ bool RewriteUtils::replaceExpr(const Expr *E,
       StartLoc = SrcManager->getFileLoc(StartLoc);
     }
     SourceLocation EndLoc = ExprRange.getEnd();
-    if (SrcManager->isMacroBodyExpansion(EndLoc)) {
+    if (SrcManager->isMacroBodyExpansion(EndLoc) ||
+        SrcManager->isMacroArgExpansion(EndLoc)) {
       // FIXME: handle cases below:
       // #define macro bar(1,2);
       // int bar(int p1, int p2) { return p1 + p2; }
