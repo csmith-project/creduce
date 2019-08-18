@@ -1329,8 +1329,13 @@ bool RewriteUtils::removeVarDecl(const VarDecl *VD,
     TransAssert(FirstVD && "Invalid Var Decl!");
     if (VD == FirstVD) {
       SourceLocation StartLoc = VD->getLocation();
-      SourceLocation EndLoc = 
-        getEndLocationUntil(VarRange, ',');
+      SourceLocation EndLoc;
+      if (I + 1 == DGR.end()) {
+        EndLoc = StartLoc;
+      }
+      else {
+        EndLoc = getEndLocationUntil(VarRange, ',');
+      }
 
       return !(TheRewriter->RemoveText(SourceRange(StartLoc, EndLoc)));
     }
