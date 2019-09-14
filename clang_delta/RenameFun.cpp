@@ -70,7 +70,7 @@ private:
 bool RNFunCollectionVisitor::VisitFunctionDecl(FunctionDecl *FD)
 {
   // renaming CXXMethodDecl is handled in a seperate pass
-  if (dyn_cast<CXXMethodDecl>(FD)) {
+  if (dyn_cast<CXXMethodDecl>(FD) || FD->isOverloadedOperator()) {
     return true;
   }
 
@@ -91,7 +91,7 @@ bool RNFunCollectionVisitor::VisitCallExpr(CallExpr *CE)
     return true;
   FunctionDecl *FD = CE->getDirectCallee();
   // It could happen, e.g., CE could refer to a DependentScopeDeclRefExpr
-  if (!FD || dyn_cast<CXXMethodDecl>(FD))
+  if (!FD || dyn_cast<CXXMethodDecl>(FD) || FD->isOverloadedOperator())
     return true;
   if (ConsumerInstance->isInIncludedFile(FD))
     return true;
@@ -114,7 +114,8 @@ bool RenameFunVisitor::VisitFunctionDecl(FunctionDecl *FD)
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   if (ConsumerInstance->isInIncludedFile(FD) ||
       ConsumerInstance->isInIncludedFile(CanonicalDecl) ||
-      dyn_cast<CXXMethodDecl>(FD)) {
+      dyn_cast<CXXMethodDecl>(FD) ||
+      FD->isOverloadedOperator()) {
     return true;
   }
 
@@ -135,7 +136,7 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   ValueDecl *OrigDecl = DRE->getDecl();
   FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl);
-  if (!FD || dyn_cast<CXXMethodDecl>(FD) ||
+  if (!FD || dyn_cast<CXXMethodDecl>(FD) || FD->isOverloadedOperator() ||
       ConsumerInstance->isInIncludedFile(FD))
     return true;
 
