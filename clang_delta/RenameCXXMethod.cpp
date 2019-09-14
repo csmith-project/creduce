@@ -610,7 +610,10 @@ const FunctionDecl* RenameCXXMethod::getFunctionDeclFromOverloadExpr(
   if (!RD)
     return NULL;
   DeclarationName DName = OE->getName();
-  TransAssert((DName.getNameKind() == DeclarationName::Identifier) &&
+  DeclarationName::NameKind K = DName.getNameKind();
+  if (K == DeclarationName::CXXOperatorName)
+    return NULL;
+  TransAssert((K == DeclarationName::Identifier) &&
               "Not an indentifier!"); 
   DeclContextSet VisitedCtxs;
   return lookupFunctionDecl(DName, RD, VisitedCtxs);
