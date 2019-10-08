@@ -245,6 +245,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXDestructorDecl(
   SourceLocation StartLoc = DtorDecl->getLocation();
   // skip '~'
   StartLoc = StartLoc.getLocWithOffset(1);
+  StartLoc = RewriteHelper->getLocationAfterSkiping(StartLoc, ' ');
   void *LocPtr = StartLoc.getPtrEncoding();
   if (VisitedLocs.count(LocPtr))
     return true;
@@ -270,6 +271,10 @@ bool CommonRenameClassRewriteVisitor<T>::VisitInjectedClassNameTypeLoc(
     SourceLocation LocStart = TyLoc.getBeginLoc();
     TransAssert(LocStart.isValid() && "Invalid Location!");
 
+    void *LocPtr = LocStart.getPtrEncoding();
+    if (VisitedLocs.count(LocPtr))
+      return true;
+    VisitedLocs.insert(LocPtr);
     TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
   }
   return true;

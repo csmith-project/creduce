@@ -274,6 +274,9 @@ public:
 
   clang::SourceRange getRealSourceRange(clang::SourceRange Range);
 
+  clang::SourceLocation getLocationAfterSkiping(clang::SourceLocation StartLoc,
+                                                char Symbol);
+
 private:
 
   static RewriteUtils *Instance;
@@ -297,9 +300,6 @@ private:
 
   clang::SourceLocation getEndLocationAfter(clang::SourceRange Range,
                                             char Symbol);
-
-  clang::SourceLocation getLocationAfterSkiping(clang::SourceLocation StartLoc,
-                                                char Symbol);
 
   unsigned getLocationOffsetAndFileID(clang::SourceLocation Loc,
                                              clang::FileID &FID,
