@@ -351,6 +351,8 @@ template<typename T>
 void CommonRenameClassRewriteVisitor<T>::renameTemplateName(
        TemplateName TmplName, SourceLocation LocStart)
 {
+  if (TmplName.getKind() == TemplateName::DependentTemplate)
+    return;
   const TemplateDecl *TmplD = TmplName.getAsTemplateDecl();
   TransAssert(TmplD && "Invalid TemplateDecl!");
   NamedDecl *ND = TmplD->getTemplatedDecl();
