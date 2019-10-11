@@ -310,17 +310,38 @@ EXTRA_DIST = \
 	README.txt \
 	git_version.cpp.in \
 	test_transformation \
+	tests/aggregate-to-scalar/cast.c \
+	tests/aggregate-to-scalar/test1.c \
+	tests/aggregate-to-scalar/test1.cc \
+	tests/aggregate-to-scalar/test2.c \
+	tests/aggregate-to-scalar/test2.cc \
+	tests/aggregate-to-scalar/test3.c \
+	tests/aggregate-to-scalar/test4.c \
+	tests/callexpr-to-value/macro1.c \
+	tests/callexpr-to-value/macro2.c \
+	tests/callexpr-to-value/test1.c \
+	tests/callexpr-to-value/test2.c \
+	tests/copy-propagation/copy1.cpp \
+	tests/copy-propagation/copy2.cpp \
 	tests/empty-struct-to-int/empty-struct.cpp \
 	tests/empty-struct-to-int/empty-struct2.cpp \
 	tests/empty-struct-to-int/empty-struct3.cpp \
 	tests/empty-struct-to-int/empty-struct4.cpp \
 	tests/empty-struct-to-int/empty-struct5.cpp \
+	tests/empty-struct-to-int/empty-struct6.c \
+	tests/empty-struct-to-int/empty-struct7.c \
+	tests/empty-struct-to-int/struct_int.c \
+	tests/empty-struct-to-int/test1.cc \
+	tests/empty-struct-to-int/test2.cc \
+	tests/empty-struct-to-int/test3.c \
 	tests/lit.cfg \
 	tests/lit.site.cfg.in \
 	tests/local-to-global/unnamed_1.c \
 	tests/local-to-global/unnamed_2.c \
 	tests/local-to-global/unnamed_3.c \
 	tests/reduce-array-dim/non-type-temp-arg.cpp \
+	tests/reduce-pointer-level/scalar-init-expr.cpp \
+	tests/remove-enum-member-value/builtin_macro.c \
 	tests/remove-nested-function/remove_nested_func1.cc \
 	tests/remove-unused-field/designated1.c \
 	tests/remove-unused-field/designated2.c \
@@ -330,16 +351,64 @@ EXTRA_DIST = \
 	tests/remove-unused-field/unused_field1.c \
 	tests/remove-unused-field/unused_field2.c \
 	tests/remove-unused-field/unused_field3.cpp \
+	tests/remove-unused-var/struct1.c \
+	tests/remove-unused-var/struct2.c \
 	tests/remove-unused-var/unused_var.cpp \
 	tests/remove_lit_checks.in \
+	tests/rename-class/base_specifier.cpp \
+	tests/rename-class/bool.cc \
+	tests/rename-class/class_template.cc \
+	tests/rename-class/class_template2.cc \
+	tests/rename-class/dependent.cpp \
+	tests/rename-class/dependent_name.cpp \
+	tests/rename-class/derive.cc \
+	tests/rename-class/dtor.cc \
+	tests/rename-class/dtor1.cc \
+	tests/rename-class/elaborated_type1.cpp \
+	tests/rename-class/elaborated_type2.cpp \
+	tests/rename-class/explicit_specialization.cpp \
+	tests/rename-class/forward_decl.cc \
+	tests/rename-class/injected_name.cpp \
+	tests/rename-class/instantiation.cpp \
+	tests/rename-class/parm.cpp \
+	tests/rename-class/partial_specialization.cpp \
 	tests/rename-class/rename-class1.cpp \
 	tests/rename-class/rename-class2.cpp \
+	tests/rename-class/specialization.cpp \
+	tests/rename-class/static_member.cc \
+	tests/rename-class/template_parm.cpp \
+	tests/rename-class/template_template.cpp \
+	tests/rename-class/template_template_parm.cpp \
+	tests/rename-class/typedef.cpp \
+	tests/rename-class/typedef2.cc \
+	tests/rename-class/using.cpp \
+	tests/rename-class/using1.cc \
+	tests/rename-cxx-method/overloaded.cc \
+	tests/rename-cxx-method/test1.cc \
+	tests/rename-cxx-method/test2.cc \
+	tests/rename-cxx-method/test3.cc \
+	tests/rename-fun/overloaded.cc \
 	tests/rename-fun/test1.c \
 	tests/rename-fun/test1.h \
+	tests/rename-param/invalid.c \
 	tests/rename-var/rename-var.c \
 	tests/replace-derived-class/replace-derived1.cpp \
 	tests/replace-derived-class/replace-derived2.cpp \
 	tests/replace-derived-class/replace-derived3.cpp \
+	tests/replace-derived-class/replace-derived4.cpp \
+	tests/replace-function-def-with-decl/macro1.c \
+	tests/replace-function-def-with-decl/macro2.c \
+	tests/return-void/test1.c \
+	tests/return-void/test1.cc \
+	tests/return-void/test2.c \
+	tests/return-void/test3.c \
+	tests/return-void/test4.c \
+	tests/return-void/test5.c \
+	tests/return-void/test6.c \
+	tests/simplify-callexpr/macro.c \
+	tests/simplify-callexpr/test.c \
+	tests/simplify-callexpr/test2.c \
+	tests/simplify-if/macro.c \
 	tests/union-to-struct/union1.c \
 	tests/union-to-struct/union2.c \
 	tests/union-to-struct/union3.c
