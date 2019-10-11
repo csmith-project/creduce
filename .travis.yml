@@ -10,16 +10,16 @@
 ###############################################################################
 
 sudo: required
-dist: xenial
+dist: bionic
 language: cpp
 
 before_install:
   - sudo scripts/travis_deps.sh
 
 script: >
-  CXX=/usr/lib/llvm-8/bin/clang++
-  CC=/usr/lib/llvm-8/bin/clang
-  ./configure --with-llvm=/usr/lib/llvm-8 &&
+  CXX=/usr/lib/llvm-9/bin/clang++
+  CC=/usr/lib/llvm-9/bin/clang
+  ./configure --with-llvm=/usr/lib/llvm-9 &&
   make -j2 &&
   make check
 
