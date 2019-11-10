@@ -59,6 +59,7 @@ my $SLLOOWW = 0;
 my $NODEFAULT;
 my $TIMING = 0;
 my $ABS_TIMING = 0;
+my $ETA = 0;
 my $TIMEOUT_IN_SECONDS = 300; # 5 minutes.
 my $DEBUG_SMP = 0;
 my $DIE_ON_PASS_BUG = 0;
@@ -94,6 +95,7 @@ my @options = (
     ["--skip-initial-passes", "const",   1, \$SKIP_FIRST,      "Skip initial passes (useful if input is already partially reduced)"],
     ["--timing",              "const",   1, \$TIMING,          "Print timestamps about reduction progress"],
     ["--abs-timing",          "const",   1, \$ABS_TIMING,      "Print timestamps about reduction progress using absolute time"],
+    ["--eta",                 "const",   1, \$ETA,             "Print estimated time of reduction process"],
     ["--no-cache",            "const",   1, \$NO_CACHE,        "Don't cache behavior of passes"],
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
@@ -239,6 +241,9 @@ my @toreduce;
 my %fileonly;
 my %suffix;
 
+my $start_time = time();
+my $last_step_time = $start_time;
+
 ######################################################################
 
 sub print_pct () {
@@ -247,7 +252,15 @@ sub print_pct () {
         $s += -s $f;
     }
     my $pct = 100 - ($s * 100.0 / $orig_total_file_size);
-    printf "(%.1f %%, $s bytes)\n", $pct;
+    my $took = time() - $start_time;
+    my $step_took = time() - $last_step_time;
+    $last_step_time = time();
+    my $eta = 100 / $pct * $took / 3600;
+    printf "(%.1f %%, $s bytes", $pct;
+    printf ", reduction duration: %d s", $took if $ABS_TIMING;
+    printf ", last step: %d s", $step_took if $TIMING;
+    printf ", ETA: %.2f hours", $eta if $ETA;
+    printf ")\n";
 }
 
 my @tmpdirs;
@@ -573,7 +586,6 @@ my $pass_num = 0;
 my %method_worked = ();
 my %method_failed = ();
 my %cache = ();
-my $start_time = time();
 
 # invariant: parallel execution does not escape this function
 #
@@ -711,10 +723,6 @@ sub delta_pass ($) {
                 $method_worked{$passname}++;
                 print "delta test success " if $DEBUG;
                 print_pct();
-                print "timestamp " . (time()-$start_time) . " size ".(-s $fn)."\n"
-                    if $TIMING;
-                print "timestamp " . time() . " size ".(-s $fn)."\n"
-                    if $ABS_TIMING;
             } else {
                 print "delta test failure\n" if $DEBUG;
                 $since_success++;
