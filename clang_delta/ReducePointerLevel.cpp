@@ -795,6 +795,7 @@ void ReducePointerLevel::getNewLocalInitStr(const Expr *Init,
     return;
 
   case Expr::CXXNewExprClass:
+  case Expr::CXXNullPtrLiteralExprClass: // Fall-through
     InitStr = "";
     return;
 
