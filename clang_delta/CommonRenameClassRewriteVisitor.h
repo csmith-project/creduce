@@ -191,7 +191,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitCXXRecordDecl(
     return true;
   VisitedLocs.insert(LocPtr);
 
-  if (ConsumerInstance->isDeclaringRecordDecl(CXXRD)) {
+  if (ConsumerInstance->isDeclaringRecordDecl(CXXRD) && CXXRD->isThisDeclarationADefinition()) {
     RewriteHelper->replaceRecordDeclDef(CXXRD, Name);
   }
   else {
