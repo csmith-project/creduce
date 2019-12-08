@@ -127,7 +127,8 @@ bool RenameParamVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
 
   llvm::DenseMap<ParmVarDecl *, std::string>::iterator I =
     ParamNameMap.find(PD);
-  TransAssert((I != ParamNameMap.end()) && "Bad Param!");
+  if (I == ParamNameMap.end())
+    return true;
   
   return ConsumerInstance->RewriteHelper->replaceExpr(DRE, (*I).second);
 }
