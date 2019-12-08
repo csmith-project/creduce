@@ -461,6 +461,13 @@ void RemoveNestedFunction::getNewTmpVariableStr(ASTContext &ASTCtx,
     VarStr = DStr + " " + VarStr;
     return;
   }
+
+  if (const AutoType *AT = 
+      dyn_cast<AutoType>(CalleeType)) {
+    VarStr = "auto " + VarStr;
+    return;
+  }
+
   QT = TheCallExpr->getCallReturnType(ASTCtx);
   getNewTmpVariable(
     QT.getTypePtr()->getUnqualifiedDesugaredType()->getCanonicalTypeInternal(),
