@@ -214,6 +214,8 @@ bool SimpleInlinerFunctionStmtVisitor::VisitFunctionDecl(FunctionDecl *FD)
       !FD->isThisDeclarationADefinition())
     return true;
 
+  if (FD->getBeginLoc().isInvalid() || FD->getEndLoc().isInvalid())
+    return true;
   ConsumerInstance->CurrentFD = FD;
   ConsumerInstance->CollectionVisitor->setNumStmts(0);
   ConsumerInstance->CollectionVisitor->TraverseDecl(FD);
@@ -571,8 +573,10 @@ void SimpleInliner::removeFunctionBody(void)
   }
 
   if (FunctionTemplateDecl *FTD = CurrentFD->getPrimaryTemplate()) {
-    TheRewriter.RemoveText(FTD->getSourceRange());
-    return;
+    if (FTD->getBeginLoc().isValid() && FTD->getEndLoc().isValid()) {
+      TheRewriter.RemoveText(FTD->getSourceRange());
+      return;
+    }
   }
 
   SourceRange FDRange = CurrentFD->getSourceRange();
