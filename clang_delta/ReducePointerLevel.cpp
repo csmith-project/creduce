@@ -135,6 +135,10 @@ bool PointerLevelCollectionVisitor::VisitDeclaratorDecl(DeclaratorDecl *DD)
   if (dyn_cast<SubstTemplateTypeParmType>(Ty))
     return true;
 
+  // skip AutoType for now
+  if (Ty->getContainedAutoType())
+    return true;
+
   if (const ArrayType *ArrayTy = dyn_cast<ArrayType>(Ty))
     Ty = ConsumerInstance->getArrayBaseElemType(ArrayTy);
   if (!Ty->isPointerType() || Ty->isVoidPointerType())
