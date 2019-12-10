@@ -823,6 +823,7 @@ EXTRA_DIST = \
 	tests/rename-class/rename-class2.cpp \
 	tests/rename-class/specialization.cpp \
 	tests/rename-class/static_member.cc \
+	tests/rename-class/template_class_1.cpp \
 	tests/rename-class/template_parm.cpp \
 	tests/rename-class/template_template.cpp \
 	tests/rename-class/template_template_parm.cpp \
