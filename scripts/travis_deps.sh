@@ -31,11 +31,13 @@ apt-get install -y -qq \
 # Set up for installing LLVM 9.0.
 # See <https://wiki.ubuntu.com/ToolChain>.
 # See <http://llvm.org/apt/>.
+# Key must be added before doing `apt-add-repository ... apt.llvm.org ...`.
+wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
+#
 add-apt-repository -y \
     ppa:ubuntu-toolchain-r/test
 add-apt-repository -y \
     'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main'
-wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
 apt-get update -qq
 
 # Install LLVM 9.0.  See file "INSTALL.md".
