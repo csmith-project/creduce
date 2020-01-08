@@ -98,6 +98,7 @@ my @options = (
     ["--timeout",             "integer", 1, \$TIMEOUT_IN_SECONDS, "Interestingness test timeout in seconds"],
     ["--no-default-passes",   "const",   1, \$NODEFAULT,       "Start with an empty pass schedule"],
     ["--add-pass",            "call",    0, \&add_pass,        "Add the specified pass to the schedule", "<pass> <sub-pass> <priority>"],
+    ["--remove-pass",         "call",    0, \&remove_pass,     "Remove all instances of the specified pass from the schedule.", "<pass> [sub-pass]"],
     ["--skip-key-off",        "const",   1, \$SKIP_KEY_OFF,    "Disable skipping the rest of the current pass when \"s\" is pressed"],
     ["--max-improvement",     "integer", 1, \$MAX_WIN,         "Largest improvement in file size from a single transformation that C-Reduce should accept (useful only to slow C-Reduce down)", "<bytes>"],
 );
@@ -211,6 +212,7 @@ usage() unless (@ARGV >= 2);
 defined $NPROCS or $NPROCS = nprocs();
 
 my @custom_methods;
+my %removed_methods;
 
 sub add_pass {
     my ($opt, $args, $dest) = @_;
@@ -223,6 +225,16 @@ sub add_pass {
     $pass{"arg"} = $subpass;
     $pass{"pri"} = $pri;
     push @custom_methods, \%pass;
+    return 1;
+}
+
+sub remove_pass {
+    my ($opt, $args, $dest) = @_;
+    my $name = shift @$args;
+    my $subpass = shift @$args;
+    return 0 unless defined $name;
+    $subpass = "*" unless defined $subpass;
+    $removed_methods{$name . "::" . $subpass} = 1;
     return 1;
 }
 
@@ -955,6 +967,10 @@ sub pass_iterator ($) {
     my @l = ();
     foreach my $href (@all_methods) {
         my %pass = %{$href};
+
+        next if defined $removed_methods{$pass{'name'} . "::" . $pass{'arg'}};
+        next if defined $removed_methods{$pass{'name'} . "::" . "*"};
+
         if (defined $pass{$which}) {
             next if $NOTC && defined($pass{"C"});
             push @l, $href;
