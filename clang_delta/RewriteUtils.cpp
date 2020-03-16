@@ -214,7 +214,11 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
   int RangeSize;
  
   SourceLocation StartLoc = ParamLocRange.getBegin();
+  if (StartLoc.isMacroID())
+    StartLoc = SrcManager->getExpansionLoc(StartLoc);
   SourceLocation EndLoc = ParamLocRange.getEnd();
+  if (EndLoc.isMacroID())
+    EndLoc = SrcManager->getExpansionLoc(EndLoc);
   if (StartLoc.isInvalid() && EndLoc.isInvalid()) {
     return false;
   }
@@ -232,7 +236,7 @@ bool RewriteUtils::removeParamFromFuncDecl(const ParmVarDecl *PV,
     }
   }
   else {
-    RangeSize = TheRewriter->getRangeSize(ParamLocRange);
+    RangeSize = TheRewriter->getRangeSize(SourceRange(StartLoc, EndLoc));
     if (RangeSize == -1)
       return false;
   }
@@ -538,7 +542,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
 
   // VD is the the only declaration, so it is safe to remove the entire stmt
   if (DS->isSingleDecl()) {
-    return !(TheRewriter->RemoveText(StmtRange));
+    return !(TheRewriter->RemoveText(getRealSourceRange(StmtRange)));
   }
 
   // handle the case where we could have implicit declaration of RecordDecl
