@@ -26,8 +26,8 @@ project(creduce)
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "8.0")
-  message(FATAL_ERROR "C-Reduce requires LLVM 8.0 or later")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "9.0")
+  message(FATAL_ERROR "C-Reduce requires LLVM 9.0 or later")
 endif()
 #
 # Do this here, too, just to keep it with the LLVM check above.

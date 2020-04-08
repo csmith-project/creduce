@@ -45,7 +45,7 @@ manager:
 
 * [Flex](http://flex.sourceforge.net/)
 
-* [LLVM/Clang 8.0.0](http://llvm.org/releases/download.html#8.0.0)
+* [LLVM/Clang 9.0.0](http://llvm.org/releases/download.html#9.0.0)
   (No need to compile it: the appropriate "pre-built binaries" package is
   all you need.  If you use one of the binary packages, you may need
   to install additional packages that the binary package depends on.
