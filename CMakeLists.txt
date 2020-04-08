@@ -35,7 +35,7 @@ endif()
 find_package(Clang REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Using ClangConfig.cmake in ${Clang_DIR}")
 
-# Locate Perl and check its version.
+# Locate Python and check its version.
 #
 find_package(PythonInterp 3.4 REQUIRED)
 

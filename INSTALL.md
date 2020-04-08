@@ -14,7 +14,7 @@ $ brew install creduce
 
 ### Prereqs
 
-C-Reduce is written in Perl, C++, and C.  To compile and run C-Reduce,
+C-Reduce is written in Python3, C++, and C.  To compile and run C-Reduce,
 you will need a development environment that supports these languages.
 C-Reduce's build system requires CMake or GNU Make (*not* BSD Make).
 
@@ -26,18 +26,14 @@ like this:
 
 ```
 sudo apt-get install \
-  libexporter-lite-perl libfile-which-perl libgetopt-tabular-perl \
-  libregexp-common-perl flex build-essential zlib1g-dev
+  flex build-essential zlib1g-dev
 ```
-
-On OS X, [Perlbrew](http://perlbrew.pl/) provides an easy and flexible
-way to get Perl and Perl modules installed
 
 On FreeBSD 11.2, the prerequisites can be installed like this:
 
 ```
 sudo pkg install \
-  llvm80 flex p5-Exporter-Lite p5-File-Which p5-Getopt-Tabular p5-Regexp-Common
+  llvm90 flex
 ```
 
 Otherwise, install these packages either manually or using the package
@@ -53,39 +49,9 @@ manager:
   and "libxml2".  You may need to install these, e.g.:
   `sudo apt-get install libtinfo-dev libxml2-dev`.)
 
-* Perl modules:
-  - Exporter::Lite
-  - File::Which
-  - Getopt::Tabular
-  - Regexp::Common
-  - For example, (perhaps as root) `cpan -i Exporter::Lite File::Which Getopt::Tabular Regexp::Common`
+* [Python3](https://www.python.org/downloads/)
 
 * [zlib](http://www.zlib.net/)
-
-### Optional Prereqs
-
-`Term::ReadKey` is optional; C-Reduce will use it if it is installed.
-
-On Ubuntu:
-
-```
-sudo apt-get install libterm-readkey-perl
-```
-
-On OS X (with Homebrew + Perlbrew installed):
-
-```
-cpan -i Term::ReadKey
-```
-
-On FreeBSD 11.2:
-
-```
-sudo pkg install p5-Term-ReadKey
-```
-
-Otherwise, install the packages either manually or using the package
-manager.
 
 ## Building and installing C-Reduce
 
