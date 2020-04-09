@@ -58,22 +58,6 @@ manager:
 You can configure, build, and install C-Reduce with the provided
 `configure` script or with CMake.
 
-### Preface: If in Doubt, Compile With clang++
-
-If you encounter weird C++ link-time errors while trying to compile
-C-Reduce (in particular, while compiling its internal `clang_delta`
-tool), please try compiling with clang++.
-
-We have encountered link-time problems while trying to compile
-C-Reduce with GCC 5.* and the precompiled LLVM binaries available
-from <http://llvm.org/releases/download.html>.  If you encounter
-similar problems, we strongly suggest that you use Clang instead of
-GCC to compile C-Reduce and its internal tools.
-
-If you are curious, for some discussion of this issue, see:
-<https://github.com/csmith-project/creduce/issues/101>
-<https://gcc.gnu.org/onlinedocs/libstdc++/manual/using_dual_abi.html>
-
 ### The `configure` Way
 
 From either the source directory or a build directory:
@@ -168,11 +152,3 @@ cmake ... -DENABLE_TRANS_ASSERT=OFF
 Released versions of C-Reduce, and also our master branch at GitHub,
 need to be compiled against specific released versions of LLVM, as
 noted in this file.
-
-Our GitHub repo usually also has a branch called llvm-svn-compatible
-that supports building C-Reduce against LLVMs that are newer than the
-last released version.  The most recent version of LLVM that the
-llvm-svn-compatible branch is known to compile against is recorded in
-`LAST_KNOWN_WORKING_LLVM`.  C-Reduce may happen to also build against
-revisions before or after this, but we make no guarantees.
-
