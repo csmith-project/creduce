@@ -126,6 +126,11 @@ configure_file(
   COPYONLY
 )
 configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/line_markers.py"
+  "${creduce_python_BINARY_DIR}/passes/line_markers.py"
+  COPYONLY
+)
+configure_file(
   "${creduce_python_SOURCE_DIR}/passes/lines.py"
   "${creduce_python_BINARY_DIR}/passes/lines.py"
   COPYONLY
@@ -168,6 +173,11 @@ configure_file(
 configure_file(
   "${creduce_python_SOURCE_DIR}/tests/test_ints.py"
   "${creduce_python_BINARY_DIR}/tests/test_ints.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/test_line_markers.py"
+  "${creduce_python_BINARY_DIR}/tests/test_line_markers.py"
   COPYONLY
 )
 configure_file(

@@ -10,6 +10,7 @@ from .includeincludes import IncludeIncludesPass
 from .includes import IncludesPass
 from .indent import IndentPass
 from .ints import IntsPass
+from .line_markers import LineMarkersPass
 from .lines import LinesPass
 from .peep import PeepPass
 from .special import SpecialPass

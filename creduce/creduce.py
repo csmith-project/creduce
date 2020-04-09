@@ -33,6 +33,7 @@ class CReduce:
         "includes": passes.IncludesPass,
         "indent": passes.IndentPass,
         "ints": passes.IntsPass,
+        "line_markers": passes.LineMarkersPass,
         "lines": passes.LinesPass,
         "peep": passes.PeepPass,
         "special": passes.SpecialPass,
