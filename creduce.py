@@ -140,9 +140,9 @@ if __name__ == "__main__":
     log_config = {}
 
     if args.timing:
-        log_config["format"] = "%(asctime)s@%(levelname)s@%(name)s@%(message)s"
+        log_config["format"] = "%(asctime)s %(levelname)s %(message)s"
     else:
-        log_config["format"] = "@%(levelname)s@%(name)s@%(message)s"
+        log_config["format"] = "%(levelname)s %(message)s"
 
     if args.debug:
         log_config["level"] = logging.DEBUG
