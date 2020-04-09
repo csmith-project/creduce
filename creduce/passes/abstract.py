@@ -1,5 +1,50 @@
 import re
 import enum
+import logging
+import copy
+
+class BinaryState:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def create(instances):
+        if not instances:
+            return None
+        self = BinaryState()
+        self.instances = instances
+        self.chunk = instances
+        self.index = 0
+        return self
+
+    def copy(self):
+        return copy.copy(self)
+
+    def end(self):
+        return min(self.index + self.chunk, self.instances)
+
+    def advance(self):
+        self = self.copy()
+        original_index = self.index
+        self.index += self.chunk
+        if self.index >= self.instances:
+            self.chunk = int(self.chunk / 2)
+            if self.chunk <= 1:
+                return None
+            logging.debug("granularity reduced to {}".format(self.chunk))
+            self.index = 0
+        else:
+            logging.debug("***ADVANCE*** from {} to {} with chunk {}".format(original_index, self.index, self.chunk))
+        return self
+
+    def advance_on_success(self, instances):
+        if not instances:
+            return None
+        self.instances = instances
+        if self.index >= self.instances:
+            return self.advance()
+        else:
+            return self
 
 class AbstractPass:
     @enum.unique
