@@ -156,38 +156,38 @@ configure_file(
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/balanced.py"
-  "${creduce_python_BINARY_DIR}/tests/balanced.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_balanced.py"
+  "${creduce_python_BINARY_DIR}/tests/test_balanced.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/comments.py"
-  "${creduce_python_BINARY_DIR}/tests/comments.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_comments.py"
+  "${creduce_python_BINARY_DIR}/tests/test_comments.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/ints.py"
-  "${creduce_python_BINARY_DIR}/tests/ints.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_ints.py"
+  "${creduce_python_BINARY_DIR}/tests/test_ints.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/nestedmatcher.py"
-  "${creduce_python_BINARY_DIR}/tests/nestedmatcher.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_nestedmatcher.py"
+  "${creduce_python_BINARY_DIR}/tests/test_nestedmatcher.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/peep.py"
-  "${creduce_python_BINARY_DIR}/tests/peep.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_peep.py"
+  "${creduce_python_BINARY_DIR}/tests/test_peep.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/special.py"
-  "${creduce_python_BINARY_DIR}/tests/special.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_special.py"
+  "${creduce_python_BINARY_DIR}/tests/test_special.py"
   COPYONLY
 )
 configure_file(
-  "${creduce_python_SOURCE_DIR}/tests/ternary.py"
-  "${creduce_python_BINARY_DIR}/tests/ternary.py"
+  "${creduce_python_SOURCE_DIR}/tests/test_ternary.py"
+  "${creduce_python_BINARY_DIR}/tests/test_ternary.py"
   COPYONLY
 )
 configure_file(
