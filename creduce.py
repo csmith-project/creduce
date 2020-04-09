@@ -92,7 +92,7 @@ def get_available_pass_groups():
 
         try:
             pass_group_dict = CReduce.load_pass_group_file(path)
-            CReduce.parse_pass_group_dict(pass_group_dict, set(), None)
+            CReduce.parse_pass_group_dict(pass_group_dict, set(), None, None)
         except MissingPassGroupsError:
             logging.warning("Skipping file {}. Not valid pass group.".format(path))
         else:
@@ -122,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("--print-diff", action="store_true", default=False, help="Show changes made by transformations, for debugging")
     parser.add_argument("--save-temps", action="store_true", default=False, help="Don't delete /tmp/creduce-xxxxxx directories on termination")
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
+    parser.add_argument("--remove-pass", help="Remove all instances of the specified pass from the schedule")
     parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
     parser.add_argument("--timeout", type=int, nargs="?", const=300, help="Interestingness test timeout in seconds")
     parser.add_argument("--no-cache", action="store_true", default=False, help="Don't cache behavior of passes")
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     external_programs = find_external_programs()
 
     pass_group_dict = CReduce.load_pass_group_file(pass_group_file)
-    pass_group = CReduce.parse_pass_group_dict(pass_group_dict, pass_options, external_programs)
+    pass_group = CReduce.parse_pass_group_dict(pass_group_dict, pass_options, external_programs, args.remove_pass)
 
     if (not args.no_fast_test and
         testing.PythonTestRunner.is_valid_test(args.interestingness_test)):

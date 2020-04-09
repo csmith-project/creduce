@@ -56,7 +56,7 @@ class CReduce:
         return pass_group_dict
 
     @classmethod
-    def parse_pass_group_dict(cls, pass_group_dict, pass_options, external_programs):
+    def parse_pass_group_dict(cls, pass_group_dict, pass_options, external_programs, remove_pass):
         pass_group = {}
 
         def parse_options(options):
@@ -93,6 +93,9 @@ class CReduce:
                     raise CReduceError("Unkown pass {}".format(pass_dict["pass"]))
 
                 pass_instance = pass_class(pass_dict.get("arg"), external_programs)
+                if str(pass_instance) == remove_pass:
+                    continue
+
                 pass_group[category].append(pass_instance)
 
         return pass_group
