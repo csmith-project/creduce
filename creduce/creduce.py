@@ -91,7 +91,7 @@ class CReduce:
                 except KeyValueError:
                     raise CReduceError("Unkown pass {}".format(pass_dict["pass"]))
 
-                pass_instance = pass_class(external_programs, pass_dict.get("arg"))
+                pass_instance = pass_class(pass_dict.get("arg"), external_programs)
                 pass_group[category].append(pass_instance)
 
         return pass_group

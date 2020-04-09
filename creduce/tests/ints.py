@@ -118,21 +118,3 @@ class IntsDTestCase(unittest.TestCase):
         os.unlink(tmp_file.name)
 
         self.assertEqual(variant, "Compute 123L + 1110 + 0789!\n")
-
-class IntsETestCase(unittest.TestCase):
-    def setUp(self):
-        self.pass_ = IntsPass("e")
-
-    def test_e(self):
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as tmp_file:
-            tmp_file.write("Compute 123L + 0x456 + 0789!\n")
-
-        state = self.pass_.new(tmp_file.name)
-        (_, state) = self.pass_.transform(tmp_file.name, state)
-
-        with open(tmp_file.name, mode="r") as variant_file:
-            variant = variant_file.read()
-
-        os.unlink(tmp_file.name)
-
-        self.assertEqual(variant, "Compute 123 + 0x456 + 0789!\n")
