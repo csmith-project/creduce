@@ -46,7 +46,7 @@ class UnIfDefPass(AbstractPass):
                 def_ = deflist[n_index]
 
                 try:
-                    cmd = [self.external_programs.unifdef, "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case]
+                    cmd = [self.external_programs["unifdef"], "-B", "-x", "2", "{}{}".format(du, def_), "-o", tmp_file.name, test_case]
                     proc = compat.subprocess_run(cmd, universal_newlines=True)
                 except subprocess.SubprocessError:
                     return (self.Result.error, state)
