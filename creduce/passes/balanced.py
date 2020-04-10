@@ -1,6 +1,6 @@
-from . import AbstractPass
-from ..utils import nestedmatcher
-from ..utils.error import UnknownArgumentError
+from creduce.passes.abstract import AbstractPass
+from creduce.utils import nestedmatcher
+from creduce.utils.error import UnknownArgumentError
 
 class BalancedPass(AbstractPass):
     def check_prerequisites(self):

@@ -1,5 +1,3 @@
-from .abstract import AbstractPass
-
 from .balanced import BalancedPass
 from .blank import BlankPass
 from .clang import ClangPass

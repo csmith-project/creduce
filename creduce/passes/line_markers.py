@@ -5,7 +5,6 @@ import tempfile
 import re
 
 from creduce.passes.abstract import AbstractPass, BinaryState
-from ..utils import compat
 
 class LineMarkersPass(AbstractPass):
     line_regex = re.compile('^\\s*#\\s*[0-9]+')

@@ -1,6 +1,6 @@
 import re
 
-from . import AbstractPass
+from creduce.passes.abstract import AbstractPass
 
 class CommentsPass(AbstractPass):
     def check_prerequisites(self):

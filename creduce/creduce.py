@@ -5,6 +5,7 @@ import os
 import platform
 import sys
 
+from creduce.passes.abstract import AbstractPass
 from . import passes
 from .utils.error import CReduceError
 from .utils.error import PassOptionError
@@ -65,7 +66,7 @@ class CReduce:
 
             for opt in options:
                 try:
-                    valid_options.add(passes.AbstractPass.Option(opt))
+                    valid_options.add(AbstractPass.Option(opt))
                 except ValueError:
                     raise PassOptionError(opt)
 

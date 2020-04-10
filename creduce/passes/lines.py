@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 
 from creduce.passes.abstract import AbstractPass, BinaryState
-from ..utils import compat
+from creduce.utils import compat
 
 class LinesPass(AbstractPass):
     def check_prerequisites(self):

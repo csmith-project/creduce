@@ -6,7 +6,7 @@ import tempfile
 import re
 
 from creduce.passes.abstract import AbstractPass, BinaryState
-from ..utils import compat
+from creduce.utils import compat
 
 class IfPass(AbstractPass):
     line_regex = re.compile('^\\s*#\\s*if')

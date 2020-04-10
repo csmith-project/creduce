@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 
 from creduce.passes.abstract import AbstractPass, BinaryState
-from ..utils import compat
+from creduce.utils import compat
 
 class ClangBinarySearchPass(AbstractPass):
     def check_prerequisites(self):

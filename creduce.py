@@ -18,7 +18,7 @@ if importlib.util.find_spec("creduce") is None:
     sys.path.append(os.path.join(script_path, "..", "share"))
 
 from creduce import CReduce
-from creduce.passes import AbstractPass
+from creduce.passes.abstract import AbstractPass
 from creduce.utils.error import CReduceError
 from creduce.utils.error import MissingPassGroupsError
 from creduce.utils.info import ExternalPrograms

@@ -1,7 +1,7 @@
 import re
 
-from . import AbstractPass
-from ..utils import nestedmatcher
+from creduce.passes.abstract import AbstractPass
+from creduce.utils import nestedmatcher
 
 class PeepPass(AbstractPass):
     border = r"[*{([:,})\];]"

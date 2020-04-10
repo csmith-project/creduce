@@ -4,8 +4,8 @@ import subprocess
 import shutil
 import tempfile
 
-from . import AbstractPass
-from ..utils import compat
+from creduce.passes.abstract import AbstractPass
+from creduce.utils import compat
 
 class ClangPass(AbstractPass):
     def check_prerequisites(self):

@@ -4,8 +4,8 @@ import shutil
 import subprocess
 import tempfile
 
-from . import AbstractPass
-from ..utils import compat
+from creduce.passes.abstract import AbstractPass
+from creduce.utils import compat
 
 class UnIfDefPass(AbstractPass):
     def check_prerequisites(self):

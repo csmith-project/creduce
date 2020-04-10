@@ -1,9 +1,9 @@
 import shutil
 import subprocess
 
-from . import AbstractPass
-from ..utils import compat
-from ..utils.error import UnknownArgumentError
+from creduce.passes.abstract import AbstractPass
+from creduce.utils import compat
+from creduce.utils.error import UnknownArgumentError
 
 class IndentPass(AbstractPass):
     def check_prerequisites(self):

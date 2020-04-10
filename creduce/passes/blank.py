@@ -3,7 +3,7 @@ import re
 import shutil
 import tempfile
 
-from . import AbstractPass
+from creduce.passes.abstract import AbstractPass
 
 class BlankPass(AbstractPass):
     def check_prerequisites(self):

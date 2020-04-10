@@ -27,7 +27,7 @@ import threading
 import weakref
 
 from .. import CReduce
-from ..passes import AbstractPass
+from creduce.passes.abstract import AbstractPass
 
 from . import compat
 from . import readkey

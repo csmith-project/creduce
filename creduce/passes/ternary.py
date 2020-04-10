@@ -1,6 +1,6 @@
-from . import AbstractPass
-from ..utils.error import UnknownArgumentError
-from ..utils import nestedmatcher
+from creduce.passes.abstract import AbstractPass
+from creduce.utils.error import UnknownArgumentError
+from creduce.utils import nestedmatcher
 
 class TernaryPass(AbstractPass):
     varnum = r"(?:[-+]?[0-9a-zA-Z\_]+)"

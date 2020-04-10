@@ -1,7 +1,7 @@
 import re
 
-from . import AbstractPass
-from ..utils.error import UnknownArgumentError
+from creduce.passes.abstract import AbstractPass
+from creduce.utils.error import UnknownArgumentError
 
 class SpecialPass(AbstractPass):
     def check_prerequisites(self):
