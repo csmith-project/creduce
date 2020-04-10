@@ -2,6 +2,7 @@
     {"pass": "includes"},
     {"pass": "unifdef", "exclude": ["windows"]},
     {"pass": "comments"},
+    {"pass": "ifs"},
     {"pass": "line_markers"},
     {"pass": "blank"},
     {"pass": "clangbinarysearch", "arg": "replace-function-def-with-decl"},

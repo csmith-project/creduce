@@ -29,6 +29,7 @@ class CReduce:
         "clangbinarysearch": passes.ClangBinarySearchPass,
         "clex": passes.ClexPass,
         "comments": passes.CommentsPass,
+        "ifs": passes.IfPass,
         "includeincludes": passes.IncludeIncludesPass,
         "includes": passes.IncludesPass,
         "indent": passes.IndentPass,

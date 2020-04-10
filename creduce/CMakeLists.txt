@@ -106,6 +106,11 @@ configure_file(
   COPYONLY
 )
 configure_file(
+  "${creduce_python_SOURCE_DIR}/passes/ifs.py"
+  "${creduce_python_BINARY_DIR}/passes/ifs.py"
+  COPYONLY
+)
+configure_file(
   "${creduce_python_SOURCE_DIR}/passes/includeincludes.py"
   "${creduce_python_BINARY_DIR}/passes/includeincludes.py"
   COPYONLY
@@ -168,6 +173,11 @@ configure_file(
 configure_file(
   "${creduce_python_SOURCE_DIR}/tests/test_comments.py"
   "${creduce_python_BINARY_DIR}/tests/test_comments.py"
+  COPYONLY
+)
+configure_file(
+  "${creduce_python_SOURCE_DIR}/tests/test_ifs.py"
+  "${creduce_python_BINARY_DIR}/tests/test_ifs.py"
   COPYONLY
 )
 configure_file(

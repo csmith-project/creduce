@@ -6,6 +6,7 @@ from .clang import ClangPass
 from .clangbinarysearch import ClangBinarySearchPass
 from .clex import ClexPass
 from .comments import CommentsPass
+from .ifs import IfPass
 from .includeincludes import IncludeIncludesPass
 from .includes import IncludesPass
 from .indent import IndentPass
