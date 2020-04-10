@@ -72,7 +72,7 @@ class BalancedPass(AbstractPass):
         elif self.arg == "curly3":
             config["search"] = nestedmatcher.BalancedExpr.curlies
             config["replace_fn"] = replace_all
-            config["prefix"] = "=\s*"
+            config["prefix"] = "=\\s*"
         elif self.arg == "parens-only":
             config["search"] = nestedmatcher.BalancedExpr.parens
             config["replace_fn"] = replace_only
