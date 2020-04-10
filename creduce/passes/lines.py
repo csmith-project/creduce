@@ -10,7 +10,7 @@ class LinesPass(AbstractPass):
     def check_prerequisites(self):
         return shutil.which(self.external_programs["topformflat"]) is not None
 
-    def __count_instances(self, test_case):
+    def __format(self, test_case):
         with tempfile.NamedTemporaryFile(mode="w+", delete=False) as tmp_file:
             with open(test_case, "r") as in_file:
                 try:
@@ -25,12 +25,15 @@ class LinesPass(AbstractPass):
 
         shutil.move(tmp_file.name, test_case)
 
+    def __count_instances(self, test_case):
         with open(test_case, "r") as in_file:
             lines = in_file.readlines()
             return len(lines)
 
     def new(self, test_case):
-        return BinaryState.create(self.__count_instances(test_case))
+        self.__format(test_case)
+        instances = self.__count_instances(test_case)
+        return BinaryState.create(instances)
 
     def advance(self, test_case, state):
         return state.advance()
