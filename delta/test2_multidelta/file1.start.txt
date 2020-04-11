@@ -1,4 +1,0 @@
-zebra;
-foo;
-giraffe;
-cow;
