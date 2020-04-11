@@ -64,6 +64,7 @@ ipch/
 # Python cache files
 __pycache__
 *.pyc
+.pytest_cache
 
 # pyenv files
 .python-version
