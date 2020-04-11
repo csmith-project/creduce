@@ -261,7 +261,7 @@ if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
 endif()
 
 install(TARGETS clang_delta
-  RUNTIME DESTINATION "libexec"
+  RUNTIME DESTINATION
 )
 # If binary is read-only, then installing may fail with an error:
 # CMake Error at cmake_install.cmake:45 (FILE):

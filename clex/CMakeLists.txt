@@ -52,7 +52,7 @@ add_executable(strlex
 ###############################################################################
 
 install(TARGETS clex strlex
-  RUNTIME DESTINATION "libexec"
+  RUNTIME DESTINATION
   )
 
 ###############################################################################
