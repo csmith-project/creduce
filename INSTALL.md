@@ -26,7 +26,7 @@ like this:
 
 ```
 sudo apt-get install \
-  flex build-essential zlib1g-dev
+  flex build-essential
 ```
 
 On FreeBSD 11.2, the prerequisites can be installed like this:
@@ -50,8 +50,6 @@ manager:
   `sudo apt-get install libtinfo-dev libxml2-dev`.)
 
 * [Python3](https://www.python.org/downloads/)
-
-* [zlib](http://www.zlib.net/)
 
 ## Building and installing C-Reduce
 
