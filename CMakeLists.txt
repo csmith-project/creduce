@@ -46,8 +46,7 @@ find_package(FLEX REQUIRED)
 
 ###############################################################################
 
-# Determine the short git hash for the source tree.  The logic here follows the
-# logic in the `git-hash.sh` script.
+# Determine the short git hash for the source tree.
 #
 ## METHOD 1: The source tree is the result of `git archive'.
 # `git archive' inserts the abbreviated hash of the archive's commit into this
