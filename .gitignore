@@ -1,12 +1,3 @@
-# Files made by `configure' and friends.
-Makefile
-autom4te.cache/**
-config.h
-config.log
-config.status
-libtool
-stamp-h1
-
 # Files made by compilation.
 .deps/
 .libs/
