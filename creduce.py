@@ -8,6 +8,7 @@ import os.path
 import shutil
 import sys
 import time
+import datetime
 
 import importlib.util
 
@@ -24,6 +25,12 @@ from creduce.utils.error import MissingPassGroupsError
 from creduce.utils.info import ExternalPrograms
 from creduce.utils import testing
 from creduce.utils import statistics
+
+class DeltaTimeFormatter(logging.Formatter):
+    def format(self, record):
+        duration = datetime.datetime.utcfromtimestamp(record.relativeCreated / 1000)
+        record.delta = duration.strftime("%H:%M:%S")
+        return super().format(record)
 
 def get_share_dir():
     script_path = os.path.dirname(os.path.realpath(__file__))
@@ -124,6 +131,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip-initial-passes", action="store_true", default=False, help="Skip initial passes (useful if input is already partially reduced)")
     parser.add_argument("--remove-pass", help="Remove all instances of the specified pass from the schedule")
     parser.add_argument("--timing", action="store_true", default=False, help="Print timestamps about reduction progress")
+    parser.add_argument("--timing-since-start", action="store_true", default=False, help="Print timestamps since the start of a reduction")
     parser.add_argument("--timeout", type=int, nargs="?", const=300, help="Interestingness test timeout in seconds")
     parser.add_argument("--no-cache", action="store_true", default=False, help="Don't cache behavior of passes")
     parser.add_argument("--skip-key-off", action="store_true", default=False, help="Disable skipping the rest of the current pass when \"s\" is pressed")
@@ -140,10 +148,12 @@ if __name__ == "__main__":
 
     log_config = {}
 
+    log_format = "%(levelname)s %(message)s"
     if args.timing:
-        log_config["format"] = "%(asctime)s %(levelname)s %(message)s"
-    else:
-        log_config["format"] = "%(levelname)s %(message)s"
+        if args.timing_since_start:
+            log_format = "%(delta)s " + log_format
+        else:
+            log_format = "%(asctime)s " + log_format
 
     if args.debug:
         log_config["level"] = logging.DEBUG
@@ -154,6 +164,11 @@ if __name__ == "__main__":
         log_config["filename"] = args.log_file
 
     logging.basicConfig(**log_config)
+    syslog = logging.StreamHandler()
+    formatter = DeltaTimeFormatter(log_format)
+    syslog.setFormatter(formatter)
+    logging.getLogger().handlers = []
+    logging.getLogger().addHandler(syslog)
 
     pass_options = set()
 
