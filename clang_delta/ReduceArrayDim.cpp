@@ -246,16 +246,6 @@ unsigned ReduceArrayDim::getArraySize(const ArrayType *ATy)
     return getConstArraySize(CstArrayTy);
   }
 
-  if (const DependentSizedArrayType *DepArrayTy =
-      dyn_cast<DependentSizedArrayType>(ATy)) {
-    const Expr *E = DepArrayTy->getSizeExpr();
-    Expr::EvalResult Result;
-    if (E->EvaluateAsInt(Result, *Context)) {
-      llvm::APSInt IVal = Result.Val.getInt();
-      return (unsigned)(*IVal.getRawData());
-    }
-  }
-
   return 1;
 }
 

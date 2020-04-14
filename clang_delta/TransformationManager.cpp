@@ -16,11 +16,13 @@
 
 #include <sstream>
 
+#include "clang/Basic/Builtins.h"
 #include "clang/Basic/Diagnostic.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Lex/Preprocessor.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
+#include "llvm/Option/Option.h"
 
 #include "Transformation.h"
 
@@ -101,18 +103,18 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   CompilerInvocation &Invocation = ClangInstance->getInvocation();
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
-  if (IK.getLanguage() == InputKind::C) {
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), InputKind::C, T, PPOpts);
+  if (IK.getLanguage() == Language::C) {
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::C, T, PPOpts);
   }
-  else if (IK.getLanguage() == InputKind::CXX) {
+  else if (IK.getLanguage() == Language::CXX) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g.,
     // It results an empty AST for the caller.
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), InputKind::CXX, T, PPOpts);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::CXX, T, PPOpts);
   }
-  else if(IK.getLanguage() == InputKind::OpenCL) {
+  else if(IK.getLanguage() == Language::OpenCL) {
     //Commandline parameters
-    std::vector<const char*> Args;
+    llvm::opt::ArgStringList Args;
     Args.push_back("-x");
     Args.push_back("cl");
     Args.push_back("-Dcl_clang_storage_class_specifiers");
@@ -122,7 +124,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
     ClangInstance->createFileManager();
 
     if(CLCPath != NULL && ClangInstance->hasFileManager() &&
-       ClangInstance->getFileManager().getDirectory(CLCPath, false) != NULL) {
+       ClangInstance->getFileManager().getDirectory(CLCPath, false)) {
         Args.push_back("-I");
         Args.push_back(CLCPath);
     }
@@ -132,10 +134,10 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
     Args.push_back("-fno-builtin");
 
     CompilerInvocation::CreateFromArgs(Invocation,
-                                       &Args[0], &Args[0] + Args.size(),
+                                       Args,
                                        ClangInstance->getDiagnostics());
     Invocation.setLangDefaults(ClangInstance->getLangOpts(),
-                               InputKind::OpenCL, T, PPOpts);
+                               Language::OpenCL, T, PPOpts);
   }
   else {
     ErrorMsg = "Unsupported file type!";
