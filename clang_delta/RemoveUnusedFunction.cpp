@@ -703,11 +703,14 @@ RemoveUnusedFunction::lookupFunctionDeclShallow(const DeclarationName &DName,
     }
   }
 
+  bool InNamespace = Ctx->isNamespace();
   for (auto *I : Ctx->using_directives()) {
     const NamespaceDecl *ND = I->getNominatedNamespace();
     // avoid infinite recursion
-    if (ND->getLookupParent() == Ctx)
+    if ((InNamespace && dyn_cast<NamespaceDecl>(Ctx) == ND) ||
+        ND->getLookupParent() == Ctx) {
       return NULL;
+    }
     if (const FunctionDecl *FD = lookupFunctionDeclShallow(DName, ND))
       return FD;
   }
