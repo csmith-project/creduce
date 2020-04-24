@@ -1,6 +1,6 @@
 ## -*- mode: Makefile-Automake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -336,9 +336,11 @@ EXTRA_DIST = \
 	tests/empty-struct-to-int/test3.c \
 	tests/lit.cfg \
 	tests/lit.site.cfg.in \
+	tests/local-to-global/macro.c \
 	tests/local-to-global/unnamed_1.c \
 	tests/local-to-global/unnamed_2.c \
 	tests/local-to-global/unnamed_3.c \
+	tests/param-to-global/macro.c \
 	tests/reduce-array-dim/non-type-temp-arg.cpp \
 	tests/reduce-pointer-level/scalar-init-expr.cpp \
 	tests/remove-enum-member-value/builtin_macro.c \
@@ -351,6 +353,14 @@ EXTRA_DIST = \
 	tests/remove-unused-field/unused_field1.c \
 	tests/remove-unused-field/unused_field2.c \
 	tests/remove-unused-field/unused_field3.cpp \
+	tests/remove-unused-function/class.cc \
+	tests/remove-unused-function/inline_ns.cc \
+	tests/remove-unused-function/macro1.cc \
+	tests/remove-unused-function/macro2.cc \
+	tests/remove-unused-function/macro3.cc \
+	tests/remove-unused-function/template1.cc \
+	tests/remove-unused-function/template2.cc \
+	tests/remove-unused-function/unused-funcs.cc \
 	tests/remove-unused-var/struct1.c \
 	tests/remove-unused-var/struct2.c \
 	tests/remove-unused-var/unused_var.cpp \
