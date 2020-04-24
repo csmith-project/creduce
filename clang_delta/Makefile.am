@@ -127,7 +127,8 @@ clang_delta_CXXFLAGS = \
 # In LLVM 3.5, `llvm-config --ldflags' does not contain the list of system
 # libraries.  So probably, we could move `LLVMLDFLAGS' back to the definition
 # of `clang_delta_LDFLAGS'.  I'll do that later.
-clang_delta_LDADD = -lclang-cpp \
+clang_delta_LDADD = \
+	-lclang-cpp \
 	$(LLVMLIBS) \
 	$(CLANG_LDFLAGS) \
 	$(LLVMLDFLAGS)
