@@ -86,24 +86,7 @@ llvm_map_components_to_libnames(LLVM_LIBS
 )
 
 set(CLANG_LIBS
-  clangStaticAnalyzerFrontend
-  clangStaticAnalyzerCheckers
-  clangStaticAnalyzerCore
-  clangFrontendTool
-  clangFrontend
-  clangDriver
-  clangSerialization
-  clangCodeGen
-  clangParse
-  clangSema
-  clangAnalysis
-  clangRewriteFrontend
-  clangRewrite
-  clangAST
-  clangBasic
-  clangEdit
-  clangLex
-  clangARCMigrate
+  clang-cpp
 )
 
 add_executable(clang_delta
