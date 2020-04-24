@@ -1,6 +1,6 @@
 ## -*- mode: CMake -*-
 ##
-## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 The University of Utah
+## Copyright (c) 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020 The University of Utah
 ## All rights reserved.
 ##
 ## This file is distributed under the University of Illinois Open Source
@@ -26,8 +26,8 @@ project(creduce)
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "8.0")
-  message(FATAL_ERROR "C-Reduce requires LLVM 8.0 or later")
+if (${LLVM_PACKAGE_VERSION} VERSION_LESS "9.0")
+  message(FATAL_ERROR "C-Reduce requires LLVM 9.0 or later")
 endif()
 #
 # Do this here, too, just to keep it with the LLVM check above.
