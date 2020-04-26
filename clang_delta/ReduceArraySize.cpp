@@ -291,8 +291,7 @@ void ReduceArraySize::handleOneASE(const ArraySubscriptExpr *ASE)
 
 ReduceArraySize::~ReduceArraySize(void)
 {
-  if (CollectionVisitor)
-    delete CollectionVisitor;
+  delete CollectionVisitor;
 
   for (VarDeclToDimMap::iterator I = VarDeclToDim.begin(),
        E = VarDeclToDim.end(); I != E; ++I) {

@@ -174,8 +174,7 @@ ReplaceUndefinedFunction::~ReplaceUndefinedFunction(void)
   for (FunctionSetMap::iterator I = ReplaceableFunctions.begin(),
        E = ReplaceableFunctions.end(); I != E; ++I) {
     const FunctionDeclSet *FDSet = (*I).second;
-    if (!FDSet)
-      delete FDSet;
+    delete FDSet;
   }
 }
 

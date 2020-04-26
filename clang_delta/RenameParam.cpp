@@ -271,10 +271,8 @@ unsigned int RenameParam::validatePostfix(FunctionDecl *FD,
 
 RenameParam::~RenameParam(void)
 {
-  if (VarCollectionVisitor)
-    delete VarCollectionVisitor;
-  if (RenameVisitor)
-    delete RenameVisitor;
+  delete VarCollectionVisitor;
+  delete RenameVisitor;
 
   for (llvm::DenseMap<FunctionDecl *, ExistingNumberSet *>::iterator 
         I = FunExistingVarsMap.begin(), E = FunExistingVarsMap.end();

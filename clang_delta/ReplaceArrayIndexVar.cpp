@@ -222,8 +222,7 @@ ArraySubscriptExprCollectionVisitor::~ArraySubscriptExprCollectionVisitor(void)
   for (VarDeclToASESetMap::iterator I = ASEMap.begin(),
        E = ASEMap.end(); I != E; ++I) {
     ArraySubscriptExprSet *Set = (*I).second;
-    if (Set)
-      delete Set;
+    delete Set;
   }
 }
 
