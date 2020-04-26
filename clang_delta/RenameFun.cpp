@@ -140,6 +140,10 @@ bool RenameFunVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
       ConsumerInstance->isInIncludedFile(FD))
     return true;
 
+  if (FD->isTemplateInstantiation()) {
+    FD = FD->getTemplateInstantiationPattern();
+  }
+
   FunctionDecl *CanonicalDecl = FD->getCanonicalDecl();
   llvm::DenseMap<const FunctionDecl *, std::string>::iterator I = 
     ConsumerInstance->FunToNameMap.find(CanonicalDecl);
