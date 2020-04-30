@@ -339,6 +339,22 @@ EXTRA_DIST = \
 	tests/reduce-array-dim/non-type-temp-arg.cpp \
 	tests/reduce-pointer-level/scalar-init-expr.cpp \
 	tests/remove-enum-member-value/builtin_macro.c \
+	tests/remove-namespace/macro.cpp \
+	tests/remove-namespace/namespace.cpp \
+	tests/remove-namespace/namespace10.cpp \
+	tests/remove-namespace/namespace11.cpp \
+	tests/remove-namespace/namespace12.cpp \
+	tests/remove-namespace/namespace13.cpp \
+	tests/remove-namespace/namespace14.cpp \
+	tests/remove-namespace/namespace15.cpp \
+	tests/remove-namespace/namespace2.cpp \
+	tests/remove-namespace/namespace3.cpp \
+	tests/remove-namespace/namespace4.cpp \
+	tests/remove-namespace/namespace5.cpp \
+	tests/remove-namespace/namespace6.cpp \
+	tests/remove-namespace/namespace7.cpp \
+	tests/remove-namespace/namespace8.cpp \
+	tests/remove-namespace/namespace9.cpp \
 	tests/remove-nested-function/remove_nested_func1.cc \
 	tests/remove-unused-field/designated1.c \
 	tests/remove-unused-field/designated2.c \
@@ -393,6 +409,7 @@ EXTRA_DIST = \
 	tests/rename-cxx-method/test1.cc \
 	tests/rename-cxx-method/test2.cc \
 	tests/rename-cxx-method/test3.cc \
+	tests/rename-fun/func_templ.cc \
 	tests/rename-fun/overloaded.cc \
 	tests/rename-fun/test1.c \
 	tests/rename-fun/test1.h \
