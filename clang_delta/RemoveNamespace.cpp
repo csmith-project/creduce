@@ -1001,27 +1001,40 @@ bool RemoveNamespace::handleOneNamespaceDecl(NamespaceDecl *ND)
 void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
 {
   // Remove the right brace first
-  SourceLocation StartLoc = ND->getRBraceLoc();
-  if (StartLoc.isValid())
-    TheRewriter.RemoveText(StartLoc, 1);
+  SourceLocation RBLoc = ND->getRBraceLoc();
+  if (RBLoc.isValid()) {
+    if (RBLoc.isMacroID()) {
+      TheRewriter.RemoveText(SrcManager->getExpansionRange(RBLoc).getAsRange());
+    }
+    else {
+      TheRewriter.RemoveText(RBLoc, 1);
+    }
+  }
 
   // Then remove name and the left brace
-  StartLoc = ND->getBeginLoc();
+  SourceLocation StartLoc = ND->getBeginLoc();
   TransAssert(StartLoc.isValid() && "Invalid Namespace LocStart!");
 
-  const char *StartBuf = SrcManager->getCharacterData(StartLoc);
-  SourceRange NDRange = ND->getSourceRange();
+  StartLoc = SrcManager->getFileLoc(StartLoc);
   SourceLocation EndLoc;
-  if (NDRange.isValid()) {
-    int RangeSize = TheRewriter.getRangeSize(NDRange);
-    TransAssert((RangeSize != -1) && "Bad Namespace Range!");
-    std::string NDStr(StartBuf, RangeSize);
-    size_t Pos = NDStr.find('{');
-    TransAssert((Pos != std::string::npos) && "Cannot find LBrace!");
-    EndLoc = StartLoc.getLocWithOffset(Pos);
+  if (ND->decls_empty()) {
+    EndLoc = RBLoc;
   }
   else {
-    EndLoc = RewriteHelper->getEndLocationUntil(StartLoc, '{');
+    DeclContext::decl_iterator I = ND->decls_begin();
+    EndLoc = SrcManager->getFileLoc(dyn_cast<Decl>(*I)->getBeginLoc());
+  }
+
+  if (StartLoc != EndLoc) {
+    EndLoc = EndLoc.getLocWithOffset(-1);
+    SourceRange NewRange(StartLoc, EndLoc);
+    int RangeSize = TheRewriter.getRangeSize(NewRange);
+    TransAssert((RangeSize != -1) && "Bad Namespace Range!");
+    const char *StartBuf = SrcManager->getCharacterData(StartLoc);
+    std::string NDStr(StartBuf, RangeSize);
+    size_t Pos = NDStr.find('{');
+    if (Pos != std::string::npos) 
+      EndLoc = StartLoc.getLocWithOffset(Pos);
   }
 
   TheRewriter.RemoveText(SourceRange(StartLoc, EndLoc));
