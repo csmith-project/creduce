@@ -459,13 +459,8 @@ SourceLocation RemoveUnusedFunction::getFunctionLocEnd(
     FDLoc = SrcManager->getExpansionLoc(FDLoc);
   const char * const FDBuf = SrcManager->getCharacterData(FDLoc);
   const char * LocEndBuf = SrcManager->getCharacterData(LocEnd);
-  if ((FDBuf < LocEndBuf) && !isTokenOperator(FDLoc))
-    return LocEnd;
-  std::string Str;
-  RewriteHelper->getStringBetweenLocs(Str, LocStart, LocEnd);
-  if (Str.find("friend ") == std::string::npos &&
-      Str.find("friend\t") == std::string::npos &&
-      Str.find("friend\n") == std::string::npos)
+  if ((FDBuf < LocEndBuf) && !isTokenOperator(FDLoc) &&
+      !FD->isDeleted() && !FD->isDefaulted())
     return LocEnd;
   int Offset = 0;
   while (*LocEndBuf != ';') {
