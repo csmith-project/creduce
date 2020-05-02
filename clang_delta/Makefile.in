@@ -812,6 +812,10 @@ EXTRA_DIST = \
 	tests/remove-unused-field/unused_field2.c \
 	tests/remove-unused-field/unused_field3.cpp \
 	tests/remove-unused-function/class.cc \
+	tests/remove-unused-function/const.cc \
+	tests/remove-unused-function/default.cc \
+	tests/remove-unused-function/delete.cc \
+	tests/remove-unused-function/delete2.cc \
 	tests/remove-unused-function/inline_ns.cc \
 	tests/remove-unused-function/macro1.cc \
 	tests/remove-unused-function/macro2.cc \
