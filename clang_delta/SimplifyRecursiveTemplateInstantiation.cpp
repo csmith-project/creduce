@@ -184,10 +184,10 @@ void SimplifyRecursiveTemplateInstantiation::rewriteTemplateArgument()
   TemplateSpecializationTypeLoc TLoc = TheLocPair->pop_back_val();
   TemplateSpecializationTypeLoc ParentTLoc = TheLocPair->pop_back_val();
 
-  SourceLocation LAngleLoc  = TLoc.getLAngleLoc();
-  SourceLocation RAngleLoc  = TLoc.getRAngleLoc();
-  SourceLocation ParentLAngleLoc = ParentTLoc.getLAngleLoc();
-  SourceLocation ParentRAngleLoc = ParentTLoc.getRAngleLoc();
+  SourceLocation LAngleLoc  = getRealLocation(TLoc.getLAngleLoc());
+  SourceLocation RAngleLoc  = getRealLocation(TLoc.getRAngleLoc());
+  SourceLocation ParentLAngleLoc = getRealLocation(ParentTLoc.getLAngleLoc());
+  SourceLocation ParentRAngleLoc = getRealLocation(ParentTLoc.getRAngleLoc());
   std::string InnerStr = "";
   RewriteHelper->getStringBetweenLocs(InnerStr, LAngleLoc, RAngleLoc);
   TheRewriter.ReplaceText(SourceRange(ParentLAngleLoc, ParentRAngleLoc),
