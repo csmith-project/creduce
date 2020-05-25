@@ -458,7 +458,7 @@ bool RemoveNamespaceRewriteVisitor::VisitDependentTemplateSpecializationTypeLoc(
   TransAssert(DTST && "Bad DependentTemplateSpecializationType!");
 
   const IdentifierInfo *IdInfo = DTST->getIdentifier();
-  std::string IdName = IdInfo->getName();
+  std::string IdName = IdInfo->getName().str();
   std::string Name;
 
   // FIXME:

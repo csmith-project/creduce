@@ -98,7 +98,7 @@ bool CommonRenameClassRewriteVisitor<T>::VisitUsingDecl(UsingDecl *D)
     return true;
 
   IdentifierInfo *IdInfo = DeclName.getAsIdentifierInfo();
-  std::string IdName = IdInfo->getName();
+  std::string IdName = IdInfo->getName().str();
   std::string Name;
   if (getNewNameByName(IdName, Name)) {
     SourceLocation LocStart = NameInfo.getBeginLoc();
@@ -337,7 +337,7 @@ template<typename T> bool CommonRenameClassRewriteVisitor<T>::
   TransAssert(DTST && "Bad DependentTemplateSpecializationType!");
 
   const IdentifierInfo *IdInfo = DTST->getIdentifier();
-  std::string IdName = IdInfo->getName();
+  std::string IdName = IdInfo->getName().str();
   std::string Name;
   if (getNewNameByName(IdName, Name)) {
     SourceLocation LocStart = DTSLoc.getTemplateNameLoc();
