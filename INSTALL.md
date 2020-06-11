@@ -4,7 +4,7 @@
 
 Before compiling C-Reduce yourself, you might want to see if your OS
 comes with a precompiled package for C-Reduce.  Ubuntu, Debian, Gentoo,
-and Mac OS X (Homebrew) all do.  For example, on OS X:
+FreeBSD and Mac OS X (Homebrew) all do.  For example, on OS X:
 
 ```
 $ brew install creduce
