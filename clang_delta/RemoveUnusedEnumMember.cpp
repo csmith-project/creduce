@@ -52,15 +52,19 @@ bool RemoveUnusedEnumMemberAnalysisVisitor::VisitEnumDecl(EnumDecl *ED)
   if (ConsumerInstance->isInIncludedFile(ED) || ED != ED->getCanonicalDecl())
     return true;
 
+  /* Make it backward compatible where --to-counter is unset. */
+  if (ConsumerInstance->ToCounter == -1)
+    ConsumerInstance->ToCounter = ConsumerInstance->TransformationCounter;
+
   for (EnumDecl::enumerator_iterator I = ED->enumerator_begin(),
        E = ED->enumerator_end(); I != E; ++I) {
     if (!(*I)->isReferenced()) {
       ConsumerInstance->ValidInstanceNum++;
-      if (ConsumerInstance->ValidInstanceNum ==
-          ConsumerInstance->TransformationCounter) {
-        ConsumerInstance->TheEnumIterator = I;
-        ConsumerInstance->TheEnumDecl = ED;
-      }
+      if (ConsumerInstance->ValidInstanceNum >=
+          ConsumerInstance->TransformationCounter
+          && ConsumerInstance->ValidInstanceNum <=
+             ConsumerInstance->ToCounter)
+        ConsumerInstance->EnumValues.push_back (I);
     }
   }
   return true;
@@ -83,26 +87,30 @@ void RemoveUnusedEnumMember::HandleTranslationUnit(ASTContext &Ctx)
     TransError = TransMaxInstanceError;
     return;
   }
+  if (ToCounter != -1 && ToCounter > ValidInstanceNum) {
+    TransError = TransToCounterTooBigError;
+    return;
+  }
 
   Ctx.getDiagnostics().setSuppressAllDiagnostics(false);
 
-  TransAssert(TheEnumDecl && "NULL TheEnumDecl!");
-
-  removeEnumConstantDecl();
+  for (auto ev : EnumValues) {
+    removeEnumConstantDecl(ev);
+  }
 
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
 }
 
-void RemoveUnusedEnumMember::removeEnumConstantDecl()
+void RemoveUnusedEnumMember::removeEnumConstantDecl(clang::EnumDecl::enumerator_iterator it)
 {
-  SourceLocation StartLoc = (*TheEnumIterator)->getBeginLoc();
+  SourceLocation StartLoc = it->getBeginLoc();
   if (StartLoc.isMacroID()) {
     CharSourceRange Range = SrcManager->getExpansionRange(StartLoc);
     StartLoc = Range.getBegin();
   }
-  SourceLocation EndLoc = (*TheEnumIterator)->getEndLoc();
+  SourceLocation EndLoc = it->getEndLoc();
   if (EndLoc.isMacroID()) {
     CharSourceRange Range = SrcManager->getExpansionRange(EndLoc);
     EndLoc = Range.getEnd();

@@ -25,9 +25,9 @@ friend class RemoveUnusedEnumMemberAnalysisVisitor;
 public:
 
   RemoveUnusedEnumMember(const char *TransName, const char *Desc)
-    : Transformation(TransName, Desc),
+    : Transformation(TransName, Desc, /*MultipleRewrites*/true),
       AnalysisVisitor(0),
-      TheEnumDecl(0)
+      EnumValues()
   { }
 
   ~RemoveUnusedEnumMember();
@@ -38,12 +38,11 @@ private:
 
   virtual void HandleTranslationUnit(clang::ASTContext &Ctx);
 
-  void removeEnumConstantDecl();
+  void removeEnumConstantDecl(clang::EnumDecl::enumerator_iterator it);
 
   RemoveUnusedEnumMemberAnalysisVisitor *AnalysisVisitor;
 
-  clang::EnumDecl *TheEnumDecl;
-  clang::EnumDecl::enumerator_iterator TheEnumIterator;
+  std::vector<clang::EnumDecl::enumerator_iterator> EnumValues;
 
   // Unimplemented
   RemoveUnusedEnumMember();
