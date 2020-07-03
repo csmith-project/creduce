@@ -380,6 +380,9 @@ void InstantiateTemplateParam::handleOneTemplateSpecialization(
     std::string ForwardStr;
     if (!getTemplateArgumentString(Arg, ArgStr, ForwardStr))
       continue;
+    // in case the argument has the same name as the parameter
+    if (ArgStr == ND->getNameAsString())
+      continue;
     ValidInstanceNum++;
     if (ValidInstanceNum == TransformationCounter) {
       TheInstantiationString = ArgStr;
