@@ -707,7 +707,8 @@ void RemoveNamespace::rewriteNamedDecls(void)
 
     Decl::Kind K = D->getKind();
     switch (K) {
-    case Decl::Function: {
+    case Decl::Function:
+    case Decl::CXXMethod: {
       // Check replaceFunctionDecl in RewriteUtils.cpp for the reason that
       // we need a special case for FunctionDecl
       const FunctionDecl *FD = dyn_cast<FunctionDecl>(D);
