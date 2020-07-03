@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// Copyright (c) 2012, 2013, 2015, 2016, 2019 The University of Utah
+// Copyright (c) 2012, 2013, 2015, 2016, 2019, 2020 The University of Utah
 // Copyright (c) 2012 Konstantin Tokarev <annulen@yandex.ru>
 // All rights reserved.
 //
