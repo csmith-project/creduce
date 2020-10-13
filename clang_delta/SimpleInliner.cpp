@@ -20,6 +20,7 @@
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/Mangle.h"
 #include "clang/Basic/SourceManager.h"
+#include "clang/Basic/TargetInfo.h"
 
 #include "TransformationManager.h"
 #include "CommonStatementVisitor.h"
@@ -535,7 +536,7 @@ FunctionDecl *SimpleInliner::getAliaseeFunctionDecl(FunctionDecl *FD) {
   if (const Attr *A = FD->getDefiningAttr()) {
     const AliasAttr *Alias = cast<AliasAttr>(A);
     llvm::StringRef Aliasee = Alias->getAliasee();
-    auto I = MangledNameToFuncDeclMap.find(Aliasee);
+    auto I = MangledNameToFuncDeclMap.find(Aliasee.str());
     if (I == MangledNameToFuncDeclMap.end())
       return nullptr;
     else
