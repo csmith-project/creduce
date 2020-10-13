@@ -106,7 +106,7 @@ void Transformation::outputTransformedSource(llvm::raw_ostream &OutStream)
 void Transformation::outputOriginalSource(llvm::raw_ostream &OutStream)
 {
   FileID MainFileID = SrcManager->getMainFileID();
-  const llvm::MemoryBuffer *MainBuf = SrcManager->getBuffer(MainFileID);
+  auto MainBuf = SrcManager->getBufferOrNone(MainFileID);
   TransAssert(MainBuf && "Empty MainBuf!");
   OutStream << MainBuf->getBufferStart();
   OutStream.flush();
@@ -359,7 +359,7 @@ unsigned int Transformation::getConstArraySize(
   llvm::SmallString<8> IntStr;
   Result.toStringUnsigned(IntStr);
 
-  std::stringstream TmpSS(IntStr.str());
+  std::stringstream TmpSS(IntStr.str().str());
 
   if (!(TmpSS >> Sz)) {
     return UINT_MAX;
