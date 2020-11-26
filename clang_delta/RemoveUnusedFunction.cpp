@@ -649,7 +649,13 @@ void RemoveUnusedFunction::removeOneFunctionDeclGroup(const FunctionDecl *FD)
     const FunctionDecl *ParentFD = UsingParentFDs[(*I).first];
     if (ParentFD && RemovedFDs.count(ParentFD->getCanonicalDecl()))
       continue;
-    RewriteHelper->removeDecl((*I).first);
+    const UsingDecl *UD = (*I).first;
+    SourceRange Range = UD->getSourceRange();
+    if (Range.getBegin().isMacroID()) {
+      TheRewriter.RemoveText(SrcManager->getExpansionRange(Range));
+    } else {
+      RewriteHelper->removeDecl((*I).first);
+    }
   }
 }
 
