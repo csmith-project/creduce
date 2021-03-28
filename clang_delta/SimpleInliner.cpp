@@ -18,6 +18,7 @@
 
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/AST/ASTContext.h"
+#include "clang/AST/Mangle.h"
 #include "clang/Basic/SourceManager.h"
 
 #include "TransformationManager.h"
@@ -220,6 +221,9 @@ bool SimpleInlinerFunctionStmtVisitor::VisitFunctionDecl(FunctionDecl *FD)
   ConsumerInstance->CollectionVisitor->setNumStmts(0);
   ConsumerInstance->CollectionVisitor->TraverseDecl(FD);
 
+  ConsumerInstance->
+    MangledNameToFuncDeclMap[ConsumerInstance->getMangledName(FD)] = FD;
+
   if (!FD->isVariadic()) {
     ConsumerInstance->FunctionDeclNumStmts[FD->getCanonicalDecl()] =
       ConsumerInstance->CollectionVisitor->getNumStmts();
@@ -247,6 +251,12 @@ void SimpleInliner::Initialize(ASTContext &context)
   FunctionVisitor = new SimpleInlinerFunctionVisitor(this);
   FunctionStmtVisitor = new SimpleInlinerFunctionStmtVisitor(this);
   StmtVisitor = new SimpleInlinerStmtVisitor(this);
+  if (context.getTargetInfo().getTriple().isOSWindows()) {
+    MangleCtx =
+      MicrosoftMangleContext::create(context, context.getDiagnostics());
+  } else {
+    MangleCtx = ItaniumMangleContext::create(context, context.getDiagnostics());
+  }
 }
 
 bool SimpleInliner::HandleTopLevelDecl(DeclGroupRef D)
@@ -276,7 +286,11 @@ void SimpleInliner::HandleTranslationUnit(ASTContext &Ctx)
   NameQueryWrap->TraverseDecl(Ctx.getTranslationUnitDecl());
   NamePostfix = NameQueryWrap->getMaxNamePostfix() + 1;
 
-  FunctionVisitor->TraverseDecl(CurrentFD);
+  if (FunctionDecl *AliaseeFD = getAliaseeFunctionDecl(CurrentFD)) {
+    FunctionVisitor->TraverseDecl(AliaseeFD);
+  } else {
+    FunctionVisitor->TraverseDecl(CurrentFD);
+  }
   StmtVisitor->TraverseDecl(TheCaller);
 
   TransAssert(TheStmt && "NULL TheStmt!");
@@ -285,6 +299,17 @@ void SimpleInliner::HandleTranslationUnit(ASTContext &Ctx)
   if (Ctx.getDiagnostics().hasErrorOccurred() ||
       Ctx.getDiagnostics().hasFatalErrorOccurred())
     TransError = TransInternalError;
+}
+
+std::string SimpleInliner::getMangledName(FunctionDecl *FD) {
+  if (TransformationManager::isCLangOpt()) {
+    return FD->getNameAsString();
+  } else {
+    std::string S;
+    llvm::raw_string_ostream Stream(S);
+    MangleCtx->mangleName(FD, Stream);
+    return Stream.str();
+  }
 }
 
 bool SimpleInliner::isValidArgExpr(const Expr *E)
@@ -339,6 +364,12 @@ void SimpleInliner::getValidFunctionDecls(void)
   for (FunctionDeclToNumStmtsMap::iterator I = FunctionDeclNumStmts.begin(),
        E = FunctionDeclNumStmts.end(); I != E; ++I) {
     FunctionDecl *FD = (*I).first;
+    if (FD->hasDefiningAttr()) {
+      // skip bad alias
+      if (!getAliaseeFunctionDecl(FD)) {
+        continue;
+      }
+    }
     unsigned int NumStmts = (*I).second;
     unsigned int NumCalls = FunctionDeclNumCalls[FD];
 
@@ -497,9 +528,29 @@ void SimpleInliner::sortReturnStmtsByOffs(const char *StartBuf,
   }
 }
 
+FunctionDecl *SimpleInliner::getAliaseeFunctionDecl(FunctionDecl *FD) {
+  if (const Attr *A = FD->getDefiningAttr()) {
+    const AliasAttr *Alias = cast<AliasAttr>(A);
+    llvm::StringRef Aliasee = Alias->getAliasee();
+    auto I = MangledNameToFuncDeclMap.find(Aliasee);
+    if (I == MangledNameToFuncDeclMap.end())
+      return nullptr;
+    else
+      return I->second;
+  } else {
+    return FD;
+  }
+}
+
 void SimpleInliner::copyFunctionBody(void)
 {
-  Stmt *Body = CurrentFD->getBody();
+  Stmt *Body;
+  FunctionDecl *AliaseeFD = getAliaseeFunctionDecl(CurrentFD);
+  if (AliaseeFD) {
+    Body = AliaseeFD->getBody();
+  } else {
+    Body = CurrentFD->getBody();
+  }
   TransAssert(Body && "NULL Body!");
 
   std::string FuncBodyStr("");

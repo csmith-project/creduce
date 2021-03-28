@@ -25,6 +25,7 @@ namespace clang {
   class FunctionDecl;
   class CallExpr;
   class DeclRefExpr;
+  class MangleContext;
   class ReturnStmt;
   class Expr;
   class Stmt;
@@ -50,6 +51,7 @@ public:
       FunctionStmtVisitor(NULL),
       StmtVisitor(NULL),
       NameQueryWrap(NULL),
+      MangleCtx(NULL),
       TheCallExpr(NULL),
       TheCaller(NULL),
       CurrentFD(NULL),
@@ -84,6 +86,10 @@ private:
   void replaceCallExpr(void);
 
   void doAnalysis(void);
+
+  std::string getMangledName(clang::FunctionDecl *FD);
+
+  clang::FunctionDecl *getAliaseeFunctionDecl(clang::FunctionDecl *FD);
 
   bool isValidArgExpr(const clang::Expr *E);
 
@@ -124,6 +130,8 @@ private:
 
   llvm::SmallVector<std::string, 4> ParmsWithNameClash;
 
+  std::map<std::string, clang::FunctionDecl *> MangledNameToFuncDeclMap;
+
   ReturnStmtsVector ReturnStmts;
 
   ParmRefsVector ParmRefs;
@@ -137,6 +145,8 @@ private:
   SimpleInlinerStmtVisitor *StmtVisitor;
 
   TransNameQueryWrap *NameQueryWrap;
+
+  clang::MangleContext *MangleCtx;
 
   clang::CallExpr *TheCallExpr;
 
