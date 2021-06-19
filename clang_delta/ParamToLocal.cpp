@@ -191,6 +191,8 @@ bool ParamToLocal::isValidFuncDecl(FunctionDecl *FD)
        PE = FD->param_end(); PI != PE; ++PI) {
     if ((*PI)->isImplicit() || (*PI)->getSourceRange().isInvalid())
       continue;
+    if (FD->isDeleted())
+      continue;
     if (!FD->hasBody() && (*PI)->getNameAsString().empty())
       continue;
 
