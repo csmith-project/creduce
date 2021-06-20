@@ -193,6 +193,8 @@ private:
 
   LocSet VisitedLocations;
 
+  LocSet FDGroupLocations;
+
   FunctionDeclVector AllValidFunctionDecls;
 
   RUFAnalysisVisitor *AnalysisVisitor;

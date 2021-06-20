@@ -478,8 +478,24 @@ void RemoveUnusedFunction::removeOneFunctionDecl(const FunctionDecl *FD)
     LocEnd = SrcManager->getExpansionLoc(LocEnd);
   if (!FD->isInExternCContext() && !FD->isInExternCXXContext()) {
     SourceLocation FuncLocStart = getFunctionOuterLocStart(FD);
+
     if (FuncLocStart.isInvalid())
       return;
+    // This is a workaround to cases where we have function declaration
+    // groups, e.g.
+    //   void *foo(), bar();
+    // It's very tricky to remove a single decl in such a case.
+    // Let's just remove all decls for now. To avoid removing text that
+    // has been removed, we keep track the start loc for each group so that
+    // we only remove each group once.
+    if (!FD->hasBody()) {
+      if (FDGroupLocations.count(FuncLocStart)) {
+        return;
+      } else {
+        FDGroupLocations.insert(FuncLocStart);
+      }
+    }
+
     LocEnd = getFunctionLocEnd(FuncLocStart, LocEnd, FD);
     if (SrcManager->isWrittenInMainFile(FuncLocStart) &&
         SrcManager->isWrittenInMainFile(LocEnd))
@@ -636,7 +652,11 @@ void RemoveUnusedFunction::removeOneFunctionDeclGroup(const FunctionDecl *FD)
 {
   for (FunctionDecl::redecl_iterator RI = FD->redecls_begin(),
        RE = FD->redecls_end(); RI != RE; ++RI) {
-    removeOneFunctionDecl(*RI);
+    const FunctionDecl *FD = (*RI);
+    if (!FD->hasBody() && !FD->getTypeSourceInfo()) {
+      continue;
+    }
+    removeOneFunctionDecl(FD);
   }
 
   removeMemberSpecializations(FD);
