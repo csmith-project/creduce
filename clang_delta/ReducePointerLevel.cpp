@@ -627,9 +627,9 @@ const Expr *ReducePointerLevel::getFirstInitListElem(const InitListExpr *ILE)
   unsigned InitNum = ILE->getNumInits();
   for (unsigned int I = 0; I < InitNum; ++I) {
     E = ILE->getInit(I);
-    ILE = dyn_cast<InitListExpr>(E);
-    if (ILE) {
-      E = getFirstInitListElem(ILE);
+    const InitListExpr *NewILE = dyn_cast<InitListExpr>(E);
+    if (NewILE) {
+      E = getFirstInitListElem(NewILE);
     }
 
     if (E)
