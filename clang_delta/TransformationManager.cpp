@@ -21,6 +21,7 @@
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/TargetInfo.h"
 #include "clang/Lex/Preprocessor.h"
+#include "clang/Lex/PreprocessorOptions.h"
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Parse/ParseAST.h"
 
@@ -104,13 +105,13 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
   if (IK.getLanguage() == Language::C) {
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::C, T, PPOpts);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::C, T, PPOpts.Includes);
   }
   else if (IK.getLanguage() == Language::CXX) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g.,
     // It results an empty AST for the caller.
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::CXX, T, PPOpts);
+    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::CXX, T, PPOpts.Includes);
   }
   else if(IK.getLanguage() == Language::OpenCL) {
     //Commandline parameters
@@ -137,7 +138,7 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
 		                       ArrayRef<const char*>(&Args[0], &Args[0] + Args.size()),
                                        ClangInstance->getDiagnostics());
     Invocation.setLangDefaults(ClangInstance->getLangOpts(),
-                               Language::OpenCL, T, PPOpts);
+                               Language::OpenCL, T, PPOpts.Includes);
   }
   else {
     ErrorMsg = "Unsupported file type!";
