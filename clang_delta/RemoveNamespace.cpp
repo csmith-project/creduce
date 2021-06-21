@@ -1019,7 +1019,7 @@ void RemoveNamespace::removeNamespace(const NamespaceDecl *ND)
   StartLoc = SrcManager->getFileLoc(StartLoc);
   SourceLocation EndLoc;
   if (ND->decls_empty()) {
-    EndLoc = RBLoc;
+    EndLoc = SrcManager->getFileLoc(RBLoc);
   }
   else {
     DeclContext::decl_iterator I = ND->decls_begin();
