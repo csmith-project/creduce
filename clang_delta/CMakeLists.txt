@@ -158,6 +158,8 @@ add_executable(clang_delta
   RemovePointer.h
   RemoveTrivialBaseTemplate.cpp
   RemoveTrivialBaseTemplate.h
+  RemoveTryCatch.cpp
+  RemoveTryCatch.h
   RemoveUnresolvedBase.cpp
   RemoveUnresolvedBase.h
   RemoveUnusedEnumMember.cpp
