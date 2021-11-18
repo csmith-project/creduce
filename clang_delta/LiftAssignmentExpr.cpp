@@ -167,6 +167,9 @@ bool AssignExprStatementVisitor::VisitDoStmt(DoStmt *DS)
 
 bool AssignExprStatementVisitor::VisitCallExpr(CallExpr *CallE) 
 {
+  if (!CurrentStmt)
+    return false;
+
   for (CallExpr::arg_iterator I = CallE->arg_begin(),
        E = CallE->arg_end(); I != E; ++I) {
     Expr *Exp = *I;
