@@ -348,12 +348,19 @@ bool RemoveNamespaceRewriteVisitor::VisitDeclRefExpr(DeclRefExpr *DRE)
   }
 
   const ValueDecl *OrigDecl = DRE->getDecl();
+
   if (isa<FunctionDecl>(OrigDecl) || isa<VarDecl>(OrigDecl) ||
       isa<EnumConstantDecl>(OrigDecl)) {
     std::string Name;
     if (ConsumerInstance->getNewName(OrigDecl, Name)) {
-      ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(),
-        OrigDecl->getNameAsString().size(), Name);
+      unsigned Len = OrigDecl->getNameAsString().size();
+      if (const FunctionDecl *FD = dyn_cast<FunctionDecl>(OrigDecl)) {
+        // handle user-defined literals
+        if (const IdentifierInfo *IdInfo = FD->getLiteralIdentifier()) {
+          Len = IdInfo->getLength();
+        }
+      }
+      ConsumerInstance->TheRewriter.ReplaceText(DRE->getBeginLoc(), Len, Name);
     }
   }
 
@@ -930,7 +937,6 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
       return;
 
     std::string NewName = NamePrefix + NamespaceName;
-    const IdentifierInfo *IdInfo = ND->getIdentifier();
     NewName += "_";
 
     if ( const TemplateDecl *TD = dyn_cast<TemplateDecl>(ND) ) {
@@ -947,8 +953,21 @@ void RemoveNamespace::handleOneNamedDecl(const NamedDecl *ND,
         return;
     }
 
+    const IdentifierInfo *IdInfo = ND->getIdentifier();
+    bool IsUserLiteral = false;
+    if (!IdInfo) {
+      const FunctionDecl *FD = cast<FunctionDecl>(ND);
+      IdInfo = FD->getLiteralIdentifier();
+      if (IdInfo)
+        IsUserLiteral = true;
+    }
+
     TransAssert(IdInfo && "Invalid IdentifierInfo!");
     NewName += IdInfo->getName();
+    // Make sure we have valid suffix for user literals
+    if (IsUserLiteral && IdInfo->getName().startswith("_")) {
+      NewName = "_" + NewName;
+    }
     NamedDeclToNewName[ND] = NewName;
   }
 }

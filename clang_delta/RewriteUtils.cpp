@@ -973,6 +973,25 @@ bool RewriteUtils::replaceFunctionDeclName(const FunctionDecl *FD,
   // applying getNameAsString() on SomeClass() gives us SomeClass<T>.
 
   DeclarationNameInfo NameInfo = FD->getNameInfo();
+  if (const IdentifierInfo *IdInfo = FD->getLiteralIdentifier()) {
+    SourceLocation OpLoc = NameInfo.getBeginLoc();
+    const char *OpStartBuf = SrcManager->getCharacterData(OpLoc);
+
+    // skip string operator
+    std::string TmpStr(OpStartBuf,
+                       TheRewriter->getRangeSize(NameInfo.getSourceRange()));
+    std::string OperatorStr = "operator";
+    size_t Pos = TmpStr.find(OperatorStr);
+    TransAssert(Pos != std::string::npos && "cannot find operator!");
+
+    size_t OldNamePos =
+      TmpStr.find(IdInfo->getNameStart(), Pos, IdInfo->getLength());
+    TransAssert(OldNamePos != std::string::npos && "cannot find old name!");
+
+    SourceLocation NewStartLoc = OpLoc.getLocWithOffset(OldNamePos);
+    return !TheRewriter->ReplaceText(NewStartLoc, IdInfo->getLength(), NameStr);
+  }
+
   DeclarationName DeclName = NameInfo.getName();
   DeclarationName::NameKind K = DeclName.getNameKind();
   TransAssert((K != DeclarationName::CXXDestructorName) &&
