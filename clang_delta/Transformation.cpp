@@ -235,7 +235,9 @@ const Expr *Transformation::getInitExprFromBase(const Expr *BaseE,
 
   const ValueDecl *OrigDecl = DRE->getDecl();
   const VarDecl *VD = dyn_cast<VarDecl>(OrigDecl);
-  TransAssert(VD && "Bad VarDecl!");
+  if (!VD)
+    return NULL;
+
   const Type * Ty = VD->getType().getTypePtr();
   if (Ty->isPointerType())
     return NULL;
