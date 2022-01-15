@@ -680,8 +680,8 @@ bool RewriteUtils::replaceExpr(const Expr *E,
   int RangeSize = TheRewriter->getRangeSize(ExprRange);
   if (RangeSize == -1) {
     SourceLocation StartLoc = ExprRange.getBegin();
-    if (SrcManager->isMacroBodyExpansion(StartLoc)) {
-      StartLoc = SrcManager->getFileLoc(StartLoc);
+    if (StartLoc.isMacroID()) {
+      StartLoc = SrcManager->getExpansionLoc(StartLoc);
     }
     SourceLocation EndLoc = ExprRange.getEnd();
     if (SrcManager->isMacroBodyExpansion(EndLoc) ||
