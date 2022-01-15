@@ -392,6 +392,9 @@ void SimpleInliner::doAnalysis(void)
     FunctionDecl *CanonicalDecl = CalleeDecl->getCanonicalDecl();
     if (!ValidFunctionDecls.count(CanonicalDecl))
       continue;
+    // skip recursive call
+    if (CalleeDecl->getCanonicalDecl() == CalleeToCallerMap[(*CI)])
+      continue;
 
     if (!hasValidArgExprs(*CI))
       continue;
