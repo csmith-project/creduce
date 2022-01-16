@@ -1605,11 +1605,13 @@ SourceRange RewriteUtils::getFileLocSourceRange(SourceRange LocRange)
 {
   SourceLocation StartLoc = LocRange.getBegin();
   if (StartLoc.isMacroID()) {
-    StartLoc = SrcManager->getSpellingLoc(StartLoc);
-    SourceLocation EndLoc = LocRange.getEnd();
-    TransAssert(EndLoc.isMacroID() && "EndLoc is not from a macro!");
-    LocRange = SourceRange(StartLoc, SrcManager->getSpellingLoc(EndLoc));
+    StartLoc = SrcManager->getFileLoc(StartLoc);
   }
+  SourceLocation EndLoc = LocRange.getEnd();
+  if (EndLoc.isMacroID()) {
+    EndLoc = SrcManager->getFileLoc(EndLoc);
+  }
+  LocRange = SourceRange(StartLoc, EndLoc);
   return LocRange;
 }
 
