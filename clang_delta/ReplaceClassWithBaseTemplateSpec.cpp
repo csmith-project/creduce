@@ -154,7 +154,8 @@ void ReplaceClassWithBaseTemplateSpec::removeBaseSpecifier(void)
 {
   unsigned NumBases = TheCXXRecord->getNumBases(); (void)NumBases;
   TransAssert((NumBases == 1) && "TheCXXRecord can have only one base!");
-  SourceLocation StartLoc = TheCXXRecord->getLocation();
+  SourceLocation StartLoc =
+    SrcManager->getSpellingLoc(TheCXXRecord->getSourceRange().getBegin());
   StartLoc = RewriteHelper->getLocationUntil(StartLoc, ':');
   SourceLocation EndLoc = RewriteHelper->getLocationUntil(StartLoc, '{');
   EndLoc = EndLoc.getLocWithOffset(-1);
