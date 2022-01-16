@@ -324,21 +324,27 @@ void ReduceClassTemplateParameter::removeParameterByRange(SourceRange Range,
                                      const TemplateParameterList *TPList, 
                                      unsigned Index)
 {
+  SourceLocation LocStart = SrcManager->getSpellingLoc(Range.getBegin());
+  SourceLocation LocEnd = SrcManager->getSpellingLoc(Range.getEnd());
+
+  SourceRange NewRange(LocStart, LocEnd);
   unsigned NumParams = TPList->size();
 
+  SourceLocation LAngleLoc =
+    SrcManager->getSpellingLoc(TPList->getLAngleLoc());
+  SourceLocation RAngleLoc =
+    SrcManager->getSpellingLoc(TPList->getRAngleLoc());
   // if the parameter is the last one
   if (NumParams == 1) {
-    TheRewriter.ReplaceText(SourceRange(TPList->getLAngleLoc(),
-                                       TPList->getRAngleLoc()),
-                            "<>");
+    TheRewriter.ReplaceText(SourceRange(LAngleLoc, RAngleLoc), "<>");
   }
   else if ((Index + 1) == NumParams) {
-    SourceLocation EndLoc = TPList->getRAngleLoc();
+    SourceLocation EndLoc = RAngleLoc;
     EndLoc = EndLoc.getLocWithOffset(-1);
-    RewriteHelper->removeTextFromLeftAt(Range, ',', EndLoc);
+    RewriteHelper->removeTextFromLeftAt(NewRange, ',', EndLoc);
   }
   else {
-    RewriteHelper->removeTextUntil(Range, ',');
+    RewriteHelper->removeTextUntil(NewRange, ',');
   }
 }
 
