@@ -554,7 +554,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   // in this case, struct S0 is implicitly declared
   if (PrevDecl) {
     if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
-      DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
+      const DeclGroup &DGroup = DS->getDeclGroup().getDeclGroup();
       IsFirstDecl = true;
       if ((!RD->getDefinition() || RD->getNameAsString() == "") &&
           DGroup.size() == 2) {

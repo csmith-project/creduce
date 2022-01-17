@@ -190,12 +190,13 @@ void RemoveNestedFunction::getVarStrForTemplateSpecialization(
 
   std::string ArgStr;
   llvm::raw_string_ostream Stream(ArgStr);
-  TST->getArg(0).print(Context->getPrintingPolicy(), Stream);
+  TST->getArg(0).print(Context->getPrintingPolicy(), Stream,
+                       /*IncludeType*/ true);
 
   for (unsigned I = 1; I < NumArgs; ++I) {
     const TemplateArgument &Arg = TST->getArg(I);
     Stream << ", ";
-    Arg.print(Context->getPrintingPolicy(), Stream);
+    Arg.print(Context->getPrintingPolicy(), Stream, /*IncludeType*/ true);
   }
   size_t BeginPos = VarStr.find_first_of('<');
   size_t EndPos = VarStr.find_last_of('>');
