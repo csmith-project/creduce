@@ -356,7 +356,7 @@ unsigned int Transformation::getConstArraySize(
   llvm::SmallString<8> IntStr;
   Result.toStringUnsigned(IntStr);
 
-  std::stringstream TmpSS(IntStr.str());
+  std::stringstream TmpSS(std::string(IntStr.str()));
 
   if (!(TmpSS >> Sz)) {
     TransAssert(0 && "Non-integer value!");

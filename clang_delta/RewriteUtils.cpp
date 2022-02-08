@@ -730,7 +730,7 @@ std::string RewriteUtils::getStmtIndentString(Stmt *S,
     ++I;
   indentSpace = MB.substr(lineOffs, I-lineOffs);
 
-  return indentSpace;
+  return std::string(indentSpace);
 }
 
 bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,
