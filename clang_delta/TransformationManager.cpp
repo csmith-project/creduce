@@ -105,13 +105,13 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
   InputKind IK = FrontendOptions::getInputKindForExtension(
         StringRef(SrcFileName).rsplit('.').second);
   if (IK.getLanguage() == Language::C) {
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::C, T, PPOpts.Includes);
+    ClangInstance->getLangOpts().setLangDefaults(ClangInstance->getLangOpts(), Language::C, T, PPOpts.Includes);
   }
   else if (IK.getLanguage() == Language::CXX) {
     // ISSUE: it might cause some problems when building AST
     // for a function which has a non-declared callee, e.g.,
     // It results an empty AST for the caller.
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(), Language::CXX, T, PPOpts.Includes);
+    ClangInstance->getLangOpts().setLangDefaults(ClangInstance->getLangOpts(), Language::CXX, T, PPOpts.Includes);
   }
   else if(IK.getLanguage() == Language::OpenCL) {
     //Commandline parameters
@@ -137,8 +137,8 @@ bool TransformationManager::initializeCompilerInstance(std::string &ErrorMsg)
     CompilerInvocation::CreateFromArgs(Invocation,
 		                       ArrayRef<const char*>(&Args[0], &Args[0] + Args.size()),
                                        ClangInstance->getDiagnostics());
-    Invocation.setLangDefaults(ClangInstance->getLangOpts(),
-                               Language::OpenCL, T, PPOpts.Includes);
+    ClangInstance->getLangOpts().setLangDefaults(ClangInstance->getLangOpts(),
+                                                 Language::OpenCL, T, PPOpts.Includes);
   }
   else {
     ErrorMsg = "Unsupported file type!";
