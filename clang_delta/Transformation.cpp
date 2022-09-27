@@ -106,7 +106,7 @@ void Transformation::outputTransformedSource(llvm::raw_ostream &OutStream)
 void Transformation::outputOriginalSource(llvm::raw_ostream &OutStream)
 {
   FileID MainFileID = SrcManager->getMainFileID();
-  const llvm::MemoryBuffer *MainBuf = SrcManager->getBuffer(MainFileID);
+  auto MainBuf = SrcManager->getBufferOrNone(MainFileID);
   TransAssert(MainBuf && "Empty MainBuf!");
   OutStream << MainBuf->getBufferStart();
   OutStream.flush();
@@ -359,7 +359,7 @@ unsigned int Transformation::getConstArraySize(
   llvm::SmallString<8> IntStr;
   Result.toStringUnsigned(IntStr);
 
-  std::stringstream TmpSS(IntStr.str());
+  std::stringstream TmpSS(IntStr.str().str());
 
   if (!(TmpSS >> Sz)) {
     return UINT_MAX;
@@ -397,8 +397,9 @@ const Expr *Transformation::getBaseExprAndIdxs(const Expr *E,
       // If we cannot have an integeral index, use 0.
       if (IdxE && IdxE->EvaluateAsInt(Result, *Context)) {
         llvm::APSInt IVal = Result.Val.getInt();
-        std::string IntStr = IVal.toString(10);
-        std::stringstream TmpSS(IntStr);
+        llvm::SmallString<8> IntStr;
+        IVal.toString(IntStr, 10);
+        std::stringstream TmpSS(IntStr.str().str());
         if (!(TmpSS >> Idx))
           TransAssert(0 && "Non-integer value!");
       }

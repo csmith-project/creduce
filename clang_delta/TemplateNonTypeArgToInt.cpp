@@ -167,7 +167,9 @@ void TemplateNonTypeArgToInt::handleOneTemplateArgumentLoc(
     if (!TheExpr->isValueDependent() &&
         TheExpr->EvaluateAsInt(Result, *Context)) {
       llvm::APSInt IVal = Result.Val.getInt();
-      IntString = IVal.toString(10);
+      llvm::SmallString<8> TmpStr;
+      IVal.toString(TmpStr, 10);
+      IntString = TmpStr.str().str();
     }
   }
 }

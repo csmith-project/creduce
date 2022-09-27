@@ -554,7 +554,7 @@ bool RewriteUtils::removeVarFromDeclStmt(DeclStmt *DS,
   // in this case, struct S0 is implicitly declared
   if (PrevDecl) {
     if ( RecordDecl *RD = dyn_cast<RecordDecl>(PrevDecl) ) {
-      DeclGroup DGroup = DS->getDeclGroup().getDeclGroup();
+      const DeclGroup &DGroup = DS->getDeclGroup().getDeclGroup();
       IsFirstDecl = true;
       if ((!RD->getDefinition() || RD->getNameAsString() == "") &&
           DGroup.size() == 2) {
@@ -736,8 +736,8 @@ std::string RewriteUtils::getStmtIndentString(Stmt *S,
   StringRef MB = SrcManager->getBufferData(FID);
  
   unsigned lineNo = SrcManager->getLineNumber(FID, StartOffset) - 1;
-  const SrcMgr::ContentCache *
-      Content = SrcManager->getSLocEntry(FID).getFile().getContentCache();
+  const SrcMgr::ContentCache *Content =
+    &SrcManager->getSLocEntry(FID).getFile().getContentCache();
   unsigned lineOffs = Content->SourceLineCache[lineNo];
  
   // Find the whitespace at the start of the line.
@@ -748,7 +748,7 @@ std::string RewriteUtils::getStmtIndentString(Stmt *S,
     ++I;
   indentSpace = MB.substr(lineOffs, I-lineOffs);
 
-  return indentSpace;
+  return indentSpace.str();
 }
 
 bool RewriteUtils::addLocalVarToFunc(const std::string &VarStr,

@@ -465,7 +465,7 @@ bool RemoveNamespaceRewriteVisitor::VisitDependentTemplateSpecializationTypeLoc(
   TransAssert(DTST && "Bad DependentTemplateSpecializationType!");
 
   const IdentifierInfo *IdInfo = DTST->getIdentifier();
-  std::string IdName = IdInfo->getName();
+  std::string IdName = IdInfo->getName().str();
   std::string Name;
 
   // FIXME:
@@ -794,7 +794,10 @@ void RemoveNamespace::handleOneUsingShadowDecl(const UsingShadowDecl *UD,
     return;
 
   std::string NewName;
-  const UsingDecl *D = UD->getUsingDecl();
+  const BaseUsingDecl *BD = UD->getIntroducer();
+  const UsingDecl *D = dyn_cast<UsingDecl>(BD);
+  if (!D)
+    return;
 
   NestedNameSpecifierLoc QualifierLoc = D->getQualifierLoc();
   NestedNameSpecifier *NNS = QualifierLoc.getNestedNameSpecifier();
