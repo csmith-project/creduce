@@ -807,7 +807,7 @@ const CXXRecordDecl *Transformation::getBaseDeclFromType(const Type *Ty)
 
   case Type::TypeOf: {
     return getBaseDeclFromType(
-      dyn_cast<TypeOfType>(Ty)->getUnderlyingType().getTypePtr());
+      dyn_cast<TypeOfType>(Ty)->getUnmodifiedType().getTypePtr());
   }
 
   default:
@@ -876,8 +876,7 @@ bool Transformation::isBeforeColonColon(TypeLoc &Loc)
 }
 
 bool Transformation::replaceDependentNameString(const Type *Ty,
-                                                const TemplateArgument *Args,
-                                                unsigned NumArgs,
+                                                ArrayRef<TemplateArgument> Args,
                                                 std::string &Str,
                                                 bool &Typename)
 {
@@ -901,7 +900,7 @@ bool Transformation::replaceDependentNameString(const Type *Ty,
     return false;
 
   unsigned Idx = ParmTy->getIndex();
-  TransAssert((Idx < NumArgs) && "Bad Parm Index!");
+  TransAssert((Idx < Args.size()) && "Bad Parm Index!");
   const TemplateArgument Arg = Args[Idx];
   if (Arg.getKind() != TemplateArgument::Type)
     return false;
@@ -915,13 +914,12 @@ bool Transformation::replaceDependentNameString(const Type *Ty,
 
 bool Transformation::getTemplateTypeParmString(
        const TemplateTypeParmType *ParmTy,
-       const TemplateArgument *Args,
-       unsigned NumArgs,
+       ArrayRef<TemplateArgument> Args,
        std::string &Str)
 {
   unsigned Idx = ParmTy->getIndex();
   // we could have default template args, skip this case for now
-  if (Idx >= NumArgs)
+  if (Idx >= Args.size())
     return false;
   const TemplateArgument Arg = Args[Idx];
   if (Arg.getKind() != TemplateArgument::Type)
@@ -933,8 +931,7 @@ bool Transformation::getTemplateTypeParmString(
 
 bool Transformation::getTypedefString(const StringRef &Name,
                                       const CXXRecordDecl *CXXRD,
-                                      const TemplateArgument *Args,
-                                      unsigned NumArgs,
+                                      ArrayRef<TemplateArgument> Args,
                                       std::string &Str,
                                       bool &Typename)
 {
@@ -948,12 +945,12 @@ bool Transformation::getTypedefString(const StringRef &Name,
     Type::TypeClass TC = UnderlyingTy->getTypeClass();
     if (TC == Type::DependentName) {
       if (replaceDependentNameString(UnderlyingTy, Args,
-                                     NumArgs, Str, Typename))
+                                     Str, Typename))
         return true;
     }
     else if (const TemplateTypeParmType *ParmTy =
              UnderlyingTy->getAs<TemplateTypeParmType>()) {
-      if (getTemplateTypeParmString(ParmTy, Args, NumArgs, Str))
+      if (getTemplateTypeParmString(ParmTy, Args, Str))
         return true;
     }
   }
@@ -970,7 +967,7 @@ bool Transformation::getTypedefString(const StringRef &Name,
     const CXXRecordDecl *BaseDef = Base->getDefinition();
     if (!BaseDef)
       continue;
-    if (getTypedefString(Name, BaseDef, Args, NumArgs, Str, Typename))
+    if (getTypedefString(Name, BaseDef, Args, Str, Typename))
       return true;
   }
 
@@ -998,15 +995,13 @@ bool Transformation::getDependentNameTypeString(
   if (!BaseDef)
     return false;
 
-  unsigned NumArgs = 0;
-  const TemplateArgument *Args = NULL;
+  ArrayRef<TemplateArgument> Args;
   if (const TemplateSpecializationType *TST =
       Ty->getAs<TemplateSpecializationType>()) {
-    NumArgs = TST->getNumArgs();
-    Args = TST->getArgs();
+    Args = TST->template_arguments();
   }
   return getTypedefString(IdInfo->getName(),
-           BaseDef, Args, NumArgs, Str, Typename);
+           BaseDef, Args, Str, Typename);
 }
 
 bool Transformation::getTypeString(const QualType &QT,

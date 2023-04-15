@@ -357,8 +357,7 @@ void TemplateArgToInt::handleOneType(const Type *Ty)
   if (!SubstType)
     return;
 
-  const TemplateTypeParmType *ParmType = SubstType->getReplacedParameter();
-  TemplateTypeParmDecl *ParmDecl = ParmType->getDecl();
+  const TemplateTypeParmDecl *ParmDecl = SubstType->getReplacedParameter();
   TransAssert(ParmDecl && "Invalid ParmDecl!");
   const TemplateDecl *TmplD = ParamToTemplateDecl[ParmDecl];
   if (TmplD == NULL) {
@@ -384,7 +383,7 @@ void TemplateArgToInt::handleOneType(const Type *Ty)
   TemplateParameterIdxSet *InvalidIdx = 
     DeclToParamIdx[dyn_cast<TemplateDecl>(TmplD->getCanonicalDecl())];
   TransAssert(InvalidIdx && "NULL InvalidIdx!");
-  InvalidIdx->insert(ParmType->getIndex());
+  InvalidIdx->insert(ParmDecl->getIndex());
 }
 
 TemplateArgToInt::~TemplateArgToInt()

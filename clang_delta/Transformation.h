@@ -271,8 +271,7 @@ protected:
 
   bool getTypedefString(const llvm::StringRef &Name,
                         const clang::CXXRecordDecl *CXXRD,
-                        const clang::TemplateArgument *Args,
-                        unsigned NumArgs,
+                        const llvm::ArrayRef<clang::TemplateArgument> Args,
                         std::string &Str,
                         bool &Typename);
 
@@ -281,14 +280,12 @@ protected:
                                   bool &Typename);
 
   bool replaceDependentNameString(const clang::Type *Ty,
-                                  const clang::TemplateArgument *Args,
-                                  unsigned NumArgs,
+                                  const llvm::ArrayRef<clang::TemplateArgument> Args,
                                   std::string &Str,
                                   bool &Typename);
 
   bool getTemplateTypeParmString(const clang::TemplateTypeParmType *ParmTy,
-                                const clang::TemplateArgument *Args,
-                                unsigned NumArgs,
+                                const llvm::ArrayRef<clang::TemplateArgument> Args,
                                 std::string &Str);
 
   unsigned getNumExplicitDecls(const clang::CXXRecordDecl *CXXRD);

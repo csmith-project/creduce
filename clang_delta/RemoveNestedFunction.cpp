@@ -183,18 +183,18 @@ void RemoveNestedFunction::getVarStrForTemplateSpecialization(
        std::string &VarStr,
        const TemplateSpecializationType *TST)
 {
-  unsigned NumArgs = TST->getNumArgs();
+  unsigned NumArgs = TST->template_arguments().size();
   if (NumArgs == 0) {
     return;
   }
 
   std::string ArgStr;
   llvm::raw_string_ostream Stream(ArgStr);
-  TST->getArg(0).print(Context->getPrintingPolicy(), Stream,
+  TST->template_arguments()[0].print(Context->getPrintingPolicy(), Stream,
                        /*IncludeType*/ true);
 
   for (unsigned I = 1; I < NumArgs; ++I) {
-    const TemplateArgument &Arg = TST->getArg(I);
+    const TemplateArgument &Arg = TST->template_arguments()[I];
     Stream << ", ";
     Arg.print(Context->getPrintingPolicy(), Stream, /*IncludeType*/ true);
   }
