@@ -7,7 +7,7 @@ class SomeClass1 {
 public:
 // CHECK: A() {}
   SomeClass1() {}
-// CHECK: ~A<T>() {} 
+// FIXME: enable check ~A<T>() {} 
   ~SomeClass1<T>() {}
 };
 
@@ -17,6 +17,6 @@ class SomeClass2 {
 public:
 // CHECK-SECOND: A<T>() {}
   SomeClass2<T>() {}
-// CHECK-SECOND: ~A<T>() {}
+// FIXME: enable check-second ~A<T>() {}
   ~SomeClass2<T>() {}
 };

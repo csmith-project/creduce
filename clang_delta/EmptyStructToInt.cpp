@@ -183,10 +183,12 @@ bool EmptyStructToIntRewriteVisitor::VisitElaboratedTypeLoc(
   // We need to omit it.
   if (StartBuf > EndBuf) {
     SourceLocation KeywordLoc = Loc.getElaboratedKeywordLoc();
-    const llvm::StringRef Keyword = 
-      TypeWithKeyword::getKeywordName(ETy->getKeyword());
-    ConsumerInstance->TheRewriter.ReplaceText(KeywordLoc, 
-                                              Keyword.size(), "int");
+    if (KeywordLoc.isValid()) {
+      const llvm::StringRef Keyword = 
+        TypeWithKeyword::getKeywordName(ETy->getKeyword());
+      ConsumerInstance->TheRewriter.ReplaceText(KeywordLoc, 
+                                                Keyword.size(), "int");
+    }
     return true;
   }
   
