@@ -10,7 +10,7 @@
 
 m4_define([CREDUCE_VERSION],   [2.11.0])
 m4_define([CREDUCE_BUGREPORT], [creduce-bugs@flux.utah.edu])
-m4_define([CREDUCE_URL],       [http://embed.cs.utah.edu/creduce/])
+m4_define([CREDUCE_URL],       [https://github.com/csmith-project/creduce])
 
 ###############################################################################
 

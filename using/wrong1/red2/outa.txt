@@ -1,0 +1,6 @@
+small.c:15:1: warning: missing braces around initializer [-Wmissing-braces]
+small.c:15:1: warning: (near initialization for ‘b.f2’) [-Wmissing-braces]
+small.c:15:1: warning: missing initializer [-Wmissing-field-initializers]
+small.c:15:1: warning: (near initialization for ‘b.f2.f5’) [-Wmissing-field-initializers]
+small.c:15:1: warning: missing initializer [-Wmissing-field-initializers]
+small.c:15:1: warning: (near initialization for ‘b.f3’) [-Wmissing-field-initializers]

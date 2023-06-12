@@ -1,0 +1,182 @@
+[kernel] preprocessing with "gcc -C -Dvolatile= -E -I.  small-framac.c"
+[value] Analyzing a complete application starting at main
+[value] Computing initial state
+[value] Initial state computed
+[value] Values of globals at initialization
+        crc32_context ∈ {0}
+        argc ∈ {0}
+        argv ∈ {0}
+        g_9 ∈ {-4}
+        g_77[0].f0 ∈ {1718346488}
+            [0].f1 ∈ {1175459149}
+            [0].f2.f0 ∈ {-2093923510}
+            [0].f2.f1 ∈ {-8737}
+            [0].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [0].f2.f2 ∈ {321}
+            [0].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [0].f2.f3 ∈ {253}
+            [0].f2.f4 ∈ {6}
+            [0].f2.f5 ∈ {86}
+            [0].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [0].f2.f6 ∈ {-848329684}
+            [0].f2.f7 ∈ {584139840}
+            [0].f3 ∈ {4294967288}
+            [0].f4 ∈ {339381318}
+            [0].f5 ∈ {883}
+            [0].f6 ∈ {37}
+            [0].[bits 358 to 359] ∈ {0}
+            [1].f0 ∈ {1718346488}
+            [1].f1 ∈ {1175459149}
+            [1].f2.f0 ∈ {-2093923510}
+            [1].f2.f1 ∈ {-8737}
+            [1].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [1].f2.f2 ∈ {321}
+            [1].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [1].f2.f3 ∈ {253}
+            [1].f2.f4 ∈ {6}
+            [1].f2.f5 ∈ {86}
+            [1].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [1].f2.f6 ∈ {-848329684}
+            [1].f2.f7 ∈ {584139840}
+            [1].f3 ∈ {4294967288}
+            [1].f4 ∈ {339381318}
+            [1].f5 ∈ {883}
+            [1].f6 ∈ {37}
+            [1].[bits 358 to 359] ∈ {0}
+            [2].f0 ∈ {1649460494}
+            [2].f1 ∈ {0}
+            [2].f2.f0 ∈ {-844582375}
+            [2].f2.f1 ∈ {-25416}
+            [2].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [2].f2.f2 ∈ {1632}
+            [2].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [2].f2.f3 ∈ {0}
+            [2].f2.f4 ∈ {1}
+            [2].f2.f5 ∈ {76}
+            [2].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [2].f2.f6 ∈ {1630805132}
+            [2].f2.f7 ∈ {1449195729}
+            [2].f3 ∈ {4024687524}
+            [2].f4 ∈ {3}
+            [2].f5 ∈ {65535}
+            [2].f6 ∈ {-1743}
+            [2].[bits 358 to 359] ∈ {0}
+            [3].f0 ∈ {1718346488}
+            [3].f1 ∈ {1175459149}
+            [3].f2.f0 ∈ {-2093923510}
+            [3].f2.f1 ∈ {-8737}
+            [3].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [3].f2.f2 ∈ {321}
+            [3].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [3].f2.f3 ∈ {253}
+            [3].f2.f4 ∈ {6}
+            [3].f2.f5 ∈ {86}
+            [3].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [3].f2.f6 ∈ {-848329684}
+            [3].f2.f7 ∈ {584139840}
+            [3].f3 ∈ {4294967288}
+            [3].f4 ∈ {339381318}
+            [3].f5 ∈ {883}
+            [3].f6 ∈ {37}
+            [3].[bits 358 to 359] ∈ {0}
+            [4].f0 ∈ {1718346488}
+            [4].f1 ∈ {1175459149}
+            [4].f2.f0 ∈ {-2093923510}
+            [4].f2.f1 ∈ {-8737}
+            [4].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [4].f2.f2 ∈ {321}
+            [4].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [4].f2.f3 ∈ {253}
+            [4].f2.f4 ∈ {6}
+            [4].f2.f5 ∈ {86}
+            [4].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [4].f2.f6 ∈ {-848329684}
+            [4].f2.f7 ∈ {584139840}
+            [4].f3 ∈ {4294967288}
+            [4].f4 ∈ {339381318}
+            [4].f5 ∈ {883}
+            [4].f6 ∈ {37}
+            [4].[bits 358 to 359] ∈ {0}
+            [5].f0 ∈ {1649460494}
+            [5].f1 ∈ {0}
+            [5].f2.f0 ∈ {-844582375}
+            [5].f2.f1 ∈ {-25416}
+            [5].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [5].f2.f2 ∈ {1632}
+            [5].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [5].f2.f3 ∈ {0}
+            [5].f2.f4 ∈ {1}
+            [5].f2.f5 ∈ {76}
+            [5].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [5].f2.f6 ∈ {1630805132}
+            [5].f2.f7 ∈ {1449195729}
+            [5].f3 ∈ {4024687524}
+            [5].f4 ∈ {3}
+            [5].f5 ∈ {65535}
+            [5].f6 ∈ {-1743}
+            [5].[bits 358 to 359] ∈ {0}
+            [6].f0 ∈ {1718346488}
+            [6].f1 ∈ {1175459149}
+            [6].f2.f0 ∈ {-2093923510}
+            [6].f2.f1 ∈ {-8737}
+            [6].f2.[bits 48 to 63] ∈ UNINITIALIZED
+            [6].f2.f2 ∈ {321}
+            [6].f2.[bits 86 to 87] ∈ UNINITIALIZED
+            [6].f2.f3 ∈ {253}
+            [6].f2.f4 ∈ {6}
+            [6].f2.f5 ∈ {86}
+            [6].f2.[bits 120 to 127] ∈ UNINITIALIZED
+            [6].f2.f6 ∈ {-848329684}
+            [6].f2.f7 ∈ {584139840}
+            [6].f3 ∈ {4294967288}
+            [6].f4 ∈ {339381318}
+            [6].f5 ∈ {883}
+            [6].f6 ∈ {37}
+            [6].[bits 358 to 359] ∈ {0}
+        g_147 ∈ {1}
+        g_426 ∈ {-1315}
+        g_460 ∈ {64}
+        g_472 ∈ {4}
+        g_518 ∈ {0}
+        g_529 ∈ {13747}
+        g_559 ∈ {65527}
+        g_576 ∈ {-1}
+        g_602.f0 ∈ {-5}
+             .f1 ∈ {-2}
+             .[bits 48 to 63] ∈ UNINITIALIZED
+             .f2 ∈ {-160}
+             .[bits 86 to 87] ∈ UNINITIALIZED
+             .f3 ∈ {7}
+             .f4 ∈ {-7}
+             .f5 ∈ {255}
+             .[bits 120 to 127] ∈ UNINITIALIZED
+             .f6 ∈ {-1127716643}
+             .f7 ∈ {4}
+        g_757.f0 ∈ {0}
+             .f1 ∈ {1759412688}
+             .f2.f0 ∈ {4}
+             .f2.f1 ∈ {1394}
+             .f2.[bits 48 to 63] ∈ UNINITIALIZED
+             .f2.f2 ∈ {895}
+             .f2.[bits 86 to 87] ∈ UNINITIALIZED
+             .f2.f3 ∈ {3}
+             .f2.f4 ∈ {-9}
+             .f2.f5 ∈ {74}
+             .f2.[bits 120 to 127] ∈ UNINITIALIZED
+             .f2.f6 ∈ {1}
+             .f2.f7 ∈ {-9}
+             .f3 ∈ {4294967291}
+             .f4 ∈ {0}
+             .f5 ∈ {65526}
+             .f6 ∈ {-926}
+             .[bits 358 to 359] ∈ {0}
+        g_831[0..9] ∈ {-14}
+[value] Semantic level unrolling superposing up to 100 states
+[value] Semantic level unrolling superposing up to 200 states
+[value] Semantic level unrolling superposing up to 300 states
+[value] Semantic level unrolling superposing up to 400 states
+
+checksum = 
+
+[value] done for function main
+[value] ====== VALUES COMPUTED ======

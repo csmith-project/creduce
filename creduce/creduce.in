@@ -170,7 +170,7 @@ able to make use of it.
 If you haven\'t written an interestingness test before, please refer to
 this tutorial for additional guidance:
 
-  https://embed.cs.utah.edu/creduce/using/
+  https://github.com/csmith-project/creduce/USING.md
 
 If at all possible, run C-Reduce on preprocessed code, generated for
 example using:

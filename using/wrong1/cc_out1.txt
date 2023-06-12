@@ -1,0 +1,2 @@
+rand020576.c: In function ‘func_50’:
+rand020576.c:857:25: warning: overflow in implicit constant conversion [-Woverflow]

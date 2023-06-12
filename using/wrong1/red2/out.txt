@@ -1,0 +1,5 @@
+small.c:14:3: warning: suggest braces around initialization of subobject [-Wmissing-braces]
+  1
+  ^
+  {}
+1 warning generated.

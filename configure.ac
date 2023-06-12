@@ -9,7 +9,7 @@
 ###############################################################################
 
 m4_include([version.m4])
-AC_INIT(creduce, CREDUCE_VERSION, CREDUCE_BUGREPORT, creduce, CREDUCE_URL)
+AC_INIT([creduce],[CREDUCE_VERSION],[CREDUCE_BUGREPORT],[creduce],[CREDUCE_URL])
 
 AC_CONFIG_SRCDIR(clang_delta/ClangDelta.cpp)
 AC_CONFIG_AUX_DIR(autoconf)
@@ -35,7 +35,7 @@ AC_DEFUN([AC_DATAROOTDIR_CHECKED])
 dnl AC_PROG_CC # Automake 1.11 want us to use AM_PROG_CC_C_O instead...
 AM_PROG_CC_C_O
 AC_PROG_CXX
-AC_PROG_LIBTOOL
+LT_INIT
 
 AX_LLVM([9.0],[engine])
 AX_CLANG
@@ -125,8 +125,7 @@ AS_IF([test "x$CLANG_FORMAT" = "xno"], [missing_required_runtime_prereq=yes])
 
 ###############################################################################
 
-AC_OUTPUT(
-  Makefile
+AC_CONFIG_FILES([Makefile
   clang_delta/Makefile
   clex/Makefile
   creduce/Makefile
@@ -134,7 +133,8 @@ AC_OUTPUT(
   scripts/Makefile
   tests/Makefile
   unifdef/Makefile
-)
+])
+AC_OUTPUT
 
 ###############################################################################
 

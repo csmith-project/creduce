@@ -8,17 +8,48 @@ automatically produces a much smaller C/C++ program that has the same
 property.  It is intended for use by people who discover and report
 bugs in compilers and other tools that process C/C++ code.
 
-*NOTE:* C-Reduce happens to do a pretty good job reducing the size of
-programs in languages other than C/C++, such as JavaScript and Rust.
-If you need to reduce programs in some other language, please give it
-a try.
+A pair of blog posts about the design and evolution of C-Reduce ([part
+1](https://blog.regehr.org/archives/1678) and [part
+2](https://blog.regehr.org/archives/1679)) is a good place to start
+understanding how it works.
 
-Documentation and other information can be found at the [C-Reduce web
-page](http://embed.cs.utah.edu/creduce/)
+However, there is also an academic paper describing C-Reduce:
+[Test-Case Reduction for C Compiler
+Bugs](http://www.cs.utah.edu/~regehr/papers/pldi12-preprint.pdf) by
+John Regehr, Yang Chen, Pascal Cuoq, Eric Eide, Chucky Ellison, and
+Xuejun Yang. It was published in Proceedings of the 33rd ACM SIGPLAN
+Conference on Programming Language Design and Implementation (PLDI
+2012).
+
+*NOTE:* C-Reduce happens to do a pretty good job reducing the size of
+programs in languages other than C/C++, such as JavaScript, Rust, or
+SMT-LIB.  If you need to reduce programs in some other language,
+please give it a try!
+
+## Using
+
+Run C-Reduce like this:
+
+```
+creduce ./test1.sh file.c
+```
+
+Where `file.c` is a C compilation unit that you wish to reduce and
+`test1.sh` is a shell script that returns 0 if a partially reduced
+file (a "variant") is a suitable basis for further reduction steps (it
+triggers the bug, or whatever) and returns non-zero otherwise.
+
+The C-Reduce help output is another place to turn to for information:
+
+```
+creduce --help
+```
+
+For more details, see [USING.md](USING.md)
 
 ## Installation
 
-See [INSTALL.md](INSTALL.md).
+See [INSTALL.md](INSTALL.md)
 
 ## Notes
 
@@ -44,3 +75,10 @@ reduced. If your interestingness test requires access to other files,
 you should either copy them into the current working directory or else
 refer to them using an absolute path.
 
+## Contact
+
+There are two mailing lists for C-Reduce:
+[creduce-dev](http://www.flux.utah.edu/mailman/listinfo/creduce-dev)
+for developer discussion, and
+[creduce-bugs](http://www.flux.utah.edu/mailman/listinfo/creduce-bugs)
+for reporting bugs.

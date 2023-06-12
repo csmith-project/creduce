@@ -26,8 +26,8 @@ project(creduce)
 find_package(LLVM REQUIRED CONFIG NO_CMAKE_BUILDS_PATH)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in ${LLVM_DIR}")
-if (${LLVM_PACKAGE_VERSION} VERSION_LESS "9.0")
-  message(FATAL_ERROR "C-Reduce requires LLVM 9.0 or later")
+if (NOT ${LLVM_PACKAGE_VERSION} VERSION_EQUAL "16.0.5")
+  message(FATAL_ERROR "C-Reduce requires LLVM 16.0.5")
 endif()
 #
 # Do this here, too, just to keep it with the LLVM check above.
@@ -92,7 +92,7 @@ set(creduce_PACKAGE_BUGREPORT		"creduce-bugs@flux.utah.edu")
 set(creduce_PACKAGE_NAME		"creduce")
 set(creduce_PACKAGE_STRING		"creduce 2.11.0")
 set(creduce_PACKAGE_TARNAME		"creduce")
-set(creduce_PACKAGE_URL			"http://embed.cs.utah.edu/creduce/")
+set(creduce_PACKAGE_URL			"https://github.com/csmith-project/creduce")
 set(creduce_PACKAGE_VERSION		"2.11.0")
 set(creduce_VERSION			"2.11.0")
 
@@ -114,9 +114,8 @@ check_cxx_compiler_flag(
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # XXX figure out how to get "-std=c++11 -fno-rtti" from LLVM.  That's how we
-  # get those options in the Automake path...
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-rtti -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers")
+  ### FIXME get the relevant flags from LLVM
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fno-rtti -fno-strict-aliasing -Wall -Wextra -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers")
   if(SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
   endif()

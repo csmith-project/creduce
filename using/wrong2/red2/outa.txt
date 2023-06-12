@@ -1,0 +1,2 @@
+small.c:14:1: warning: missing initializer [-Wmissing-field-initializers]
+small.c:14:1: warning: (near initialization for ‘a.f2’) [-Wmissing-field-initializers]

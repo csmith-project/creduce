@@ -1,0 +1,1027 @@
+rand020576.c:94:153: warning: expression result unused [-Wunused-value]
+    g_77[5].f6 = func_2(l_6[1], ((((((((~(0x14L >= g_9)) || 0UL) || g_9) & func_10(g_9)) , (func_34(func_18(((func_41((g_602.f1 , func_34((l_755[3][2][2] , l_755[3][2][2].f2), l_755[3][2][2].f4, g_602.f1, g_559, l_755[3][2][2].f4)), l_756, l_755[3][2][2].f2.f7) < g_602.f5) < 1UL), l_755[3][2][2].f2.f7), g_9, g_559, g_576, l_755[3][2][2].f1) , 0L)) == 4294967286UL) & 9UL) & 0x183CL), g_757);
+                                                                                                                                           ~~~~~~~~~~~ ~^
+rand020576.c:94:126: warning: expression result unused [-Wunused-value]
+    g_77[5].f6 = func_2(l_6[1], ((((((((~(0x14L >= g_9)) || 0UL) || g_9) & func_10(g_9)) , (func_34(func_18(((func_41((g_602.f1 , func_34((l_755[3][2][2] , l_755[3][2][2].f2), l_755[3][2][2].f4, g_602.f1, g_559, l_755[3][2][2].f4)), l_756, l_755[3][2][2].f2.f7) < g_602.f5) < 1UL), l_755[3][2][2].f2.f7), g_9, g_559, g_576, l_755[3][2][2].f1) , 0L)) == 4294967286UL) & 9UL) & 0x183CL), g_757);
+                                                                                                                       ~~~~~ ^~
+rand020576.c:94:74: warning: expression result unused [-Wunused-value]
+    g_77[5].f6 = func_2(l_6[1], ((((((((~(0x14L >= g_9)) || 0UL) || g_9) & func_10(g_9)) , (func_34(func_18(((func_41((g_602.f1 , func_34((l_755[3][2][2] , l_755[3][2][2].f2), l_755[3][2][2].f4, g_602.f1, g_559, l_755[3][2][2].f4)), l_756, l_755[3][2][2].f2.f7) < g_602.f5) < 1UL), l_755[3][2][2].f2.f7), g_9, g_559, g_576, l_755[3][2][2].f1) , 0L)) == 4294967286UL) & 9UL) & 0x183CL), g_757);
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~
+rand020576.c:125:84: warning: expression result unused [-Wunused-value]
+                        l_802[2] &= ((func_34(g_77[5].f2, l_797, l_798, ((g_757.f2.f3 , (-1L)) == (g_602.f7 >= (l_799 & l_800))), l_797) > g_757.f0) < l_801);
+                                                                          ~~~~~~~~ ^~
+rand020576.c:126:103: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2 = func_28((g_757.f2.f0 < (l_798 & g_472)), l_796, g_77[5].f2.f4, ((~((safe_sub_func_int32_t_s_s((((((safe_div_func_uint8_t_u_u(l_807, 0xF6L)) , (func_34(g_602, (0UL ^ 250UL), g_77[5].f3, g_602.f0, g_77[5].f2.f0) , g_602.f2)) <= 0x3478912EL) != l_782) == l_808[0][4]), g_77[5].f1)) || g_757.f2.f0)) , 0xFC387858L), g_77[5]);
+                                                                                                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:127:433: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                ^  ~~~~~~~~~~~
+rand020576.c:127:433: note: use '&' for a bitwise operation
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                                                &
+rand020576.c:127:433: note: remove constant to silence this warning
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                               ~^~~~~~~~~~~~~~
+rand020576.c:127:470: warning: expression result unused [-Wunused-value]
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~
+rand020576.c:127:588: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^  ~~~
+rand020576.c:127:588: note: use '|' for a bitwise operation
+                        g_757.f1 &= (g_147 != (safe_lshift_func_int16_t_s_u((((+(safe_rshift_func_uint16_t_u_s(0x9A61L, 14))) != g_426) && (g_559 < ((-7L) ^ ((((safe_rshift_func_int16_t_s_s(l_817, (safe_lshift_func_int8_t_s_u((func_34(func_28(l_798, ((((safe_rshift_func_int16_t_s_s((((safe_div_func_uint8_t_u_u(g_77[5].f2.f7, (((safe_lshift_func_int16_t_s_u(func_34(g_757.f2, l_797, g_576, g_518, l_782), 14)) ^ l_807) || l_826))) && 0x00DB9ACFL) , l_782), g_602.f4)) | g_77[5].f2.f5) , l_782) | 0x688FCF34L), g_757.f4, l_796, l_827[0][2][3]), g_757.f2.f7, l_799, g_77[5].f2.f6, l_782) || 5UL), g_77[5].f2.f2)))) , l_807) != 0x88L) < 5L)))), 5)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+rand020576.c:128:64: warning: expression result unused [-Wunused-value]
+                        g_831[1] &= (((((func_2(l_828[1][5], ((~(-1L)) , (safe_sub_func_uint32_t_u_u((g_77[5].f4 != l_801), (l_807 & g_77[5].f5)))), g_77[5]) == g_757.f2.f7) , g_518) >= g_757.f2.f7) && 0xFEL) < g_757.f2.f4);
+                                                               ^~~~~~
+rand020576.c:128:159: warning: expression result unused [-Wunused-value]
+                        g_831[1] &= (((((func_2(l_828[1][5], ((~(-1L)) , (safe_sub_func_uint32_t_u_u((g_77[5].f4 != l_801), (l_807 & g_77[5].f5)))), g_77[5]) == g_757.f2.f7) , g_518) >= g_757.f2.f7) && 0xFEL) < g_757.f2.f4);
+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~
+rand020576.c:128:200: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                        g_831[1] &= (((((func_2(l_828[1][5], ((~(-1L)) , (safe_sub_func_uint32_t_u_u((g_77[5].f4 != l_801), (l_807 & g_77[5].f5)))), g_77[5]) == g_757.f2.f7) , g_518) >= g_757.f2.f7) && 0xFEL) < g_757.f2.f4);
+                                                                                                                                                                                                       ^  ~~~~~
+rand020576.c:128:200: note: use '&' for a bitwise operation
+                        g_831[1] &= (((((func_2(l_828[1][5], ((~(-1L)) , (safe_sub_func_uint32_t_u_u((g_77[5].f4 != l_801), (l_807 & g_77[5].f5)))), g_77[5]) == g_757.f2.f7) , g_518) >= g_757.f2.f7) && 0xFEL) < g_757.f2.f4);
+                                                                                                                                                                                                       ^~
+                                                                                                                                                                                                       &
+rand020576.c:128:200: note: remove constant to silence this warning
+                        g_831[1] &= (((((func_2(l_828[1][5], ((~(-1L)) , (safe_sub_func_uint32_t_u_u((g_77[5].f4 != l_801), (l_807 & g_77[5].f5)))), g_77[5]) == g_757.f2.f7) , g_518) >= g_757.f2.f7) && 0xFEL) < g_757.f2.f4);
+                                                                                                                                                                                                      ~^~~~~~~~
+rand020576.c:131:46: warning: expression result unused [-Wunused-value]
+                    g_77[5].f2.f0 |= ((g_757.f1 , l_826) > (7UL >= 0x44EDL));
+                                       ~~~~~ ^~
+rand020576.c:146:255: warning: expression result unused [-Wunused-value]
+                        l_848 = ((safe_rshift_func_int8_t_s_s(((safe_add_func_int16_t_s_s(l_755[3][2][2].f2.f0, g_77[5].f1)) >= (g_77[5].f2.f2 < (func_34(l_833, ((safe_lshift_func_int8_t_s_u((safe_div_func_uint8_t_u_u((safe_add_func_int8_t_s_s(6L, ((g_9 ^ (g_757.f0 <= (safe_lshift_func_int16_t_s_s((g_757.f6 == ((0xD4L == g_518) ^ g_602.f5)), g_77[5].f2.f7)))) , l_847[0][0]))), 0x87L)), g_757.f2.f4)) , 0xCBD33A3DL), g_529, l_800, l_827[0][2][3].f2.f4) > 4294967295UL))), g_602.f5)) || g_426);
+                                                                                                                                                                                                                                                          ~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:145:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j;
+                            ^
+rand020576.c:145:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j;
+                               ^
+rand020576.c:120:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j;
+                        ^
+rand020576.c:120:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j;
+                           ^
+rand020576.c:172:391: warning: expression result unused [-Wunused-value]
+                        l_827[0][2][3].f1 = (((((l_755[g_757.f2.f0][(g_757.f2.f0 + 2)][g_757.f2.f0].f0 && (g_757.f2.f0 > ((safe_sub_func_int8_t_s_s(0x82L, 0x2BL)) & (((safe_div_func_int32_t_s_s(g_518, (safe_lshift_func_int16_t_s_u(0x0789L, l_827[0][2][3].f5)))) , (((safe_div_func_uint8_t_u_u((0x9889L < ((func_46(l_868[2][2][1], g_77[5].f2.f6, g_77[5].f5) >= 0x99L) <= l_850)), g_602.f0)) & l_869[1][0][4]) , 0xD54398EEL)) <= 2UL)))) != g_831[6]) != 4294967295UL) , g_147) == 0xD01B0A27L);
+                                                                                                                                                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~
+rand020576.c:172:449: warning: expression result unused [-Wunused-value]
+                        l_827[0][2][3].f1 = (((((l_755[g_757.f2.f0][(g_757.f2.f0 + 2)][g_757.f2.f0].f0 && (g_757.f2.f0 > ((safe_sub_func_int8_t_s_s(0x82L, 0x2BL)) & (((safe_div_func_int32_t_s_s(g_518, (safe_lshift_func_int16_t_s_u(0x0789L, l_827[0][2][3].f5)))) , (((safe_div_func_uint8_t_u_u((0x9889L < ((func_46(l_868[2][2][1], g_77[5].f2.f6, g_77[5].f5) >= 0x99L) <= l_850)), g_602.f0)) & l_869[1][0][4]) , 0xD54398EEL)) <= 2UL)))) != g_831[6]) != 4294967295UL) , g_147) == 0xD01B0A27L);
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~
+rand020576.c:168:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:168:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:168:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:186:81: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f0 = (safe_rshift_func_uint16_t_u_s((((l_826 <= 0UL) , g_831[1]) >= l_872[1]), 9));
+                                                                          ~~~~~ ^  ~~~
+rand020576.c:165:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j, k;
+                        ^
+rand020576.c:165:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j, k;
+                           ^
+rand020576.c:165:31: warning: unused variable 'k' [-Wunused-variable]
+                    int i, j, k;
+                              ^
+rand020576.c:154:17: warning: unused variable 'i' [-Wunused-variable]
+            int i, j;
+                ^
+rand020576.c:154:20: warning: unused variable 'j' [-Wunused-variable]
+            int i, j;
+                   ^
+rand020576.c:214:64: warning: expression result unused [-Wunused-value]
+                l_885 = ((safe_mod_func_uint32_t_u_u((func_41((l_884 , (l_755[3][2][2].f3 | func_46(g_602, l_881.f2.f7, l_885))), g_576, (((safe_rshift_func_int8_t_s_u((safe_sub_func_int32_t_s_s(g_757.f2.f3, ((l_827[0][2][3].f2.f0 <= 0x05EC6C34L) & g_757.f2.f7))), g_77[5].f0)) > 0UL) & g_77[5].f4)) != 65527UL), l_885)) , 0L);
+                                                               ^~~~~
+rand020576.c:215:280: warning: expression result unused [-Wunused-value]
+                g_757.f2.f2 = (func_2(func_41((l_782 <= (safe_rshift_func_uint16_t_u_u(g_77[5].f0, 6))), l_885, g_77[5].f3), l_881.f2.f7, ((safe_lshift_func_int8_t_s_s((safe_sub_func_uint32_t_u_u((safe_div_func_int32_t_s_s((safe_add_func_int16_t_s_s(0x6773L, (((l_900 == (l_901[5] , l_881.f2.f5)) , g_757.f1) != g_757.f3))), 0xE9CDA960L)), g_757.f2.f0)), g_757.f5)) , g_757)) || l_902);
+                                                                                                                                                                                                                                                                                ~~~~~ ~^
+rand020576.c:215:269: warning: expression result unused [-Wunused-value]
+                g_757.f2.f2 = (func_2(func_41((l_782 <= (safe_rshift_func_uint16_t_u_u(g_77[5].f0, 6))), l_885, g_77[5].f3), l_881.f2.f7, ((safe_lshift_func_int8_t_s_s((safe_sub_func_uint32_t_u_u((safe_div_func_int32_t_s_s((safe_add_func_int16_t_s_s(0x6773L, (((l_900 == (l_901[5] , l_881.f2.f5)) , g_757.f1) != g_757.f3))), 0xE9CDA960L)), g_757.f2.f0)), g_757.f5)) , g_757)) || l_902);
+                                                                                                                                                                                                                                                                      ~~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:227:196: warning: expression result unused [-Wunused-value]
+                    if (((0x2164L >= l_755[3][2][2].f0) == ((safe_mod_func_uint32_t_u_u((safe_mod_func_int8_t_s_s((g_77[5].f2.f2 , ((func_2((0x99L != (safe_div_func_int16_t_s_s((-10L), (l_881.f2.f0 , 65535UL)))), (func_41(l_755[3][2][2].f2.f7, (l_900 ^ l_909[0][2]), l_828[2][5]) ^ 1L), l_910) == g_757.f2.f5) < l_755[3][2][2].f1)), g_757.f4)), 0x8BAD35FDL)) , 0x92L)))
+                                                                                                                                                                                          ~~~~~~~~ ^~
+rand020576.c:227:127: warning: expression result unused [-Wunused-value]
+                    if (((0x2164L >= l_755[3][2][2].f0) == ((safe_mod_func_uint32_t_u_u((safe_mod_func_int8_t_s_s((g_77[5].f2.f2 , ((func_2((0x99L != (safe_div_func_int16_t_s_s((-10L), (l_881.f2.f0 , 65535UL)))), (func_41(l_755[3][2][2].f2.f7, (l_900 ^ l_909[0][2]), l_828[2][5]) ^ 1L), l_910) == g_757.f2.f5) < l_755[3][2][2].f1)), g_757.f4)), 0x8BAD35FDL)) , 0x92L)))
+                                                                                                                   ~~~~~~~~~~ ^~
+rand020576.c:230:274: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f0 = (l_881.f2.f6 , (g_757.f1 ^ ((safe_lshift_func_int8_t_s_u(g_426, (safe_rshift_func_uint8_t_u_u((l_755[3][2][2].f2.f5 > ((safe_div_func_uint32_t_u_u(((-6L) <= (safe_lshift_func_uint8_t_u_u(((safe_rshift_func_uint16_t_u_u((4UL > (g_757.f1 , (safe_div_func_int16_t_s_s(((safe_add_func_int8_t_s_s(l_756, (0xE1L == g_831[0]))) <= g_77[5].f2.f3), l_925)))), 5)) , 0x7EL), l_909[0][2]))), 0x3C9C0029L)) < 3UL)), l_901[5].f1)))) || 0x901ED131L)));
+                                                                                                                                                                                                                                                                           ~~~~~ ^~
+rand020576.c:230:461: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                        g_77[5].f2.f0 = (l_881.f2.f6 , (g_757.f1 ^ ((safe_lshift_func_int8_t_s_u(g_426, (safe_rshift_func_uint8_t_u_u((l_755[3][2][2].f2.f5 > ((safe_div_func_uint32_t_u_u(((-6L) <= (safe_lshift_func_uint8_t_u_u(((safe_rshift_func_uint16_t_u_u((4UL > (g_757.f1 , (safe_div_func_int16_t_s_s(((safe_add_func_int8_t_s_s(l_756, (0xE1L == g_831[0]))) <= g_77[5].f2.f3), l_925)))), 5)) , 0x7EL), l_909[0][2]))), 0x3C9C0029L)) < 3UL)), l_901[5].f1)))) || 0x901ED131L)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^  ~~~~~~~~~~~
+rand020576.c:230:461: note: use '|' for a bitwise operation
+                        g_77[5].f2.f0 = (l_881.f2.f6 , (g_757.f1 ^ ((safe_lshift_func_int8_t_s_u(g_426, (safe_rshift_func_uint8_t_u_u((l_755[3][2][2].f2.f5 > ((safe_div_func_uint32_t_u_u(((-6L) <= (safe_lshift_func_uint8_t_u_u(((safe_rshift_func_uint16_t_u_u((4UL > (g_757.f1 , (safe_div_func_int16_t_s_s(((safe_add_func_int8_t_s_s(l_756, (0xE1L == g_831[0]))) <= g_77[5].f2.f3), l_925)))), 5)) , 0x7EL), l_909[0][2]))), 0x3C9C0029L)) < 3UL)), l_901[5].f1)))) || 0x901ED131L)));
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+rand020576.c:230:51: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f0 = (l_881.f2.f6 , (g_757.f1 ^ ((safe_lshift_func_int8_t_s_u(g_426, (safe_rshift_func_uint8_t_u_u((l_755[3][2][2].f2.f5 > ((safe_div_func_uint32_t_u_u(((-6L) <= (safe_lshift_func_uint8_t_u_u(((safe_rshift_func_uint16_t_u_u((4UL > (g_757.f1 , (safe_div_func_int16_t_s_s(((safe_add_func_int8_t_s_s(l_756, (0xE1L == g_831[0]))) <= g_77[5].f2.f3), l_925)))), 5)) , 0x7EL), l_909[0][2]))), 0x3C9C0029L)) < 3UL)), l_901[5].f1)))) || 0x901ED131L)));
+                                         ~~~~~~~~ ^~
+rand020576.c:231:255: warning: expression result unused [-Wunused-value]
+                        l_910.f2.f2 &= ((safe_div_func_int32_t_s_s((g_757.f2.f4 & func_46(l_901[5].f2, (func_41((func_46(l_901[5].f2, g_77[5].f5, l_827[0][2][3].f0) <= g_602.f5), (l_827[0][2][3].f2.f2 >= (((((l_827[0][2][3].f1 | l_909[0][1]) != 65530UL) == 0x0420L) , 1UL) && l_928)), l_802[9]) & l_909[0][2]), g_757.f0)), g_757.f2.f6)) != l_828[1][5]);
+                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~
+rand020576.c:239:65: warning: expression result unused [-Wunused-value]
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                      ~~~~~~~~ ~^
+rand020576.c:239:522: warning: expression result unused [-Wunused-value]
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                                                                                                                                                                                                                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~
+rand020576.c:239:606: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^  ~~~~~~~~~~~~
+rand020576.c:239:606: note: use '|' for a bitwise operation
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+rand020576.c:239:639: warning: expression result unused [-Wunused-value]
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~
+rand020576.c:239:69: warning: expression result unused [-Wunused-value]
+                    if ((safe_add_func_uint32_t_u_u(((l_909[0][2] , l_933) , (~(((g_77[5].f1 && (safe_rshift_func_int8_t_s_s((g_757.f2.f5 & (safe_sub_func_int8_t_s_s((g_426 ^ (((safe_sub_func_int8_t_s_s((((safe_rshift_func_int16_t_s_s(((safe_rshift_func_int8_t_s_u((safe_sub_func_int16_t_s_s((((((safe_rshift_func_int16_t_s_u((0x9DAB0270L ^ ((safe_rshift_func_int16_t_s_u(g_757.f0, (safe_lshift_func_int16_t_s_u((func_34(l_952, g_460, g_426, g_77[5].f2.f2, g_77[5].f3) , l_881.f6), 14)))) | l_909[0][1])), 1)) , 0x7F2DL) != l_952.f4) , g_757.f2.f7) >= 1L), g_518)), g_576)) <= l_910.f2.f1), g_757.f2.f5)) || 4294967295UL) && 1L), 0xBCL)) >= l_827[0][2][3].f3) , l_901[5].f2.f4)), l_755[3][2][2].f2.f6))), g_576))) > l_755[3][2][2].f6) & g_77[5].f5))), 0UL)))
+                                                                    ^~~~~
+rand020576.c:250:374: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                        l_968[7] |= ((safe_sub_func_uint8_t_u_u(func_41(l_901[5].f2.f7, func_41((0x51A5L == ((l_755[3][2][2] , (safe_mod_func_int16_t_s_s((safe_mod_func_int8_t_s_s(((g_518 > l_960) <= (((((safe_lshift_func_uint8_t_u_u((safe_div_func_int16_t_s_s((g_77[5].f0 != 0xB74FL), l_965)), 1)) , (safe_add_func_int16_t_s_s(l_827[0][2][3].f2.f3, g_77[5].f1))) , g_529) && 4294967293UL) == l_884)), l_901[5].f2.f6)), l_965))) || g_529)), g_602.f7, g_757.f3), g_529), l_880)) != 0x8319L);
+                                                                                                                                                                                                                                                                                                                                                                                     ^  ~~~~~~~~~~~~
+rand020576.c:250:374: note: use '&' for a bitwise operation
+                        l_968[7] |= ((safe_sub_func_uint8_t_u_u(func_41(l_901[5].f2.f7, func_41((0x51A5L == ((l_755[3][2][2] , (safe_mod_func_int16_t_s_s((safe_mod_func_int8_t_s_s(((g_518 > l_960) <= (((((safe_lshift_func_uint8_t_u_u((safe_div_func_int16_t_s_s((g_77[5].f0 != 0xB74FL), l_965)), 1)) , (safe_add_func_int16_t_s_s(l_827[0][2][3].f2.f3, g_77[5].f1))) , g_529) && 4294967293UL) == l_884)), l_901[5].f2.f6)), l_965))) || g_529)), g_602.f7, g_757.f3), g_529), l_880)) != 0x8319L);
+                                                                                                                                                                                                                                                                                                                                                                                     ^~
+                                                                                                                                                                                                                                                                                                                                                                                     &
+rand020576.c:250:374: note: remove constant to silence this warning
+                        l_968[7] |= ((safe_sub_func_uint8_t_u_u(func_41(l_901[5].f2.f7, func_41((0x51A5L == ((l_755[3][2][2] , (safe_mod_func_int16_t_s_s((safe_mod_func_int8_t_s_s(((g_518 > l_960) <= (((((safe_lshift_func_uint8_t_u_u((safe_div_func_int16_t_s_s((g_77[5].f0 != 0xB74FL), l_965)), 1)) , (safe_add_func_int16_t_s_s(l_827[0][2][3].f2.f3, g_77[5].f1))) , g_529) && 4294967293UL) == l_884)), l_901[5].f2.f6)), l_965))) || g_529)), g_602.f7, g_757.f3), g_529), l_880)) != 0x8319L);
+                                                                                                                                                                                                                                                                                                                                                                                    ~^~~~~~~~~~~~~~~
+rand020576.c:250:124: warning: expression result unused [-Wunused-value]
+                        l_968[7] |= ((safe_sub_func_uint8_t_u_u(func_41(l_901[5].f2.f7, func_41((0x51A5L == ((l_755[3][2][2] , (safe_mod_func_int16_t_s_s((safe_mod_func_int8_t_s_s(((g_518 > l_960) <= (((((safe_lshift_func_uint8_t_u_u((safe_div_func_int16_t_s_s((g_77[5].f0 != 0xB74FL), l_965)), 1)) , (safe_add_func_int16_t_s_s(l_827[0][2][3].f2.f3, g_77[5].f1))) , g_529) && 4294967293UL) == l_884)), l_901[5].f2.f6)), l_965))) || g_529)), g_602.f7, g_757.f3), g_529), l_880)) != 0x8319L);
+                                                                                                              ~~~~~~~~~~~ ~^
+rand020576.c:248:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i;
+                            ^
+rand020576.c:213:21: warning: unused variable 'i' [-Wunused-variable]
+                int i;
+                    ^
+rand020576.c:104:13: warning: unused variable 'i' [-Wunused-variable]
+        int i, j, k;
+            ^
+rand020576.c:104:16: warning: unused variable 'j' [-Wunused-variable]
+        int i, j, k;
+               ^
+rand020576.c:104:19: warning: unused variable 'k' [-Wunused-variable]
+        int i, j, k;
+                  ^
+rand020576.c:89:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j, k;
+           ^
+rand020576.c:89:15: warning: unused variable 'k' [-Wunused-variable]
+    int i, j, k;
+              ^
+rand020576.c:274:102: warning: expression result unused [-Wunused-value]
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                                                                                               ~~~~~ ^~
+rand020576.c:274:82: warning: expression result unused [-Wunused-value]
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                                                                             ~~~ ^  ~~~~~
+rand020576.c:274:216: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                                                                                                                                                                                                                       ^  ~~~~~~~
+rand020576.c:274:216: note: use '&' for a bitwise operation
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                                                                                                                                                                                                                       ^~
+                                                                                                                                                                                                                       &
+rand020576.c:274:216: note: remove constant to silence this warning
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                                                                                                                                                                                                                      ~^~~~~~~~~~
+rand020576.c:274:28: warning: expression result unused [-Wunused-value]
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                           ^~~~~
+rand020576.c:274:252: warning: expression result unused [-Wunused-value]
+    g_77[5].f2.f7 = (+(((((g_757 , (((safe_sub_func_uint8_t_u_u(((l_760 == ((1UL != l_761) , ((g_602.f5 , p_5.f2.f1) != g_77[5].f2.f7))) ^ func_34(g_77[5].f2, p_5.f2.f2, g_77[5].f2.f4, l_760, g_757.f2.f5)), 255UL)) && 0x13EDL) != p_5.f2.f1)) | 255UL) ^ (-9L)) , l_761) < p_5.f2.f3));
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~
+rand020576.c:275:244: warning: expression result unused [-Wunused-value]
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                                                                                                                                                                                                                                           ~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:275:351: warning: expression result unused [-Wunused-value]
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~
+rand020576.c:275:393: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                                                                                                                                                                                                                                                                                                                                                                                                        ^  ~~~
+rand020576.c:275:393: note: use '&' for a bitwise operation
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                                                                                                                                                                                                                                                                                                                                                                                                        ^~
+                                                                                                                                                                                                                                                                                                                                                                                                        &
+rand020576.c:275:393: note: remove constant to silence this warning
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                                                                                                                                                                                                                                                                                                                                                                                                       ~^~~~~~
+rand020576.c:275:27: warning: comparison of 0 <= unsigned expression is always true [-Wtautological-compare]
+    l_770[5][1].f7 = (0UL <= (!((safe_sub_func_uint16_t_u_u((((((safe_add_func_int8_t_s_s(((safe_rshift_func_uint16_t_u_s((p_5.f5 ^ g_77[5].f2.f3), 2)) == l_761), (safe_add_func_int32_t_s_s(l_761, func_34(func_12(l_760, l_770[5][1], ((0x9FB4L < func_34(l_770[6][0], g_757.f5, p_3, p_5.f2.f3, g_9)) , 1UL), g_147), p_5.f0, g_757.f4, l_760, l_771))))) > l_770[5][1].f6) , g_757.f2.f6) & (-6L)) && 5UL), l_770[5][1].f3)) == g_602.f0)));
+                      ~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:276:153: warning: expression result unused [-Wunused-value]
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                                                                                                                                        ^~~~~
+rand020576.c:276:290: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                                                                                                                                                                                                                                                                                 ^  ~~~~~~~
+rand020576.c:276:290: note: use '|' for a bitwise operation
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                                                                                                                                                                                                                                                                                 ^~
+                                                                                                                                                                                                                                                                                                 |
+rand020576.c:276:290: warning: expression result unused [-Wunused-value]
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~
+rand020576.c:276:309: warning: expression result unused [-Wunused-value]
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~
+rand020576.c:276:34: warning: expression result unused [-Wunused-value]
+    g_757.f6 = func_46(p_5.f2, ((g_559 , (l_770[5][1].f3 & ((-6L) == (p_5.f2.f6 < (func_34(g_602, p_5.f2.f7, (((safe_sub_func_uint16_t_u_u(((((!((((((((g_472 , (func_28(func_41(l_770[5][1].f6, l_770[5][1].f6, l_771), l_774, p_5.f4, p_5.f2.f3, l_775) , p_5.f1)) ^ l_775.f0) && l_775.f2.f6) || 0x1C77L) , p_4) > p_3) , p_5.f3) <= g_602.f6)) == p_5.f0) < p_4) & 0xF7ED2BBAL), p_5.f4)) , 2L) & p_5.f6), l_770[5][1].f4, g_559) , g_576))))) && g_602.f0), p_5.f1);
+                                 ^~~~~
+rand020576.c:273:9: warning: unused variable 'i' [-Wunused-variable]
+    int i, j;
+        ^
+rand020576.c:273:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j;
+           ^
+rand020576.c:293:133: warning: expression result unused [-Wunused-value]
+    l_735 = func_12((l_17 <= p_11), func_18((safe_lshift_func_uint8_t_u_s(g_9, 5)), g_9), g_529, (safe_lshift_func_int8_t_s_u(g_9, (p_11 , l_17))));
+                                                                                                                                    ^~~~
+rand020576.c:294:81: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+    g_602.f7 &= (p_11 ^ (l_735.f2 == (safe_mod_func_uint32_t_u_u(0UL, (l_735.f6 || 0x86L)))));
+                                                                                ^  ~~~~~
+rand020576.c:294:81: note: use '|' for a bitwise operation
+    g_602.f7 &= (p_11 ^ (l_735.f2 == (safe_mod_func_uint32_t_u_u(0UL, (l_735.f6 || 0x86L)))));
+                                                                                ^~
+                                                                                |
+rand020576.c:300:261: warning: expression result unused [-Wunused-value]
+        l_754[1][1] = func_34(g_602, (0x194448D9L || (safe_lshift_func_int8_t_s_u(((g_602.f7 & ((safe_mod_func_int32_t_s_s(l_735.f1, (safe_div_func_uint8_t_u_u(((((((g_77[5].f2.f2 && (!(~0x422C1256L))) ^ (func_34(l_751[2], (safe_lshift_func_int16_t_s_s((g_77[5] , func_34(l_735, p_11, g_602.f1, l_751[2].f1, p_11)), g_77[5].f4)), g_602.f7, p_11, p_11) <= g_602.f4)) < p_11) == g_77[5].f6) && 6UL) != 0xD0C4C8EBL), l_735.f4)))) >= l_751[2].f4)) >= l_751[2].f3), 6))), l_735.f0, p_11, g_77[5].f2.f7);
+                                                                                                                                                                                                                                                              ~~~~ ~^
+rand020576.c:300:390: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+        l_754[1][1] = func_34(g_602, (0x194448D9L || (safe_lshift_func_int8_t_s_u(((g_602.f7 & ((safe_mod_func_int32_t_s_s(l_735.f1, (safe_div_func_uint8_t_u_u(((((((g_77[5].f2.f2 && (!(~0x422C1256L))) ^ (func_34(l_751[2], (safe_lshift_func_int16_t_s_s((g_77[5] , func_34(l_735, p_11, g_602.f1, l_751[2].f1, p_11)), g_77[5].f4)), g_602.f7, p_11, p_11) <= g_602.f4)) < p_11) == g_77[5].f6) && 6UL) != 0xD0C4C8EBL), l_735.f4)))) >= l_751[2].f4)) >= l_751[2].f3), 6))), l_735.f0, p_11, g_77[5].f2.f7);
+                                                                                                                                                                                                                                                                                                                                                                                                     ^  ~~~
+rand020576.c:300:390: note: use '&' for a bitwise operation
+        l_754[1][1] = func_34(g_602, (0x194448D9L || (safe_lshift_func_int8_t_s_u(((g_602.f7 & ((safe_mod_func_int32_t_s_s(l_735.f1, (safe_div_func_uint8_t_u_u(((((((g_77[5].f2.f2 && (!(~0x422C1256L))) ^ (func_34(l_751[2], (safe_lshift_func_int16_t_s_s((g_77[5] , func_34(l_735, p_11, g_602.f1, l_751[2].f1, p_11)), g_77[5].f4)), g_602.f7, p_11, p_11) <= g_602.f4)) < p_11) == g_77[5].f6) && 6UL) != 0xD0C4C8EBL), l_735.f4)))) >= l_751[2].f4)) >= l_751[2].f3), 6))), l_735.f0, p_11, g_77[5].f2.f7);
+                                                                                                                                                                                                                                                                                                                                                                                                     ^~
+                                                                                                                                                                                                                                                                                                                                                                                                     &
+rand020576.c:300:390: note: remove constant to silence this warning
+        l_754[1][1] = func_34(g_602, (0x194448D9L || (safe_lshift_func_int8_t_s_u(((g_602.f7 & ((safe_mod_func_int32_t_s_s(l_735.f1, (safe_div_func_uint8_t_u_u(((((((g_77[5].f2.f2 && (!(~0x422C1256L))) ^ (func_34(l_751[2], (safe_lshift_func_int16_t_s_s((g_77[5] , func_34(l_735, p_11, g_602.f1, l_751[2].f1, p_11)), g_77[5].f4)), g_602.f7, p_11, p_11) <= g_602.f4)) < p_11) == g_77[5].f6) && 6UL) != 0xD0C4C8EBL), l_735.f4)))) >= l_751[2].f4)) >= l_751[2].f3), 6))), l_735.f0, p_11, g_77[5].f2.f7);
+                                                                                                                                                                                                                                                                                                                                                                                                    ~^~~~~~
+rand020576.c:299:13: warning: unused variable 'i' [-Wunused-variable]
+        int i;
+            ^
+rand020576.c:292:9: warning: unused variable 'i' [-Wunused-variable]
+    int i, j;
+        ^
+rand020576.c:292:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j;
+           ^
+rand020576.c:343:51: warning: comparison of unsigned expression < 0 is always false [-Wtautological-compare]
+        g_518 &= ((safe_add_func_int8_t_s_s((l_27 < 0UL), p_19)) & ((func_28(p_20, (+(+((func_34(l_40[1][1], l_27, l_27, func_41(l_45, func_46(func_50(g_9, g_9, g_9, l_55), l_186, g_147), p_20), g_9) != 0x32A62E94L) ^ g_9))), g_9, g_9, l_516) , 7UL) == l_55.f2));
+                                             ~~~~ ^ ~~~
+rand020576.c:355:126: warning: expression result unused [-Wunused-value]
+        if (((safe_sub_func_uint32_t_u_u(l_523, ((l_40[1][1].f1 && (0xB71CL >= (-1L))) , (safe_sub_func_uint8_t_u_u(0x89L, ((l_526 , (safe_lshift_func_int16_t_s_s((0x084AL ^ l_526.f0), (g_472 || p_19)))) && (-1L))))))) , p_19))
+                                                                                                                             ^~~~~
+rand020576.c:355:205: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+        if (((safe_sub_func_uint32_t_u_u(l_523, ((l_40[1][1].f1 && (0xB71CL >= (-1L))) , (safe_sub_func_uint8_t_u_u(0x89L, ((l_526 , (safe_lshift_func_int16_t_s_s((0x084AL ^ l_526.f0), (g_472 || p_19)))) && (-1L))))))) , p_19))
+                                                                                                                                                                                                            ^  ~~~~~
+rand020576.c:355:205: note: use '&' for a bitwise operation
+        if (((safe_sub_func_uint32_t_u_u(l_523, ((l_40[1][1].f1 && (0xB71CL >= (-1L))) , (safe_sub_func_uint8_t_u_u(0x89L, ((l_526 , (safe_lshift_func_int16_t_s_s((0x084AL ^ l_526.f0), (g_472 || p_19)))) && (-1L))))))) , p_19))
+                                                                                                                                                                                                            ^~
+                                                                                                                                                                                                            &
+rand020576.c:355:205: note: remove constant to silence this warning
+        if (((safe_sub_func_uint32_t_u_u(l_523, ((l_40[1][1].f1 && (0xB71CL >= (-1L))) , (safe_sub_func_uint8_t_u_u(0x89L, ((l_526 , (safe_lshift_func_int16_t_s_s((0x084AL ^ l_526.f0), (g_472 || p_19)))) && (-1L))))))) , p_19))
+                                                                                                                                                                                                           ~^~~~~~~~
+rand020576.c:355:65: warning: expression result unused [-Wunused-value]
+        if (((safe_sub_func_uint32_t_u_u(l_523, ((l_40[1][1].f1 && (0xB71CL >= (-1L))) , (safe_sub_func_uint8_t_u_u(0x89L, ((l_526 , (safe_lshift_func_int16_t_s_s((0x084AL ^ l_526.f0), (g_472 || p_19)))) && (-1L))))))) , p_19))
+                                                  ~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~~
+rand020576.c:371:58: warning: expression result unused [-Wunused-value]
+                if (((func_46(func_28(g_529, p_19, ((1UL ^ func_34(l_530, func_41((safe_add_func_int8_t_s_s((safe_sub_func_int32_t_s_s((!g_77[5].f3), ((safe_lshift_func_uint8_t_u_u((safe_sub_func_uint32_t_u_u(0x37C17DD9L, 0UL)), (func_34(l_40[1][1], (safe_div_func_int32_t_s_s((safe_rshift_func_uint8_t_u_u(((safe_lshift_func_int16_t_s_s(l_526.f6, g_147)) != l_526.f2), 0)), p_20)), l_526.f4, p_20, g_77[5].f6) | p_20))) , 0x03FF5EA7L))), l_545)), g_9, g_77[5].f2.f0), g_529, l_546[3][2], p_20)) , p_19), p_20, l_547), l_530.f7, g_518) <= g_9) , g_77[5].f2.f7))
+                                                     ~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:371:537: warning: expression result unused [-Wunused-value]
+                if (((func_46(func_28(g_529, p_19, ((1UL ^ func_34(l_530, func_41((safe_add_func_int8_t_s_s((safe_sub_func_int32_t_s_s((!g_77[5].f3), ((safe_lshift_func_uint8_t_u_u((safe_sub_func_uint32_t_u_u(0x37C17DD9L, 0UL)), (func_34(l_40[1][1], (safe_div_func_int32_t_s_s((safe_rshift_func_uint8_t_u_u(((safe_lshift_func_int16_t_s_s(l_526.f6, g_147)) != l_526.f2), 0)), p_20)), l_526.f4, p_20, g_77[5].f6) | p_20))) , 0x03FF5EA7L))), l_545)), g_9, g_77[5].f2.f0), g_529, l_546[3][2], p_20)) , p_19), p_20, l_547), l_530.f7, g_518) <= g_9) , g_77[5].f2.f7))
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~
+rand020576.c:380:221: warning: expression result unused [-Wunused-value]
+                        l_40[(l_526.f6 + 1)][l_526.f6] = func_28(((!((safe_add_func_int16_t_s_s(g_559, ((g_77[l_523].f1 == p_19) >= ((safe_mod_func_uint8_t_u_u(g_77[5].f4, (safe_lshift_func_uint8_t_u_u(func_34(l_568, (((!p_20) , g_77[5].f3) , l_530.f2), ((p_20 ^ p_19) || 0xA6L), g_77[5].f2.f0, g_77[5].f2.f1), g_518)))) & 0x25L)))) , g_77[5].f3)) <= l_569), g_472, p_20, p_19, l_547);
+                                                                                                                                                                                                                            ^~~~~
+rand020576.c:380:238: warning: expression result unused [-Wunused-value]
+                        l_40[(l_526.f6 + 1)][l_526.f6] = func_28(((!((safe_add_func_int16_t_s_s(g_559, ((g_77[l_523].f1 == p_19) >= ((safe_mod_func_uint8_t_u_u(g_77[5].f4, (safe_lshift_func_uint8_t_u_u(func_34(l_568, (((!p_20) , g_77[5].f3) , l_530.f2), ((p_20 ^ p_19) || 0xA6L), g_77[5].f2.f0, g_77[5].f2.f1), g_518)))) & 0x25L)))) , g_77[5].f3)) <= l_569), g_472, p_20, p_19, l_547);
+                                                                                                                                                                                                                                     ~~~~~~~ ^~
+rand020576.c:380:270: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                        l_40[(l_526.f6 + 1)][l_526.f6] = func_28(((!((safe_add_func_int16_t_s_s(g_559, ((g_77[l_523].f1 == p_19) >= ((safe_mod_func_uint8_t_u_u(g_77[5].f4, (safe_lshift_func_uint8_t_u_u(func_34(l_568, (((!p_20) , g_77[5].f3) , l_530.f2), ((p_20 ^ p_19) || 0xA6L), g_77[5].f2.f0, g_77[5].f2.f1), g_518)))) & 0x25L)))) , g_77[5].f3)) <= l_569), g_472, p_20, p_19, l_547);
+                                                                                                                                                                                                                                                                             ^  ~~~~~
+rand020576.c:380:270: note: use '|' for a bitwise operation
+                        l_40[(l_526.f6 + 1)][l_526.f6] = func_28(((!((safe_add_func_int16_t_s_s(g_559, ((g_77[l_523].f1 == p_19) >= ((safe_mod_func_uint8_t_u_u(g_77[5].f4, (safe_lshift_func_uint8_t_u_u(func_34(l_568, (((!p_20) , g_77[5].f3) , l_530.f2), ((p_20 ^ p_19) || 0xA6L), g_77[5].f2.f0, g_77[5].f2.f1), g_518)))) & 0x25L)))) , g_77[5].f3)) <= l_569), g_472, p_20, p_19, l_547);
+                                                                                                                                                                                                                                                                             ^~
+                                                                                                                                                                                                                                                                             |
+rand020576.c:377:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j;
+                            ^
+rand020576.c:377:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j;
+                               ^
+rand020576.c:384:190: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                             ^  ~~~~~~~
+rand020576.c:384:190: note: use '&' for a bitwise operation
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                             ^~
+                                                                                                                                                                                             &
+rand020576.c:384:190: note: remove constant to silence this warning
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                            ~^~~~~~~~~~
+rand020576.c:384:179: warning: expression result unused [-Wunused-value]
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                         ~~~~~~~~ ^~
+rand020576.c:384:33: warning: expression result unused [-Wunused-value]
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                           ~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:384:236: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                                                                           ^  ~~
+rand020576.c:384:236: note: use '&' for a bitwise operation
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                                                                           ^~
+                                                                                                                                                                                                                                           &
+rand020576.c:384:236: note: remove constant to silence this warning
+                    if ((((p_19 != ((safe_sub_func_uint16_t_u_u((safe_div_func_uint8_t_u_u(251UL, (~(func_46(l_547.f2, g_77[5].f0, g_77[l_523].f2.f4) , g_77[5].f1)))), (l_547.f2.f6 , ((1UL && 65529UL) ^ p_19)))) <= g_576)) , l_530.f7) && 3L))
+                                                                                                                                                                                                                                          ~^~~~~
+rand020576.c:400:404: warning: expression result unused [-Wunused-value]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                                                                                                                                                                                                                                                                                      ~~~~~~~~~~~ ~^
+rand020576.c:400:616: warning: expression result unused [-Wunused-value]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                                                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~
+rand020576.c:400:150: warning: expression result unused [-Wunused-value]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                            ~~~~~~~ ~^
+rand020576.c:400:681: warning: expression result unused [-Wunused-value]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~
+rand020576.c:400:718: warning: expression result unused [-Wunused-value]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~
+rand020576.c:400:798: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^  ~~
+rand020576.c:400:798: note: use '|' for a bitwise operation
+                    g_602 = func_50((((safe_rshift_func_int16_t_s_u(((p_20 | ((safe_add_func_uint16_t_u_u(((safe_div_func_int32_t_s_s(((((((l_40[3][0] , (safe_rshift_func_uint8_t_u_s(((1L && p_19) || (func_41((((((safe_sub_func_int8_t_s_s((~(func_46(((safe_mod_func_int8_t_s_s((safe_lshift_func_uint16_t_u_s((safe_add_func_int16_t_s_s(((safe_rshift_func_int8_t_s_s(((-1L) || p_19), 1)) != (l_596[7][1][6] , (safe_sub_func_int32_t_s_s((safe_add_func_int32_t_s_s(p_19, g_77[5].f3)), g_77[5].f2.f0)))), p_19)), g_77[5].f2.f3)), p_20)) , g_77[5].f2), g_77[l_523].f3, l_526.f7) == 0xF37DE0D1L)), p_19)) == g_529) < g_9) && p_19) , g_77[5].f0), p_20, p_20) <= 254UL)), g_9))) <= g_559) != 0xF0847590L) , l_596[7][1][6].f6) | g_576) , p_19), g_472)) && 1L), l_601[0])) == (-2L))) < l_530.f6), l_601[0])) || 2L) , 1L), p_19, p_19, g_602);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+rand020576.c:399:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i;
+                        ^
+rand020576.c:370:21: warning: unused variable 'i' [-Wunused-variable]
+                int i;
+                    ^
+rand020576.c:403:217: warning: expression result unused [-Wunused-value]
+            if ((((safe_div_func_int8_t_s_s(0xB5L, ((safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(((((3L ^ ((l_526.f6 , (((!((safe_add_func_uint32_t_u_u(func_41(l_596[7][1][6].f4, l_596[7][1][6].f1, (g_77[5].f2 , ((safe_lshift_func_int8_t_s_u((safe_add_func_int32_t_s_s(l_547.f2.f0, 0x79252BA0L)), (g_77[5].f2.f2 >= l_547.f2.f2))) >= 251UL))), 0L)) , 0x687FL)) != p_20) >= g_602.f0)) == g_529)) <= 0xC3L) <= p_19) == (-1L)), p_20)), l_545)) ^ p_20))) != l_40[1][1].f6) != 0x0DFFL))
+                                                                                                                                                                                                                ~~~~~~~ ^~
+rand020576.c:403:124: warning: expression result unused [-Wunused-value]
+            if ((((safe_div_func_int8_t_s_s(0xB5L, ((safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(((((3L ^ ((l_526.f6 , (((!((safe_add_func_uint32_t_u_u(func_41(l_596[7][1][6].f4, l_596[7][1][6].f1, (g_77[5].f2 , ((safe_lshift_func_int8_t_s_u((safe_add_func_int32_t_s_s(l_547.f2.f0, 0x79252BA0L)), (g_77[5].f2.f2 >= l_547.f2.f2))) >= 251UL))), 0L)) , 0x687FL)) != p_20) >= g_602.f0)) == g_529)) <= 0xC3L) <= p_19) == (-1L)), p_20)), l_545)) ^ p_20))) != l_40[1][1].f6) != 0x0DFFL))
+                                                                                                                     ~~~~~ ^~
+rand020576.c:406:220: warning: expression result unused [-Wunused-value]
+                l_628[1][5][1] &= (((((safe_mod_func_int8_t_s_s((safe_rshift_func_uint8_t_u_s((safe_rshift_func_int8_t_s_u(0xCFL, 2)), func_34(l_526, l_523, p_19, (safe_div_func_uint8_t_u_u(((safe_add_func_int32_t_s_s((p_19 , (-1L)), (func_41(p_20, l_546[2][1], ((((p_20 >= 8L) | 0x62AB8A34L) , l_547.f2.f6) == 9L)) ^ g_602.f7))) , 3UL), (-1L))), l_625))), 255UL)) , 7UL) > l_626[0][0][5]) , g_77[2]) , l_627);
+                                                                                                                                                                                                                           ^~~~
+rand020576.c:406:279: warning: expression result unused [-Wunused-value]
+                l_628[1][5][1] &= (((((safe_mod_func_int8_t_s_s((safe_rshift_func_uint8_t_u_s((safe_rshift_func_int8_t_s_u(0xCFL, 2)), func_34(l_526, l_523, p_19, (safe_div_func_uint8_t_u_u(((safe_add_func_int32_t_s_s((p_19 , (-1L)), (func_41(p_20, l_546[2][1], ((((p_20 >= 8L) | 0x62AB8A34L) , l_547.f2.f6) == 9L)) ^ g_602.f7))) , 3UL), (-1L))), l_625))), 255UL)) , 7UL) > l_626[0][0][5]) , g_77[2]) , l_627);
+                                                                                                                                                                                                                                                                         ~~~~~~~~~~~~ ^ ~~~~~~~~~~~
+rand020576.c:406:373: warning: expression result unused [-Wunused-value]
+                l_628[1][5][1] &= (((((safe_mod_func_int8_t_s_s((safe_rshift_func_uint8_t_u_s((safe_rshift_func_int8_t_s_u(0xCFL, 2)), func_34(l_526, l_523, p_19, (safe_div_func_uint8_t_u_u(((safe_add_func_int32_t_s_s((p_19 , (-1L)), (func_41(p_20, l_546[2][1], ((((p_20 >= 8L) | 0x62AB8A34L) , l_547.f2.f6) == 9L)) ^ g_602.f7))) , 3UL), (-1L))), l_625))), 255UL)) , 7UL) > l_626[0][0][5]) , g_77[2]) , l_627);
+                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~
+rand020576.c:406:399: warning: expression result unused [-Wunused-value]
+                l_628[1][5][1] &= (((((safe_mod_func_int8_t_s_s((safe_rshift_func_uint8_t_u_s((safe_rshift_func_int8_t_s_u(0xCFL, 2)), func_34(l_526, l_523, p_19, (safe_div_func_uint8_t_u_u(((safe_add_func_int32_t_s_s((p_19 , (-1L)), (func_41(p_20, l_546[2][1], ((((p_20 >= 8L) | 0x62AB8A34L) , l_547.f2.f6) == 9L)) ^ g_602.f7))) , 3UL), (-1L))), l_625))), 255UL)) , 7UL) > l_626[0][0][5]) , g_77[2]) , l_627);
+                                                                                                                                                                                                                                                                                                                                                                                                        ~~~~ ~^
+rand020576.c:440:47: warning: expression result unused [-Wunused-value]
+                    l_526.f7 = func_41((l_547.f2 , (p_19 <= (safe_add_func_int16_t_s_s((g_576 < g_77[5].f2.f7), g_518)))), p_20, (safe_lshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u(0xCB0DCB7FL, (((p_19 & (g_77[5].f2.f5 , g_77[5].f2.f3)) != (-1L)) && 6UL))), l_40[1][1].f6)));
+                                        ~~~~~ ^~
+rand020576.c:440:224: warning: expression result unused [-Wunused-value]
+                    l_526.f7 = func_41((l_547.f2 , (p_19 <= (safe_add_func_int16_t_s_s((g_576 < g_77[5].f2.f7), g_518)))), p_20, (safe_lshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u(0xCB0DCB7FL, (((p_19 & (g_77[5].f2.f5 , g_77[5].f2.f3)) != (-1L)) && 6UL))), l_40[1][1].f6)));
+                                                                                                                                                                                                                    ~~~~~~~~~~ ^~
+rand020576.c:440:255: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    l_526.f7 = func_41((l_547.f2 , (p_19 <= (safe_add_func_int16_t_s_s((g_576 < g_77[5].f2.f7), g_518)))), p_20, (safe_lshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u(0xCB0DCB7FL, (((p_19 & (g_77[5].f2.f5 , g_77[5].f2.f3)) != (-1L)) && 6UL))), l_40[1][1].f6)));
+                                                                                                                                                                                                                                                              ^  ~~~
+rand020576.c:440:255: note: use '&' for a bitwise operation
+                    l_526.f7 = func_41((l_547.f2 , (p_19 <= (safe_add_func_int16_t_s_s((g_576 < g_77[5].f2.f7), g_518)))), p_20, (safe_lshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u(0xCB0DCB7FL, (((p_19 & (g_77[5].f2.f5 , g_77[5].f2.f3)) != (-1L)) && 6UL))), l_40[1][1].f6)));
+                                                                                                                                                                                                                                                              ^~
+                                                                                                                                                                                                                                                              &
+rand020576.c:440:255: note: remove constant to silence this warning
+                    l_526.f7 = func_41((l_547.f2 , (p_19 <= (safe_add_func_int16_t_s_s((g_576 < g_77[5].f2.f7), g_518)))), p_20, (safe_lshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u(0xCB0DCB7FL, (((p_19 & (g_77[5].f2.f5 , g_77[5].f2.f3)) != (-1L)) && 6UL))), l_40[1][1].f6)));
+                                                                                                                                                                                                                                                             ~^~~~~~
+rand020576.c:441:370: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    if (((p_19 > (g_472 & (func_41(l_628[1][5][1], ((l_643 > p_19) ^ (safe_mod_func_uint16_t_u_u((l_645[2] , (l_645[6] >= (safe_rshift_func_uint8_t_u_s(((((safe_rshift_func_int8_t_s_u(p_19, 7)) > (((((func_46(func_28(((safe_rshift_func_int16_t_s_u(g_77[5].f2.f7, p_20)) , l_547.f2.f3), p_20, l_626[0][0][5], l_643, g_77[0]), l_660, p_20) <= g_77[5].f3) && 255UL) && g_602.f2) | g_518) , g_576)) != 0x475BL) && p_19), g_602.f5)))), g_576))), l_645[2]) <= p_20))) || l_661))
+                                                                                                                                                                                                                                                                                                                                                                                 ^  ~~~~~
+rand020576.c:441:370: note: use '&' for a bitwise operation
+                    if (((p_19 > (g_472 & (func_41(l_628[1][5][1], ((l_643 > p_19) ^ (safe_mod_func_uint16_t_u_u((l_645[2] , (l_645[6] >= (safe_rshift_func_uint8_t_u_s(((((safe_rshift_func_int8_t_s_u(p_19, 7)) > (((((func_46(func_28(((safe_rshift_func_int16_t_s_u(g_77[5].f2.f7, p_20)) , l_547.f2.f3), p_20, l_626[0][0][5], l_643, g_77[0]), l_660, p_20) <= g_77[5].f3) && 255UL) && g_602.f2) | g_518) , g_576)) != 0x475BL) && p_19), g_602.f5)))), g_576))), l_645[2]) <= p_20))) || l_661))
+                                                                                                                                                                                                                                                                                                                                                                                 ^~
+                                                                                                                                                                                                                                                                                                                                                                                 &
+rand020576.c:441:370: note: remove constant to silence this warning
+                    if (((p_19 > (g_472 & (func_41(l_628[1][5][1], ((l_643 > p_19) ^ (safe_mod_func_uint16_t_u_u((l_645[2] , (l_645[6] >= (safe_rshift_func_uint8_t_u_s(((((safe_rshift_func_int8_t_s_u(p_19, 7)) > (((((func_46(func_28(((safe_rshift_func_int16_t_s_u(g_77[5].f2.f7, p_20)) , l_547.f2.f3), p_20, l_626[0][0][5], l_643, g_77[0]), l_660, p_20) <= g_77[5].f3) && 255UL) && g_602.f2) | g_518) , g_576)) != 0x475BL) && p_19), g_602.f5)))), g_576))), l_645[2]) <= p_20))) || l_661))
+                                                                                                                                                                                                                                                                                                                                                                                ~^~~~~~~~
+rand020576.c:441:393: warning: expression result unused [-Wunused-value]
+                    if (((p_19 > (g_472 & (func_41(l_628[1][5][1], ((l_643 > p_19) ^ (safe_mod_func_uint16_t_u_u((l_645[2] , (l_645[6] >= (safe_rshift_func_uint8_t_u_s(((((safe_rshift_func_int8_t_s_u(p_19, 7)) > (((((func_46(func_28(((safe_rshift_func_int16_t_s_u(g_77[5].f2.f7, p_20)) , l_547.f2.f3), p_20, l_626[0][0][5], l_643, g_77[0]), l_660, p_20) <= g_77[5].f3) && 255UL) && g_602.f2) | g_518) , g_576)) != 0x475BL) && p_19), g_602.f5)))), g_576))), l_645[2]) <= p_20))) || l_661))
+                                                                                                                                                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~
+rand020576.c:441:122: warning: expression result unused [-Wunused-value]
+                    if (((p_19 > (g_472 & (func_41(l_628[1][5][1], ((l_643 > p_19) ^ (safe_mod_func_uint16_t_u_u((l_645[2] , (l_645[6] >= (safe_rshift_func_uint8_t_u_s(((((safe_rshift_func_int8_t_s_u(p_19, 7)) > (((((func_46(func_28(((safe_rshift_func_int16_t_s_u(g_77[5].f2.f7, p_20)) , l_547.f2.f3), p_20, l_626[0][0][5], l_643, g_77[0]), l_660, p_20) <= g_77[5].f3) && 255UL) && g_602.f2) | g_518) , g_576)) != 0x475BL) && p_19), g_602.f5)))), g_576))), l_645[2]) <= p_20))) || l_661))
+                                                                                                                  ~~~~~ ~^
+rand020576.c:364:17: warning: unused variable 'i' [-Wunused-variable]
+            int i, j, k;
+                ^
+rand020576.c:364:20: warning: unused variable 'j' [-Wunused-variable]
+            int i, j, k;
+                   ^
+rand020576.c:364:23: warning: unused variable 'k' [-Wunused-variable]
+            int i, j, k;
+                      ^
+rand020576.c:475:277: warning: expression result unused [-Wunused-value]
+            g_602.f2 = (0xACAF64DDL & (g_77[5].f5 && ((safe_mod_func_uint16_t_u_u(((safe_mod_func_uint8_t_u_u((safe_mod_func_int8_t_s_s(func_34(g_602, (safe_mod_func_int16_t_s_s(l_40[1][1].f5, g_77[5].f2.f7)), p_20, ((safe_lshift_func_uint16_t_u_s(((safe_sub_func_int8_t_s_s((l_526 , (g_77[5].f2.f1 ^ l_596[7][1][6].f6)), g_77[5].f5)) , l_691), 3)) > p_19), l_627), p_19)), 0x22L)) ^ (-9L)), g_460)) || 0x03L)));
+                                                                                                                                                                                                                                                                                    ^~~~~
+rand020576.c:475:401: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+            g_602.f2 = (0xACAF64DDL & (g_77[5].f5 && ((safe_mod_func_uint16_t_u_u(((safe_mod_func_uint8_t_u_u((safe_mod_func_int8_t_s_s(func_34(g_602, (safe_mod_func_int16_t_s_s(l_40[1][1].f5, g_77[5].f2.f7)), p_20, ((safe_lshift_func_uint16_t_u_s(((safe_sub_func_int8_t_s_s((l_526 , (g_77[5].f2.f1 ^ l_596[7][1][6].f6)), g_77[5].f5)) , l_691), 3)) > p_19), l_627), p_19)), 0x22L)) ^ (-9L)), g_460)) || 0x03L)));
+                                                                                                                                                                                                                                                                                                                                                                                                                ^  ~~~~~
+rand020576.c:475:401: note: use '|' for a bitwise operation
+            g_602.f2 = (0xACAF64DDL & (g_77[5].f5 && ((safe_mod_func_uint16_t_u_u(((safe_mod_func_uint8_t_u_u((safe_mod_func_int8_t_s_s(func_34(g_602, (safe_mod_func_int16_t_s_s(l_40[1][1].f5, g_77[5].f2.f7)), p_20, ((safe_lshift_func_uint16_t_u_s(((safe_sub_func_int8_t_s_s((l_526 , (g_77[5].f2.f1 ^ l_596[7][1][6].f6)), g_77[5].f5)) , l_691), 3)) > p_19), l_627), p_19)), 0x22L)) ^ (-9L)), g_460)) || 0x03L)));
+                                                                                                                                                                                                                                                                                                                                                                                                                ^~
+                                                                                                                                                                                                                                                                                                                                                                                                                |
+rand020576.c:476:36: warning: equality comparison with extraneous parentheses [-Wparentheses-equality]
+            for (l_676 = 0; (l_676 == 42); l_676 = safe_add_func_uint8_t_u_u(l_676, 5))
+                             ~~~~~~^~~~~
+rand020576.c:476:36: note: remove extraneous parentheses around the comparison to silence this warning
+            for (l_676 = 0; (l_676 == 42); l_676 = safe_add_func_uint8_t_u_u(l_676, 5))
+                            ~      ^    ~
+rand020576.c:476:36: note: use '=' to turn this equality comparison into an assignment
+            for (l_676 = 0; (l_676 == 42); l_676 = safe_add_func_uint8_t_u_u(l_676, 5))
+                                   ^~
+                                   =
+rand020576.c:485:489: warning: expression result unused [-Wunused-value]
+                    if ((func_34(l_696, (safe_sub_func_uint16_t_u_u((((((((safe_mod_func_uint16_t_u_u(func_41(g_602.f6, (safe_unary_minus_func_int8_t_s((safe_lshift_func_uint16_t_u_s((safe_lshift_func_int16_t_s_s(((safe_lshift_func_int16_t_s_s(l_708[1][0], func_46(g_602, func_46(func_28(l_709[1], p_19, l_596[7][1][6].f0, (safe_mod_func_uint32_t_u_u((p_19 >= (p_19 < l_40[1][1].f7)), 1L)), l_712[0][3][1]), g_518, p_19), l_696.f7))) ^ p_19), 14)), 10)))), l_526.f1), l_696.f2)) < g_529) < p_20) , 0x23ADL) == l_40[1][1].f0) , l_713) && p_20), l_709[1])), l_696.f0, p_20, p_19) , 1L))
+                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~
+rand020576.c:485:508: warning: expression result unused [-Wunused-value]
+                    if ((func_34(l_696, (safe_sub_func_uint16_t_u_u((((((((safe_mod_func_uint16_t_u_u(func_41(g_602.f6, (safe_unary_minus_func_int8_t_s((safe_lshift_func_uint16_t_u_s((safe_lshift_func_int16_t_s_s(((safe_lshift_func_int16_t_s_s(l_708[1][0], func_46(g_602, func_46(func_28(l_709[1], p_19, l_596[7][1][6].f0, (safe_mod_func_uint32_t_u_u((p_19 >= (p_19 < l_40[1][1].f7)), 1L)), l_712[0][3][1]), g_518, p_19), l_696.f7))) ^ p_19), 14)), 10)))), l_526.f1), l_696.f2)) < g_529) < p_20) , 0x23ADL) == l_40[1][1].f0) , l_713) && p_20), l_709[1])), l_696.f0, p_20, p_19) , 1L))
+                                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~
+rand020576.c:495:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:495:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:495:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:484:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j, k;
+                        ^
+rand020576.c:484:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j, k;
+                           ^
+rand020576.c:484:31: warning: unused variable 'k' [-Wunused-variable]
+                    int i, j, k;
+                              ^
+rand020576.c:500:228: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f7 = (safe_rshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u((func_46(func_50(func_34(l_40[1][1], func_41(l_708[3][0], (safe_sub_func_uint32_t_u_u(l_526.f1, (g_576 && (g_77[5].f2.f0 ^ (+((g_529 > (g_426 , ((l_713 == p_20) ^ 0x662CL))) , l_728)))))), l_696.f2), g_602.f4, l_696.f7, p_19), p_20, l_729[0], l_730), g_518, g_472) , p_19), 9L)), g_602.f3));
+                                                                                                                                                                                                                                   ^~~~~
+rand020576.c:500:225: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f7 = (safe_rshift_func_uint16_t_u_s((safe_div_func_uint32_t_u_u((func_46(func_50(func_34(l_40[1][1], func_41(l_708[3][0], (safe_sub_func_uint32_t_u_u(l_526.f1, (g_576 && (g_77[5].f2.f0 ^ (+((g_529 > (g_426 , ((l_713 == p_20) ^ 0x662CL))) , l_728)))))), l_696.f2), g_602.f4, l_696.f7, p_19), p_20, l_729[0], l_730), g_518, g_472) , p_19), 9L)), g_602.f3));
+                                                                                                                                                                                                                          ~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:354:13: warning: unused variable 'i' [-Wunused-variable]
+        int i, j;
+            ^
+rand020576.c:354:16: warning: unused variable 'j' [-Wunused-variable]
+        int i, j;
+               ^
+rand020576.c:333:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j, k;
+           ^
+rand020576.c:333:15: warning: unused variable 'k' [-Wunused-variable]
+    int i, j, k;
+              ^
+rand020576.c:519:9: warning: unused variable 'i' [-Wunused-variable]
+    int i, j;
+        ^
+rand020576.c:519:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j;
+           ^
+rand020576.c:533:51: warning: expression result unused [-Wunused-value]
+    p_35.f7 ^= (safe_div_func_int8_t_s_s((g_77[5].f0 , 4L), g_77[5].f2.f3));
+                                          ~~~~~~~ ^~
+rand020576.c:565:149: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                p_43 = (safe_lshift_func_uint8_t_u_s((func_46(l_382, p_42, ((0x95L == ((func_50((l_383 <= 0x2BL), (+(func_46((func_46(l_384, ((p_42 && 65533UL) & l_384.f4), g_77[5].f6) , l_384), g_77[5].f6, g_77[5].f5) & l_384.f3)), l_382.f3, l_385) , l_385) , g_147)) == p_44)) | g_9), l_383));
+                                                                                                                                                    ^  ~~~~~~~
+rand020576.c:565:149: note: use '&' for a bitwise operation
+                p_43 = (safe_lshift_func_uint8_t_u_s((func_46(l_382, p_42, ((0x95L == ((func_50((l_383 <= 0x2BL), (+(func_46((func_46(l_384, ((p_42 && 65533UL) & l_384.f4), g_77[5].f6) , l_384), g_77[5].f6, g_77[5].f5) & l_384.f3)), l_382.f3, l_385) , l_385) , g_147)) == p_44)) | g_9), l_383));
+                                                                                                                                                    ^~
+                                                                                                                                                    &
+rand020576.c:565:149: note: remove constant to silence this warning
+                p_43 = (safe_lshift_func_uint8_t_u_s((func_46(l_382, p_42, ((0x95L == ((func_50((l_383 <= 0x2BL), (+(func_46((func_46(l_384, ((p_42 && 65533UL) & l_384.f4), g_77[5].f6) , l_384), g_77[5].f6, g_77[5].f5) & l_384.f3)), l_382.f3, l_385) , l_385) , g_147)) == p_44)) | g_9), l_383));
+                                                                                                                                                   ~^~~~~~~~~~
+rand020576.c:565:253: warning: expression result unused [-Wunused-value]
+                p_43 = (safe_lshift_func_uint8_t_u_s((func_46(l_382, p_42, ((0x95L == ((func_50((l_383 <= 0x2BL), (+(func_46((func_46(l_384, ((p_42 && 65533UL) & l_384.f4), g_77[5].f6) , l_384), g_77[5].f6, g_77[5].f5) & l_384.f3)), l_382.f3, l_385) , l_385) , g_147)) == p_44)) | g_9), l_383));
+                                                                                                                                                                                                                                                            ^~~~~
+rand020576.c:578:133: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 |= (+((p_44 < (safe_sub_func_uint32_t_u_u((safe_div_func_int32_t_s_s(((l_392 && (l_385.f5 >= (l_383 , (l_393 & 0L)))) ^ (((safe_div_func_uint32_t_u_u((g_77[5].f1 , ((l_382.f6 == ((g_77[5].f6 , 0xA7L) && l_392)) == p_42)), g_77[5].f2.f1)) <= l_383) ^ 0xE61EL)), l_393)), l_385.f4))) < g_77[5].f2.f0));
+                                                                                                                                    ^~~~~
+rand020576.c:578:227: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 |= (+((p_44 < (safe_sub_func_uint32_t_u_u((safe_div_func_int32_t_s_s(((l_392 && (l_385.f5 >= (l_383 , (l_393 & 0L)))) ^ (((safe_div_func_uint32_t_u_u((g_77[5].f1 , ((l_382.f6 == ((g_77[5].f6 , 0xA7L) && l_392)) == p_42)), g_77[5].f2.f1)) <= l_383) ^ 0xE61EL)), l_393)), l_385.f4))) < g_77[5].f2.f0));
+                                                                                                                                                                                                                          ~~~~~~~ ^~
+rand020576.c:578:198: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 |= (+((p_44 < (safe_sub_func_uint32_t_u_u((safe_div_func_int32_t_s_s(((l_392 && (l_385.f5 >= (l_383 , (l_393 & 0L)))) ^ (((safe_div_func_uint32_t_u_u((g_77[5].f1 , ((l_382.f6 == ((g_77[5].f6 , 0xA7L) && l_392)) == p_42)), g_77[5].f2.f1)) <= l_383) ^ 0xE61EL)), l_393)), l_385.f4))) < g_77[5].f2.f0));
+                                                                                                                                                                                             ~~~~~~~ ^~
+rand020576.c:581:153: warning: expression result unused [-Wunused-value]
+                        p_43 = (safe_mod_func_int32_t_s_s(((((g_77[5].f2.f2 && (250UL <= (l_398 , (!((safe_rshift_func_int16_t_s_s(l_398.f2.f6, 8)) < ((l_401 , p_44) , ((((safe_lshift_func_uint16_t_u_s(g_77[5].f4, 3)) && l_393) & (safe_rshift_func_uint8_t_u_s(((safe_div_func_int16_t_s_s(g_77[5].f4, l_393)) == p_44), 7))) == l_408))))))) , 0x0BL) == l_385.f2) <= g_77[5].f4), 0xC2E2D8CBL));
+                                                                                                                                                        ^~~~~
+rand020576.c:581:161: warning: expression result unused [-Wunused-value]
+                        p_43 = (safe_mod_func_int32_t_s_s(((((g_77[5].f2.f2 && (250UL <= (l_398 , (!((safe_rshift_func_int16_t_s_s(l_398.f2.f6, 8)) < ((l_401 , p_44) , ((((safe_lshift_func_uint16_t_u_s(g_77[5].f4, 3)) && l_393) & (safe_rshift_func_uint8_t_u_s(((safe_div_func_int16_t_s_s(g_77[5].f4, l_393)) == p_44), 7))) == l_408))))))) , 0x0BL) == l_385.f2) <= g_77[5].f4), 0xC2E2D8CBL));
+                                                                                                                                                                ^~~~
+rand020576.c:581:91: warning: expression result unused [-Wunused-value]
+                        p_43 = (safe_mod_func_int32_t_s_s(((((g_77[5].f2.f2 && (250UL <= (l_398 , (!((safe_rshift_func_int16_t_s_s(l_398.f2.f6, 8)) < ((l_401 , p_44) , ((((safe_lshift_func_uint16_t_u_s(g_77[5].f4, 3)) && l_393) & (safe_rshift_func_uint8_t_u_s(((safe_div_func_int16_t_s_s(g_77[5].f4, l_393)) == p_44), 7))) == l_408))))))) , 0x0BL) == l_385.f2) <= g_77[5].f4), 0xC2E2D8CBL));
+                                                                                          ^~~~~
+rand020576.c:581:77: warning: expression result unused [-Wunused-value]
+                        p_43 = (safe_mod_func_int32_t_s_s(((((g_77[5].f2.f2 && (250UL <= (l_398 , (!((safe_rshift_func_int16_t_s_s(l_398.f2.f6, 8)) < ((l_401 , p_44) , ((((safe_lshift_func_uint16_t_u_s(g_77[5].f4, 3)) && l_393) & (safe_rshift_func_uint8_t_u_s(((safe_div_func_int16_t_s_s(g_77[5].f4, l_393)) == p_44), 7))) == l_408))))))) , 0x0BL) == l_385.f2) <= g_77[5].f4), 0xC2E2D8CBL));
+                                                              ~~~~~~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:599:52: warning: expression result unused [-Wunused-value]
+                        l_398.f2.f0 &= (g_77[5].f2.f6 , ((safe_mod_func_int8_t_s_s(p_43, g_9)) && l_409));
+                                        ~~~~~~~~~~ ^~
+rand020576.c:607:33: warning: expression result unused [-Wunused-value]
+                    l_445 |= (((~(safe_sub_func_int8_t_s_s(l_433[5][7][0], (1UL ^ (safe_lshift_func_int16_t_s_u(g_77[5].f2.f0, 4)))))) , g_77[5].f3) && (safe_mod_func_int16_t_s_s(((safe_sub_func_int16_t_s_s((!(!l_433[5][1][1])), g_77[5].f2.f1)) > (((+(safe_mod_func_uint32_t_u_u((l_433[5][7][0] ^ (l_442 , (safe_sub_func_uint8_t_u_u(g_77[5].f1, 1L)))), l_433[1][7][2]))) , g_9) & 0xE7L)), 65535UL)));
+                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:607:299: warning: expression result unused [-Wunused-value]
+                    l_445 |= (((~(safe_sub_func_int8_t_s_s(l_433[5][7][0], (1UL ^ (safe_lshift_func_int16_t_s_u(g_77[5].f2.f0, 4)))))) , g_77[5].f3) && (safe_mod_func_int16_t_s_s(((safe_sub_func_int16_t_s_s((!(!l_433[5][1][1])), g_77[5].f2.f1)) > (((+(safe_mod_func_uint32_t_u_u((l_433[5][7][0] ^ (l_442 , (safe_sub_func_uint8_t_u_u(g_77[5].f1, 1L)))), l_433[1][7][2]))) , g_9) & 0xE7L)), 65535UL)));
+                                                                                                                                                                                                                                                                                                          ^~~~~
+rand020576.c:607:251: warning: expression result unused [-Wunused-value]
+                    l_445 |= (((~(safe_sub_func_int8_t_s_s(l_433[5][7][0], (1UL ^ (safe_lshift_func_int16_t_s_u(g_77[5].f2.f0, 4)))))) , g_77[5].f3) && (safe_mod_func_int16_t_s_s(((safe_sub_func_int16_t_s_s((!(!l_433[5][1][1])), g_77[5].f2.f1)) > (((+(safe_mod_func_uint32_t_u_u((l_433[5][7][0] ^ (l_442 , (safe_sub_func_uint8_t_u_u(g_77[5].f1, 1L)))), l_433[1][7][2]))) , g_9) & 0xE7L)), 65535UL)));
+                                                                                                                                                                                                                                                          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:606:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j, k;
+                        ^
+rand020576.c:606:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j, k;
+                           ^
+rand020576.c:606:31: warning: unused variable 'k' [-Wunused-variable]
+                    int i, j, k;
+                              ^
+rand020576.c:616:239: warning: expression result unused [-Wunused-value]
+                        g_460 = (safe_lshift_func_uint8_t_u_u(((safe_div_func_int16_t_s_s((safe_add_func_uint16_t_u_u(((g_77[5].f2.f3 == g_77[5].f2.f0) && (safe_mod_func_uint32_t_u_u(g_77[5].f3, (safe_mod_func_uint32_t_u_u(((g_77[l_385.f6] , (safe_rshift_func_int16_t_s_u((func_46(l_428.f2, func_46(l_401.f2, l_382.f4, p_44), p_42) , g_77[5].f5), 0))) & 1L), g_77[5].f6))))), g_77[5].f6)), 2UL)) != 0x632E7667L), 6));
+                                                                                                                                                                                                                                 ~~~~ ~~~~~~~~^
+rand020576.c:617:185: warning: expression result unused [-Wunused-value]
+                        p_43 = func_46(func_50((safe_div_func_int32_t_s_s((g_77[5].f2.f1 || (safe_add_func_int32_t_s_s((p_44 > p_43), func_46(((l_465 <= g_77[5].f2.f7) , (g_77[l_385.f6] , l_398.f2)), l_382.f3, (g_77[l_385.f6] , g_77[5].f4))))), 4294967293UL)), l_385.f6, g_460, l_466), p_42, l_398.f2.f3);
+                                                                                                                                                                           ~~~~ ~~~~~~~~^
+rand020576.c:617:151: warning: expression result unused [-Wunused-value]
+                        p_43 = func_46(func_50((safe_div_func_int32_t_s_s((g_77[5].f2.f1 || (safe_add_func_int32_t_s_s((p_44 > p_43), func_46(((l_465 <= g_77[5].f2.f7) , (g_77[l_385.f6] , l_398.f2)), l_382.f3, (g_77[l_385.f6] , g_77[5].f4))))), 4294967293UL)), l_385.f6, g_460, l_466), p_42, l_398.f2.f3);
+                                                                                                                                                ~~~~~ ^  ~~~~~~~~~~~~~
+rand020576.c:617:225: warning: expression result unused [-Wunused-value]
+                        p_43 = func_46(func_50((safe_div_func_int32_t_s_s((g_77[5].f2.f1 || (safe_add_func_int32_t_s_s((p_44 > p_43), func_46(((l_465 <= g_77[5].f2.f7) , (g_77[l_385.f6] , l_398.f2)), l_382.f3, (g_77[l_385.f6] , g_77[5].f4))))), 4294967293UL)), l_385.f6, g_460, l_466), p_42, l_398.f2.f3);
+                                                                                                                                                                                                                   ~~~~ ~~~~~~~~^
+rand020576.c:615:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i;
+                            ^
+rand020576.c:630:177: warning: expression result unused [-Wunused-value]
+                if (func_46(func_50((safe_add_func_int16_t_s_s((l_471 < g_472), (!l_398.f2.f7))), (((safe_div_func_int32_t_s_s(g_77[5].f2.f3, l_398.f2.f0)) ^ (0x06L & (g_77[5].f5 , g_460))) ^ (((safe_sub_func_int8_t_s_s(p_44, l_385.f1)) && g_77[5].f0) , g_77[5].f2.f0)), p_44, l_398.f2), l_427[5][0][0].f5, g_9))
+                                                                                                                                                                        ~~~~~~~ ^~
+rand020576.c:634:151: warning: expression result unused [-Wunused-value]
+                    l_494[1] |= ((safe_lshift_func_uint16_t_u_u(((l_471 < l_479) , (safe_add_func_int16_t_s_s((safe_lshift_func_int8_t_s_s((l_484 & ((~0L) , p_44)), ((4294967295UL != (safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(func_46(l_489, ((safe_div_func_int8_t_s_s((safe_div_func_uint8_t_u_u(g_77[5].f0, (l_382.f1 && 0x69L))), 3L)) || 0UL), l_471), p_42)), l_471))) >= 0x67E4L))), 1UL))), 4)) | l_401.f5);
+                                                                                                                                                      ^~~
+rand020576.c:634:329: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    l_494[1] |= ((safe_lshift_func_uint16_t_u_u(((l_471 < l_479) , (safe_add_func_int16_t_s_s((safe_lshift_func_int8_t_s_s((l_484 & ((~0L) , p_44)), ((4294967295UL != (safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(func_46(l_489, ((safe_div_func_int8_t_s_s((safe_div_func_uint8_t_u_u(g_77[5].f0, (l_382.f1 && 0x69L))), 3L)) || 0UL), l_471), p_42)), l_471))) >= 0x67E4L))), 1UL))), 4)) | l_401.f5);
+                                                                                                                                                                                                                                                                                                                                        ^  ~~~~~
+rand020576.c:634:329: note: use '&' for a bitwise operation
+                    l_494[1] |= ((safe_lshift_func_uint16_t_u_u(((l_471 < l_479) , (safe_add_func_int16_t_s_s((safe_lshift_func_int8_t_s_s((l_484 & ((~0L) , p_44)), ((4294967295UL != (safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(func_46(l_489, ((safe_div_func_int8_t_s_s((safe_div_func_uint8_t_u_u(g_77[5].f0, (l_382.f1 && 0x69L))), 3L)) || 0UL), l_471), p_42)), l_471))) >= 0x67E4L))), 1UL))), 4)) | l_401.f5);
+                                                                                                                                                                                                                                                                                                                                        ^~
+                                                                                                                                                                                                                                                                                                                                        &
+rand020576.c:634:329: note: remove constant to silence this warning
+                    l_494[1] |= ((safe_lshift_func_uint16_t_u_u(((l_471 < l_479) , (safe_add_func_int16_t_s_s((safe_lshift_func_int8_t_s_s((l_484 & ((~0L) , p_44)), ((4294967295UL != (safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(func_46(l_489, ((safe_div_func_int8_t_s_s((safe_div_func_uint8_t_u_u(g_77[5].f0, (l_382.f1 && 0x69L))), 3L)) || 0UL), l_471), p_42)), l_471))) >= 0x67E4L))), 1UL))), 4)) | l_401.f5);
+                                                                                                                                                                                                                                                                                                                                       ~^~~~~~~~
+rand020576.c:634:73: warning: expression result unused [-Wunused-value]
+                    l_494[1] |= ((safe_lshift_func_uint16_t_u_u(((l_471 < l_479) , (safe_add_func_int16_t_s_s((safe_lshift_func_int8_t_s_s((l_484 & ((~0L) , p_44)), ((4294967295UL != (safe_div_func_uint16_t_u_u((safe_mod_func_int8_t_s_s(func_46(l_489, ((safe_div_func_int8_t_s_s((safe_div_func_uint8_t_u_u(g_77[5].f0, (l_382.f1 && 0x69L))), 3L)) || 0UL), l_471), p_42)), l_471))) >= 0x67E4L))), 1UL))), 4)) | l_401.f5);
+                                                                  ~~~~~ ^ ~~~~~
+rand020576.c:650:78: warning: expression result unused [-Wunused-value]
+                        l_385.f7 ^= (safe_lshift_func_int16_t_s_s(((l_494[1] == (safe_div_func_uint32_t_u_u(g_77[5].f2.f1, l_499))) , (safe_sub_func_uint16_t_u_u(0x4818L, (safe_mod_func_int8_t_s_s((p_43 | 0xD9L), (-2L)))))), l_494[1]));
+                                                                    ~~~~~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:651:83: warning: expression result unused [-Wunused-value]
+                        l_510 = (func_46(((g_9 > ((safe_lshift_func_uint16_t_u_u((p_42 , (safe_lshift_func_int8_t_s_s(p_44, (((safe_rshift_func_int8_t_s_u(p_42, 4)) >= ((g_472 == l_494[(l_398.f2.f5 + 1)]) && l_494[3])) <= (0UL < l_398.f1))))), g_77[5].f2.f7)) > p_43)) , l_510), l_494[1], g_77[5].f1) , g_77[5].f2);
+                                                                                  ^~~~
+rand020576.c:651:48: warning: expression result unused [-Wunused-value]
+                        l_510 = (func_46(((g_9 > ((safe_lshift_func_uint16_t_u_u((p_42 , (safe_lshift_func_int8_t_s_s(p_44, (((safe_rshift_func_int8_t_s_u(p_42, 4)) >= ((g_472 == l_494[(l_398.f2.f5 + 1)]) && l_494[3])) <= (0UL < l_398.f1))))), g_77[5].f2.f7)) > p_43)) , l_510), l_494[1], g_77[5].f1) , g_77[5].f2);
+                                           ~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:647:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i;
+                            ^
+rand020576.c:556:13: warning: unused variable 'i' [-Wunused-variable]
+        int i, j, k;
+            ^
+rand020576.c:556:16: warning: unused variable 'j' [-Wunused-variable]
+        int i, j, k;
+               ^
+rand020576.c:556:19: warning: unused variable 'k' [-Wunused-variable]
+        int i, j, k;
+                  ^
+rand020576.c:686:216: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                                                                       ^  ~~~~~~~~~~~~
+rand020576.c:686:216: note: use '|' for a bitwise operation
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                                                                       ^~
+                                                                                                                                                                                                                       |
+rand020576.c:686:216: warning: expression result unused [-Wunused-value]
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                                                                 ~~~~~ ^  ~~~~~~~~~~~~
+rand020576.c:686:247: warning: expression result unused [-Wunused-value]
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~
+rand020576.c:686:187: warning: expression result unused [-Wunused-value]
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                                    ~~~~~ ^ ~~~~~~~~~~~~~
+rand020576.c:686:174: warning: expression result unused [-Wunused-value]
+    l_194[1][5] = ((safe_rshift_func_int16_t_s_s((~((l_191[1] & (g_77[5].f2.f3 < (~(safe_lshift_func_uint8_t_u_u(0UL, 7))))) && (0xD2039C2AL != p_47.f7))), 12)) == (g_77[5].f2 , ((0x3AL < g_77[5].f2.f0) , (((((-1L) || 4294967291UL) , g_77[5].f6) < 1UL) , g_77[5].f2.f6))));
+                                                                                                                                                                     ~~~~~~~ ^~
+rand020576.c:687:197: warning: expression result unused [-Wunused-value]
+    if ((safe_lshift_func_int16_t_s_u(g_77[5].f3, (p_48 , (safe_div_func_int16_t_s_s(((safe_mod_func_uint16_t_u_u((((g_77[5].f2.f2 == (safe_add_func_int8_t_s_s(l_194[1][5], p_47.f0))) > l_203) & (l_204 , (safe_sub_func_int8_t_s_s((safe_add_func_uint8_t_u_u(p_49, ((safe_unary_minus_func_uint32_t_u((safe_rshift_func_int8_t_s_s((((l_191[1] >= 0x8C37F4F7L) & 255UL) <= 0x67L), l_204)))) , l_212))), p_47.f3)))), g_77[5].f2.f5)) && p_47.f6), g_77[5].f5))))))
+                                                                                                                                                                                                    ^~~~~
+rand020576.c:687:52: warning: expression result unused [-Wunused-value]
+    if ((safe_lshift_func_int16_t_s_u(g_77[5].f3, (p_48 , (safe_div_func_int16_t_s_s(((safe_mod_func_uint16_t_u_u((((g_77[5].f2.f2 == (safe_add_func_int8_t_s_s(l_194[1][5], p_47.f0))) > l_203) & (l_204 , (safe_sub_func_int8_t_s_s((safe_add_func_uint8_t_u_u(p_49, ((safe_unary_minus_func_uint32_t_u((safe_rshift_func_int8_t_s_s((((l_191[1] >= 0x8C37F4F7L) & 255UL) <= 0x67L), l_204)))) , l_212))), p_47.f3)))), g_77[5].f2.f5)) && p_47.f6), g_77[5].f5))))))
+                                                   ^~~~
+rand020576.c:710:98: warning: expression result unused [-Wunused-value]
+            l_194[1][5] ^= (p_47.f7 & (((l_215 | (g_77[5].f0 == ((((g_77[5].f2.f1 <= (!(l_215 ^ (l_216 , ((safe_sub_func_int8_t_s_s((safe_mod_func_uint8_t_u_u(((safe_rshift_func_uint8_t_u_u(l_191[6], (p_49 >= g_77[5].f2.f3))) != l_216.f5), p_47.f7)), l_215)) >= l_215))))) > 0x11L) , p_49) == 1L))) | 0x6BD1L) && (-1L)));
+                                                                                                 ^~~~~
+rand020576.c:710:274: warning: expression result unused [-Wunused-value]
+            l_194[1][5] ^= (p_47.f7 & (((l_215 | (g_77[5].f0 == ((((g_77[5].f2.f1 <= (!(l_215 ^ (l_216 , ((safe_sub_func_int8_t_s_s((safe_mod_func_uint8_t_u_u(((safe_rshift_func_uint8_t_u_u(l_191[6], (p_49 >= g_77[5].f2.f3))) != l_216.f5), p_47.f7)), l_215)) >= l_215))))) > 0x11L) , p_49) == 1L))) | 0x6BD1L) && (-1L)));
+                                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~
+rand020576.c:710:311: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+            l_194[1][5] ^= (p_47.f7 & (((l_215 | (g_77[5].f0 == ((((g_77[5].f2.f1 <= (!(l_215 ^ (l_216 , ((safe_sub_func_int8_t_s_s((safe_mod_func_uint8_t_u_u(((safe_rshift_func_uint8_t_u_u(l_191[6], (p_49 >= g_77[5].f2.f3))) != l_216.f5), p_47.f7)), l_215)) >= l_215))))) > 0x11L) , p_49) == 1L))) | 0x6BD1L) && (-1L)));
+                                                                                                                                                                                                                                                                                                                      ^  ~~~~~
+rand020576.c:710:311: note: use '&' for a bitwise operation
+            l_194[1][5] ^= (p_47.f7 & (((l_215 | (g_77[5].f0 == ((((g_77[5].f2.f1 <= (!(l_215 ^ (l_216 , ((safe_sub_func_int8_t_s_s((safe_mod_func_uint8_t_u_u(((safe_rshift_func_uint8_t_u_u(l_191[6], (p_49 >= g_77[5].f2.f3))) != l_216.f5), p_47.f7)), l_215)) >= l_215))))) > 0x11L) , p_49) == 1L))) | 0x6BD1L) && (-1L)));
+                                                                                                                                                                                                                                                                                                                      ^~
+                                                                                                                                                                                                                                                                                                                      &
+rand020576.c:710:311: note: remove constant to silence this warning
+            l_194[1][5] ^= (p_47.f7 & (((l_215 | (g_77[5].f0 == ((((g_77[5].f2.f1 <= (!(l_215 ^ (l_216 , ((safe_sub_func_int8_t_s_s((safe_mod_func_uint8_t_u_u(((safe_rshift_func_uint8_t_u_u(l_191[6], (p_49 >= g_77[5].f2.f3))) != l_216.f5), p_47.f7)), l_215)) >= l_215))))) > 0x11L) , p_49) == 1L))) | 0x6BD1L) && (-1L)));
+                                                                                                                                                                                                                                                                                                                     ~^~~~~~~~
+rand020576.c:716:46: warning: equality comparison with extraneous parentheses [-Wparentheses-equality]
+                for (l_216.f1 = 5; (l_216.f1 == (-13)); l_216.f1--)
+                                    ~~~~~~~~~^~~~~~~~
+rand020576.c:716:46: note: remove extraneous parentheses around the comparison to silence this warning
+                for (l_216.f1 = 5; (l_216.f1 == (-13)); l_216.f1--)
+                                   ~         ^       ~
+rand020576.c:716:46: note: use '=' to turn this equality comparison into an assignment
+                for (l_216.f1 = 5; (l_216.f1 == (-13)); l_216.f1--)
+                                             ^~
+                                             =
+rand020576.c:720:289: warning: expression result unused [-Wunused-value]
+                    l_239 |= (safe_div_func_int32_t_s_s(0xB8E47DBEL, (((p_49 < (l_227 , (!(safe_sub_func_uint32_t_u_u(((safe_add_func_int16_t_s_s(g_77[5].f2.f6, (safe_rshift_func_uint8_t_u_s(p_47.f7, (g_77[5].f2.f5 , (((safe_rshift_func_uint16_t_u_s((((safe_sub_func_int8_t_s_s(((3L >= ((l_238 , p_47.f0) <= 0x989D66A2L)) >= p_47.f0), (-4L))) == g_77[5].f2.f1) & p_47.f3), 7)) != 248UL) , 0x84L)))))) , 0x6F82FF70L), 1L))))) ^ p_47.f7) || l_216.f2)));
+                                                                                                                                                                                                                                                                                                ^~~~~
+rand020576.c:720:378: warning: expression result unused [-Wunused-value]
+                    l_239 |= (safe_div_func_int32_t_s_s(0xB8E47DBEL, (((p_49 < (l_227 , (!(safe_sub_func_uint32_t_u_u(((safe_add_func_int16_t_s_s(g_77[5].f2.f6, (safe_rshift_func_uint8_t_u_s(p_47.f7, (g_77[5].f2.f5 , (((safe_rshift_func_uint16_t_u_s((((safe_sub_func_int8_t_s_s(((3L >= ((l_238 , p_47.f0) <= 0x989D66A2L)) >= p_47.f0), (-4L))) == g_77[5].f2.f1) & p_47.f3), 7)) != 248UL) , 0x84L)))))) , 0x6F82FF70L), 1L))))) ^ p_47.f7) || l_216.f2)));
+                                                                                                                                                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~
+rand020576.c:720:213: warning: expression result unused [-Wunused-value]
+                    l_239 |= (safe_div_func_int32_t_s_s(0xB8E47DBEL, (((p_49 < (l_227 , (!(safe_sub_func_uint32_t_u_u(((safe_add_func_int16_t_s_s(g_77[5].f2.f6, (safe_rshift_func_uint8_t_u_s(p_47.f7, (g_77[5].f2.f5 , (((safe_rshift_func_uint16_t_u_s((((safe_sub_func_int8_t_s_s(((3L >= ((l_238 , p_47.f0) <= 0x989D66A2L)) >= p_47.f0), (-4L))) == g_77[5].f2.f1) & p_47.f3), 7)) != 248UL) , 0x84L)))))) , 0x6F82FF70L), 1L))))) ^ p_47.f7) || l_216.f2)));
+                                                                                                                                                                                                         ~~~~~~~~~~ ^~
+rand020576.c:720:81: warning: expression result unused [-Wunused-value]
+                    l_239 |= (safe_div_func_int32_t_s_s(0xB8E47DBEL, (((p_49 < (l_227 , (!(safe_sub_func_uint32_t_u_u(((safe_add_func_int16_t_s_s(g_77[5].f2.f6, (safe_rshift_func_uint8_t_u_s(p_47.f7, (g_77[5].f2.f5 , (((safe_rshift_func_uint16_t_u_s((((safe_sub_func_int8_t_s_s(((3L >= ((l_238 , p_47.f0) <= 0x989D66A2L)) >= p_47.f0), (-4L))) == g_77[5].f2.f1) & p_47.f3), 7)) != 248UL) , 0x84L)))))) , 0x6F82FF70L), 1L))))) ^ p_47.f7) || l_216.f2)));
+                                                                                ^~~~~
+rand020576.c:722:91: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 = ((safe_sub_func_int16_t_s_s((safe_add_func_int16_t_s_s((((l_238 , l_244) , g_77[5].f3) , p_47.f7), (((l_238 > (safe_rshift_func_int16_t_s_s(p_47.f3, g_77[5].f1))) != p_47.f7) , (((((l_216.f1 != g_77[5].f2.f3) , g_77[5].f2.f1) >= p_47.f5) | g_77[5].f2.f5) < l_247)))), g_77[5].f2.f1)) ^ l_216.f2);
+                                                                                          ^~~~~
+rand020576.c:722:99: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 = ((safe_sub_func_int16_t_s_s((safe_add_func_int16_t_s_s((((l_238 , l_244) , g_77[5].f3) , p_47.f7), (((l_238 > (safe_rshift_func_int16_t_s_s(p_47.f3, g_77[5].f1))) != p_47.f7) , (((((l_216.f1 != g_77[5].f2.f3) , g_77[5].f2.f1) >= p_47.f5) | g_77[5].f2.f5) < l_247)))), g_77[5].f2.f1)) ^ l_216.f2);
+                                                                                                  ^~~~~
+rand020576.c:722:116: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 = ((safe_sub_func_int16_t_s_s((safe_add_func_int16_t_s_s((((l_238 , l_244) , g_77[5].f3) , p_47.f7), (((l_238 > (safe_rshift_func_int16_t_s_s(p_47.f3, g_77[5].f1))) != p_47.f7) , (((((l_216.f1 != g_77[5].f2.f3) , g_77[5].f2.f1) >= p_47.f5) | g_77[5].f2.f5) < l_247)))), g_77[5].f2.f1)) ^ l_216.f2);
+                                                                                                           ~~~~~~~ ^~
+rand020576.c:722:224: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 = ((safe_sub_func_int16_t_s_s((safe_add_func_int16_t_s_s((((l_238 , l_244) , g_77[5].f3) , p_47.f7), (((l_238 > (safe_rshift_func_int16_t_s_s(p_47.f3, g_77[5].f1))) != p_47.f7) , (((((l_216.f1 != g_77[5].f2.f3) , g_77[5].f2.f1) >= p_47.f5) | g_77[5].f2.f5) < l_247)))), g_77[5].f2.f1)) ^ l_216.f2);
+                                                                                                                                                                                                                      ~~~~~~~~ ^  ~~~~~~~~~~~~~
+rand020576.c:722:196: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 = ((safe_sub_func_int16_t_s_s((safe_add_func_int16_t_s_s((((l_238 , l_244) , g_77[5].f3) , p_47.f7), (((l_238 > (safe_rshift_func_int16_t_s_s(p_47.f3, g_77[5].f1))) != p_47.f7) , (((((l_216.f1 != g_77[5].f2.f3) , g_77[5].f2.f1) >= p_47.f5) | g_77[5].f2.f5) < l_247)))), g_77[5].f2.f1)) ^ l_216.f2);
+                                                                                                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~
+rand020576.c:730:269: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                    if ((((safe_add_func_uint32_t_u_u((safe_lshift_func_uint16_t_u_u((safe_sub_func_uint16_t_u_u(l_203, l_215)), 4)), (safe_rshift_func_uint8_t_u_s(g_77[5].f4, 5)))) , (safe_sub_func_uint32_t_u_u(l_238, ((l_216.f0 & p_47.f5) , ((l_260 , (g_77[5].f2.f1 && 0xC1645BF8L)) < l_261))))) && g_77[5].f2.f7))
+                                                                                                                                                                                                                                                                            ^  ~~~~~~~~~~~
+rand020576.c:730:269: note: use '&' for a bitwise operation
+                    if ((((safe_add_func_uint32_t_u_u((safe_lshift_func_uint16_t_u_u((safe_sub_func_uint16_t_u_u(l_203, l_215)), 4)), (safe_rshift_func_uint8_t_u_s(g_77[5].f4, 5)))) , (safe_sub_func_uint32_t_u_u(l_238, ((l_216.f0 & p_47.f5) , ((l_260 , (g_77[5].f2.f1 && 0xC1645BF8L)) < l_261))))) && g_77[5].f2.f7))
+                                                                                                                                                                                                                                                                            ^~
+                                                                                                                                                                                                                                                                            &
+rand020576.c:730:269: note: remove constant to silence this warning
+                    if ((((safe_add_func_uint32_t_u_u((safe_lshift_func_uint16_t_u_u((safe_sub_func_uint16_t_u_u(l_203, l_215)), 4)), (safe_rshift_func_uint8_t_u_s(g_77[5].f4, 5)))) , (safe_sub_func_uint32_t_u_u(l_238, ((l_216.f0 & p_47.f5) , ((l_260 , (g_77[5].f2.f1 && 0xC1645BF8L)) < l_261))))) && g_77[5].f2.f7))
+                                                                                                                                                                                                                                                                           ~^~~~~~~~~~~~~~
+rand020576.c:730:246: warning: expression result unused [-Wunused-value]
+                    if ((((safe_add_func_uint32_t_u_u((safe_lshift_func_uint16_t_u_u((safe_sub_func_uint16_t_u_u(l_203, l_215)), 4)), (safe_rshift_func_uint8_t_u_s(g_77[5].f4, 5)))) , (safe_sub_func_uint32_t_u_u(l_238, ((l_216.f0 & p_47.f5) , ((l_260 , (g_77[5].f2.f1 && 0xC1645BF8L)) < l_261))))) && g_77[5].f2.f7))
+                                                                                                                                                                                                                                                     ^~~~~
+rand020576.c:730:231: warning: expression result unused [-Wunused-value]
+                    if ((((safe_add_func_uint32_t_u_u((safe_lshift_func_uint16_t_u_u((safe_sub_func_uint16_t_u_u(l_203, l_215)), 4)), (safe_rshift_func_uint8_t_u_s(g_77[5].f4, 5)))) , (safe_sub_func_uint32_t_u_u(l_238, ((l_216.f0 & p_47.f5) , ((l_260 , (g_77[5].f2.f1 && 0xC1645BF8L)) < l_261))))) && g_77[5].f2.f7))
+                                                                                                                                                                                                                             ~~~~~~~~ ^ ~~~~~~~
+rand020576.c:738:52: warning: expression result unused [-Wunused-value]
+                    if ((((0x87DE6A43L != p_47.f4) != g_77[5].f1) , p_47.f1))
+                          ~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~~~~~~~
+rand020576.c:741:434: warning: expression result unused [-Wunused-value]
+                        p_47.f7 = (((safe_rshift_func_uint16_t_u_u((l_264 ^ (~((p_47.f1 || (g_77[5].f2.f5 & l_216.f3)) & (safe_div_func_uint8_t_u_u((l_244 | (((0UL != ((safe_rshift_func_int8_t_s_u(((safe_sub_func_int32_t_s_s(((safe_add_func_int32_t_s_s((((p_47.f7 < l_216.f7) != ((l_203 && l_216.f1) & 0x8342L)) > 0UL), g_77[5].f0)) || l_273), l_274)) == l_273), l_204)) >= 0xA7L)) & 0x984CL) & 0x949E221BL)), l_274))))), l_191[1])) ^ p_47.f6) , g_77[5].f2.f6);
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~
+rand020576.c:742:190: warning: expression result unused [-Wunused-value]
+                        l_282 = ((0xB812A765L >= (safe_rshift_func_uint8_t_u_s((g_77[5].f2.f5 <= (safe_mod_func_int16_t_s_s((~(g_77[5].f0 == p_47.f6)), ((safe_unary_minus_func_uint16_t_u(((g_9 , p_47.f2) >= 255UL))) && (safe_mod_func_uint8_t_u_u(g_77[5].f6, l_194[1][5])))))), l_203))) | 0xBF2157EBL);
+                                                                                                                                                                                             ^~~
+rand020576.c:746:279: warning: expression result unused [-Wunused-value]
+                        l_244 = (safe_sub_func_int16_t_s_s((safe_div_func_int32_t_s_s(p_48, g_77[5].f2.f6)), (safe_rshift_func_int8_t_s_s(((safe_lshift_func_uint16_t_u_u(g_147, ((safe_rshift_func_uint8_t_u_s(l_244, 5)) >= ((safe_rshift_func_uint16_t_u_s(((((~p_47.f6) != 247UL) < 6UL) , 0x4BB3L), (safe_rshift_func_uint8_t_u_u(l_216.f3, l_297[0][0][0])))) <= 0xC7ECL)))) , 0L), 4))));
+                                                                                                                                                                                                                                                                ~~~~~~~~~~~~~~~~~~~~~ ^ ~~~
+rand020576.c:749:180: warning: expression result unused [-Wunused-value]
+                    l_310 = ((safe_div_func_int8_t_s_s((-1L), (+(+(safe_sub_func_int32_t_s_s(p_47.f2, l_203)))))) || (g_147 , (g_77[5].f4 <= ((safe_lshift_func_int8_t_s_s(l_308, (l_309 , 0xD6L))) , l_216.f3))));
+                                                                                                                                                                                   ^~~~~
+rand020576.c:749:119: warning: expression result unused [-Wunused-value]
+                    l_310 = ((safe_div_func_int8_t_s_s((-1L), (+(+(safe_sub_func_int32_t_s_s(p_47.f2, l_203)))))) || (g_147 , (g_77[5].f4 <= ((safe_lshift_func_int8_t_s_s(l_308, (l_309 , 0xD6L))) , l_216.f3))));
+                                                                                                                      ^~~~~
+rand020576.c:769:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:769:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:769:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:777:410: warning: expression result unused [-Wunused-value]
+            if ((safe_add_func_int32_t_s_s((safe_sub_func_int32_t_s_s(((safe_lshift_func_uint16_t_u_s((((safe_lshift_func_uint16_t_u_u(g_77[5].f2.f3, 5)) , (safe_div_func_uint8_t_u_u((p_47.f5 || (~g_77[5].f0)), 0x28L))) ^ (safe_lshift_func_uint16_t_u_u(l_316.f6, (safe_lshift_func_int16_t_s_u(p_47.f2, 14))))), ((safe_rshift_func_uint16_t_u_s((safe_lshift_func_uint16_t_u_s(0xC0CFL, (((l_260.f6 > (g_77[5].f2.f6 , l_247)) != p_47.f7) >= g_77[5].f6))), p_47.f6)) > 65529UL))) ^ g_77[5].f2.f5), 0xF188E0F0L)), g_77[5].f2.f3)))
+                                                                                                                                                                                                                                                                                                                                                                                                              ~~~~~~~~~~ ^~
+rand020576.c:781:50: warning: expression result unused [-Wunused-value]
+                g_77[5].f2.f2 |= (6UL || ((l_260.f6 , (l_338 == p_47.f5)) ^ (safe_lshift_func_uint16_t_u_u(p_47.f3, (safe_rshift_func_uint8_t_u_s(((safe_sub_func_uint32_t_u_u(0xFF0C87CBL, (4294967290UL | p_47.f0))) & (p_47.f5 <= l_316.f7)), 6))))));
+                                           ~~~~~ ^~
+rand020576.c:782:149: warning: expression result unused [-Wunused-value]
+                l_260.f6 |= (safe_div_func_uint8_t_u_u(g_77[5].f2.f4, ((safe_rshift_func_uint16_t_u_u(65530UL, g_77[5].f6)) | (0x91AB666EL < (g_77[5] , p_47.f1)))));
+                                                                                                                                              ~~~~ ~^
+rand020576.c:780:21: warning: unused variable 'i' [-Wunused-variable]
+                int i, j;
+                    ^
+rand020576.c:780:24: warning: unused variable 'j' [-Wunused-variable]
+                int i, j;
+                       ^
+rand020576.c:799:61: warning: expression result unused [-Wunused-value]
+                p_47.f2 &= (safe_div_func_int8_t_s_s(((p_47.f6 , 5UL) != (l_260.f2.f5 & ((p_47.f7 & (g_77[5].f0 , (0xF7L > ((safe_mul_func_int8_t_s_s(l_373, (p_48 , 0L))) == g_77[5].f2.f2)))) ^ l_374))), g_77[5].f0));
+                                                       ~~~~ ^~
+rand020576.c:799:159: warning: expression result unused [-Wunused-value]
+                p_47.f2 &= (safe_div_func_int8_t_s_s(((p_47.f6 , 5UL) != (l_260.f2.f5 & ((p_47.f7 & (g_77[5].f0 , (0xF7L > ((safe_mul_func_int8_t_s_s(l_373, (p_48 , 0L))) == g_77[5].f2.f2)))) ^ l_374))), g_77[5].f0));
+                                                                                                                                                              ^~~~
+rand020576.c:799:110: warning: expression result unused [-Wunused-value]
+                p_47.f2 &= (safe_div_func_int8_t_s_s(((p_47.f6 , 5UL) != (l_260.f2.f5 & ((p_47.f7 & (g_77[5].f0 , (0xF7L > ((safe_mul_func_int8_t_s_s(l_373, (p_48 , 0L))) == g_77[5].f2.f2)))) ^ l_374))), g_77[5].f0));
+                                                                                                     ~~~~~~~ ^~
+rand020576.c:685:9: warning: unused variable 'i' [-Wunused-variable]
+    int i, j;
+        ^
+rand020576.c:685:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j;
+           ^
+rand020576.c:843:391: warning: expression result unused [-Wunused-value]
+                    g_77[5] = ((((safe_sub_func_int32_t_s_s((safe_sub_func_int8_t_s_s((safe_rshift_func_int8_t_s_s(p_54.f4, (safe_rshift_func_uint16_t_u_s((safe_lshift_func_int16_t_s_s((p_54.f4 > 1UL), ((((((((l_67 <= (l_68 == (safe_rshift_func_int16_t_s_u(l_71, l_67)))) <= (safe_div_func_uint16_t_u_u(65534UL, ((safe_mod_func_int16_t_s_s((1L <= 0x6FL), 65535UL)) , 2L)))) <= 0xC7B641BAL) | 0xF965L) , g_9) != g_9) <= p_54.f1) <= p_54.f4))), l_67)))), p_54.f2)), 0L)) , p_54.f4) != l_76) , g_77[5]);
+                                                                                                                                                                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~
+rand020576.c:843:481: warning: expression result unused [-Wunused-value]
+                    g_77[5] = ((((safe_sub_func_int32_t_s_s((safe_sub_func_int8_t_s_s((safe_rshift_func_int8_t_s_s(p_54.f4, (safe_rshift_func_uint16_t_u_s((safe_lshift_func_int16_t_s_s((p_54.f4 > 1UL), ((((((((l_67 <= (l_68 == (safe_rshift_func_int16_t_s_u(l_71, l_67)))) <= (safe_div_func_uint16_t_u_u(65534UL, ((safe_mod_func_int16_t_s_s((1L <= 0x6FL), 65535UL)) , 2L)))) <= 0xC7B641BAL) | 0xF965L) , g_9) != g_9) <= p_54.f1) <= p_54.f4))), l_67)))), p_54.f2)), 0L)) , p_54.f4) != l_76) , g_77[5]);
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~
+rand020576.c:847:186: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                                                                                                                                    ~~~~ ^~
+rand020576.c:847:306: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                                                                                                                                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~~
+rand020576.c:847:259: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                                                                                                                                                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~^
+rand020576.c:847:82: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                         ~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:847:348: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                                                                                                                                                                                                                                                                                                           ^  ~~~~~
+rand020576.c:847:348: note: use '|' for a bitwise operation
+                        g_77[5].f2.f2 = (safe_lshift_func_int8_t_s_u(((((p_54.f6 < (safe_sub_func_int32_t_s_s(0x1A48C8D2L, (safe_add_func_int8_t_s_s((safe_rshift_func_uint8_t_u_u((p_54.f1 , 255UL), (p_54.f4 | l_86[2]))), (l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51] , ((l_56[(p_51 + 1)][(p_54.f4 + 1)][p_51].f4 || l_76) , p_54.f7))))))) , l_87) <= 7UL) || (-1L)), l_87));
+                                                                                                                                                                                                                                                                                                                                                           ^~
+                                                                                                                                                                                                                                                                                                                                                           |
+rand020576.c:846:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:846:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:846:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:852:99: warning: expression result unused [-Wunused-value]
+                    if ((((0x2808L ^ ((g_77[5].f2.f2 >= 0xE9D5C408L) == (248UL > g_77[5].f1))) , (l_92 , g_77[5].f5)) != ((safe_rshift_func_int8_t_s_u(g_77[5].f2.f7, 6)) <= ((safe_sub_func_int8_t_s_s(p_54.f7, p_53)) < g_77[5].f2.f4))))
+                                                                                                  ^~~~
+rand020576.c:852:36: warning: expression result unused [-Wunused-value]
+                    if ((((0x2808L ^ ((g_77[5].f2.f2 >= 0xE9D5C408L) == (248UL > g_77[5].f1))) , (l_92 , g_77[5].f5)) != ((safe_rshift_func_int8_t_s_u(g_77[5].f2.f7, 6)) <= ((safe_sub_func_int8_t_s_s(p_54.f7, p_53)) < g_77[5].f2.f4))))
+                           ~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:857:39: warning: implicit truncation from 'long' to bitfield changes value from 4050975374 to -722290 [-Wconstant-conversion]
+                        g_77[5].f2.f2 = 0xF174FA8EL;
+                                      ^ ~~~~~~~~~~~
+rand020576.c:858:56: warning: expression result unused [-Wunused-value]
+                        l_100[0] = (((l_86[0] || (p_54.f3 , 0xA3L)) >= ((safe_add_func_int32_t_s_s(l_87, (4294967295UL <= 0xA523A445L))) <= (l_92 , l_99[1][0][0]))) >= ((g_77[5].f1 != g_77[5].f2.f7) > l_68));
+                                                  ~~~~ ^~
+rand020576.c:858:142: warning: expression result unused [-Wunused-value]
+                        l_100[0] = (((l_86[0] || (p_54.f3 , 0xA3L)) >= ((safe_add_func_int32_t_s_s(l_87, (4294967295UL <= 0xA523A445L))) <= (l_92 , l_99[1][0][0]))) >= ((g_77[5].f1 != g_77[5].f2.f7) > l_68));
+                                                                                                                                             ^~~~
+rand020576.c:856:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:856:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:856:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:866:269: warning: self-comparison always evaluates to true [-Wtautological-compare]
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                                                                                                                                                                                                                                                            ^
+rand020576.c:866:295: warning: expression result unused [-Wunused-value]
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                                                                                                                                                                                                                                                                              ~~~~~~~ ^~
+rand020576.c:866:346: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                                                                                                                                                                                                                                                                                                                                         ^  ~~~
+rand020576.c:866:346: note: use '&' for a bitwise operation
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                                                                                                                                                                                                                                                                                                                                         ^~
+                                                                                                                                                                                                                                                                                                                                                         &
+rand020576.c:866:346: note: remove constant to silence this warning
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                                                                                                                                                                                                                                                                                                                                        ~^~~~~~
+rand020576.c:866:346: warning: expression result unused [-Wunused-value]
+                        l_111 = (((g_77[5].f4 ^ (safe_rshift_func_uint16_t_u_s(g_77[5].f2.f5, (((((safe_add_func_uint16_t_u_u(l_105[1], (g_77[5].f6 <= 0L))) || l_76) > (safe_lshift_func_uint8_t_u_u((((safe_mod_func_uint8_t_u_u(((g_77[5].f2.f1 <= 0x93F5E3F8L) || (p_52 == p_52)), 1L)) , g_77[5].f4) , g_77[5].f0), 3))) & p_54.f3) || l_110[1])))) && 8UL) , p_54.f1);
+                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^  ~~~
+rand020576.c:882:415: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f0 = (safe_div_func_int16_t_s_s((safe_add_func_int8_t_s_s((safe_div_func_uint8_t_u_u(l_76, (-1L))), (safe_lshift_func_int8_t_s_s(l_76, (safe_rshift_func_int8_t_s_u((((safe_rshift_func_int16_t_s_s(((((p_54.f5 | p_54.f0) || g_77[5].f2.f7) & (safe_add_func_int8_t_s_s(1L, l_76))) , (safe_add_func_uint16_t_u_u(((!(safe_lshift_func_int16_t_s_s((((l_56[(p_54.f7 + 1)][(l_76 + 1)][l_76] , g_77[5].f5) ^ l_110[1]) ^ l_68), 11))) <= 1L), (-9L)))), l_56[(p_54.f7 + 1)][(l_76 + 1)][l_76].f3)) ^ (-1L)) < p_53), 3)))))), g_77[5].f2.f6));
+                                                                                                                                                                                                                                                                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ~~~~^
+rand020576.c:882:273: warning: expression result unused [-Wunused-value]
+                        g_77[5].f2.f0 = (safe_div_func_int16_t_s_s((safe_add_func_int8_t_s_s((safe_div_func_uint8_t_u_u(l_76, (-1L))), (safe_lshift_func_int8_t_s_s(l_76, (safe_rshift_func_int8_t_s_u((((safe_rshift_func_int16_t_s_s(((((p_54.f5 | p_54.f0) || g_77[5].f2.f7) & (safe_add_func_int8_t_s_s(1L, l_76))) , (safe_add_func_uint16_t_u_u(((!(safe_lshift_func_int16_t_s_s((((l_56[(p_54.f7 + 1)][(l_76 + 1)][l_76] , g_77[5].f5) ^ l_110[1]) ^ l_68), 11))) <= 1L), (-9L)))), l_56[(p_54.f7 + 1)][(l_76 + 1)][l_76].f3)) ^ (-1L)) < p_53), 3)))))), g_77[5].f2.f6));
+                                                                                                                                                                                                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:881:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:881:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:881:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:886:62: warning: expression result unused [-Wunused-value]
+                    l_56[p_54.f7][(p_54.f1 + 1)][p_54.f1] = (l_132 , l_56[p_53][p_51][p_51]);
+                                                             ^~~~~
+rand020576.c:877:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j, k;
+                        ^
+rand020576.c:877:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j, k;
+                           ^
+rand020576.c:877:31: warning: unused variable 'k' [-Wunused-variable]
+                    int i, j, k;
+                              ^
+rand020576.c:911:285: warning: expression result unused [-Wunused-value]
+                    g_77[5].f2.f2 ^= (safe_div_func_int16_t_s_s(p_54.f7, (safe_rshift_func_int16_t_s_u((safe_add_func_int16_t_s_s((safe_rshift_func_uint8_t_u_s((safe_add_func_int32_t_s_s((safe_div_func_int32_t_s_s(0xCD9C671DL, 0x71A36315L)), p_54.f6)), l_146)), (~g_77[5].f2.f6))), ((p_53 , l_110[1]) & ((l_76 , l_76) ^ l_76))))));
+                                                                                                                                                                                                                                                                                            ^~~~
+rand020576.c:911:306: warning: expression result unused [-Wunused-value]
+                    g_77[5].f2.f2 ^= (safe_div_func_int16_t_s_s(p_54.f7, (safe_rshift_func_int16_t_s_u((safe_add_func_int16_t_s_s((safe_rshift_func_uint8_t_u_s((safe_add_func_int32_t_s_s((safe_div_func_int32_t_s_s(0xCD9C671DL, 0x71A36315L)), p_54.f6)), l_146)), (~g_77[5].f2.f6))), ((p_53 , l_110[1]) & ((l_76 , l_76) ^ l_76))))));
+                                                                                                                                                                                                                                                                                                                 ^~~~
+rand020576.c:912:90: warning: expression result unused [-Wunused-value]
+                    if (((g_77[5].f5 & g_77[5].f0) != ((((((1L < (-8L)) <= g_9) == (p_54.f5 , (((g_147 > ((safe_sub_func_uint8_t_u_u(0x8AL, (0xB7L || p_54.f7))) > p_51)) < g_77[5].f5) < l_86[2]))) || l_76) || g_77[5].f2.f7) >= 0x8CB1L)))
+                                                                                    ~~~~ ^~
+rand020576.c:937:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:937:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:937:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:942:291: warning: expression result unused [-Wunused-value]
+                p_51 |= ((p_54.f4 >= (safe_lshift_func_int8_t_s_u((safe_mod_func_uint8_t_u_u((safe_div_func_int16_t_s_s((((safe_rshift_func_int16_t_s_u((l_131.f2 , (l_155 & ((safe_rshift_func_int8_t_s_u((l_153 > (0x9FL > (((p_54.f4 > (((safe_sub_func_int8_t_s_s(g_77[5].f6, (g_9 && ((l_86[0] , p_53) != 0xC3ADL)))) ^ g_77[5].f3) | p_54.f5)) <= 0x10L) && g_77[5].f2.f2))), l_150[0][1][3].f4)) || g_77[5].f2.f0))), p_54.f3)) , l_131) , 2L), l_150[0][1][3].f6)), p_54.f1)), 1))) , 0xA0F0610EL);
+                                                                                                                                                                                                                                                                                            ~~~~ ~^
+rand020576.c:942:160: warning: expression result unused [-Wunused-value]
+                p_51 |= ((p_54.f4 >= (safe_lshift_func_int8_t_s_u((safe_mod_func_uint8_t_u_u((safe_div_func_int16_t_s_s((((safe_rshift_func_int16_t_s_u((l_131.f2 , (l_155 & ((safe_rshift_func_int8_t_s_u((l_153 > (0x9FL > (((p_54.f4 > (((safe_sub_func_int8_t_s_s(g_77[5].f6, (g_9 && ((l_86[0] , p_53) != 0xC3ADL)))) ^ g_77[5].f3) | p_54.f5)) <= 0x10L) && g_77[5].f2.f2))), l_150[0][1][3].f4)) || g_77[5].f2.f0))), p_54.f3)) , l_131) , 2L), l_150[0][1][3].f6)), p_54.f1)), 1))) , 0xA0F0610EL);
+                                                                                                                                                         ~~~~~ ^~
+rand020576.c:942:426: warning: expression result unused [-Wunused-value]
+                p_51 |= ((p_54.f4 >= (safe_lshift_func_int8_t_s_u((safe_mod_func_uint8_t_u_u((safe_div_func_int16_t_s_s((((safe_rshift_func_int16_t_s_u((l_131.f2 , (l_155 & ((safe_rshift_func_int8_t_s_u((l_153 > (0x9FL > (((p_54.f4 > (((safe_sub_func_int8_t_s_s(g_77[5].f6, (g_9 && ((l_86[0] , p_53) != 0xC3ADL)))) ^ g_77[5].f3) | p_54.f5)) <= 0x10L) && g_77[5].f2.f2))), l_150[0][1][3].f4)) || g_77[5].f2.f0))), p_54.f3)) , l_131) , 2L), l_150[0][1][3].f6)), p_54.f1)), 1))) , 0xA0F0610EL);
+                                                                                                                                                                                                                                                                                                                                                                                                                                         ^~~~~
+rand020576.c:942:35: warning: expression result unused [-Wunused-value]
+                p_51 |= ((p_54.f4 >= (safe_lshift_func_int8_t_s_u((safe_mod_func_uint8_t_u_u((safe_div_func_int16_t_s_s((((safe_rshift_func_int16_t_s_u((l_131.f2 , (l_155 & ((safe_rshift_func_int8_t_s_u((l_153 > (0x9FL > (((p_54.f4 > (((safe_sub_func_int8_t_s_s(g_77[5].f6, (g_9 && ((l_86[0] , p_53) != 0xC3ADL)))) ^ g_77[5].f3) | p_54.f5)) <= 0x10L) && g_77[5].f2.f2))), l_150[0][1][3].f4)) || g_77[5].f2.f0))), p_54.f3)) , l_131) , 2L), l_150[0][1][3].f6)), p_54.f1)), 1))) , 0xA0F0610EL);
+                          ~~~~~~~ ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:943:121: warning: expression result unused [-Wunused-value]
+                if ((((safe_rshift_func_int16_t_s_s((~g_77[5].f5), (p_54.f7 > (p_53 | l_150[0][1][3].f0)))) ^ (l_131.f2.f7 , l_86[1])) | (g_77[5].f2.f7 ^ l_86[7])))
+                                                                                                               ~~~~~~~~ ^~
+rand020576.c:945:30: warning: expression result unused [-Wunused-value]
+                    if (((5L ^ ((p_54.f7 || g_77[5].f2.f0) > g_77[5].f6)) , (safe_lshift_func_int8_t_s_s(g_77[5].f2.f1, 0))))
+                          ~~ ^ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rand020576.c:952:29: warning: unused variable 'i' [-Wunused-variable]
+                        int i, j, k;
+                            ^
+rand020576.c:952:32: warning: unused variable 'j' [-Wunused-variable]
+                        int i, j, k;
+                               ^
+rand020576.c:952:35: warning: unused variable 'k' [-Wunused-variable]
+                        int i, j, k;
+                                  ^
+rand020576.c:960:42: warning: equality comparison with extraneous parentheses [-Wparentheses-equality]
+                    for (l_68 = 0; (l_68 == 9); ++l_68)
+                                    ~~~~~^~~~
+rand020576.c:960:42: note: remove extraneous parentheses around the comparison to silence this warning
+                    for (l_68 = 0; (l_68 == 9); ++l_68)
+                                   ~     ^   ~
+rand020576.c:960:42: note: use '=' to turn this equality comparison into an assignment
+                    for (l_68 = 0; (l_68 == 9); ++l_68)
+                                         ^~
+                                         =
+rand020576.c:964:264: warning: expression result unused [-Wunused-value]
+                        l_174.f7 ^= (((safe_add_func_uint16_t_u_u(0x2306L, (safe_rshift_func_int16_t_s_s((l_76 && p_54.f4), 3)))) && ((safe_sub_func_uint32_t_u_u((((safe_lshift_func_int8_t_s_u((0x6C9AL & g_77[5].f5), 4)) , ((1UL && (p_54.f4 & (((((l_185[0][2][2] >= (-3L)) , l_87) & l_131.f5) & l_153) || 65535UL))) & g_77[5].f2.f6)) <= p_54.f0), 0xE367F9ACL)) | l_153)) < g_147);
+                                                                                                                                                                                                                                                        ~~~~~~~~~~~~~~ ^  ~~~~~
+rand020576.c:964:303: warning: use of logical '||' with constant operand [-Wconstant-logical-operand]
+                        l_174.f7 ^= (((safe_add_func_uint16_t_u_u(0x2306L, (safe_rshift_func_int16_t_s_s((l_76 && p_54.f4), 3)))) && ((safe_sub_func_uint32_t_u_u((((safe_lshift_func_int8_t_s_u((0x6C9AL & g_77[5].f5), 4)) , ((1UL && (p_54.f4 & (((((l_185[0][2][2] >= (-3L)) , l_87) & l_131.f5) & l_153) || 65535UL))) & g_77[5].f2.f6)) <= p_54.f0), 0xE367F9ACL)) | l_153)) < g_147);
+                                                                                                                                                                                                                                                                                                              ^  ~~~~~~~
+rand020576.c:964:303: note: use '|' for a bitwise operation
+                        l_174.f7 ^= (((safe_add_func_uint16_t_u_u(0x2306L, (safe_rshift_func_int16_t_s_s((l_76 && p_54.f4), 3)))) && ((safe_sub_func_uint32_t_u_u((((safe_lshift_func_int8_t_s_u((0x6C9AL & g_77[5].f5), 4)) , ((1UL && (p_54.f4 & (((((l_185[0][2][2] >= (-3L)) , l_87) & l_131.f5) & l_153) || 65535UL))) & g_77[5].f2.f6)) <= p_54.f0), 0xE367F9ACL)) | l_153)) < g_147);
+                                                                                                                                                                                                                                                                                                              ^~
+                                                                                                                                                                                                                                                                                                              |
+rand020576.c:959:25: warning: unused variable 'i' [-Wunused-variable]
+                    int i, j, k;
+                        ^
+rand020576.c:959:28: warning: unused variable 'j' [-Wunused-variable]
+                    int i, j, k;
+                           ^
+rand020576.c:959:31: warning: unused variable 'k' [-Wunused-variable]
+                    int i, j, k;
+                              ^
+rand020576.c:834:17: warning: unused variable 'i' [-Wunused-variable]
+            int i;
+                ^
+rand020576.c:828:13: warning: unused variable 'i' [-Wunused-variable]
+        int i, j, k;
+            ^
+rand020576.c:828:16: warning: unused variable 'j' [-Wunused-variable]
+        int i, j, k;
+               ^
+rand020576.c:828:19: warning: unused variable 'k' [-Wunused-variable]
+        int i, j, k;
+                  ^
+rand020576.c:823:9: warning: unused variable 'i' [-Wunused-variable]
+    int i, j, k;
+        ^
+rand020576.c:823:12: warning: unused variable 'j' [-Wunused-variable]
+    int i, j, k;
+           ^
+rand020576.c:823:15: warning: unused variable 'k' [-Wunused-variable]
+    int i, j, k;
+              ^
+In file included from rand020576.c:13:
+In file included from /home/regehr/z/csmith/runtime/csmith.h:35:
+In file included from /home/regehr/z/csmith/runtime/csmith_minimal.h:51:
+/home/regehr/z/csmith/runtime/safe_math.h:144:2: warning: unused function 'safe_unary_minus_func_int16_t_s' [-Wunused-function]
+(safe_unary_minus_func_int16_t_s)(short si )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:186:2: warning: unused function 'safe_mul_func_int16_t_s_s' [-Wunused-function]
+(safe_mul_func_int16_t_s_s)(short si1, short si2 )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:274:2: warning: unused function 'safe_unary_minus_func_int32_t_s' [-Wunused-function]
+(safe_unary_minus_func_int32_t_s)(int si )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:316:2: warning: unused function 'safe_mul_func_int32_t_s_s' [-Wunused-function]
+(safe_mul_func_int32_t_s_s)(int si1, int si2 )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:354:2: warning: unused function 'safe_lshift_func_int32_t_s_s' [-Wunused-function]
+(safe_lshift_func_int32_t_s_s)(int left, int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:366:2: warning: unused function 'safe_lshift_func_int32_t_s_u' [-Wunused-function]
+(safe_lshift_func_int32_t_s_u)(int left, unsigned int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:378:2: warning: unused function 'safe_rshift_func_int32_t_s_s' [-Wunused-function]
+(safe_rshift_func_int32_t_s_s)(int left, int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:390:2: warning: unused function 'safe_rshift_func_int32_t_s_u' [-Wunused-function]
+(safe_rshift_func_int32_t_s_u)(int left, unsigned int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:539:2: warning: unused function 'safe_unary_minus_func_uint8_t_u' [-Wunused-function]
+(safe_unary_minus_func_uint8_t_u)(unsigned char ui )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:560:2: warning: unused function 'safe_mul_func_uint8_t_u_u' [-Wunused-function]
+(safe_mul_func_uint8_t_u_u)(unsigned char ui1, unsigned char ui2 )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:662:2: warning: unused function 'safe_mul_func_uint16_t_u_u' [-Wunused-function]
+(safe_mul_func_uint16_t_u_u)(unsigned short ui1, unsigned short ui2 )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:764:2: warning: unused function 'safe_mul_func_uint32_t_u_u' [-Wunused-function]
+(safe_mul_func_uint32_t_u_u)(unsigned ui1, unsigned ui2 )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:795:2: warning: unused function 'safe_lshift_func_uint32_t_u_s' [-Wunused-function]
+(safe_lshift_func_uint32_t_u_s)(unsigned left, int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:807:2: warning: unused function 'safe_lshift_func_uint32_t_u_u' [-Wunused-function]
+(safe_lshift_func_uint32_t_u_u)(unsigned left, unsigned int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:819:2: warning: unused function 'safe_rshift_func_uint32_t_u_s' [-Wunused-function]
+(safe_rshift_func_uint32_t_u_s)(unsigned left, int right )
+ ^
+/home/regehr/z/csmith/runtime/safe_math.h:831:2: warning: unused function 'safe_rshift_func_uint32_t_u_u' [-Wunused-function]
+(safe_rshift_func_uint32_t_u_u)(unsigned left, unsigned int right )
+ ^
+rand020576.c:16:13: warning: unused variable '__undefined' [-Wunused-variable]
+static long __undefined;
+            ^
+282 warnings generated.

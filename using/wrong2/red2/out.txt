@@ -1,0 +1,4 @@
+small.c:25:7: warning: explicitly assigning a variable of type 'struct <anonymous struct at small.c:15:1>' to itself [-Wself-assign]
+    c = c;
+    ~ ^ ~
+1 warning generated.
