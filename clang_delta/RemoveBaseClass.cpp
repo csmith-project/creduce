@@ -210,6 +210,7 @@ void RemoveBaseClass::copyBaseClassDecls(void)
   SourceLocation StartLoc = TheBaseClass->getBraceRange().getBegin();
   SourceLocation EndLoc = TheBaseClass->getBraceRange().getEnd();
   TransAssert(EndLoc.isValid() && "Invalid RBraceLoc!");
+  StartLoc = StartLoc.getLocWithOffset(1);
   EndLoc = EndLoc.getLocWithOffset(-1);
 
   std::string DeclsStr = 
