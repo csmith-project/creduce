@@ -215,11 +215,23 @@ bool RUFAnalysisVisitor::VisitFunctionDecl(FunctionDecl *FD)
       FD->getDependentSpecializationInfo();
     // don't need to track all specs, just associate FD with one
     // of those
-    if (Info->getNumTemplates() > 0) {
-      const FunctionDecl *Member =
-        Info->getTemplate(0)->getTemplatedDecl();
-      ConsumerInstance->addOneMemberSpecialization(FD, Member);
+    const FunctionDecl *Member = nullptr;
+
+#if LLVM_VERSION_MAJOR >= 18
+    ArrayRef<FunctionTemplateDecl *> members = Info->getCandidates();
+    if (!members.empty()) {
+      Member = members[0]->getTemplatedDecl();
     }
+#else
+    if (Info->getNumTemplates() > 0) {
+      Member =
+        Info->getTemplate(0)->getTemplatedDecl();
+    }
+#endif
+
+    if (Member != nullptr)
+      ConsumerInstance->addOneMemberSpecialization(FD, Member);
+
     return true;
   }
 
@@ -914,11 +926,21 @@ void RemoveUnusedFunction::handleOneFunctionDecl(const FunctionDecl *TheFD)
       TheFD->getDependentSpecializationInfo();
     // don't need to track all specs, just associate FD with one
     // of those
-    if (Info->getNumTemplates() > 0) {
-      const FunctionDecl *Member =
-        Info->getTemplate(0)->getTemplatedDecl();
-      createFuncToExplicitSpecs(Member);
+    const FunctionDecl *Member = nullptr;
+
+#if LLVM_VERSION_MAJOR >= 18
+    ArrayRef<FunctionTemplateDecl *> members = Info->getCandidates();
+    if (!members.empty()) {
+      Member = members[0]->getTemplatedDecl();
     }
+#else
+    if (Info->getNumTemplates() > 0) {
+      Member = Info->getTemplate(0)->getTemplatedDecl();
+    }
+#endif
+
+    if (Member != nullptr)
+      createFuncToExplicitSpecs(Member);
     return;
   }
 
