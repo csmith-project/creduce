@@ -14,7 +14,7 @@ If you need to reduce programs in some other language, please give it
 a try.
 
 Documentation and other information can be found at the [C-Reduce web
-page](http://embed.cs.utah.edu/creduce/)
+page](https://blog.regehr.org/archives/1678)
 
 ## Installation
 
