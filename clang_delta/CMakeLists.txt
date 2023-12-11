@@ -85,9 +85,21 @@ llvm_map_components_to_libnames(LLVM_LIBS
   support
 )
 
-set(CLANG_LIBS
-  clang-cpp
-)
+if (${LLVM_LINK_LLVM_DYLIB})
+  set(CLANG_LIBS
+    clang-cpp
+    LLVM
+  )
+else()
+  set(CLANG_LIBS
+    clangAST
+    clangBasic
+    clangFrontend
+    clangParse
+    clangLex
+    clangRewrite
+  )
+endif()
 
 add_executable(clang_delta
   ${CMAKE_BINARY_DIR}/config.h

@@ -120,8 +120,14 @@ void ReplaceDependentName::handleOneElaboratedTypeLoc(
     return;
 
   const ElaboratedType *ET = TLoc.getTypePtr();
+
+#if LLVM_VERSION_MAJOR >= 18
+  if ((ET->getKeyword() != ElaboratedTypeKeyword::Typename) && (ET->getKeyword() != ElaboratedTypeKeyword::None))
+    return;
+#else
   if ((ET->getKeyword() != ETK_Typename) && (ET->getKeyword() != ETK_None))
     return;
+#endif
 
   if (TLoc.getQualifierLoc().getBeginLoc().isInvalid())
     return;
@@ -155,8 +161,14 @@ void ReplaceDependentName::handleOneDependentNameTypeLoc(
   const DependentNameType *DNT = 
     dyn_cast<DependentNameType>(TLoc.getTypePtr());
   TransAssert(DNT && "NULL DependentNameType!");
+
+#if LLVM_VERSION_MAJOR >= 18
+  if (DNT->getKeyword() != ElaboratedTypeKeyword::Typename)
+    return;
+#else
   if (DNT->getKeyword() != ETK_Typename)
     return;
+#endif
 
   std::string Str = "";
   bool Typename = false;
