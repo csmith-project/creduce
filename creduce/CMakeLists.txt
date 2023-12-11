@@ -138,58 +138,36 @@ endif()
 
 # Generate file "creduce".
 #
-file(READ "creduce.in" CREDUCE_CONTENT)
-string(REPLACE "@perl@" "${PERL_EXECUTABLE}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-# The following is not needed, but triggers a warning in CMake 3.1+.
-# See `cmake --help-policy CMP0053'.  Avoid the warning by not doing it.
-# string(REPLACE "@PERL@" "${PERL_EXECUTABLE}"
-#   CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@perllibdir@" "${PERL_LIB_DIR}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@prefix@" "${CMAKE_INSTALL_PREFIX}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-file(WRITE
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/creduce"
-  "${CREDUCE_CONTENT}")
+# Set variables used as placeholders but not already defined in the CMake file
+set(perl "${PERL}")
+set(perllibdir "${PERL_LIB_DIR}")
+set(prefix "${CMAKE_INSTALL_PREFIX}")
+
+configure_file("creduce.in" "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/creduce" @ONLY)
+
+# Copy file and set correct permissions
 file(COPY
-  "${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/creduce"
+  "${PROJECT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/creduce"
   DESTINATION "${PROJECT_BINARY_DIR}"
   FILE_PERMISSIONS
     OWNER_READ OWNER_WRITE OWNER_EXECUTE
     GROUP_READ GROUP_EXECUTE
     WORLD_READ WORLD_EXECUTE
-  )
+)
 
 # Generate file "creduce_config.pm".
 #
-file(READ "creduce_config.pm.in" CREDUCE_CONTENT)
-string(REPLACE "@bindir@" "${BIN_DIR}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@libexecdir@" "${LIB_EXEC_DIR}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PACKAGE_BUGREPORT@" "${creduce_PACKAGE_BUGREPORT}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PACKAGE_NAME@" "${creduce_PACKAGE_NAME}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PACKAGE_STRING@" "${creduce_PACKAGE_STRING}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PACKAGE_URL@" "${creduce_PACKAGE_URL}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@PACKAGE_VERSION@" "${creduce_PACKAGE_VERSION}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "@VERSION@" "${creduce_VERSION}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-# ENE: I do not understand why the \'s seem to be required in the following
-# match strings.
-string(REPLACE "\@GIT_HASH@" "${GIT_HASH}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-string(REPLACE "\@CLANG_FORMAT@" "${CLANG_FORMAT}"
-  CREDUCE_CONTENT "${CREDUCE_CONTENT}")
-file(WRITE
-  "${PROJECT_BINARY_DIR}/creduce_config.pm"
-  "${CREDUCE_CONTENT}"
-  )
+# Set variables used as placeholders but not already defined in the CMake file
+set(bindir "${BIN_DIR}")
+set(libexecdir "${LIB_EXEC_DIR}")
+set(PACKAGE_BUGREPORT "${creduce_PACKAGE_BUGREPORT}")
+set(PACKAGE_NAME "${creduce_PACKAGE_NAME}")
+set(PACKAGE_STRING "${creduce_PACKAGE_STRING}")
+set(PACKAGE_URL "${creduce_PACKAGE_URL}")
+set(PACKAGE_VERSION "${creduce_PACKAGE_VERSION}")
+set(VERSION "${creduce_VERSION}")
+
+configure_file("creduce_config.pm.in" "creduce_config.pm" @ONLY)
 
 ###############################################################################
 
