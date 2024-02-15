@@ -99,6 +99,7 @@ LLVMLDFLAGS	:= $(shell "$(LLVM_CONFIG)" \--ldflags)
 LLVMINCLUDEDIR	:= $(shell "$(LLVM_CONFIG)" --includedir)
 LLVMLIBS	:= $(shell "$(LLVM_CONFIG)" \--libs) \
 		   $(shell "$(LLVM_CONFIG)" \--system-libs)
+LLVMLIBDIR	:= $(shell "$(LLVM_CONFIG)" \--prefix)/lib/
 
 clang_delta_CPPFLAGS = \
 	$(CLANG_CPPFLAGS) \
@@ -108,8 +109,9 @@ clang_delta_CXXFLAGS = \
 	$(LLVMCXXFLAGS)
 
 # See comment below about `clang_delta_LDADD' and `LLVMLDFLAGS'.
-# clang_delta_LDFLAGS = \
-#	$(LLVMLDFLAGS)
+clang_delta_LDFLAGS = \
+	$(LLVMLDFLAGS) \
+	-Wl,-rpath=$(LLVMLIBDIR)
 
 # Try to do the "right thing" by putting these in `clang_delta_LDADD' instead
 # of `clang_delta_LDFLAGS'.  This leads to the funny escape in `LLVMLIBS',
