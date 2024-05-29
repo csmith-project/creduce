@@ -439,11 +439,7 @@ bool RemoveNamespaceRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
 
   std::string Name;
   if (ConsumerInstance->getNewName(CXXRD, Name)) {
-    const TypeSourceInfo *TyInfo = D->getTypeAsWritten();
-    if (!TyInfo)
-      return true;
-    TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getBeginLoc();
+    SourceLocation LocStart = D->getLocation();
     TransAssert(LocStart.isValid() && "Invalid Location!");
     ConsumerInstance->TheRewriter.ReplaceText(
       LocStart, CXXRD->getNameAsString().size(), Name);
