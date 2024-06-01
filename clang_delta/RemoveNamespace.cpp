@@ -91,9 +91,6 @@ public:
   bool VisitTemplateSpecializationTypeLoc(
          TemplateSpecializationTypeLoc TSPLoc);
 
-  bool VisitClassTemplatePartialSpecializationDecl(
-         ClassTemplatePartialSpecializationDecl *D);
-
   bool VisitDependentTemplateSpecializationTypeLoc(
          DependentTemplateSpecializationTypeLoc DTSLoc);
 
@@ -132,14 +129,25 @@ bool RemoveNamespaceASTVisitor::VisitNamespaceDecl(NamespaceDecl *ND)
 bool RemoveNamespaceRewriteVisitor::VisitClassTemplateSpecializationDecl(
        ClassTemplateSpecializationDecl *TSD)
 {
-  if (!TSD->isExplicitSpecialization() || !TSD->isCompleteDefinition())
+  if (!TSD->isExplicitInstantiationOrSpecialization())
     return true;
 
-  for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
-       E = TSD->bases_end(); I != E; ++I) {
-    TypeSourceInfo *TSI = (*I).getTypeSourceInfo();
-    TransAssert(TSI && "Bad TypeSourceInfo!");
-    TraverseTypeLoc(TSI->getTypeLoc());
+  const CXXRecordDecl *CXXRD = TSD->getSpecializedTemplate()->getTemplatedDecl();
+  std::string Name;
+  if (ConsumerInstance->getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TSD->getLocation();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+    ConsumerInstance->TheRewriter.ReplaceText(
+      LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+
+  if (TSD->isExplicitSpecialization() && TSD->isCompleteDefinition()) {
+    for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
+         E = TSD->bases_end(); I != E; ++I) {
+      TypeSourceInfo *TSI = (*I).getTypeSourceInfo();
+      TransAssert(TSI && "Bad TypeSourceInfo!");
+      TraverseTypeLoc(TSI->getTypeLoc());
+    }
   }
   return true;
 }
@@ -416,38 +424,6 @@ bool RemoveNamespaceRewriteVisitor::VisitTemplateSpecializationTypeLoc(
       LocStart, CXXRD->getNameAsString().size(), Name);
   }
 
-  return true;
-}
-
-bool RemoveNamespaceRewriteVisitor::VisitClassTemplatePartialSpecializationDecl(
-       ClassTemplatePartialSpecializationDecl *D)
-{
-  const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
-  TransAssert(Ty && "Bad TypePtr!");
-  const TemplateSpecializationType *TST =
-    dyn_cast<TemplateSpecializationType>(Ty);
-  TransAssert(TST && "Bad TemplateSpecializationType!");
-
-  TemplateName TplName = TST->getTemplateName();
-  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-  TransAssert(TplD && "Invalid TemplateDecl!");
-  NamedDecl *ND = TplD->getTemplatedDecl();
-  TransAssert(ND && "Invalid NamedDecl!");
-
-  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
-  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
-
-  std::string Name;
-  if (ConsumerInstance->getNewName(CXXRD, Name)) {
-    const TypeSourceInfo *TyInfo = D->getTypeAsWritten();
-    if (!TyInfo)
-      return true;
-    TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getBeginLoc();
-    TransAssert(LocStart.isValid() && "Invalid Location!");
-    ConsumerInstance->TheRewriter.ReplaceText(
-      LocStart, CXXRD->getNameAsString().size(), Name);
-  }
   return true;
 }
 

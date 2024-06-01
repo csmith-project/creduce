@@ -57,9 +57,6 @@ public:
   bool VisitDependentTemplateSpecializationTypeLoc(
          DependentTemplateSpecializationTypeLoc DTSLoc);
 
-  bool VisitClassTemplatePartialSpecializationDecl(
-         ClassTemplatePartialSpecializationDecl *D);
-
   bool VisitClassTemplateSpecializationDecl(
          ClassTemplateSpecializationDecl *TSD);
 
@@ -122,39 +119,6 @@ bool CommonRenameClassRewriteVisitor<T>::TraverseConstructorInitializer(
   return true;
 }
 
-template<typename T> 
-bool CommonRenameClassRewriteVisitor<T>::
-     VisitClassTemplatePartialSpecializationDecl(
-       ClassTemplatePartialSpecializationDecl *D)
-{
-  const Type *Ty = D->getInjectedSpecializationType().getTypePtr();
-  TransAssert(Ty && "Bad TypePtr!");
-  const TemplateSpecializationType *TST = 
-    dyn_cast<TemplateSpecializationType>(Ty);
-  TransAssert(TST && "Bad TemplateSpecializationType!");
-
-  TemplateName TplName = TST->getTemplateName();
-  const TemplateDecl *TplD = TplName.getAsTemplateDecl();
-  TransAssert(TplD && "Invalid TemplateDecl!");
-  NamedDecl *ND = TplD->getTemplatedDecl();
-  TransAssert(ND && "Invalid NamedDecl!");
-
-  const CXXRecordDecl *CXXRD = dyn_cast<CXXRecordDecl>(ND);
-  TransAssert(CXXRD && "Invalid CXXRecordDecl!");
-
-  std::string Name;
-  if (getNewName(CXXRD, Name)) {
-    const TypeSourceInfo *TyInfo = D->getTypeAsWritten();
-    if (!TyInfo)
-      return true;
-    TypeLoc TyLoc = TyInfo->getTypeLoc();
-    SourceLocation LocStart = TyLoc.getBeginLoc();
-    TransAssert(LocStart.isValid() && "Invalid Location!");
-    TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
-  }
-  return true;
-}
-
 // ISSUE: I am not sure why, but RecursiveASTVisitor doesn't recursively
 // visit base classes from explicit template specialization, e.g.,
 //   struct A { };
@@ -166,14 +130,24 @@ template<typename T>
 bool CommonRenameClassRewriteVisitor<T>::VisitClassTemplateSpecializationDecl(
        ClassTemplateSpecializationDecl *TSD)
 {
-  if (!TSD->isExplicitSpecialization() || !TSD->isCompleteDefinition())
+  if (!TSD->isExplicitInstantiationOrSpecialization())
     return true;
 
-  for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
-       E = TSD->bases_end(); I != E; ++I) {
-    TypeSourceInfo *TSI = (*I).getTypeSourceInfo();
-    TransAssert(TSI && "Bad TypeSourceInfo!");
-    getDerived().TraverseTypeLoc(TSI->getTypeLoc());
+  const CXXRecordDecl *CXXRD = TSD->getSpecializedTemplate()->getTemplatedDecl();
+  std::string Name;
+  if (getNewName(CXXRD, Name)) {
+    SourceLocation LocStart = TSD->getLocation();
+    TransAssert(LocStart.isValid() && "Invalid Location!");
+    TheRewriter->ReplaceText(LocStart, CXXRD->getNameAsString().size(), Name);
+  }
+
+  if (TSD->isExplicitSpecialization() && TSD->isCompleteDefinition()) {
+    for (CXXRecordDecl::base_class_const_iterator I = TSD->bases_begin(),
+         E = TSD->bases_end(); I != E; ++I) {
+      TypeSourceInfo *TSI = (*I).getTypeSourceInfo();
+      TransAssert(TSI && "Bad TypeSourceInfo!");
+      getDerived().TraverseTypeLoc(TSI->getTypeLoc());
+    }
   }
   return true;
 }
